@@ -122,7 +122,7 @@
     <ClInclude Include="utilities\logging.h" />
     <ClInclude Include="utilities\math.h" />
     <ClInclude Include="utilities\memory.h" />
-    <ClInclude Include="utilities\vmthook.h" />
+    <ClInclude Include="utilities\detourhook.h" />
     <ClInclude Include="utilities\xorstr.h" />
   </ItemGroup>
   <ItemGroup>

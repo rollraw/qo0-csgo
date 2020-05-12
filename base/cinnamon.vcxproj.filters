@@ -123,9 +123,6 @@
     <ClInclude Include="utilities\math.h">
       <Filter>include\utilities</Filter>
     </ClInclude>
-    <ClInclude Include="utilities\vmthook.h">
-      <Filter>include\utilities</Filter>
-    </ClInclude>
     <ClInclude Include="utilities\xorstr.h">
       <Filter>include\utilities</Filter>
     </ClInclude>
@@ -410,6 +407,9 @@
     </ClInclude>
     <ClInclude Include="..\dependencies\minhook\hde\table64.h">
       <Filter>dependencies\minhook\hde32</Filter>
+    </ClInclude>
+    <ClInclude Include="utilities\detourhook.h">
+      <Filter>include\utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

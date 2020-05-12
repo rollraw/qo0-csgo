@@ -1,5 +1,6 @@
 #pragma once
-
+// used: winapi, fmt includes
+#include "../common.h"
 // used: minhook hooking library
 #include "../../dependencies/minhook/minhook.h"
 
