@@ -199,27 +199,16 @@ void CNetvarManager::GrabOffsets()
 
 void CNetvarManager::StoreProps(RecvTable_t* pRecvTable, const std::uintptr_t uOffset, int nDumpTabs)
 {
-	const auto GetItemDataType = [](ESendPropType iRecvType) -> std::string_view
+	constexpr std::array<std::string_view, DPT_SENDPROPTYPEMAX> arrPropTypes =
 	{
-		switch (iRecvType)
-		{
-		case DPT_INT:
-			return XorStr("int");
-		case DPT_FLOAT:
-			return XorStr("float");
-		case DPT_VECTOR:
-			return XorStr("vector");
-		case DPT_VECTOR2D:
-			return XorStr("vector2d");
-		case DPT_STRING:
-			return XorStr("const char*");
-		case DPT_ARRAY:
-			return XorStr("std::array");
-		case DPT_INT64:
-			return XorStr("std::int64_t");
-		default:
-			return XorStr("void");
-		}
+		XorStr("int"),
+		XorStr("float"),
+		XorStr("vector"),
+		XorStr("vector2d"),
+		XorStr("const char*"),
+		XorStr("std::array"),
+		XorStr("datatable"),
+		XorStr("std::int64_t")
 	};
 
 	#if _DEBUG
@@ -243,7 +232,7 @@ void CNetvarManager::StoreProps(RecvTable_t* pRecvTable, const std::uintptr_t uO
 		if (FNV1A::Hash(pCurrentProp->szVarName) == FNV1A::HashConst("baseclass"))
 			continue;
 
-			// has child table
+		// has child table
 		if (auto pChildTable = pCurrentProp->pDataTable; pChildTable != nullptr &&
 			// has props
 			pChildTable->nProps > 0 &&
@@ -262,7 +251,7 @@ void CNetvarManager::StoreProps(RecvTable_t* pRecvTable, const std::uintptr_t uO
 		if (!mapProps[uHash].uOffset)
 		{
 			#if _DEBUG
-			fsDumpFile << szTable << XorStr("\t") << GetItemDataType(pCurrentProp->iRecvType) << " " << pCurrentProp->szVarName << XorStr(" = 0x") << std::uppercase << std::hex << uTotalOffset << ";\n";
+			fsDumpFile << szTable << XorStr("\t") << arrPropTypes.at(pCurrentProp->iRecvType) << " " << pCurrentProp->szVarName << XorStr(" = 0x") << std::uppercase << std::hex << uTotalOffset << ";\n";
 			#endif
 
 			// write values to map entry

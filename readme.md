@@ -5,7 +5,7 @@
 ### :space_invader: menu
 <img src="./resources/menu.png" alt="qo0-base" align="center">
 
-### :map: comments navigation
+### :world_map: comments navigation
 1. `@note:`
 2. `@todo:`
 3. `@test: [things to test] [date]`

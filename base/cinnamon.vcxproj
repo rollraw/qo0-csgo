@@ -11,6 +11,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\dependencies\imgui\cpp\imgui_stdlib.h" />
+    <ClInclude Include="..\dependencies\imgui\dx9\imgui_impl_dx9.h" />
+    <ClInclude Include="..\dependencies\imgui\imconfig.h" />
+    <ClInclude Include="..\dependencies\imgui\imgui.h" />
+    <ClInclude Include="..\dependencies\imgui\imgui_freetype.h" />
+    <ClInclude Include="..\dependencies\imgui\imgui_internal.h" />
+    <ClInclude Include="..\dependencies\imgui\imstb_rectpack.h" />
+    <ClInclude Include="..\dependencies\imgui\imstb_textedit.h" />
+    <ClInclude Include="..\dependencies\imgui\imstb_truetype.h" />
+    <ClInclude Include="..\dependencies\imgui\win32\imgui_impl_win32.h" />
     <ClInclude Include="..\resources\qo0icons.h" />
     <ClInclude Include="..\resources\smallest_pixel.h" />
     <ClInclude Include="..\resources\whitney.h" />
@@ -33,16 +43,6 @@
     <ClInclude Include="features\triggerbot.h" />
     <ClInclude Include="features\visuals.h" />
     <ClInclude Include="global.h" />
-    <ClInclude Include="imgui\cpp\imgui_stdlib.h" />
-    <ClInclude Include="imgui\dx9\imgui_impl_dx9.h" />
-    <ClInclude Include="imgui\imconfig.h" />
-    <ClInclude Include="imgui\imgui.h" />
-    <ClInclude Include="imgui\imgui_freetype.h" />
-    <ClInclude Include="imgui\imgui_internal.h" />
-    <ClInclude Include="imgui\imstb_rectpack.h" />
-    <ClInclude Include="imgui\imstb_textedit.h" />
-    <ClInclude Include="imgui\imstb_truetype.h" />
-    <ClInclude Include="imgui\win32\imgui_impl_win32.h" />
     <ClInclude Include="sdk\animations.h" />
     <ClInclude Include="sdk\bitbuf.h" />
     <ClInclude Include="sdk\bspflags.h" />
@@ -118,6 +118,13 @@
     <ClInclude Include="utilities\xorstr.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\dependencies\imgui\cpp\imgui_stdlib.cpp" />
+    <ClCompile Include="..\dependencies\imgui\dx9\imgui_impl_dx9.cpp" />
+    <ClCompile Include="..\dependencies\imgui\imgui.cpp" />
+    <ClCompile Include="..\dependencies\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\dependencies\imgui\imgui_freetype.cpp" />
+    <ClCompile Include="..\dependencies\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\dependencies\imgui\win32\imgui_impl_win32.cpp" />
     <ClCompile Include="core\config.cpp" />
     <ClCompile Include="core\hooks.cpp" />
     <ClCompile Include="core\interfaces.cpp" />
@@ -125,7 +132,6 @@
     <ClCompile Include="core\netvar.cpp" />
     <ClCompile Include="features\misc.cpp" />
     <ClCompile Include="features\prediction.cpp" />
-    <ClCompile Include="imgui\cpp\imgui_stdlib.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="features\antiaim.cpp" />
     <ClCompile Include="features\autowall.cpp" />
@@ -136,12 +142,6 @@
     <ClCompile Include="features\skinchanger.cpp" />
     <ClCompile Include="features\triggerbot.cpp" />
     <ClCompile Include="features\visuals.cpp" />
-    <ClCompile Include="imgui\dx9\imgui_impl_dx9.cpp" />
-    <ClCompile Include="imgui\imgui.cpp" />
-    <ClCompile Include="imgui\imgui_draw.cpp" />
-    <ClCompile Include="imgui\imgui_freetype.cpp" />
-    <ClCompile Include="imgui\imgui_widgets.cpp" />
-    <ClCompile Include="imgui\win32\imgui_impl_win32.cpp" />
     <ClCompile Include="sdk\convar.cpp" />
     <ClCompile Include="sdk\entity.cpp" />
     <ClCompile Include="sdk\hash\crc32.cpp" />
