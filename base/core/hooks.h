@@ -2,7 +2,7 @@
 // used: winapi, directx, fmt includes
 #include "../common.h"
 // used: hook setup/destroy
-#include "../utilities/vmthook.h"
+#include "../utilities/detourhook.h"
 // used: recvprop hook setup/destroy, recvproxydata
 #include "netvar.h"
 // used: baseclasses
@@ -72,8 +72,8 @@ namespace VTABLE
 		/* gameevent table */
 		FIREEVENT = 9,
 
-		/* sv_cheats table */
-		SVCHEATS_GETBOOL = 13,
+		/* convar table */
+		GETBOOL = 13,
 
 		/* netchannel table */
 		SENDNETMSG = 40,
@@ -82,26 +82,33 @@ namespace VTABLE
 }
 
 /*
- * VMT MANAGERS
- * virtual method table hook managers
+ * DETOURS
+ * detour hook managers
  */
-namespace VMT
+namespace DTR
 {
-	inline CVMTHook	Panel;
-	inline CVMTHook	Direct;
-	inline CVMTHook	Reset;
-	inline CVMTHook	Client;
-	inline CVMTHook	ClientMode;
-	inline CVMTHook	Engine;
-	inline CVMTHook	BspQuery;
-	inline CVMTHook	NetChannel;
-	inline CVMTHook	Prediction;
-	inline CVMTHook	SteamGameCoordinator;
-	inline CVMTHook	Sound;
-	inline CVMTHook	ModelRender;
-	inline CVMTHook	Surface;
-	inline CVMTHook	GameEvent;
-	inline CVMTHook	SvCheats;
+	inline CDetourHook Reset;
+	inline CDetourHook EndScene;
+	inline CDetourHook FrameStageNotify;
+	inline CDetourHook DispatchUserMessage;
+	inline CDetourHook OverrideView;
+	inline CDetourHook OverrideMouseInput;
+	inline CDetourHook CreateMove;
+	inline CDetourHook SendNetMsg;
+	inline CDetourHook SendDatagram;
+	inline CDetourHook GetViewModelFOV;
+	inline CDetourHook DoPostScreenEffects;
+	inline CDetourHook IsConnected;
+	inline CDetourHook ListLeavesInBox;
+	inline CDetourHook PaintTraverse;
+	inline CDetourHook DrawModelExecute;
+	inline CDetourHook RunCommand;
+	inline CDetourHook SendMessageGC;
+	inline CDetourHook RetrieveMessage;
+	inline CDetourHook EmitSound;
+	inline CDetourHook LockCursor;
+	inline CDetourHook PlaySoundSurface;
+	inline CDetourHook SvCheatsGetBool;
 }
 
 /*

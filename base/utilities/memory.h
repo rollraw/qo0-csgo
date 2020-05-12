@@ -100,6 +100,15 @@ namespace MEM
 	}
 
 	/*
+	 * virtual function implementation
+	 * returns native function of specified class at given index
+	 */
+	inline constexpr void* GetVFunc(void* thisptr, std::size_t nIndex)
+	{
+		return (void*)((*(std::uintptr_t**)thisptr)[nIndex]);
+	}
+
+	/*
 	 * virtual function call implementation
 	 * calls function of specified class at given index
 	 * @note: doesnt adding references automatic and needs to add it manually!

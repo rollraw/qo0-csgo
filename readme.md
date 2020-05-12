@@ -74,3 +74,4 @@ unsigned long ulSomeULong = 0UL;
 2. [json](https://github.com/nlohmann/json/)
 3. [freetype font rasterizer](https://www.freetype.org/)
 4. [{fmt} formatting](https://github.com/fmtlib/fmt/)
+5. [minhook](https://github.com/TsudaKageyu/minhook)

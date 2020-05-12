@@ -2,8 +2,8 @@
 // used: std::vector
 #include <vector>
 
-// uisng: entity vmt table
-#include "../utilities/vmthook.h"
+// uisng: hooks setup/remove
+#include "../utilities/detourhook.h"
 // uisng: cliententitylistener class
 #include "../sdk/interfaces/icliententitylist.h"
 

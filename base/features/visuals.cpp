@@ -369,7 +369,7 @@ void CVisuals::Event(IGameEvent* pEvent)
 
 void CVisuals::Chams(CBaseEntity* pLocal, IMatRenderContext* pContext, const DrawModelState_t& state, const ModelRenderInfo_t& pInfo, matrix3x4_t* pCustomBoneToWorld)
 {
-	static auto oDrawModelExecute = VMT::ModelRender.GetOriginal<decltype(&H::hkDrawModelExecute)>(VTABLE::DRAWMODELEXECUTE);
+	static auto oDrawModelExecute = DTR::DrawModelExecute.GetOriginal<decltype(&H::hkDrawModelExecute)>();
 
 	CBaseEntity* pEntity = I::ClientEntityList->Get<CBaseEntity>(pInfo.nEntityIndex);
 

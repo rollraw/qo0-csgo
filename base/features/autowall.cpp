@@ -106,7 +106,7 @@ void CAutoWall::ClipTraceToPlayers(const Vector& vecAbsStart, const Vector& vecA
 		if (pEntity == nullptr || !pEntity->IsAlive() || pEntity->IsDormant())
 			continue;
 
-		if (pFilter != nullptr && !pFilter->ShouldHitEntity(pEntity, fMask))
+		if (pFilter != nullptr && pFilter->ShouldHitEntity(pEntity, fMask) == false)
 			continue;
 
 		const ICollideable* pCollideable = pEntity->GetCollideable();

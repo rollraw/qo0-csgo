@@ -39,106 +39,108 @@ constexpr std::array<const char*, 3U> arrSmokeMaterials =
 #pragma region hooks_get
 bool H::Setup()
 {
-	if (!VMT::Direct.Setup(I::DirectDevice))
+	if (MH_Initialize() != MH_OK)
+		throw std::runtime_error(XorStr("failed initialize minhook"));
+
+	if (!DTR::Reset.Create(MEM::GetVFunc(I::DirectDevice, VTABLE::RESET), &hkReset))
 		return false;
 
-	VMT::Direct.Replace(H::hkReset, VTABLE::RESET);
-	VMT::Direct.Replace(H::hkEndScene, VTABLE::ENDSCENE);
-
-	if (!VMT::Client.Setup(I::Client))
+	if (!DTR::EndScene.Create(MEM::GetVFunc(I::DirectDevice, VTABLE::ENDSCENE), &hkEndScene))
 		return false;
 
-	VMT::Client.Replace(H::hkFrameStageNotify, VTABLE::FRAMESTAGENOTIFY);
-	VMT::Client.Replace(H::hkDispatchUserMessage, VTABLE::DISPATCHUSERMESSAGE);
-
-	if (!VMT::ClientMode.Setup(I::ClientMode))
+	if (!DTR::FrameStageNotify.Create(MEM::GetVFunc(I::Client, VTABLE::FRAMESTAGENOTIFY), &hkFrameStageNotify))
 		return false;
 
-	VMT::ClientMode.Replace(H::hkOverrideView, VTABLE::OVERRIDEVIEW);
+	if (!DTR::DispatchUserMessage.Create(MEM::GetVFunc(I::Client, VTABLE::DISPATCHUSERMESSAGE), &hkDispatchUserMessage))
+		return false;
+
+	if (!DTR::OverrideView.Create(MEM::GetVFunc(I::ClientMode, VTABLE::OVERRIDEVIEW), &hkOverrideView))
+		return false;
 
 	// @note: be useful for mouse event aimbot
 	#if 0
-	VMT::ClientMode.Replace(H::hkOverrideMouseInput, VTABLE::OVERRIDEMOUSEINPUT); 
+	if (!DTR::OverrideMouseInput.Replace(MEM::GetVFunc(I::ClientMode, VTABLE::OVERRIDEMOUSEINPUT), &hkOverrideMouseInput))
+		return false;
 	#endif
 
-	VMT::ClientMode.Replace(H::hkCreateMove, VTABLE::CREATEMOVE);
-	VMT::ClientMode.Replace(H::hkGetViewModelFOV, VTABLE::GETVIEWMODELFOV);
-	VMT::ClientMode.Replace(H::hkDoPostScreenEffects, VTABLE::DOPOSTSCREENEFFECTS);
-
-	if (!VMT::Engine.Setup(I::Engine))
+	if (!DTR::CreateMove.Create(MEM::GetVFunc(I::ClientMode, VTABLE::CREATEMOVE), &hkCreateMove))
 		return false;
 
-	VMT::Engine.Replace(H::hkIsConnected, VTABLE::ISCONNECTED);
-
-	if (!VMT::BspQuery.Setup(I::Engine->GetBSPTreeQuery()))
+	if (!DTR::GetViewModelFOV.Create(MEM::GetVFunc(I::ClientMode, VTABLE::GETVIEWMODELFOV), &hkGetViewModelFOV))
 		return false;
 
-	VMT::BspQuery.Replace(H::hkListLeavesInBox, VTABLE::LISTLEAVESINBOX);
-
-	if (!VMT::Panel.Setup(I::Panel))
+	if (!DTR::DoPostScreenEffects.Create(MEM::GetVFunc(I::ClientMode, VTABLE::DOPOSTSCREENEFFECTS), &hkDoPostScreenEffects))
 		return false;
 
-	VMT::Panel.Replace(H::hkPaintTraverse, VTABLE::PAINTTRAVERSE);
-
-	if (!VMT::ModelRender.Setup(I::ModelRender))
+	if (!DTR::IsConnected.Create(MEM::GetVFunc(I::Engine, VTABLE::ISCONNECTED), &hkIsConnected))
 		return false;
 
-	VMT::ModelRender.Replace(H::hkDrawModelExecute, VTABLE::DRAWMODELEXECUTE);
-
-	if (!VMT::Prediction.Setup(I::Prediction))
+	if (!DTR::ListLeavesInBox.Create(MEM::GetVFunc(I::Engine->GetBSPTreeQuery(), VTABLE::LISTLEAVESINBOX), &hkListLeavesInBox))
 		return false;
 
-	VMT::Prediction.Replace(H::hkRunCommand, VTABLE::RUNCOMMAND);
-
-	if (!VMT::SteamGameCoordinator.Setup(I::SteamGameCoordinator))
+	if (!DTR::PaintTraverse.Create(MEM::GetVFunc(I::Panel, VTABLE::PAINTTRAVERSE), &hkPaintTraverse))
 		return false;
 
-	VMT::SteamGameCoordinator.Replace(H::hkSendMessage, VTABLE::SENDMESSAGE);
-	VMT::SteamGameCoordinator.Replace(H::hkRetrieveMessage, VTABLE::RETRIEVEMESSAGE);
-
-	if (!VMT::Sound.Setup(I::EngineSound))
+	if (!DTR::DrawModelExecute.Create(MEM::GetVFunc(I::ModelRender, VTABLE::DRAWMODELEXECUTE), &hkDrawModelExecute))
 		return false;
 
-	VMT::Sound.Replace(H::hkEmitSound, VTABLE::EMITSOUND);
-
-	if (!VMT::Surface.Setup(I::Surface))
+	if (!DTR::RunCommand.Create(MEM::GetVFunc(I::Prediction, VTABLE::RUNCOMMAND), &hkRunCommand))
 		return false;
 
-	VMT::Surface.Replace(H::hkLockCursor, VTABLE::LOCKCURSOR);
-	VMT::Surface.Replace(H::hkPlaySound, VTABLE::PLAYSOUND);
+	if (!DTR::SendMessageGC.Create(MEM::GetVFunc(I::SteamGameCoordinator, VTABLE::SENDMESSAGE), &hkSendMessage))
+		return false;
+
+	if (!DTR::RetrieveMessage.Create(MEM::GetVFunc(I::SteamGameCoordinator, VTABLE::RETRIEVEMESSAGE), &hkRetrieveMessage))
+		return false;
+
+	if (!DTR::EmitSound.Create(MEM::GetVFunc(I::EngineSound, VTABLE::EMITSOUND), &hkEmitSound))
+		return false;
+
+	if (!DTR::LockCursor.Create(MEM::GetVFunc(I::Surface, VTABLE::LOCKCURSOR), &hkLockCursor))
+		return false;
+
+	if (!DTR::PlaySoundSurface.Create(MEM::GetVFunc(I::Surface, VTABLE::PLAYSOUND), &hkPlaySound))
+		return false;
 
 	static CConVar* sv_cheats = I::ConVar->FindVar(XorStr("sv_cheats"));
-	if (!VMT::SvCheats.Setup(sv_cheats))
-		return false;
 
-	VMT::SvCheats.Replace(H::hkSvCheatsGetBool, VTABLE::SVCHEATS_GETBOOL);
+	if (!DTR::SvCheatsGetBool.Create(MEM::GetVFunc(sv_cheats, VTABLE::GETBOOL), &hkSvCheatsGetBool))
+		return false;
 
 	return true;
 }
 
 void H::Restore()
 {
-	VMT::Direct.~CVMTHook();
-	VMT::Panel.~CVMTHook();
-	VMT::NetChannel.~CVMTHook();
-	VMT::Client.~CVMTHook();
-	VMT::ClientMode.~CVMTHook();
-	VMT::Engine.~CVMTHook();
-	VMT::BspQuery.~CVMTHook();
-	VMT::Prediction.~CVMTHook();
-	VMT::SteamGameCoordinator.~CVMTHook();
-	VMT::Sound.~CVMTHook();
-	VMT::ModelRender.~CVMTHook();
-	VMT::Surface.~CVMTHook();
-	VMT::GameEvent.~CVMTHook();
-	VMT::SvCheats.~CVMTHook();
+	DTR::Reset.~CDetourHook();
+	DTR::EndScene.~CDetourHook();
+	DTR::FrameStageNotify.~CDetourHook();
+	DTR::DispatchUserMessage.~CDetourHook();
+	DTR::OverrideView.~CDetourHook();
+	DTR::OverrideMouseInput.~CDetourHook();
+	DTR::CreateMove.~CDetourHook();
+	DTR::GetViewModelFOV.~CDetourHook();
+	DTR::DoPostScreenEffects.~CDetourHook();
+	DTR::IsConnected.~CDetourHook();
+	DTR::ListLeavesInBox.~CDetourHook();
+	DTR::PaintTraverse.~CDetourHook();
+	DTR::DrawModelExecute.~CDetourHook();
+	DTR::RunCommand.~CDetourHook();
+	DTR::SendMessageGC.~CDetourHook();
+	DTR::RetrieveMessage.~CDetourHook();
+	DTR::EmitSound.~CDetourHook();
+	DTR::LockCursor.~CDetourHook();
+	DTR::PlaySoundSurface.~CDetourHook();
+	DTR::SvCheatsGetBool.~CDetourHook();
+
+	MH_Uninitialize();
 }
 #pragma endregion
 
 #pragma region hooks_handlers
 long D3DAPI H::hkReset(IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
-	static auto oReset = VMT::Direct.GetOriginal<decltype(&hkReset)>(VTABLE::RESET);
+	static auto oReset = DTR::Reset.GetOriginal<decltype(&hkReset)>();//VMT::Direct.GetOriginal<decltype(&hkReset)>(VTABLE::RESET);
 
 	// check for first initialization
 	if (!D::bInitialized)
@@ -158,7 +160,7 @@ long D3DAPI H::hkReset(IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pPresen
 
 long D3DAPI H::hkEndScene(IDirect3DDevice9* pDevice)
 {
-	static auto oEndScene = VMT::Direct.GetOriginal<decltype(&hkEndScene)>(VTABLE::ENDSCENE);
+	static auto oEndScene = DTR::EndScene.GetOriginal<decltype(&hkEndScene)>();
 	static void* pUsedAddress = _ReturnAddress();
 
 	// search for gameoverlay address
@@ -211,7 +213,7 @@ long D3DAPI H::hkEndScene(IDirect3DDevice9* pDevice)
 
 bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInputSampleTime, CUserCmd* pCmd)
 {
-	static auto oCreateMove = VMT::ClientMode.GetOriginal<decltype(&hkCreateMove)>(VTABLE::CREATEMOVE);
+	static auto oCreateMove = DTR::CreateMove.GetOriginal<decltype(&hkCreateMove)>();
 
 	/*
 	 * get global localplayer pointer
@@ -223,11 +225,14 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	if (pCmd->iCommandNumber == 0)
 		return oCreateMove(thisptr, edx, flInputSampleTime, pCmd);
 
-	// get global cmd pointer
+	// save global cmd pointer
 	G::pCmd = pCmd;
 
 	if (I::ClientState == nullptr || I::Engine->IsPlayingDemo())
 		return oCreateMove(thisptr, edx, flInputSampleTime, pCmd);
+
+	// netchannel pointer
+	INetChannel* pNetChannel = (INetChannel*)I::ClientState->pNetChannel;
 
 	// get stack frame without asm inlines
 	// safe and will not break if you omitting frame pointer
@@ -311,26 +316,24 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 		G::vecFakeOrigin = pLocal->GetOrigin();
 	}
 
-	// netchannel pointer
-	INetChannel* pNetChannel = (INetChannel*)I::ClientState->pNetChannel;
-
 	if (C::Get<bool>(Vars.bPingSpike))
 		CLagCompensation::Get().UpdateIncomingSequences(pNetChannel);
 	else
 		CLagCompensation::Get().ClearIncomingSequences();
 
-	if (!VMT::NetChannel.bTableHooked)
+	// @note: do not restore/remove this when unloading
+	if (pNetChannel != nullptr)
 	{
-		if (pNetChannel != nullptr)
-		{
-			if (VMT::NetChannel.Setup(pNetChannel))
-			{
-				VMT::NetChannel.Replace(H::hkSendNetMsg, VTABLE::SENDNETMSG);
-				VMT::NetChannel.Replace(H::hkSendDatagram, VTABLE::SENDDATAGRAM);
-			}
-		}
-		else
-			VMT::NetChannel.~CVMTHook();
+		if (!DTR::SendNetMsg.IsHooked())
+			DTR::SendNetMsg.Create(MEM::GetVFunc(pNetChannel, VTABLE::SENDNETMSG), H::hkSendNetMsg);
+
+		if (!DTR::SendDatagram.IsHooked())
+			DTR::SendDatagram.Create(MEM::GetVFunc(pNetChannel, VTABLE::SENDDATAGRAM), H::hkSendDatagram);
+	}
+	else
+	{
+		DTR::SendNetMsg.Remove();
+		DTR::SendDatagram.Remove();
 	}
 
 	// get next global sendpacket state
@@ -343,7 +346,7 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 
 void FASTCALL H::hkPaintTraverse(ISurface* thisptr, int edx, unsigned int iPanel, bool bForceRepaint, bool bForce)
 {
-	static auto oPaintTraverse = VMT::Panel.GetOriginal<decltype(&hkPaintTraverse)>(VTABLE::PAINTTRAVERSE);
+	static auto oPaintTraverse = DTR::PaintTraverse.GetOriginal<decltype(&hkPaintTraverse)>();
 
 	// remove zoom panel
 	if (!I::Engine->IsTakingScreenshot() && C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SCOPE) && !strcmp(I::Panel->GetName(iPanel), XorStr("HudZoom")))
@@ -354,13 +357,13 @@ void FASTCALL H::hkPaintTraverse(ISurface* thisptr, int edx, unsigned int iPanel
 
 void FASTCALL H::hkPlaySound(ISurface* thisptr, int edx, const char* szFileName)
 {
-	static auto oPlaySound = VMT::Surface.GetOriginal<decltype(&hkPlaySound)>(VTABLE::PLAYSOUND);
+	static auto oPlaySound = DTR::PlaySoundSurface.GetOriginal<decltype(&hkPlaySound)>();
 	oPlaySound(thisptr, edx, szFileName);
 }
 
 void FASTCALL H::hkLockCursor(ISurface* thisptr, int edx)
 {
-	static auto oLockCursor = VMT::Surface.GetOriginal<decltype(&hkLockCursor)>(VTABLE::LOCKCURSOR);
+	static auto oLockCursor = DTR::LockCursor.GetOriginal<decltype(&hkLockCursor)>();
 
 	if (W::bMainOpened)
 	{
@@ -373,7 +376,7 @@ void FASTCALL H::hkLockCursor(ISurface* thisptr, int edx)
 
 void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFrameStage stage)
 {
-	static auto oFrameStageNotify = VMT::Client.GetOriginal<decltype(&hkFrameStageNotify)>(VTABLE::FRAMESTAGENOTIFY);
+	static auto oFrameStageNotify = DTR::FrameStageNotify.GetOriginal<decltype(&hkFrameStageNotify)>();
 
 	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
 		return oFrameStageNotify(thisptr, edx, stage);
@@ -495,14 +498,14 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 
 bool FASTCALL H::hkDispatchUserMessage(IBaseClientDll* thisptr, int edx, int iMessageType, unsigned int a3, unsigned int uBytes, const void* bfMessageData)
 {
-	static auto oDispatchUserMessage = VMT::Client.GetOriginal<decltype(&hkDispatchUserMessage)>(VTABLE::DISPATCHUSERMESSAGE);
+	static auto oDispatchUserMessage = DTR::DispatchUserMessage.GetOriginal<decltype(&hkDispatchUserMessage)>();
 
 	return oDispatchUserMessage(thisptr, edx, iMessageType, a3, uBytes, bfMessageData);
 }
 
 void FASTCALL H::hkDrawModelExecute(IVModelRender* thisptr, int edx, IMatRenderContext* pContext, const DrawModelState_t& state, const ModelRenderInfo_t& pInfo, matrix3x4_t* pCustomBoneToWorld)
 {
-	static auto oDrawModelExecute = VMT::ModelRender.GetOriginal<decltype(&hkDrawModelExecute)>(VTABLE::DRAWMODELEXECUTE);
+	static auto oDrawModelExecute = DTR::DrawModelExecute.GetOriginal<decltype(&hkDrawModelExecute)>();
 
 	if (!I::Engine->IsInGame() || I::ModelRender->IsForcedMaterialOverride() || I::Engine->IsTakingScreenshot())
 		return oDrawModelExecute(thisptr, edx, pContext, state, pInfo, pCustomBoneToWorld);
@@ -522,7 +525,7 @@ void FASTCALL H::hkDrawModelExecute(IVModelRender* thisptr, int edx, IMatRenderC
 
 int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, Vector& vecMins, Vector& vecMaxs, unsigned short* puList, int iListMax)
 {
-	static auto oListLeavesInBox = VMT::BspQuery.GetOriginal<decltype(&hkListLeavesInBox)>(VTABLE::LISTLEAVESINBOX);
+	static auto oListLeavesInBox = DTR::ListLeavesInBox.GetOriginal<decltype(&hkListLeavesInBox)>();
 
 	// @credits: soufiw
 	// occulusion getting updated on player movement/angle change,
@@ -562,7 +565,7 @@ int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, Vector& vecMins, Vecto
 
 bool FASTCALL H::hkIsConnected(IEngineClient* thisptr, int edx)
 {
-	static auto oIsConnected = VMT::Engine.GetOriginal<decltype(&hkIsConnected)>(VTABLE::ISCONNECTED);
+	static auto oIsConnected = DTR::IsConnected.GetOriginal<decltype(&hkIsConnected)>();
 
 	// @xref: "IsLoadoutAllowed"
 	// sub above the string
@@ -579,7 +582,7 @@ bool FASTCALL H::hkIsConnected(IEngineClient* thisptr, int edx)
 
 bool FASTCALL H::hkSendNetMsg(INetChannel* thisptr, int edx, INetMessage* pMessage, bool bForceReliable, bool bVoice)
 {
-	static auto oSendNetMsg = VMT::NetChannel.GetOriginal<decltype(&hkSendNetMsg)>(VTABLE::SENDNETMSG);
+	static auto oSendNetMsg = DTR::SendNetMsg.GetOriginal<decltype(&hkSendNetMsg)>();
 
 	/*
 	 * @note: disable files crc check (sv_pure)
@@ -601,9 +604,9 @@ bool FASTCALL H::hkSendNetMsg(INetChannel* thisptr, int edx, INetMessage* pMessa
 
 int FASTCALL H::hkSendDatagram(INetChannel* pNetChannel, int edx, bf_write* pDatagram)
 {
-	static auto oSendDatagram = VMT::NetChannel.GetOriginal<decltype(&hkSendDatagram)>(VTABLE::SENDDATAGRAM);
+	static auto oSendDatagram = DTR::SendDatagram.GetOriginal<decltype(&hkSendDatagram)>();
 
-	if (!C::Get<bool>(Vars.bPingSpike) || pDatagram != nullptr)
+	if (!I::Engine->IsInGame() || !C::Get<bool>(Vars.bPingSpike) || pDatagram != nullptr)
 		return oSendDatagram(pNetChannel, edx, pDatagram);
 
 	int oInReliableState = pNetChannel->iInReliableState;
@@ -621,7 +624,7 @@ int FASTCALL H::hkSendDatagram(INetChannel* pNetChannel, int edx, bf_write* pDat
 
 void FASTCALL H::hkOverrideView(IClientModeShared* thisptr, int edx, CViewSetup* pSetup)
 {
-	static auto oOverrideView = VMT::ClientMode.GetOriginal<decltype(&hkOverrideView)>(VTABLE::OVERRIDEVIEW);
+	static auto oOverrideView = DTR::OverrideView.GetOriginal<decltype(&hkOverrideView)>();
 	
 	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
 		return oOverrideView(thisptr, edx, pSetup);
@@ -641,7 +644,7 @@ void FASTCALL H::hkOverrideView(IClientModeShared* thisptr, int edx, CViewSetup*
 
 	if (CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(*pWeapon->GetItemDefinitionIndex());
 		pWeaponData != nullptr && C::Get<bool>(Vars.bScreen) && C::Get<float>(Vars.flScreenCameraFOV) != 0.f &&
-		// check for not zoomed sniper
+		// check is we not scoped
 		(pWeaponData->nWeaponType == WEAPONTYPE_SNIPER ? !pLocal->IsScoped() : true))
 		// set camera fov
 		pSetup->flFOV += C::Get<float>(Vars.flScreenCameraFOV);
@@ -651,17 +654,17 @@ void FASTCALL H::hkOverrideView(IClientModeShared* thisptr, int edx, CViewSetup*
 
 void FASTCALL H::hkOverrideMouseInput(IClientModeShared* thisptr, int edx, float* x, float* y)
 {
-	static auto oOverrideMouseInput = VMT::ClientMode.GetOriginal<decltype(&hkOverrideMouseInput)>(VTABLE::OVERRIDEMOUSEINPUT);
-
+	static auto oOverrideMouseInput = DTR::OverrideMouseInput.GetOriginal<decltype(&hkOverrideMouseInput)>();
+	
 	if (!I::Engine->IsInGame())
 		return oOverrideMouseInput(thisptr, edx, x, y);
-
+	
 	oOverrideMouseInput(thisptr, edx, x, y);
 }
 
 float FASTCALL H::hkGetViewModelFOV(IClientModeShared* thisptr, int edx)
 {
-	static auto oGetViewModelFOV = VMT::ClientMode.GetOriginal<decltype(&hkGetViewModelFOV)>(VTABLE::GETVIEWMODELFOV);
+	static auto oGetViewModelFOV = DTR::GetViewModelFOV.GetOriginal<decltype(&hkGetViewModelFOV)>();
 
 	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
 		return oGetViewModelFOV(thisptr, edx);
@@ -676,7 +679,7 @@ float FASTCALL H::hkGetViewModelFOV(IClientModeShared* thisptr, int edx)
 
 int FASTCALL H::hkDoPostScreenEffects(IClientModeShared* thisptr, int edx, CViewSetup* pSetup)
 {
-	static auto oDoPostScreenEffects = VMT::ClientMode.GetOriginal<decltype(&hkDoPostScreenEffects)>(VTABLE::DOPOSTSCREENEFFECTS);
+	static auto oDoPostScreenEffects = DTR::DoPostScreenEffects.GetOriginal<decltype(&hkDoPostScreenEffects)>();
 
 	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
 		return oDoPostScreenEffects(thisptr, edx, pSetup);
@@ -691,7 +694,7 @@ int FASTCALL H::hkDoPostScreenEffects(IClientModeShared* thisptr, int edx, CView
 
 void FASTCALL H::hkRunCommand(IPrediction* thisptr, int edx, CBaseEntity* pEntity, CUserCmd* pCmd, IMoveHelper* pMoveHelper)
 {
-	static auto oRunCommand = VMT::Prediction.GetOriginal<decltype(&hkRunCommand)>(VTABLE::RUNCOMMAND);
+	static auto oRunCommand = DTR::RunCommand.GetOriginal<decltype(&hkRunCommand)>();
 	oRunCommand(thisptr, edx, pEntity, pCmd, pMoveHelper);
 
 	// get movehelper interface pointer
@@ -700,7 +703,7 @@ void FASTCALL H::hkRunCommand(IPrediction* thisptr, int edx, CBaseEntity* pEntit
 
 int FASTCALL H::hkSendMessage(ISteamGameCoordinator* thisptr, int edx, std::uint32_t uMsgType, const void* pData, std::uint32_t uData)
 {
-	static auto oSendMessage = VMT::SteamGameCoordinator.GetOriginal<decltype(&hkSendMessage)>(VTABLE::SENDMESSAGE);
+	static auto oSendMessage = DTR::SendMessageGC.GetOriginal<decltype(&hkSendMessage)>();
 
 	std::uint32_t uMessageType = uMsgType & 0x7FFFFFFF;
 	void* pDataMutable = const_cast<void*>(pData);
@@ -721,7 +724,7 @@ int FASTCALL H::hkSendMessage(ISteamGameCoordinator* thisptr, int edx, std::uint
 
 int FASTCALL H::hkRetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::uint32_t* puMsgType, void* pDest, std::uint32_t uDest, std::uint32_t* puMsgSize)
 {
-	static auto oRetrieveMessage = VMT::SteamGameCoordinator.GetOriginal<decltype(&hkRetrieveMessage)>(VTABLE::RETRIEVEMESSAGE);
+	static auto oRetrieveMessage = DTR::RetrieveMessage.GetOriginal<decltype(&hkRetrieveMessage)>();
 	int gcStatus = oRetrieveMessage(thisptr, edx, puMsgType, pDest, uDest, puMsgSize);
 
 	if (gcStatus != EGCResultOK)
@@ -743,7 +746,7 @@ int FASTCALL H::hkRetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::
 
 void FASTCALL H::hkEmitSound(IEngineSound* thisptr, int edx, IRecipientFilter& filter, int nEntityIndex, int iChannel, const char* szSoundEntry, unsigned int uSoundEntryHash, const char* szSample, float flVolume, float flAttenuation, int nSeed, int iFlags, int iPitch, const Vector* vecOrigin, const Vector* vecDirection, CUtlVector<Vector>* pUtlVecOrigins, bool bUpdatePositions, int flSoundTime, int nSpeakerEntity, StartSoundParams_t& parameters)
 {
-	static auto oEmitSound = VMT::Sound.GetOriginal<decltype(&hkEmitSound)>(VTABLE::EMITSOUND);
+	static auto oEmitSound = DTR::EmitSound.GetOriginal<decltype(&hkEmitSound)>();
 
 	// @note: for sound esp use: "player/footsteps", "player/land", "clipout" sounds check
 
@@ -766,7 +769,7 @@ void FASTCALL H::hkEmitSound(IEngineSound* thisptr, int edx, IRecipientFilter& f
 
 bool FASTCALL H::hkSvCheatsGetBool(CConVar* thisptr, int edx)
 {
-	static auto oSvCheatsGetBool = VMT::SvCheats.GetOriginal<decltype(&hkSvCheatsGetBool)>(VTABLE::SVCHEATS_GETBOOL);
+	static auto oSvCheatsGetBool = DTR::SvCheatsGetBool.GetOriginal<decltype(&hkSvCheatsGetBool)>();
 	static std::uintptr_t uCAM_ThinkReturn = (MEM::FindPattern(CLIENT_DLL, XorStr("85 C0 75 30 38 86"))); // @xref: "Pitch: %6.1f   Yaw: %6.1f   Dist: %6.1f %16s"
 
 	if (_ReturnAddress() == (void*)uCAM_ThinkReturn)

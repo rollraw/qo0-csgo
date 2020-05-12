@@ -132,7 +132,7 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 			pDrawList->AddRectFilledMultiColor(ImVec2(vecPos.x + flWindowWidth - flWindowWidth / 3.f - 8.f, vecPos.y - 6.f), ImVec2(vecPos.x + flWindowWidth - 8.f, vecPos.y - 8.f), ImColor(110, 100, 130, 255), ImColor(75, 50, 105, 255), ImColor(75, 50, 105, 255), ImColor(110, 100, 130, 255));
 
 			// add tabs
-			const std::array<CTab, 4U> arrTabs =
+			static std::array<CTab, 4U> const arrTabs =
 			{
 				CTab{ XorStr("rage"), &T::RageBot },
 				CTab{ XorStr("legit"), &T::LegitBot },
@@ -344,7 +344,7 @@ void T::Visuals()
 				ImGui::EndMenuBar();
 			}
 
-			const std::array<CTab, 3U> arrEspTabs =
+			static std::array<CTab, 3U> const arrEspTabs =
 			{
 				CTab{ XorStr("main"), [&style]()
 			{

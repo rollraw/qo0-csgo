@@ -139,7 +139,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 	}
 	catch (const std::runtime_error& ex)
 	{
-		// show error message (replace to your exception handler)
+		// show error message (or replace to your exception handler)
 		MessageBox(nullptr, ex.what(), nullptr, MB_OK | MB_ICONERROR | MB_TOPMOST);
 		FreeLibraryAndExitThread((HMODULE)lpParameter, EXIT_SUCCESS);
 	}
