@@ -102,13 +102,13 @@
 
 /* imgui */
 // @credits: https://github.com/ocornut/imgui
-#include "imgui/imgui.h"
-#include "imgui/imgui_freetype.h"
+#include "../dependencies/imgui/imgui.h"
+#include "../dependencies/imgui/imgui_freetype.h"
 
 /* imgui implementation */
-#include "imgui/imgui_internal.h"
-#include "imgui/dx9/imgui_impl_dx9.h"
-#include "imgui/win32/imgui_impl_win32.h"
+#include "../dependencies/imgui/imgui_internal.h"
+#include "../dependencies/imgui/dx9/imgui_impl_dx9.h"
+#include "../dependencies/imgui/win32/imgui_impl_win32.h"
 
 /* formatting library */
 // @credits: https://github.com/fmtlib/fmt/

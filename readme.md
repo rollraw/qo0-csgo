@@ -2,10 +2,10 @@
 <a href="https://github.com/rollraw/qo0-base/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/rollraw/qo0-base?color=blueviolet"></a>
 <a href="https://github.com/rollraw/qo0-base/blob/master/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/rollraw/qo0-base?color=blueviolet"></a>
 
-### 👾 menu
+### :space_invader: menu
 <img src="./resources/menu.png" alt="qo0-base" align="center">
 
-### 🗺 comments navigation
+### :map: comments navigation
 1. `@note:`
 2. `@todo:`
 3. `@test: [things to test] [date]`
@@ -14,7 +14,7 @@
 
 #
 
-### 🧪 conventions
+### :test_tube: conventions
 1. prefix classes with 'C' and interfaces classes 'I'
 ```
 CSomeClass
@@ -27,15 +27,15 @@ ISomeInterface
 
 #
 
-### 📄 code style
+### :page_facing_up: code style
 1. all curly braces should be on it's own line
 ```cpp
 if (true)
 {
-		while (true)
-		{
-				// something...
-		}
+	while (true)
+	{
+		// something...
+	}
 }
 ```
 
@@ -62,14 +62,15 @@ unsigned long ulSomeULong = 0UL;
 
 #
 
-### 🔖 preproccesor definitions
+### :bookmark: preproccesor definitions
 1. `_DEBUG 1` - disable string encryption enables console logs (automatic switches with compilation configuration)
 2. `NDEBUG 1` - fully disables debug, opposite of _DEBUG (automatic switches with compilation configuration)
 3. `ACRONIX_CONSOLE 1` - enable external console logging but deactivates file logging
 
 #
 
-### 🎈 additional dependencies
-1. [dear imgui](https://github.com/ocornut/imgui)
-2. [json](https://github.com/nlohmann/json)
+### :balloon: additional dependencies
+1. [dear imgui](https://github.com/ocornut/imgui/)
+2. [json](https://github.com/nlohmann/json/)
 3. [freetype font rasterizer](https://www.freetype.org/)
+4. [{fmt} formatting](https://github.com/fmtlib/fmt/)

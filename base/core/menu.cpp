@@ -15,7 +15,7 @@
 // used: skinchanger tab items map
 #include "../features/skinchanger.h"
 // used: inputtext() wrappers for c++ standard library (stl) type: std::string
-#include "../imgui/cpp/imgui_stdlib.h"
+#include "../../dependencies/imgui/cpp/imgui_stdlib.h"
 
 #pragma region menu_arrays
 const std::pair<const char*, std::uint32_t> arrColors[] =

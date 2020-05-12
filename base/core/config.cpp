@@ -101,40 +101,6 @@ bool C::Save(std::string_view szFileName)
 		default:
 			break;
 		}
-		
-		/*
-		case CT_HASH("std::vector<float>"):
-		{
-			auto vec = item.get<std::vector<float>>();
-
-			/// Create a separate node to store the vector values in it
-			nlohmann::json sub;
-
-			/// Fill node with all vector values
-			for (auto& cur : vec)
-				sub.push_back(cur);
-
-			/// Now dump all the data
-			cur["inner"] = sub.dump();
-
-			break;
-		}
-		case CT_HASH("std::vector<bool>"):
-		{
-			auto vec = item.get<std::vector<bool>>();
-
-			/// Create a separate node to store the vector values in it
-			nlohmann::json sub;
-
-			/// Fill node with all vector values
-			for (auto& cur : vec)
-				sub.push_back(static_cast<int>(cur));
-
-			/// Now dump all the data
-			cur["inner"] = sub.dump();
-
-			break;
-		}*/
 
 		// add current variable to config
 		config.push_back(entry);
@@ -242,33 +208,6 @@ bool C::Load(std::string_view szFileName)
 
 			break;
 		}
-		/*case CT_HASH("std::vector<int>"):
-		{
-			auto vec = nlohmann::json::parse(item["inner"].get<std::string>());
-			auto& item_vec = cur_item.get<std::vector<int>>();
-
-			/// Go through all the config items
-			for (auto i = 0u; i < vec.size(); i++)
-				/// Check if item is out of bounds
-				if (i < item_vec.size())
-					item_vec.at(i) = vec.at(i).get<int>();
-
-			break;
-		}
-		case CT_HASH("std::vector<float>"):
-		{
-			auto vec = nlohmann::json::parse(item["inner"].get<std::string>());
-			auto& item_vec = cur_item.get<std::vector<float>>();
-
-			/// Go through all the config items
-			for (auto i = 0u; i < vec.size(); i++)
-				/// Check if item is out of bounds
-				if (i < item_vec.size())
-					item_vec.at(i) = vec.at(i).get<float>();
-
-			break;
-		}
-		*/
 		default:
 			break;
 		}

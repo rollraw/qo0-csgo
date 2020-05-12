@@ -5,7 +5,7 @@
 
 std::uintptr_t MEM::FindPattern(const char* szModuleName, const char* szPattern)
 {
-	static auto PatternByte = [](const char* szPattern)
+	static auto PatternByte = [](const char* szPattern) -> std::vector<int>
 	{
 		std::vector<int> vecBytes{ };
 		char* chStart = (char*)szPattern;

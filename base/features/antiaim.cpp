@@ -51,7 +51,7 @@ void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, QAngle angles, bool& bSe
 			return;
 	}
 	// grenade throw check
-	else if (CBaseCSGrenade* pGrenade = (CBaseCSGrenade*)pWeapon; pGrenade != nullptr && pWeaponData->nWeaponType == WEAPONTYPE_GRENADE)
+	else if (auto pGrenade = (CBaseCSGrenade*)pWeapon; pGrenade != nullptr && pWeaponData->nWeaponType == WEAPONTYPE_GRENADE)
 	{
 		// check is being thrown a grenade
 		if (!pGrenade->IsPinPulled() || pCmd->iButtons & (IN_ATTACK | IN_SECOND_ATTACK))
