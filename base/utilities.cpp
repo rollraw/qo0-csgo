@@ -35,15 +35,6 @@ void U::TraceLine(const Vector& vecAbsStart, const Vector& vecAbsEnd, unsigned i
 	I::EngineTrace->TraceRay(ray, fMask, &filter, pTrace);
 }
 
-void U::ForceMaterial(IMaterial* pMaterial, Color color)
-{
-	if (pMaterial != nullptr && !pMaterial->IsErrorMaterial())
-	{
-		I::RenderView->SetColorModulation(color.Base());
-		I::ModelRender->ForcedMaterialOverride(pMaterial);
-	}
-}
-
 void U::ForceFullUpdate()
 {
 	// update hud weapon icon

@@ -61,7 +61,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 
 		// version check to know when u need to fix something
 		#if ACRONIX_CONSOLE
-		if (FNV1A_t uVersionHash = FNV1A::Hash(I::Engine->GetProductVersionString()); uVersionHash != FNV1A::HashConst("1.37.0.3"))
+		if (strcmp(I::Engine->GetProductVersionString(), XorStr("1.37.5.3")) != 0)
 		{
 			L::PushConsoleColor(FOREGROUND_RED | FOREGROUND_YELLOW);
 			L::Print(fmt::format(XorStr("[warning] version doesnt match! current cs:go version: {}"), I::Engine->GetProductVersionString()));
@@ -197,34 +197,30 @@ DWORD WINAPI OnDllDetach(LPVOID lpParameter)
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
-	switch (dwReason)
+	if (dwReason == DLL_PROCESS_ATTACH)
 	{
-		case DLL_PROCESS_ATTACH:
+		// basic process check
+		if (GetModuleHandle(XorStr("csgo.exe")) == nullptr)
 		{
-			// basic process check
-			if (GetModuleHandle(XorStr("csgo.exe")) == nullptr)
-			{
-				MessageBox(nullptr, XorStr("this cannot be injected in another process\nopen <csgo.exe> to inject"), XorStr("qo0 base"), MB_OK);
-				ExitProcess(EXIT_SUCCESS);
-				break;
-			}
-
-			// save our module
-			G::hDll = hModule;
-
-			// disable DLL_THREAD_ATTACH and DLL_THREAD_DETACH reasons to call
-			DisableThreadLibraryCalls(hModule);
-
-			// create main thread
-			if (auto hThread = CreateThread(nullptr, 0U, OnDllAttach, nullptr, 0UL, nullptr))
-				CloseHandle(hThread);
-
-			// create detach thread
-			if (auto hThread = CreateThread(nullptr, 0U, OnDllDetach, hModule, 0UL, nullptr))
-				CloseHandle(hThread);
-
-			return TRUE;
+			MessageBox(nullptr, XorStr("this cannot be injected in another process\nopen <csgo.exe> to inject"), XorStr("qo0 base"), MB_OK);
+			return FALSE;
 		}
+
+		// save our module
+		G::hDll = hModule;
+
+		// disable DLL_THREAD_ATTACH and DLL_THREAD_DETACH reasons to call
+		DisableThreadLibraryCalls(hModule);
+
+		// create main thread
+		if (auto hThread = CreateThread(nullptr, 0U, OnDllAttach, hModule, 0UL, nullptr))
+			CloseHandle(hThread);
+
+		// create detach thread
+		if (auto hThread = CreateThread(nullptr, 0U, OnDllDetach, hModule, 0UL, nullptr))
+			CloseHandle(hThread);
+
+		return TRUE;
 	}
 
 	return FALSE;

@@ -136,7 +136,6 @@
     <ClCompile Include="features\skinchanger.cpp" />
     <ClCompile Include="features\triggerbot.cpp" />
     <ClCompile Include="features\visuals.cpp" />
-    <ClCompile Include="global.cpp" />
     <ClCompile Include="imgui\dx9\imgui_impl_dx9.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_draw.cpp" />

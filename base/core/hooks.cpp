@@ -344,10 +344,9 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 void FASTCALL H::hkPaintTraverse(ISurface* thisptr, int edx, unsigned int iPanel, bool bForceRepaint, bool bForce)
 {
 	static auto oPaintTraverse = VMT::Panel.GetOriginal<decltype(&hkPaintTraverse)>(VTABLE::PAINTTRAVERSE);
-	FNV1A_t uPanelHash = FNV1A::Hash(I::Panel->GetName(iPanel));
 
 	// remove zoom panel
-	if (!I::Engine->IsTakingScreenshot() && C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SCOPE) && uPanelHash == FNV1A::HashConst("HudZoom"))
+	if (!I::Engine->IsTakingScreenshot() && C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SCOPE) && !strcmp(I::Panel->GetName(iPanel), XorStr("HudZoom")))
 		return;
 
 	oPaintTraverse(thisptr, edx, iPanel, bForceRepaint, bForce);
@@ -632,7 +631,7 @@ void FASTCALL H::hkOverrideView(IClientModeShared* thisptr, int edx, CViewSetup*
 
 	CBaseEntity* pLocal = U::GetLocalPlayer();
 
-	if (pLocal == nullptr)
+	if (pLocal == nullptr || !pLocal->IsAlive())
 		return oOverrideView(thisptr, edx, pSetup);
 
 	CBaseCombatWeapon* pWeapon = pLocal->GetWeapon();
@@ -641,9 +640,9 @@ void FASTCALL H::hkOverrideView(IClientModeShared* thisptr, int edx, CViewSetup*
 		return oOverrideView(thisptr, edx, pSetup);
 
 	if (CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(*pWeapon->GetItemDefinitionIndex());
+		pWeaponData != nullptr && C::Get<bool>(Vars.bScreen) && C::Get<float>(Vars.flScreenCameraFOV) != 0.f &&
 		// check for not zoomed sniper
-		(pWeaponData != nullptr && pWeaponData->nWeaponType == WEAPONTYPE_SNIPER) ? pWeapon->GetZoomLevel() == 0 : true &&
-		C::Get<bool>(Vars.bScreen) && C::Get<float>(Vars.flScreenCameraFOV) != 0.f)
+		(pWeaponData->nWeaponType == WEAPONTYPE_SNIPER ? !pLocal->IsScoped() : true))
 		// set camera fov
 		pSetup->flFOV += C::Get<float>(Vars.flScreenCameraFOV);
 

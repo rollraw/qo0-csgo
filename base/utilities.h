@@ -28,11 +28,13 @@ public:
 			Reset();
 	}
 
+	/* set time point to now */
 	void Reset()
 	{
 		timePoint = std::chrono::high_resolution_clock::now();
 	}
 
+	/* returns elapsed time between last time point and now */
 	long long Elapsed() const
 	{
 		return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - timePoint).count();
@@ -56,11 +58,9 @@ namespace U
 	// Game
 	/* returns localplayer pointer */
 	CBaseEntity* GetLocalPlayer();
-	/* trace ray implementation */
+	/* trace ray implementation, returns modified trace */
 	void TraceLine(const Vector& vecAbsStart, const Vector& vecAbsEnd, unsigned int fMask, IHandleEntity* pSkip, Trace_t* pTrace);
-	/* material override implementation */
-	void ForceMaterial(IMaterial* pMaterial, Color color);
-	/* clears delta tick */
+	/* updates hud, clears delta tick */
 	void ForceFullUpdate();
 	/* return true if ray goes through smoke */
 	bool LineGoesThroughSmoke(Vector vecStartPos, Vector vecEndPos);
@@ -70,7 +70,7 @@ namespace U
 	void SendName(const char* szName);
 	/* set given string to clantag */
 	void SendClanTag(const char* szClanTag, const char* szIdentifier);
-	/* calculate given entity ~chocked ticks num */
+	/* calculate ~chocked ticks num for given entity */
 	int GetChokedTicks(CBaseEntity* pLocal, CBaseEntity* pEntity);
 	/* load specified model before you will be in-game */
 	bool PrecacheModel(const char* szModelName);

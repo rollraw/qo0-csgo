@@ -428,9 +428,6 @@
     <ClCompile Include="features\autowall.cpp">
       <Filter>source\features</Filter>
     </ClCompile>
-    <ClCompile Include="global.cpp">
-      <Filter>source</Filter>
-    </ClCompile>
     <ClCompile Include="utilities.cpp">
       <Filter>source</Filter>
     </ClCompile>

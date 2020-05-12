@@ -93,10 +93,8 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 	if (pDrawList == nullptr)
 		return;
 
-	// get localplayer pointer
 	CBaseEntity* pLocal = U::GetLocalPlayer();
 
-	// check is localplayer exist
 	if (pLocal == nullptr)
 		return;
 
@@ -151,7 +149,6 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 		if (pClientClass == nullptr)
 			continue;
 
-		// get class id
 		const EClassIndex nIndex = pClientClass->nClassID;
 
 		switch (nIndex)
@@ -189,7 +186,6 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 			// cast to planted bomb entity
 			CPlantedC4* pBomb = (CPlantedC4*)pEntity;
 
-			// check planted
 			if (!pBomb->IsPlanted())
 				break;
 
@@ -211,7 +207,6 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 			if (!C::Get<bool>(Vars.bEsp) || !C::Get<bool>(Vars.bEspMain))
 				break;
 
-			// entity basic check
 			if (!pEntity->IsAlive() || pEntity->IsDormant())
 				break;
 
@@ -316,7 +311,6 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 				if (pWeaponData == nullptr)
 					break;
 
-				// shown only for guns
 				if (!pWeaponData->IsGun())
 					break;
 
@@ -390,7 +384,6 @@ void CVisuals::Chams(CBaseEntity* pLocal, IMatRenderContext* pContext, const Dra
 	// check for players
 	if (pClientClass->nClassID == EClassIndex::CCSPlayer && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies))) // @test: 05.05.20 is not working sometimes?
 	{
-		// check is player alive
 		if (!pEntity->IsAlive())
 			return;
 
@@ -444,7 +437,6 @@ void CVisuals::Chams(CBaseEntity* pLocal, IMatRenderContext* pContext, const Dra
 				I::RenderView->SetColorModulation(colHidden.Base());
 
 				// set xqz alpha
-				//pMaterial->AlphaModulate(colHidden.aBase());
 				I::RenderView->SetBlend(colHidden.aBase());
 
 				// override ignorez material
@@ -1021,7 +1013,6 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 			ImGui::AddText(pDrawList, F::SmallestPixel, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f + 1 + vecNameSize.x * 0.5f - vecBotSize.x * 0.5f, ctx.box.top - 2 - vecBotSize.y - ctx.arrPadding.at(DIR_TOP)), szBot, ImColor(140, 140, 140), true, colOutline);
 		}
 
-		// text
 		ImGui::AddText(pDrawList, F::SmallestPixel, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecNameSize.x * 0.5f - vecBotSize.x * 0.5f, ctx.box.top - 2 - vecNameSize.y - ctx.arrPadding.at(DIR_TOP)), szName.c_str(), colInfo, true, colOutline);
 		ctx.arrPadding.at(DIR_TOP) += vecNameSize.y;
 	}
