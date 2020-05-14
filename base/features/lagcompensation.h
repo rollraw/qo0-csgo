@@ -59,5 +59,8 @@ public:
 private:
 	// Values
 	std::deque<SequenceObject_t> vecSequences = { };
+	/* our real incoming sequences count */
+	int nRealIncomingSequence = 0;
+	/* count of incoming sequences what we can spike */
 	int nLastIncomingSequence = 0;
 };

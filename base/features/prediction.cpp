@@ -1,5 +1,6 @@
 #include "prediction.h"
 
+#include "../utilities/logging.h"
 // used: md5 checksum
 #include "../sdk/hash/md5.h"
 // used: movehelper, prediction, globals interfaces
@@ -15,7 +16,7 @@ void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 	// start command
 	*pLocal->GetCurrentCommand() = pCmd;
 	// setup prediction seed
-	*iPredictionRandomSeed = MD5::PseudoRandom(pCmd->iCommandNumber) & std::numeric_limits<int>::max();;
+	*iPredictionRandomSeed = MD5::PseudoRandom(pCmd->iCommandNumber) & std::numeric_limits<int>::max();
 	// set ourselves as a predictable entity
 	pSetPredictionEntity = pLocal;
 
@@ -33,7 +34,7 @@ void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 
 	// set corrected values
 	I::Globals->flCurrentTime = TICKS_TO_TIME(GetTickbase(pCmd, pLocal));
-	I::Globals->flFrameTime = I::Prediction->bEnginePaused ? 0 : TICK_INTERVAL;
+	I::Globals->flFrameTime = I::Prediction->bEnginePaused ? 0.f : TICK_INTERVAL;
 	I::Globals->iTickCount = GetTickbase(pCmd, pLocal);
 
 	I::Prediction->bIsFirstTimePredicted = false;
@@ -42,28 +43,28 @@ void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 	/* skiped weapon select and vehicle predicts */
 
 	if (pCmd->uImpulse)
-		*(std::uint32_t*)((std::uintptr_t)pLocal + 0x31FC) = pCmd->uImpulse;
+		*pLocal->GetImpulse() = pCmd->uImpulse;
 
 	// synchronize m_afButtonForced & m_afButtonDisabled
-	pCmd->iButtons |= (*(std::uint8_t*)((std::uintptr_t)pLocal + 0x3334));
-	pCmd->iButtons &= ~(*(std::uint8_t*)((std::uintptr_t)pLocal + 0x3330));
+	pCmd->iButtons |= pLocal->GetButtonForced();
+	pCmd->iButtons &= ~(pLocal->GetButtonDisabled());
 
 	// update button state
 	const int iButtons = pCmd->iButtons;
-	int* nPlayerButtons = (int*)((std::uintptr_t)pLocal + 0x31F8);
+	int* nPlayerButtons = pLocal->GetButtons();
 	const int nButtonsChanged = iButtons ^ *nPlayerButtons;
 
 	// synchronize m_afButtonLast
-	*(int*)((std::uintptr_t)pLocal + 0x31EC) = *nPlayerButtons;
-	// synchronize m_nButtons
-	*(int*)((std::uintptr_t)pLocal + 0x31F8) = iButtons;
-	// synchronize m_afButtonPressed
-	*(int*)((std::uintptr_t)pLocal + 0x31F0) = iButtons & nButtonsChanged;
-	// synchronize m_afButtonReleased
-	*(int*)((std::uintptr_t)pLocal + 0x31F4) = nButtonsChanged & ~iButtons;
+	pLocal->GetButtonLast() = *nPlayerButtons;
 
-	// @test: 28.03.20 doesnt need, we already do that
-	//I::GameMovement->StartTrackPredictionErrors(pLocal);
+	// synchronize m_nButtons
+	*pLocal->GetButtons() = iButtons;
+
+	// synchronize m_afButtonPressed
+	pLocal->GetButtonPressed() = iButtons & nButtonsChanged;
+
+	// synchronize m_afButtonReleased
+	pLocal->GetButtonReleased() = nButtonsChanged & ~iButtons;
 
 	// check if the player is standing on a moving entity and adjusts velocity and basevelocity appropriately
 	I::Prediction->CheckMovingGround(pLocal, I::Globals->flFrameTime);
@@ -109,9 +110,6 @@ void CPrediction::End(CUserCmd* pCmd, CBaseEntity* pLocal)
 {
 	if (pLocal == nullptr || !pLocal->IsAlive() || I::MoveHelper == nullptr)
 		return;
-
-	// @test: 28.03.20 doesnt need, we already do that
-	//I::GameMovement->FinishTrackPredictionErrors(pLocal);
 
 	// reset host player
 	I::MoveHelper->SetHost(nullptr);

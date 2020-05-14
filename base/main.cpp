@@ -61,7 +61,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 
 		// version check to know when u need to fix something
 		#if ACRONIX_CONSOLE
-		if (strcmp(I::Engine->GetProductVersionString(), XorStr("1.37.5.3")) != 0)
+		if (strcmp(I::Engine->GetProductVersionString(), XorStr("1.37.5.2")) != 0)
 		{
 			L::PushConsoleColor(FOREGROUND_RED | FOREGROUND_YELLOW);
 			L::Print(fmt::format(XorStr("[warning] version doesnt match! current cs:go version: {}"), I::Engine->GetProductVersionString()));
@@ -141,6 +141,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 	{
 		// show error message (or replace to your exception handler)
 		MessageBox(nullptr, ex.what(), nullptr, MB_OK | MB_ICONERROR | MB_TOPMOST);
+		// exit from proccess (passed EXIT_SUCCESS to prevent game knowns unwanted errors)
 		FreeLibraryAndExitThread((HMODULE)lpParameter, EXIT_SUCCESS);
 	}
 

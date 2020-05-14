@@ -41,8 +41,8 @@ public:
 	/* get info for hitmarker or e.g. bullettracer */
 	void Event(IGameEvent* pEvent);
 	// Other
-	/* color player models */
-	void Chams(CBaseEntity* pLocal, IMatRenderContext* pContext, const DrawModelState_t& state, const ModelRenderInfo_t& pInfo, matrix3x4_t* pCustomBoneToWorld);
+	/* color player models, returns true when need clear overrides */
+	bool Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const DrawModelInfo_t& info, matrix3x4_t* pBoneToWorld, float* flFlexWeights, float* flFlexDelayedWeights, const Vector& vecModelOrigin, int nFlags);
 	/* glow effect on entities like while spectating */
 	void Glow(CBaseEntity* pLocal);
 

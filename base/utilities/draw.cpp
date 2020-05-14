@@ -449,8 +449,6 @@ void D::Setup(IDirect3DDevice9* pDevice, unsigned int uFontFlags)
 
 void D::Destroy()
 {
-	// @todo: imgui crashing cuz font atlas builded with freetype, requires edits
-
 	// shutdown imgui directx9 renderer binding
 	ImGui_ImplDX9_Shutdown();
 

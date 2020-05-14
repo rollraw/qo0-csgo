@@ -49,7 +49,7 @@ public:
 		this->x = vecBase2D.x; this->y = vecBase2D.y; this->z = 0.0f;
 	}
 
-	const void Init(float x = 0.f, float y = 0.f, float z = 0.f)
+	constexpr void Init(float x = 0.f, float y = 0.f, float z = 0.f)
 	{
 		this->x = x; this->y = y; this->z = z;
 	}
@@ -59,7 +59,7 @@ public:
 		return std::isfinite(this->x) && std::isfinite(this->y) && std::isfinite(this->z);
 	}
 
-	void Invalidate()
+	constexpr void Invalidate()
 	{
 		this->x = this->y = this->z = std::numeric_limits<float>::infinity();
 	}

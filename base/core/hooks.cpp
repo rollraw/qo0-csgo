@@ -81,7 +81,7 @@ bool H::Setup()
 	if (!DTR::PaintTraverse.Create(MEM::GetVFunc(I::Panel, VTABLE::PAINTTRAVERSE), &hkPaintTraverse))
 		return false;
 
-	if (!DTR::DrawModelExecute.Create(MEM::GetVFunc(I::ModelRender, VTABLE::DRAWMODELEXECUTE), &hkDrawModelExecute))
+	if (!DTR::DrawModel.Create(MEM::GetVFunc(I::StudioRender, VTABLE::DRAWMODEL), &hkDrawModel))
 		return false;
 
 	if (!DTR::RunCommand.Create(MEM::GetVFunc(I::Prediction, VTABLE::RUNCOMMAND), &hkRunCommand))
@@ -119,12 +119,14 @@ void H::Restore()
 	DTR::OverrideView.~CDetourHook();
 	DTR::OverrideMouseInput.~CDetourHook();
 	DTR::CreateMove.~CDetourHook();
+	DTR::SendNetMsg.~CDetourHook();
+	DTR::SendDatagram.~CDetourHook();
 	DTR::GetViewModelFOV.~CDetourHook();
 	DTR::DoPostScreenEffects.~CDetourHook();
 	DTR::IsConnected.~CDetourHook();
 	DTR::ListLeavesInBox.~CDetourHook();
 	DTR::PaintTraverse.~CDetourHook();
-	DTR::DrawModelExecute.~CDetourHook();
+	DTR::DrawModel.~CDetourHook();
 	DTR::RunCommand.~CDetourHook();
 	DTR::SendMessageGC.~CDetourHook();
 	DTR::RetrieveMessage.~CDetourHook();
@@ -132,6 +134,12 @@ void H::Restore()
 	DTR::LockCursor.~CDetourHook();
 	DTR::PlaySoundSurface.~CDetourHook();
 	DTR::SvCheatsGetBool.~CDetourHook();
+
+	// @note: also should works but makes it undebuggable
+	#if 0
+	MH_DisableHook(MH_ALL_HOOKS);
+	MH_RemoveHook(MH_ALL_HOOKS);
+	#endif
 
 	MH_Uninitialize();
 }
@@ -321,7 +329,7 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	else
 		CLagCompensation::Get().ClearIncomingSequences();
 
-	// @note: do not restore/remove this when unloading
+	// @note: doesnt need rehook cuz detours here
 	if (pNetChannel != nullptr)
 	{
 		if (!DTR::SendNetMsg.IsHooked())
@@ -330,13 +338,8 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 		if (!DTR::SendDatagram.IsHooked())
 			DTR::SendDatagram.Create(MEM::GetVFunc(pNetChannel, VTABLE::SENDDATAGRAM), H::hkSendDatagram);
 	}
-	else
-	{
-		DTR::SendNetMsg.Remove();
-		DTR::SendDatagram.Remove();
-	}
 
-	// get next global sendpacket state
+	// save next global sendpacket state
 	G::bSendPacket = bSendPacket;
 
 	// @note: i seen many times this mistake and please do not set/clamp angles here cuz u get confused with psilent aimbot later!
@@ -378,7 +381,14 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 {
 	static auto oFrameStageNotify = DTR::FrameStageNotify.GetOriginal<decltype(&hkFrameStageNotify)>();
 
-	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
+	if (!I::Engine->IsInGame())
+	{
+		// clear sequences or we get commands overflow on new map connection
+		CLagCompensation::Get().ClearIncomingSequences();
+		return oFrameStageNotify(thisptr, edx, stage);
+	}
+
+	if (I::Engine->IsTakingScreenshot())
 		return oFrameStageNotify(thisptr, edx, stage);
 
 	CBaseEntity* pLocal = U::GetLocalPlayer();
@@ -503,24 +513,23 @@ bool FASTCALL H::hkDispatchUserMessage(IBaseClientDll* thisptr, int edx, int iMe
 	return oDispatchUserMessage(thisptr, edx, iMessageType, a3, uBytes, bfMessageData);
 }
 
-void FASTCALL H::hkDrawModelExecute(IVModelRender* thisptr, int edx, IMatRenderContext* pContext, const DrawModelState_t& state, const ModelRenderInfo_t& pInfo, matrix3x4_t* pCustomBoneToWorld)
+void FASTCALL H::hkDrawModel(IStudioRender* thisptr, int edx, DrawModelResults_t* pResults, const DrawModelInfo_t& info, matrix3x4_t* pBoneToWorld, float* flFlexWeights, float* flFlexDelayedWeights, const Vector& vecModelOrigin, int nFlags)
 {
-	static auto oDrawModelExecute = DTR::DrawModelExecute.GetOriginal<decltype(&hkDrawModelExecute)>();
+	static auto oDrawModel = DTR::DrawModel.GetOriginal<decltype(&hkDrawModel)>();
 
 	if (!I::Engine->IsInGame() || I::ModelRender->IsForcedMaterialOverride() || I::Engine->IsTakingScreenshot())
-		return oDrawModelExecute(thisptr, edx, pContext, state, pInfo, pCustomBoneToWorld);
+		return oDrawModel(thisptr, edx, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
 
 	CBaseEntity* pLocal = U::GetLocalPlayer();
+	bool bClearOverride = false;
 
-	// master check
 	if (pLocal != nullptr && C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams))
-		CVisuals::Get().Chams(pLocal, pContext, state, pInfo, pCustomBoneToWorld);
+		bClearOverride = CVisuals::Get().Chams(pLocal, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
 
-	// draw original model
-	oDrawModelExecute(thisptr, edx, pContext, state, pInfo, pCustomBoneToWorld);
-
-	// clear overrides
-	I::ModelRender->ForcedMaterialOverride(nullptr);
+	oDrawModel(thisptr, edx, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
+	
+	if (bClearOverride)
+		I::StudioRender->ForcedMaterialOverride(nullptr);
 }
 
 int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, Vector& vecMins, Vector& vecMaxs, unsigned short* puList, int iListMax)
@@ -529,38 +538,35 @@ int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, Vector& vecMins, Vecto
 
 	// @credits: soufiw
 	// occulusion getting updated on player movement/angle change,
-	// in RecomputeRenderableLeaves ( https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L674 )
+	// in RecomputeRenderableLeaves https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L674
 	static std::uintptr_t uInsertIntoTree = (MEM::FindPattern(CLIENT_DLL, XorStr("56 52 FF 50 18")) + 0x5);
 
-		// check esp state
-	if (!C::Get<bool>(Vars.bEsp) | !C::Get<bool>(Vars.bEspChams) ||
-		// filters check
-		!C::Get<bool>(Vars.bEspChamsEnemies) || !C::Get<bool>(Vars.bEspChamsAllies)
-		// check for return in CClientLeafSystem::InsertIntoTree
-		|| _ReturnAddress() != (void*)uInsertIntoTree)
-		return oListLeavesInBox(thisptr, edx, vecMins, vecMaxs, puList, iListMax);
+	// check for esp state and return in CClientLeafSystem::InsertIntoTree
+	if (C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams) && std::uintptr_t(_ReturnAddress()) == uInsertIntoTree)
+	{
+		// get current renderable info from stack https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L1470
+		if (const auto pInfo = *(RenderableInfo_t**)((std::uintptr_t)_AddressOfReturnAddress() + 0x14); pInfo != nullptr)
+		{
+			if (const auto pRenderable = pInfo->pRenderable; pRenderable != nullptr)
+			{
+				// check if disabling occulusion for players
+				if (const auto pEntity = pRenderable->GetIClientUnknown()->GetBaseEntity(); pEntity && pEntity->IsPlayer())
+				{
+					// fix render order, force translucent group (https://www.unknowncheats.me/forum/2429206-post15.html)
+					// AddRenderablesToRenderLists: https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L2473
+					pInfo->uFlags &= ~RENDER_FLAGS_FORCE_OPAQUE_PASS;
+					pInfo->uFlags2 |= 0x40;
 
-	// get current renderable info from stack ( https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L1470 )
-	RenderableInfo_t* pInfo = *(RenderableInfo_t**)((std::uintptr_t)_AddressOfReturnAddress() + 0x14);
+					// extend world space bounds to maximum https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L707
+					Vector vecMapMin = Vector(MIN_COORD_FLOAT, MIN_COORD_FLOAT, MIN_COORD_FLOAT);
+					Vector vecMapMax = Vector(MAX_COORD_FLOAT, MAX_COORD_FLOAT, MAX_COORD_FLOAT);
+					return oListLeavesInBox(thisptr, edx, vecMapMin, vecMapMax, puList, iListMax);
+				}
+			}
+		}
+	}
 
-	if (pInfo == nullptr || pInfo->pRenderable == nullptr)
-		return oListLeavesInBox(thisptr, edx, vecMins, vecMaxs, puList, iListMax);
-
-	// check if disabling occulusion for players ( https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L1491 )
-	CBaseEntity* pEntity = pInfo->pRenderable->GetIClientUnknown()->GetBaseEntity();
-
-	if (pEntity == nullptr || !pEntity->IsPlayer())
-		return oListLeavesInBox(thisptr, edx, vecMins, vecMaxs, puList, iListMax);
-
-	// fix render order, force translucent group ( https://www.unknowncheats.me/forum/2429206-post15.html )
-	// AddRenderablesToRenderLists: https://i.imgur.com/hcg0NB5.png ( https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L2473 )
-	pInfo->uFlags &= ~RENDER_FLAGS_FORCE_OPAQUE_PASS;
-	pInfo->uFlags2 |= 0xC0;
-
-	// extend world space bounds to maximum ( https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L707 )
-	static Vector vecMapMin(MIN_COORD_FLOAT, MIN_COORD_FLOAT, MIN_COORD_FLOAT);
-	static Vector vecMapMax(MAX_COORD_FLOAT, MAX_COORD_FLOAT, MAX_COORD_FLOAT);
-	return oListLeavesInBox(thisptr, edx, vecMapMin, vecMapMax, puList, iListMax);
+	return oListLeavesInBox(thisptr, edx, vecMins, vecMaxs, puList, iListMax);
 }
 
 bool FASTCALL H::hkIsConnected(IEngineClient* thisptr, int edx)

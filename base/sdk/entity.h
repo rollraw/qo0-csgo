@@ -396,6 +396,41 @@ class CBaseEntity : public IClientEntity, public CBaseViewModel
 {
 public:
 	/* DT_BasePlayer */
+
+	int* GetButtons()
+	{
+		static std::uintptr_t m_nButtons = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_nButtons"));
+		return (int*)((std::uintptr_t)this + m_nButtons);
+	}
+
+	int& GetButtonLast()
+	{
+		static std::uintptr_t m_afButtonLast = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_afButtonLast"));
+		return *(int*)((std::uintptr_t)this + m_afButtonLast);
+	}
+
+	int& GetButtonPressed()
+	{
+		static std::uintptr_t m_afButtonPressed = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_afButtonPressed"));
+		return *(int*)((std::uintptr_t)this + m_afButtonPressed);
+	}
+
+	int& GetButtonReleased()
+	{
+		static std::uintptr_t m_afButtonReleased = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_afButtonReleased"));
+		return *(int*)((std::uintptr_t)this + m_afButtonReleased);
+	}
+
+	int GetButtonDisabled()
+	{
+		return *(int*)((std::uintptr_t)this + 0x3330);
+	}
+
+	int GetButtonForced()
+	{
+		return *(int*)((std::uintptr_t)this + 0x3334);
+	}
+
 	float* GetFallVelocity()
 	{
 		return (float*)((std::uintptr_t)this + CNetvarManager::Get().flFallVelocity);
@@ -414,6 +449,12 @@ public:
 	Vector& GetViewOffset()
 	{
 		return *(Vector*)((std::uintptr_t)this + CNetvarManager::Get().vecViewOffset);
+	}
+
+	int* GetImpulse()
+	{
+		static std::uintptr_t m_nImpulse = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_nImpulse"));
+		return (int*)((std::uintptr_t)this + m_nImpulse);
 	}
 
 	int& GetTickBase()
@@ -569,7 +610,7 @@ public:
 
 	float GetSurfaceFriction()
 	{
-		const std::uintptr_t m_surfaceFriction = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_surfaceFriction"));
+		static std::uintptr_t m_surfaceFriction = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_surfaceFriction"));
 		return *(float*)((std::uintptr_t)this + m_surfaceFriction);
 	}
 
@@ -632,13 +673,13 @@ public:
 
 	QAngle GetAbsRotation()
 	{
-		const std::uintptr_t m_angAbsRotation = CNetvarManager::Get().FindInDataMap(this->GetDataDescMap(), FNV1A::HashConst("m_angAbsRotation"));
+		static std::uintptr_t m_angAbsRotation = CNetvarManager::Get().FindInDataMap(this->GetDataDescMap(), FNV1A::HashConst("m_angAbsRotation"));
 		return *(QAngle*)((std::uintptr_t)this + m_angAbsRotation);
 	}
 
 	EMoveType GetMoveType()
 	{
-		const std::uintptr_t m_MoveType = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_MoveType"));
+		static std::uintptr_t m_MoveType = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_MoveType"));
 		return *(EMoveType*)((std::uintptr_t)this + m_MoveType);
 	}
 
@@ -664,7 +705,7 @@ public:
 
 	const matrix3x4_t& GetCoordinateFrame()
 	{
-		const std::uintptr_t m_rgflCoordinateFrame = CNetvarManager::Get().FindInDataMap(this->GetDataDescMap(), FNV1A::HashConst("m_rgflCoordinateFrame"));
+		static std::uintptr_t m_rgflCoordinateFrame = CNetvarManager::Get().FindInDataMap(this->GetDataDescMap(), FNV1A::HashConst("m_rgflCoordinateFrame"));
 		return *(const matrix3x4_t*)((std::uintptr_t)this + m_rgflCoordinateFrame);
 	}
 
@@ -1099,7 +1140,7 @@ public:
 
 	bool IsReloading()
 	{
-		const std::uintptr_t m_bInReload = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_bInReload"));
+		static std::uintptr_t m_bInReload = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_bInReload"));
 		return *(bool*)((std::uintptr_t)this + m_bInReload);
 	}
 

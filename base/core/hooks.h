@@ -43,6 +43,9 @@ namespace VTABLE
 		/* modelrender table */
 		DRAWMODELEXECUTE = 21,
 
+		/* studiorender table */
+		DRAWMODEL = 29,
+
 		/* engine table */
 		ISCONNECTED = 27,
 
@@ -101,7 +104,7 @@ namespace DTR
 	inline CDetourHook IsConnected;
 	inline CDetourHook ListLeavesInBox;
 	inline CDetourHook PaintTraverse;
-	inline CDetourHook DrawModelExecute;
+	inline CDetourHook DrawModel;
 	inline CDetourHook RunCommand;
 	inline CDetourHook SendMessageGC;
 	inline CDetourHook RetrieveMessage;
@@ -131,7 +134,7 @@ namespace H
 	void	FASTCALL	hkLockCursor(ISurface* thisptr, int edx);
 	void	FASTCALL	hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFrameStage stage);
 	bool	FASTCALL	hkDispatchUserMessage(IBaseClientDll* thisptr, int edx, int iMessageType, unsigned int a3, unsigned int uBytes, const void* bfMessageData);
-	void	FASTCALL	hkDrawModelExecute(IVModelRender* thisptr, int edx, IMatRenderContext* pContext, const DrawModelState_t& state, const ModelRenderInfo_t& pInfo, matrix3x4_t* pCustomBoneToWorld);
+	void	FASTCALL	hkDrawModel(IStudioRender* thisptr, int edx, DrawModelResults_t* pResults, const DrawModelInfo_t& info, matrix3x4_t* pBoneToWorld, float* flFlexWeights, float* flFlexDelayedWeights, const Vector& vecModelOrigin, int nFlags);
 	int		FASTCALL	hkListLeavesInBox(void* thisptr, int edx, Vector& vecMins, Vector& vecMaxs, unsigned short* puList, int iListMax);
 	bool	FASTCALL	hkIsConnected(IEngineClient* thisptr, int edx);
 	bool	FASTCALL	hkSendNetMsg(INetChannel* thisptr, int edx, INetMessage* pMessage, bool bForceReliable, bool bVoice);

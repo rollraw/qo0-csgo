@@ -25,20 +25,18 @@ bool CNetvarManager::Setup(std::string_view szDumpFileName)
 	// open our dump file to write in (here is not exception handle because dump is not critical)
 	fsDumpFile.open(C::GetWorkingPath().append(szDumpFileName), std::ios::out | std::ios::trunc);
 
-	if (!fsDumpFile.good())
-		return false;
-
-	// write current date, time and info
-	fsDumpFile << szTime << XorStr("qo0 | netvars dump\n\n");
+	if (fsDumpFile.good())
+		// write current date, time and info
+		fsDumpFile << szTime << XorStr("qo0 | netvars dump\n\n");
 	#endif
 
-		for (auto pClass = I::Client->GetAllClasses(); pClass != nullptr; pClass = pClass->pNext)
-		{
-			if (pClass->pRecvTable == nullptr)
-				continue;
+	for (auto pClass = I::Client->GetAllClasses(); pClass != nullptr; pClass = pClass->pNext)
+	{
+		if (pClass->pRecvTable == nullptr)
+			continue;
 
-			StoreProps(pClass->pRecvTable, 0U, 0);
-		}
+		StoreProps(pClass->pRecvTable, 0U, 0);
+	}
 
 	#if _DEBUG
 	// close dump file
@@ -207,7 +205,7 @@ void CNetvarManager::StoreProps(RecvTable_t* pRecvTable, const std::uintptr_t uO
 		XorStr("vector2d"),
 		XorStr("const char*"),
 		XorStr("std::array"),
-		XorStr("datatable"),
+		XorStr("void*"),
 		XorStr("std::int64_t")
 	};
 
@@ -217,7 +215,8 @@ void CNetvarManager::StoreProps(RecvTable_t* pRecvTable, const std::uintptr_t uO
 	for (int i = 0; i < nDumpTabs; i++)
 		szTable.append(XorStr("\t"));
 
-	fsDumpFile << szTable << XorStr("[") << pRecvTable->szNetTableName << XorStr("]\n");
+	if (fsDumpFile.good())
+		fsDumpFile << szTable << XorStr("[") << pRecvTable->szNetTableName << XorStr("]\n");
 	#endif
 
 	for (int i = 0; i < pRecvTable->nProps; ++i)
@@ -251,7 +250,8 @@ void CNetvarManager::StoreProps(RecvTable_t* pRecvTable, const std::uintptr_t uO
 		if (!mapProps[uHash].uOffset)
 		{
 			#if _DEBUG
-			fsDumpFile << szTable << XorStr("\t") << arrPropTypes.at(pCurrentProp->iRecvType) << " " << pCurrentProp->szVarName << XorStr(" = 0x") << std::uppercase << std::hex << uTotalOffset << ";\n";
+			if (fsDumpFile.good())
+				fsDumpFile << szTable << XorStr("\t") << arrPropTypes.at(pCurrentProp->iRecvType) << " " << pCurrentProp->szVarName << XorStr(" = 0x") << std::uppercase << std::hex << uTotalOffset << ";\n";
 			#endif
 
 			// write values to map entry

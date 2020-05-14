@@ -48,11 +48,11 @@ struct DrawModelInfo_t
 	int						iSkin;
 	int						iBody;
 	int						iHitboxSet;
-	void*					pClientEntity;
+	IClientRenderable*		pClientEntity;
 	int						iLOD;
 	ColorMeshInfo_t*		pColorMeshes;
 	bool					bStaticLighting;
-	MaterialLightingState_t	lightingState;
+	MaterialLightingState_t	LightingState;
 };
 
 class IStudioRender
@@ -68,8 +68,8 @@ public:
 		MEM::CallVFunc<void>(this, 28, flAlpha);
 	}
 
-	void ForcedMaterialOverride(IMaterial* pMaterial, EOverrideType nOverrideType = OVERRIDE_NORMAL, int iUnknown = NULL)
+	void ForcedMaterialOverride(IMaterial* pMaterial, EOverrideType nOverrideType = OVERRIDE_NORMAL, int nOverrides = 0)
 	{
-		MEM::CallVFunc<void>(this, 33, pMaterial, nOverrideType, iUnknown);
+		MEM::CallVFunc<void>(this, 33, pMaterial, nOverrideType, nOverrides);
 	}
 };

@@ -367,25 +367,30 @@ void CVisuals::Event(IGameEvent* pEvent)
 	}
 }
 
-void CVisuals::Chams(CBaseEntity* pLocal, IMatRenderContext* pContext, const DrawModelState_t& state, const ModelRenderInfo_t& pInfo, matrix3x4_t* pCustomBoneToWorld)
+bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const DrawModelInfo_t& info, matrix3x4_t* pBoneToWorld, float* flFlexWeights, float* flFlexDelayedWeights, const Vector& vecModelOrigin, int nFlags)
 {
-	static auto oDrawModelExecute = DTR::DrawModelExecute.GetOriginal<decltype(&H::hkDrawModelExecute)>();
+	static auto oDrawModel = DTR::DrawModel.GetOriginal<decltype(&H::hkDrawModel)>();
+	IClientRenderable* pRenderable = info.pClientEntity;
 
-	CBaseEntity* pEntity = I::ClientEntityList->Get<CBaseEntity>(pInfo.nEntityIndex);
+	if (pRenderable == nullptr)
+		return false;
+
+	// get entity from renderable
+	CBaseEntity* pEntity = pRenderable->GetIClientUnknown()->GetBaseEntity();
 
 	if (pEntity == nullptr)
-		return;
+		return false;
 
-	CBaseClient* pClientClass = pEntity->GetClientClass();
+	std::string szModelName = info.pStudioHdr->szName;
 
-	if (pClientClass == nullptr)
-		return;
-
-	// check for players
-	if (pClientClass->nClassID == EClassIndex::CCSPlayer && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies))) // @test: 05.05.20 is not working sometimes?
+	// prevent chams on foot shadows
+	if (szModelName.find(XorStr("shadow")) != std::string::npos)
+		return false;
+	// check for players (@test: class id cuz with modelname maybe can not work with new agent models 14.05.20)
+	else if (const auto pClientClass = pEntity->GetClientClass(); pClientClass != nullptr && pClientClass->nClassID == EClassIndex::CCSPlayer && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies)))
 	{
-		if (!pEntity->IsAlive())
-			return;
+		if (pEntity == nullptr || !pEntity->IsAlive())
+			return false;
 
 		// team filters check
 			// enemies
@@ -398,7 +403,7 @@ void CVisuals::Chams(CBaseEntity* pLocal, IMatRenderContext* pContext, const Dra
 
 			// check is valid material
 			if (pMaterial == nullptr || pMaterial->IsErrorMaterial())
-				return;
+				return false;
 
 			pMaterial->IncrementReferenceCount();
 
@@ -416,7 +421,7 @@ void CVisuals::Chams(CBaseEntity* pLocal, IMatRenderContext* pContext, const Dra
 				// set base texture
 				pKeyValues->SetString(XorStr("$basetexture"), XorStr("vgui/white"));
 				// set environment map for reflections, etc
-				pKeyValues->SetString(XorStr("$envmap"), C::Get<int>(Vars.iEspChamsPlayers) == (int)EVisualsPlayersChams::REFLECTIVE ? XorStr("env_cubemap") : "\"\"");
+				pKeyValues->SetString(XorStr("$envmap"), C::Get<int>(Vars.iEspChamsPlayers) == (int)EVisualsPlayersChams::REFLECTIVE ? XorStr("env_cubemap") : "");
 
 				pMaterial->SetShaderAndParams(pKeyValues);
 				bUpdatePlayersChams = true;
@@ -434,16 +439,16 @@ void CVisuals::Chams(CBaseEntity* pLocal, IMatRenderContext* pContext, const Dra
 				pMaterial->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, C::Get<int>(Vars.iEspChamsPlayers) == (int)EVisualsPlayersChams::WIREFRAME ? true : false);
 
 				// set xqz color
-				I::RenderView->SetColorModulation(colHidden.Base());
+				I::StudioRender->SetColorModulation(colHidden.Base());
 
 				// set xqz alpha
-				I::RenderView->SetBlend(colHidden.aBase());
+				I::StudioRender->SetAlphaModulation(colHidden.aBase());
 
 				// override ignorez material
-				I::ModelRender->ForcedMaterialOverride(pMaterial);
+				I::StudioRender->ForcedMaterialOverride(pMaterial);
 
 				// draw model with xqz material
-				oDrawModelExecute(I::ModelRender, 0, pContext, state, pInfo, pCustomBoneToWorld);
+				oDrawModel(I::StudioRender, 0, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
 			}
 
 			/* visible chams */
@@ -454,45 +459,57 @@ void CVisuals::Chams(CBaseEntity* pLocal, IMatRenderContext* pContext, const Dra
 			pMaterial->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, C::Get<int>(Vars.iEspChamsPlayers) == (int)EVisualsPlayersChams::WIREFRAME ? true : false);
 
 			// set color
-			I::RenderView->SetColorModulation(colVisible.Base());
+			I::StudioRender->SetColorModulation(colVisible.Base());
 
 			// set alpha
-			I::RenderView->SetBlend((pEntity == pLocal && pLocal->IsScoped() && I::Input->bCameraInThirdPerson) ? 0.3f : colVisible.aBase());
+			I::StudioRender->SetAlphaModulation((pEntity == pLocal && pLocal->IsScoped() && I::Input->bCameraInThirdPerson) ? 0.3f : colVisible.aBase());
 
 			// override cuztomized material
-			I::ModelRender->ForcedMaterialOverride(pMaterial);
+			I::StudioRender->ForcedMaterialOverride(pMaterial);
 
-			// then draw model with our material when called original in hook
+			// then draw original with our material
+
+			// we need to clear override
+			return true;
 		}
 	}
 	// check for viewmodel sleeves
-	else if (strstr(pInfo.pModel->szName, XorStr("sleeve")) != nullptr && C::Get<bool>(Vars.bEspChamsViewModel) && C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::NO_DRAW)
+	else if (szModelName.find(XorStr("sleeve")) != std::string::npos && C::Get<bool>(Vars.bEspChamsViewModel) && C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::NO_DRAW)
 	{
 		// get original sleeves material
-		IMaterial* pSleeveMaterial = I::MaterialSystem->FindMaterial(pInfo.pModel->szName, TEXTURE_GROUP_MODEL);
+		IMaterial* pSleeveMaterial = I::MaterialSystem->FindMaterial(szModelName.c_str(), XorStr(TEXTURE_GROUP_MODEL));
 
 		// check is valid material
 		if (pSleeveMaterial == nullptr)
-			return;
+			return false;
 		
 		pSleeveMaterial->SetMaterialVarFlag(MATERIAL_VAR_NO_DRAW, true);
-		I::ModelRender->ForcedMaterialOverride(pSleeveMaterial);
+		I::StudioRender->ForcedMaterialOverride(pSleeveMaterial);
+
+		// then draw original model with our flags
+
+		// we need to clear override
+		return true;
 	}
-	// check for viewmodel
-	else if (strstr(pInfo.pModel->szName, XorStr("models/weapons/v_")) != nullptr && C::Get<bool>(Vars.bEspChamsViewModel))
+	// check for viewmodel @note: u can separate this
+	else if ((szModelName.find(XorStr("v_")) != std::string::npos || szModelName.find(XorStr("arms")) != std::string::npos) && C::Get<bool>(Vars.bEspChamsViewModel))
 	{
 		// get original viewmodel material
-		IMaterial* pViewModelMaterial = I::MaterialSystem->FindMaterial(pInfo.pModel->szName, TEXTURE_GROUP_MODEL);
+		IMaterial* pViewModelMaterial = I::MaterialSystem->FindMaterial(szModelName.c_str(), XorStr(TEXTURE_GROUP_MODEL));
 
 		// check is valid material
 		if (pViewModelMaterial == nullptr)
-			return;
+			return false;
 
 		if (C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::NO_DRAW)
 		{
 			pViewModelMaterial->SetMaterialVarFlag(MATERIAL_VAR_NO_DRAW, true);
 			I::ModelRender->ForcedMaterialOverride(pViewModelMaterial);
-			return;
+
+			// then draw original model with our flags
+
+			// we need to clear override
+			return true;
 		}
 
 		// get own material
@@ -504,7 +521,7 @@ void CVisuals::Chams(CBaseEntity* pLocal, IMatRenderContext* pContext, const Dra
 
 		// check is valid material
 		if (pMaterial == nullptr || pMaterial->IsErrorMaterial())
-			return;
+			return false;
 
 		pMaterial->IncrementReferenceCount();
 
@@ -540,22 +557,27 @@ void CVisuals::Chams(CBaseEntity* pLocal, IMatRenderContext* pContext, const Dra
 		if (C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::GLOW && bFoundEnvMapTint)
 			envmaptint->SetVector(colAdditional.rBase(), colAdditional.gBase(), colAdditional.bBase());
 		
-		I::RenderView->SetColorModulation(colViewModel.Base());
-
-		// set alpha
-		I::RenderView->SetBlend(colViewModel.aBase());
-
 		// set wireframe
 		pMaterial->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::WIREFRAME ? true : false);
 
 		// set "$ignorez" flag to 0 and disable it
 		pMaterial->SetMaterialVarFlag(MATERIAL_VAR_IGNOREZ, false);
 
-		// override cuztomized material
-		I::ModelRender->ForcedMaterialOverride(pMaterial);
+		I::StudioRender->SetColorModulation(colViewModel.Base());
 
-		// then draw model with our material when called original in hook
+		// set alpha
+		I::StudioRender->SetAlphaModulation(colViewModel.aBase());
+
+		// override cuztomized material
+		I::StudioRender->ForcedMaterialOverride(pMaterial);
+
+		// then draw original with our material
+
+		// we need to clear override
+		return true;
 	}
+
+	return false;
 }
 
 void CVisuals::Glow(CBaseEntity* pLocal)
