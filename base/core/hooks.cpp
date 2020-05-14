@@ -532,16 +532,16 @@ void FASTCALL H::hkDrawModel(IStudioRender* thisptr, int edx, DrawModelResults_t
 		I::StudioRender->ForcedMaterialOverride(nullptr);
 }
 
-int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, Vector& vecMins, Vector& vecMaxs, unsigned short* puList, int iListMax)
+int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, const Vector& vecMins, const Vector& vecMaxs, unsigned short* puList, int nListMax)
 {
 	static auto oListLeavesInBox = DTR::ListLeavesInBox.GetOriginal<decltype(&hkListLeavesInBox)>();
 
 	// @credits: soufiw
 	// occulusion getting updated on player movement/angle change,
 	// in RecomputeRenderableLeaves https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L674
-	static std::uintptr_t uInsertIntoTree = (MEM::FindPattern(CLIENT_DLL, XorStr("56 52 FF 50 18")) + 0x5);
+	static std::uintptr_t uInsertIntoTree = (MEM::FindPattern(CLIENT_DLL, XorStr("56 52 FF 50 18")) + 0x5); // @xref: "<unknown renderable>"
 
-	// check for esp state and return in CClientLeafSystem::InsertIntoTree
+	// check for esp state and call from CClientLeafSystem::InsertIntoTree
 	if (C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams) && std::uintptr_t(_ReturnAddress()) == uInsertIntoTree)
 	{
 		// get current renderable info from stack https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L1470
@@ -554,19 +554,20 @@ int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, Vector& vecMins, Vecto
 				{
 					// fix render order, force translucent group (https://www.unknowncheats.me/forum/2429206-post15.html)
 					// AddRenderablesToRenderLists: https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L2473
+					// @ida addrenderablestorenderlists: 55 8B EC 83 EC 24 53 56 8B 75 08 57 8B 46
 					pInfo->uFlags &= ~RENDER_FLAGS_FORCE_OPAQUE_PASS;
-					pInfo->uFlags2 |= 0x40;
+					pInfo->uFlags2 |= RENDER_FLAGS_BOUNDS_ALWAYS_RECOMPUTE;
 
 					// extend world space bounds to maximum https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L707
-					Vector vecMapMin = Vector(MIN_COORD_FLOAT, MIN_COORD_FLOAT, MIN_COORD_FLOAT);
-					Vector vecMapMax = Vector(MAX_COORD_FLOAT, MAX_COORD_FLOAT, MAX_COORD_FLOAT);
-					return oListLeavesInBox(thisptr, edx, vecMapMin, vecMapMax, puList, iListMax);
+					static const Vector vecMapMin = Vector(MIN_COORD_FLOAT, MIN_COORD_FLOAT, MIN_COORD_FLOAT);
+					static const Vector vecMapMax = Vector(MAX_COORD_FLOAT, MAX_COORD_FLOAT, MAX_COORD_FLOAT);
+					return oListLeavesInBox(thisptr, edx, vecMapMin, vecMapMax, puList, nListMax);
 				}
 			}
 		}
 	}
 
-	return oListLeavesInBox(thisptr, edx, vecMins, vecMaxs, puList, iListMax);
+	return oListLeavesInBox(thisptr, edx, vecMins, vecMaxs, puList, nListMax);
 }
 
 bool FASTCALL H::hkIsConnected(IEngineClient* thisptr, int edx)
