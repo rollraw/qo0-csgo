@@ -452,13 +452,13 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 		I::Input->vecCameraOffset.z = bThirdPerson ? C::Get<float>(Vars.flWorldThirdPersonOffset) : 150.f;
 
 		/*
-		 * @note: set custom thirdperson angles (e.g. fake's)
-		 * works, but ducarii shared more properly thirdperson angles setting here:
+		 * @note: set custom thirdperson angles (e.g. real's)
+		 * works, but @ducarii shared more properly thirdperson angles setting here:
 		 * https://www.unknowncheats.me/forum/counterstrike-global-offensive/340475-properly-setting-thirdperson-angles.html
 		 * and it will be more efficient
 		 */
-		if (bThirdPerson && pLocal->IsAlive() && I::Input->bCameraInThirdPerson && C::Get<bool>(Vars.bAntiAim))
-			*pLocal->GetThirdPersonAngles() = G::angFakeView;
+		if (C::Get<bool>(Vars.bAntiAim) && bThirdPerson && pLocal->IsAlive() && I::Input->bCameraInThirdPerson)
+			*pLocal->GetThirdPersonAngles() = G::angRealView;
 
 		break;
 	};
@@ -466,7 +466,7 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 	{
 		/*
 		 * received all packets, now do interpolation, prediction, etc
-		 * e.g. bactrack stuff
+		 * e.g. backtrack stuff
 		 */
 
 		break;
@@ -517,7 +517,7 @@ void FASTCALL H::hkDrawModel(IStudioRender* thisptr, int edx, DrawModelResults_t
 {
 	static auto oDrawModel = DTR::DrawModel.GetOriginal<decltype(&hkDrawModel)>();
 
-	if (!I::Engine->IsInGame() || I::ModelRender->IsForcedMaterialOverride() || I::Engine->IsTakingScreenshot())
+	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
 		return oDrawModel(thisptr, edx, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
 
 	CBaseEntity* pLocal = U::GetLocalPlayer();

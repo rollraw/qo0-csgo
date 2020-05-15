@@ -59,14 +59,14 @@ void CTriggerBot::Run(CUserCmd* pCmd, CBaseEntity* pLocal)
 	}
 	else
 	{
-		// otherwise new trace ray
+		// otherwise ray new trace
 		Ray_t ray;
 		ray.Init(vecStart, vecEnd);
 		CTraceFilterSkipEntity filter(pLocal);
 		I::EngineTrace->TraceRay(ray, MASK_SHOT, &filter, &trace);
 	}
 
-	// check is valid trace entity
+	// check is valid trace player
 	if (trace.pHitEntity == nullptr || !trace.pHitEntity->IsPlayer() || !trace.pHitEntity->IsAlive() || trace.pHitEntity->HasImmunity())
 		return;
 

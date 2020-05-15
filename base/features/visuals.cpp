@@ -381,15 +381,16 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 	if (pEntity == nullptr)
 		return false;
 
-	std::string szModelName = info.pStudioHdr->szName;
+	std::string_view szModelName = info.pStudioHdr->szName;
 
-	// prevent chams on foot shadows
-	if (szModelName.find(XorStr("shadow")) != std::string::npos)
-		return false;
-	// check for players (@test: class id cuz with modelname maybe can not work with new agent models 14.05.20)
-	else if (const auto pClientClass = pEntity->GetClientClass(); pClientClass != nullptr && pClientClass->nClassID == EClassIndex::CCSPlayer && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies)))
+	// check for players
+	if (const auto pClientClass = pEntity->GetClientClass(); pClientClass != nullptr && pClientClass->nClassID == EClassIndex::CCSPlayer && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies)))
 	{
-		if (pEntity == nullptr || !pEntity->IsAlive())
+		// skip glow models
+		if (nFlags & (STUDIO_RENDER | STUDIO_SKIP_FLEXES | STUDIO_DONOTMODIFYSTENCILSTATE | STUDIO_NOLIGHTING_OR_CUBEMAP | STUDIO_SKIP_DECALS))
+			return false;
+
+		if (!pEntity->IsAlive())
 			return false;
 
 		// team filters check
@@ -462,6 +463,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 			I::StudioRender->SetColorModulation(colVisible.Base());
 
 			// set alpha
+			// @test: sadly but in drawmodel hook doesnt modulates alpha ;(
 			I::StudioRender->SetAlphaModulation((pEntity == pLocal && pLocal->IsScoped() && I::Input->bCameraInThirdPerson) ? 0.3f : colVisible.aBase());
 
 			// override cuztomized material
@@ -477,7 +479,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 	else if (szModelName.find(XorStr("sleeve")) != std::string::npos && C::Get<bool>(Vars.bEspChamsViewModel) && C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::NO_DRAW)
 	{
 		// get original sleeves material
-		IMaterial* pSleeveMaterial = I::MaterialSystem->FindMaterial(szModelName.c_str(), XorStr(TEXTURE_GROUP_MODEL));
+		IMaterial* pSleeveMaterial = I::MaterialSystem->FindMaterial(szModelName.data(), XorStr(TEXTURE_GROUP_MODEL));
 
 		// check is valid material
 		if (pSleeveMaterial == nullptr)
@@ -495,7 +497,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 	else if ((szModelName.find(XorStr("v_")) != std::string::npos || szModelName.find(XorStr("arms")) != std::string::npos) && C::Get<bool>(Vars.bEspChamsViewModel))
 	{
 		// get original viewmodel material
-		IMaterial* pViewModelMaterial = I::MaterialSystem->FindMaterial(szModelName.c_str(), XorStr(TEXTURE_GROUP_MODEL));
+		IMaterial* pViewModelMaterial = I::MaterialSystem->FindMaterial(szModelName.data(), XorStr(TEXTURE_GROUP_MODEL));
 
 		// check is valid material
 		if (pViewModelMaterial == nullptr)
