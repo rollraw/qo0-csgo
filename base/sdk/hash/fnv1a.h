@@ -5,7 +5,7 @@ using FNV1A_t = std::uint32_t;
 /*
  * 32-BIT FNV1A HASH
  * use fnv1a instead crc32 with randomly access ~1kb much proper
- * credits: underscorediscovery
+ * @credits: underscorediscovery
  */
 namespace FNV1A
 {

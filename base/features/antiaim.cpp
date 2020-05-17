@@ -9,13 +9,13 @@
 // used: math definitions
 #include "../utilities/math.h"
 
-void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, QAngle angles, bool& bSendPacket)
+void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, QAngle angViewPoint, bool& bSendPacket)
 {
 	// check is not frozen and alive
 	if (pLocal->GetFlags() & FL_FROZEN || !pLocal->IsAlive())
 		return;
 
-	// is not on a ladder or use noclip (to except this need more proper movefix)
+	// is not on a ladder or use noclip (to skip that needs more proper movefix)
 	if (pLocal->GetMoveType() == MOVETYPE_LADDER || pLocal->GetMoveType() == MOVETYPE_NOCLIP)
 		return;
 
@@ -34,20 +34,18 @@ void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, QAngle angles, bool& bSe
 	if (pWeaponData == nullptr)
 		return;
 
+	float flServerTime = TICKS_TO_TIME(pLocal->GetTickBase());
+
 	// weapon shoot check
-	if (pWeaponData->IsGun() && pLocal->IsCanShoot(pWeapon) &&
-		(pCmd->iButtons & IN_ATTACK || (nDefinitionIndex == WEAPON_REVOLVER && pCmd->iButtons & (IN_ATTACK | IN_SECOND_ATTACK)))) // @todo: fix burst
+	if (pWeaponData->IsGun() && pLocal->IsCanShoot(pWeapon) && (pCmd->iButtons & IN_ATTACK || (nDefinitionIndex == WEAPON_REVOLVER && pCmd->iButtons & IN_SECOND_ATTACK)))
 		return;
 	// knife attack check
 	else if (pWeaponData->nWeaponType == WEAPONTYPE_KNIFE)
 	{
-		float flNextPrimaryAttack = pWeapon->GetNextPrimaryAttack() - I::Globals->flCurrentTime;
-		float flNextSecondaryAttack = pWeapon->GetNextSecondaryAttack() - I::Globals->flCurrentTime;
-
-			// slash
-		if ((pCmd->iButtons & IN_ATTACK && flNextPrimaryAttack <= 0.f) ||
+		// slash
+		if ((pCmd->iButtons & IN_ATTACK && pWeapon->GetNextPrimaryAttack() <= flServerTime) ||
 			// stab
-			(pCmd->iButtons & IN_SECOND_ATTACK && flNextSecondaryAttack <= 0.f))
+			(pCmd->iButtons & IN_SECOND_ATTACK && pWeapon->GetNextSecondaryAttack() <= flServerTime))
 			return;
 	}
 	// grenade throw check
@@ -63,100 +61,93 @@ void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, QAngle angles, bool& bSe
 
 	/* edge antiaim, fakewalk, other hvhboi$tuff do here */
 
+	// @note: fyi: https://www2.clarku.edu/faculty/djoyce/complex/polarangle.gif
+
 	// do antiaim for pitch
-	Pitch(pLocal, angles);
+	Pitch(pLocal, angViewPoint);
 	// do antiaim for yaw
-	Yaw(pLocal, angles, bSendPacket);
+	Yaw(pCmd, pLocal, angViewPoint, bSendPacket);
 
 	if (C::Get<bool>(Vars.bAntiUntrusted))
 	{
-		angles.Normalize();
-		angles.Clamp();
+		angViewPoint.Normalize();
+		angViewPoint.Clamp();
 	}
 
 	// set angles
-	pCmd->angViewPoint = angles;
+	pCmd->angViewPoint = angViewPoint;
 }
 
-void CAntiAim::Pitch(CBaseEntity* pLocal, QAngle& angle)
+void CAntiAim::Pitch(CBaseEntity* pLocal, QAngle& angView)
 {
 	switch (C::Get<int>(Vars.iAntiAimPitch))
 	{
 	case (int)EAntiAimPitchType::NONE:
 		break;
 	case (int)EAntiAimPitchType::UP:
-		angle.x = -89.0f;
+		angView.x = -89.0f;
 		break;
 	case (int)EAntiAimPitchType::DOWN:
-		angle.x = 89.f;
+		angView.x = 89.f;
 		break;
 	case (int)EAntiAimPitchType::ZERO:
-		angle.x = 1080.f; // @note: fyi: https://www2.clarku.edu/faculty/djoyce/complex/polarangle.gif
+		// untrusted pitch example
+		angView.x = 1080.f;
 		break;
 	}
 }
 
-void CAntiAim::Yaw(CBaseEntity* pLocal, QAngle& angle, bool& bSendPacket)
+void CAntiAim::Yaw(CUserCmd* pCmd, CBaseEntity* pLocal, QAngle& angView, bool& bSendPacket)
 {
-	float flServerTime = TICKS_TO_TIME(pLocal->GetTickBase());
+	CBasePlayerAnimState* pAnimState = pLocal->GetAnimationState();
 
-	// @note: simply pseudocode example for different AA's at move/stand/jump/crouch
-	/*static int iCurrentReal, iCurrentFake;
+	if (pAnimState == nullptr)
+		return;
 
-	// is moving
-	if (pLocal->GetVelocity().Length2D() > 0.1f)
-	{
-		iCurrentReal = 1;
-		iCurrentFake = 1;
-	}
-	// is jumping
-	else if (!(pLocal->GetFlags() & FL_ONGROUND))
-	{
-		iCurrentReal = 2;
-		iCurrentFake = 2;
-	}
-	// is crouching
-	else if (pLocal->GetFlags & FL_DUCKING)
-	{
-		iCurrentReal = 3;
-		iCurrentFake = 3;
-	}
-	// is standing
-	else
-	{
-		iCurrentReal = 0;
-		iCurrentFake = 0;
-	}*/
+	const auto flMaxDesyncDelta = GetMaxDesyncDelta(pAnimState);
 
-	if (bSendPacket)
+	switch (C::Get<int>(Vars.iAntiAimYaw))
 	{
-		/* at target do here */
-
-		switch (C::Get<int>(Vars.iAntiAimYaw))
+	case (int)EAntiAimYawType::NONE:
+		break;
+	case (int)EAntiAimYawType::DESYNC:
+	{
+		// check is not moving now
+		if (std::fabsf(pCmd->flSideMove) < 5.0f)
 		{
-		case (int)EAntiAimYawType::NONE:
-			break;
-		case (int)EAntiAimYawType::SIDEWAYS:
-			angle.y += 90;
-			break;
+			// force server to update our lby by making micromovements (also u can use breaker instead)
+			if (pCmd->iTickCount % 2)
+				pCmd->flSideMove = (pCmd->iButtons & IN_DUCK) ? -3.25f : -1.1f;
+			else
+				pCmd->flSideMove = (pCmd->iButtons & IN_DUCK) ? 3.25f : 1.1f;
 		}
 
-		/* additional yaw modifier here */
+		/*
+		 * @note: needed jitter/manual switch
+		 * to visualy seen that - make desync chams by saving matrix or draw direction arrows
+		 */
+		if (bSendPacket)
+			angView.y -= pLocal->GetLowerBodyYaw() + flMaxDesyncDelta;
+		else
+			angView.y += pLocal->GetLowerBodyYaw() + flMaxDesyncDelta;
+		break;
 	}
-	else
-	{
-		/* fake at target do here */
-
-		// @note: fake angles fixed now for ~half-year and i leave this here only for example
-		switch (C::Get<int>(Vars.iAntiAimYaw))
-		{
-		case (int)EAntiAimYawType::NONE:
-			break;
-		case (int)EAntiAimYawType::SIDEWAYS:
-			angle.y -= 90;
-			break;
-		}
-
-		/* additional fake yaw modifier here */
+	default:
+		break;
 	}
+}
+
+float CAntiAim::GetMaxDesyncDelta(CBasePlayerAnimState* pAnimState)
+{
+	// @credits: sharklaser1's reversed setupvelocity
+	float flDuckAmount = pAnimState->flDuckAmount;
+	float flRunningSpeed = std::clamp<float>(pAnimState->flRunningSpeed, 0.0f, 1.0f);
+	float flDuckingSpeed = std::clamp<float>(pAnimState->flDuckingSpeed, 0.0f, 1.0f);
+	float flYawModifier = (((pAnimState->flWalkToRunTransition * -0.3f) - 0.2f) * flRunningSpeed) + 1.0f;
+
+	if (flDuckAmount > 0.0f)
+		flYawModifier += ((flDuckAmount * flDuckingSpeed) * (0.5f - flYawModifier));
+
+	float flMaxYawModifier = flYawModifier * pAnimState->flMaxBodyYaw;
+	return flMaxYawModifier;
 }

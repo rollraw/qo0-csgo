@@ -77,6 +77,10 @@ namespace U
 	/* returns icon of given index for custom font */
 	const char* GetWeaponIcon(short nItemDefinitionIndex);
 
+	// Extra
+	/* flashes the specified window */
+	void FlashWindow(HWND pWindow);
+
 	// String
 	/* converts from unicode to ascii string */
 	std::string UnicodeAscii(const std::wstring& wszUnicode);
@@ -85,7 +89,7 @@ namespace U
 
 	// Links
 	/* event listener implementation */
-	extern CEventListener	EventListener;
+	inline CEventListener EventListener;
 	/* entity listener implementation */
-	extern CEntityListener	EntityListener;
+	inline CEntityListener EntityListener;
 }

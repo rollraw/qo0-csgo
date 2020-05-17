@@ -13,11 +13,12 @@ class CAntiAim : public CSingleton<CAntiAim>
 public:
 	// Get
 	void Run(CUserCmd* pCmd, CBaseEntity* pLocal, QAngle angles, bool& bSendPacket);
-	// Values
-	/* current lowerbody yaw update state */
-	bool bLowerBodyUpdate = false;
 private:
 	// Main
-	void Pitch(CBaseEntity* pLocal, QAngle& angle);
-	void Yaw(CBaseEntity* pLocal, QAngle& angle, bool& bSendPacket);
+	void Pitch(CBaseEntity* pLocal, QAngle& angView);
+	void Yaw(CUserCmd* pCmd, CBaseEntity* pLocal, QAngle& angView, bool& bSendPacket);
+
+	// Extra
+	/* returns max server desynchronization angle delta */
+	float GetMaxDesyncDelta(CBasePlayerAnimState* pAnimState);
 };

@@ -26,8 +26,8 @@ void CMiscellaneous::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 	if (C::Get<bool>(Vars.bAutoStrafe))
 		AutoStrafe(pCmd, pLocal);
 
-	if (C::Get<bool>(Vars.bRankReveal) && pCmd->iButtons & IN_SCORE) // @todo: make in hook
-		I::Client->DispatchUserMessage(CS_UM_ServerRankRevealAll, 0U, 0U, nullptr);
+	if (C::Get<bool>(Vars.bRankReveal) && pCmd->iButtons & IN_SCORE)
+		I::Client->DispatchUserMessage(CS_UM_ServerRankRevealAll, 0U, 0, nullptr);
 }
 
 void CMiscellaneous::Event(IGameEvent* pEvent)

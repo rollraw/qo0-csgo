@@ -63,9 +63,9 @@ public:
 	}
 
 	/* convert color to directx rgba */
-	ImColor GetU32()
+	ImU32 GetU32()
 	{
-		return /*D3DCOLOR_RGBA*/ImColor(arrColor[0], arrColor[1], arrColor[2], arrColor[3]);
+		return ImGui::GetColorU32(ImVec4(this->rBase(), this->gBase(), this->bBase(), this->aBase()));
 	}
 
 	bool operator==(const Color& colSecond) const

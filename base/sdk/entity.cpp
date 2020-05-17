@@ -145,12 +145,12 @@ Vector CBaseEntity::GetHitGroupPosition(int iHitGroup)
 	return Vector{ };
 }
 
-void CBaseEntity::ModifyEyePosition(CCSGOPlayerAnimState* pAnimState, Vector* vecPosition)
+void CBaseEntity::ModifyEyePosition(CBasePlayerAnimState* pAnimState, Vector* vecPosition)
 {
 	if (I::Engine->IsHLTV() || I::Engine->IsPlayingDemo())
 		return;
 
-	if (pAnimState->bInHitGroundAnimation && pAnimState->flDuckAmount != 0.f)
+	if (pAnimState->bHitGroundAnimation && pAnimState->flDuckAmount != 0.f)
 	{
 		CBaseEntity* pBaseEntity = pAnimState->pEntity;
 
@@ -161,14 +161,14 @@ void CBaseEntity::ModifyEyePosition(CCSGOPlayerAnimState* pAnimState, Vector* ve
 
 			if ((*vecPosition).z > vecBonePos.z)
 			{
-				float flFactor = 0.f;
+				float flFactor = 0.0f;
 				float flDelta = (*vecPosition).z - vecBonePos.z;
-				float flOffset = (flDelta - 4.f) / 6.f;
+				float flOffset = (flDelta - 4.0f) / 6.0f;
 
 				if (flOffset >= 0.f)
-					flFactor = std::min<float>(flOffset, 1.f);
+					flFactor = std::min<float>(flOffset, 1.0f);
 
-				(*vecPosition).z += ((vecBonePos.z - (*vecPosition).z) * (((flFactor * flFactor) * 3.f) - (((flFactor * flFactor) * 2.f) * flFactor)));
+				(*vecPosition).z += ((vecBonePos.z - (*vecPosition).z) * (((flFactor * flFactor) * 3.0f) - (((flFactor * flFactor) * 2.0f) * flFactor)));
 			}
 		}
 	}
@@ -269,19 +269,21 @@ bool CBaseEntity::IsCanShoot(CBaseCombatWeapon* pWeapon)
 	return true;
 }
 
-bool CBaseEntity::IsVisible(CBaseEntity* pEntity, const Vector& vecSpot, bool bSmokeCheck)
+bool CBaseEntity::IsVisible(CBaseEntity* pEntity, const Vector& vecEnd, bool bSmokeCheck)
 {
+	const Vector vecStart = this->GetEyePosition();
+
 	Ray_t ray;
-	ray.Init(this->GetEyePosition(), vecSpot);
+	ray.Init(vecStart, vecEnd);
 
 	Trace_t trace;
-	CTraceFilterSkipEntity filter(this);
-	I::EngineTrace->TraceRay(ray, MASK_NPCWORLDSTATIC | MASK_SHOT, &filter, &trace);
+	CTraceFilterSkipTwoEntities filter(this, pEntity);
+	I::EngineTrace->TraceRay(ray, MASK_SHOT, &filter, &trace);
 
 	// trace check
 	if ((trace.IsVisible() || trace.pHitEntity == this) &&
 		// smoke check
-		!(bSmokeCheck && U::LineGoesThroughSmoke(this->GetEyePosition(), vecSpot)))
+		!(bSmokeCheck && U::LineGoesThroughSmoke(vecStart, vecEnd)))
 		return true;
 
 	return false;

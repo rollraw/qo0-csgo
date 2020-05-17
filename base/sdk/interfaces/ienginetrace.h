@@ -111,12 +111,12 @@ public:
 	
 	inline bool DidHit() const
 	{
-		return flFraction < 1.0f || bAllSolid || bStartSolid;
+		return (flFraction < 1.0f || bAllSolid || bStartSolid);
 	}
 
 	inline bool IsVisible() const
 	{
-		return flFraction > 0.97f;
+		return (flFraction > 0.97f);
 	}
 
 private:
@@ -137,14 +137,14 @@ struct Ray_t
 	bool				bIsRay;
 	bool				bIsSwept;
 
-	void Init(Vector const& vecStart, Vector const& vecEnd)
+	void Init(const Vector& vecStart, const Vector& vecEnd)
 	{
-		vecDelta = vecEnd - vecStart;
-		bIsSwept = (vecDelta.LengthSqr() != 0);
-		vecExtents.Init();
-		matWorldAxisTransform = nullptr;
-		bIsRay = true;
-		vecStartOffset.Init();
+		this->vecDelta = vecEnd - vecStart;
+		this->bIsSwept = (this->vecDelta.LengthSqr() != 0.f);
+		this->vecExtents.Init();
+		this->matWorldAxisTransform = nullptr;
+		this->bIsRay = true;
+		this->vecStartOffset.Init();
 		this->vecStart = vecStart;
 	}
 };

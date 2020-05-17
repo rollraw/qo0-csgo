@@ -54,7 +54,7 @@ struct matrix3x4_t
 		flData[2][3] = p.z;
 	}
 
-	void Invalidate()
+	constexpr void Invalidate()
 	{
 		for (int i = 0; i < 3; i++)
 		{

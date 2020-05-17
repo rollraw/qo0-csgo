@@ -27,8 +27,6 @@ namespace G
 	inline bool				bSendPacket = true;
 	// last viewangles with allowed sendpacket
 	inline QAngle			angRealView = { };
-	// last viewangles with denied sendpacket
-	inline QAngle			angFakeView = { };
 	// last origin with denied sendpacket
 	inline Vector			vecFakeOrigin = { };
 	// last aimstep restriction

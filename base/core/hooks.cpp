@@ -51,9 +51,6 @@ bool H::Setup()
 	if (!DTR::FrameStageNotify.Create(MEM::GetVFunc(I::Client, VTABLE::FRAMESTAGENOTIFY), &hkFrameStageNotify))
 		return false;
 
-	if (!DTR::DispatchUserMessage.Create(MEM::GetVFunc(I::Client, VTABLE::DISPATCHUSERMESSAGE), &hkDispatchUserMessage))
-		return false;
-
 	if (!DTR::OverrideView.Create(MEM::GetVFunc(I::ClientMode, VTABLE::OVERRIDEVIEW), &hkOverrideView))
 		return false;
 
@@ -75,8 +72,8 @@ bool H::Setup()
 	if (!DTR::IsConnected.Create(MEM::GetVFunc(I::Engine, VTABLE::ISCONNECTED), &hkIsConnected))
 		return false;
 
-	if (!DTR::ListLeavesInBox.Create(MEM::GetVFunc(I::Engine->GetBSPTreeQuery(), VTABLE::LISTLEAVESINBOX), &hkListLeavesInBox))
-		return false;
+	//if (!DTR::ListLeavesInBox.Create(MEM::GetVFunc(I::Engine->GetBSPTreeQuery(), VTABLE::LISTLEAVESINBOX), &hkListLeavesInBox))
+	//	return false;
 
 	if (!DTR::PaintTraverse.Create(MEM::GetVFunc(I::Panel, VTABLE::PAINTTRAVERSE), &hkPaintTraverse))
 		return false;
@@ -115,7 +112,6 @@ void H::Restore()
 	DTR::Reset.~CDetourHook();
 	DTR::EndScene.~CDetourHook();
 	DTR::FrameStageNotify.~CDetourHook();
-	DTR::DispatchUserMessage.~CDetourHook();
 	DTR::OverrideView.~CDetourHook();
 	DTR::OverrideMouseInput.~CDetourHook();
 	DTR::CreateMove.~CDetourHook();
@@ -124,7 +120,7 @@ void H::Restore()
 	DTR::GetViewModelFOV.~CDetourHook();
 	DTR::DoPostScreenEffects.~CDetourHook();
 	DTR::IsConnected.~CDetourHook();
-	DTR::ListLeavesInBox.~CDetourHook();
+	//DTR::ListLeavesInBox.~CDetourHook();
 	DTR::PaintTraverse.~CDetourHook();
 	DTR::DrawModel.~CDetourHook();
 	DTR::RunCommand.~CDetourHook();
@@ -148,7 +144,7 @@ void H::Restore()
 #pragma region hooks_handlers
 long D3DAPI H::hkReset(IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
-	static auto oReset = DTR::Reset.GetOriginal<decltype(&hkReset)>();//VMT::Direct.GetOriginal<decltype(&hkReset)>(VTABLE::RESET);
+	static auto oReset = DTR::Reset.GetOriginal<decltype(&hkReset)>();
 
 	// check for first initialization
 	if (!D::bInitialized)
@@ -319,10 +315,7 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 		// apply the sent angles
 		G::angRealView = pCmd->angViewPoint;
 	else if (!bSendPacket)
-	{
-		G::angFakeView = pCmd->angViewPoint;
 		G::vecFakeOrigin = pLocal->GetOrigin();
-	}
 
 	if (C::Get<bool>(Vars.bPingSpike))
 		CLagCompensation::Get().UpdateIncomingSequences(pNetChannel);
@@ -347,15 +340,15 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	return false;
 }
 
-void FASTCALL H::hkPaintTraverse(ISurface* thisptr, int edx, unsigned int iPanel, bool bForceRepaint, bool bForce)
+void FASTCALL H::hkPaintTraverse(ISurface* thisptr, int edx, unsigned int uPanel, bool bForceRepaint, bool bForce)
 {
 	static auto oPaintTraverse = DTR::PaintTraverse.GetOriginal<decltype(&hkPaintTraverse)>();
 
 	// remove zoom panel
-	if (!I::Engine->IsTakingScreenshot() && C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SCOPE) && !strcmp(I::Panel->GetName(iPanel), XorStr("HudZoom")))
+	if (!I::Engine->IsTakingScreenshot() && C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SCOPE) && !strcmp(I::Panel->GetName(uPanel), XorStr("HudZoom")))
 		return;
 
-	oPaintTraverse(thisptr, edx, iPanel, bForceRepaint, bForce);
+	oPaintTraverse(thisptr, edx, uPanel, bForceRepaint, bForce);
 }
 
 void FASTCALL H::hkPlaySound(ISurface* thisptr, int edx, const char* szFileName)
@@ -506,13 +499,6 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 	}
 }
 
-bool FASTCALL H::hkDispatchUserMessage(IBaseClientDll* thisptr, int edx, int iMessageType, unsigned int a3, unsigned int uBytes, const void* bfMessageData)
-{
-	static auto oDispatchUserMessage = DTR::DispatchUserMessage.GetOriginal<decltype(&hkDispatchUserMessage)>();
-
-	return oDispatchUserMessage(thisptr, edx, iMessageType, a3, uBytes, bfMessageData);
-}
-
 void FASTCALL H::hkDrawModel(IStudioRender* thisptr, int edx, DrawModelResults_t* pResults, const DrawModelInfo_t& info, matrix3x4_t* pBoneToWorld, float* flFlexWeights, float* flFlexDelayedWeights, const Vector& vecModelOrigin, int nFlags)
 {
 	static auto oDrawModel = DTR::DrawModel.GetOriginal<decltype(&hkDrawModel)>();
@@ -536,13 +522,15 @@ int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, const Vector& vecMins,
 {
 	static auto oListLeavesInBox = DTR::ListLeavesInBox.GetOriginal<decltype(&hkListLeavesInBox)>();
 
+	// @todo: sometimes models doesnt drawn on certain maps (not only me: https://www.unknowncheats.me/forum/counterstrike-global-offensive/330483-disable-model-occulusion-3.html)
+
 	// @credits: soufiw
 	// occulusion getting updated on player movement/angle change,
 	// in RecomputeRenderableLeaves https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L674
 	static std::uintptr_t uInsertIntoTree = (MEM::FindPattern(CLIENT_DLL, XorStr("56 52 FF 50 18")) + 0x5); // @xref: "<unknown renderable>"
 
 	// check for esp state and call from CClientLeafSystem::InsertIntoTree
-	if (C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams) && std::uintptr_t(_ReturnAddress()) == uInsertIntoTree)
+	if (C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams) && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies)) && std::uintptr_t(_ReturnAddress()) == uInsertIntoTree)
 	{
 		// get current renderable info from stack https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L1470
 		if (const auto pInfo = *(RenderableInfo_t**)((std::uintptr_t)_AddressOfReturnAddress() + 0x14); pInfo != nullptr)
@@ -702,6 +690,9 @@ int FASTCALL H::hkDoPostScreenEffects(IClientModeShared* thisptr, int edx, CView
 void FASTCALL H::hkRunCommand(IPrediction* thisptr, int edx, CBaseEntity* pEntity, CUserCmd* pCmd, IMoveHelper* pMoveHelper)
 {
 	static auto oRunCommand = DTR::RunCommand.GetOriginal<decltype(&hkRunCommand)>();
+
+	/* there is tickbase corrections / velocity modifier fix */
+
 	oRunCommand(thisptr, edx, pEntity, pCmd, pMoveHelper);
 
 	// get movehelper interface pointer
@@ -715,10 +706,10 @@ int FASTCALL H::hkSendMessage(ISteamGameCoordinator* thisptr, int edx, std::uint
 	std::uint32_t uMessageType = uMsgType & 0x7FFFFFFF;
 	void* pDataMutable = const_cast<void*>(pData);
 
-	int gcStatus = oSendMessage(thisptr, edx, uMsgType, pDataMutable, uData);
+	int iStatus = oSendMessage(thisptr, edx, uMsgType, pDataMutable, uData);
 
-	if (gcStatus != EGCResultOK)
-		return gcStatus;
+	if (iStatus != EGCResultOK)
+		return iStatus;
 
 	#if _DEBUG
 	L::PushConsoleColor(FOREGROUND_INTENSE_GREEN | FOREGROUND_RED);
@@ -726,16 +717,16 @@ int FASTCALL H::hkSendMessage(ISteamGameCoordinator* thisptr, int edx, std::uint
 	L::PopConsoleColor();
 	#endif
 
-	return gcStatus;
+	return iStatus;
 }
 
 int FASTCALL H::hkRetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::uint32_t* puMsgType, void* pDest, std::uint32_t uDest, std::uint32_t* puMsgSize)
 {
 	static auto oRetrieveMessage = DTR::RetrieveMessage.GetOriginal<decltype(&hkRetrieveMessage)>();
-	int gcStatus = oRetrieveMessage(thisptr, edx, puMsgType, pDest, uDest, puMsgSize);
+	int iStatus = oRetrieveMessage(thisptr, edx, puMsgType, pDest, uDest, puMsgSize);
 
-	if (gcStatus != EGCResultOK)
-		return gcStatus;
+	if (iStatus != EGCResultOK)
+		return iStatus;
 
 	std::uint32_t uMessageType = *puMsgType & 0x7FFFFFFF;
 
@@ -745,10 +736,15 @@ int FASTCALL H::hkRetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::
 	L::PopConsoleColor();
 	#endif
 
-	if (C::Get<bool>(Vars.bAutoAccept) && uMessageType == 9177 /*k_EMsgGCCStrike15_v2_GCToClientSteamdatagramTicket*/)
+	// check for k_EMsgGCCStrike15_v2_GCToClientSteamdatagramTicket message when we can accept the game
+	if (C::Get<bool>(Vars.bAutoAccept) && uMessageType == 9177)
+	{
 		U::SetLocalPlayerReady();
+		Beep(500, 800);
+		U::FlashWindow(IPT::hWindow);
+	}
 
-	return gcStatus;
+	return iStatus;
 }
 
 void FASTCALL H::hkEmitSound(IEngineSound* thisptr, int edx, IRecipientFilter& filter, int nEntityIndex, int iChannel, const char* szSoundEntry, unsigned int uSoundEntryHash, const char* szSample, float flVolume, float flAttenuation, int nSeed, int iFlags, int iPitch, const Vector* vecOrigin, const Vector* vecDirection, CUtlVector<Vector>* pUtlVecOrigins, bool bUpdatePositions, int flSoundTime, int nSpeakerEntity, StartSoundParams_t& parameters)
@@ -756,20 +752,6 @@ void FASTCALL H::hkEmitSound(IEngineSound* thisptr, int edx, IRecipientFilter& f
 	static auto oEmitSound = DTR::EmitSound.GetOriginal<decltype(&hkEmitSound)>();
 
 	// @note: for sound esp use: "player/footsteps", "player/land", "clipout" sounds check
-
-	if (C::Get<bool>(Vars.bAutoAccept) && strcmp(szSoundEntry, XorStr("UIPanorama.popup_accept_match_beep")) == 0)
-	{
-		U::SetLocalPlayerReady();
-
-		FLASHWINFO fwInfo;
-		fwInfo.cbSize = sizeof(FLASHWINFO);
-		fwInfo.hwnd = IPT::hWindow;
-		fwInfo.dwFlags = FLASHW_ALL | FLASHW_TIMERNOFG;
-		fwInfo.uCount = 0;
-		fwInfo.dwTimeout = 0;
-		Beep(100, 5);
-		FlashWindowEx(&fwInfo);
-	}
 
 	oEmitSound(thisptr, edx, filter, nEntityIndex, iChannel, szSoundEntry, uSoundEntryHash, szSample, flVolume, flAttenuation, nSeed, iFlags, iPitch, vecOrigin, vecDirection, pUtlVecOrigins, bUpdatePositions, flSoundTime, nSpeakerEntity, parameters);
 }

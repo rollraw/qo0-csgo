@@ -91,62 +91,57 @@ public:
 
 class CBaseEntity;
 class CBaseCombatWeapon;
-class CCSGOPlayerAnimState
+class CBasePlayerAnimState
 {
 public:
-	std::byte	pad0[0x18]; //0x00
-	float		flAnimUpdateTimer; //0x18
-	std::byte	pad1[0xC]; //0x1C
-	float		flStartedMovingTime; //0x28
-	float		flLastMoveTime; //0x2C
-	std::byte	pad2[0xC]; //0x30
-	float		flSpeed; //0x3C
-	float		flLastLbyTime; //0x40
-	std::byte	pad3[0x8]; //0x44
-	float		flRunAmount; //0x4C
-	std::byte	pad4[0x10]; //0x50
-	CBaseEntity* pEntity; //0x60
-	CBaseCombatWeapon* pActiveWeapon; //0x64
-	CBaseCombatWeapon* pLastActiveWeapon; //0x68
-	float		flLastClientSideAnimationUpdateTime; //0x6C
-	int			iLastClientSideAnimationUpdateFramecount; //0x70
-	float		flEyeTimer; //0x74
-	float		flEyeYaw; //0x78
-	float		flEyePitch; //0x7C
-	float		flGoalFeetYaw; //0x80
-	float		flCurrentFeetYaw; //0x84
-	float		flCurrentTorsoYaw; //0x88
-	float		flLastMoveYaw; //0x8C // changes when moving/jumping/hitting ground
-	float		flLeanAmount; //0x90
-	std::byte	pad5[0x4]; //0x94
-	float		flFeetCycle; //0x98 0 to 1
-	float		flFeetYawRate; //0x9C 0 to 1
-	std::byte	pad6[0x4]; //0xA0
-	float		flDuckAmount; //0xA4
-	float		flLandingDuckAdditiveSomething; //0xA8
-	std::byte	pad7[0x4]; //0xAC
-	Vector		vecOrigin; //0xB8
-	Vector		vecLastOrigin;//0xC4
-	Vector		vecVelocity; //0xC8
-	float		flAffectedMoveDirection; //0xD4 // affected by movement and direction
-	std::byte	pad8[0x8]; //0xDC
-	float		flAffectedDirection; //0xE0 // from -1 to 1 when moving and affected by direction
-	float		flAffectedDirection2; //0xE4 // from -1 to 1 when moving and affected by direction
-	std::byte	pad9[0x4]; //0xE8
-	float		flVelocity; //0xEC
-	float		flJumpFallVelocity; //0xF0
-	float		flSpeedNormalized; //0xF4 // clamped velocity from 0 to 1 
-	float		flFeetSpeedForwardsOrSideways; //0xF8 // from 0 to 2. something  is 1 when walking, 2.something when running, 0.653 when crouch walking
-	float		flFeetSpeedForwardOrSideways2; //0xFC // from 0 to 3. something
-	float		flTimeSinceStartedMoving; //0x100
-	float		flTimeSinceStoppedMoving; //0x104
-	bool		bOnGround; //0x108
-	bool		bInHitGroundAnimation; //0x109
-	std::byte	pad10[0x4]; //0x10A
-	float		flLastOriginZ; //0x10E
-	float		flHeadHeightOrOffsetFromHittingGroundAnimation; //0x112 // from 0 to 1, is 1 when standing
-	float		flStopToFullRunningFraction; //0x116 // from 0 to 1, doesnt change when walking or crouching, only running
-	std::byte	pad11[0x4]; //0x11A
-	float		flAffectedFraction; //0x11E // affected while jumping and running, or when just jumping, 0 to 1
-	std::byte	pad12[0x218]; //0x122
-}; // Size: 0x33A
+	std::byte	pad0[0x56]; // 0x00
+	int			nCachedModelIndex; // 0x56
+	CBaseEntity* pEntity; // 0x60
+	CBaseCombatWeapon* pActiveWeapon; // 0x64
+	CBaseCombatWeapon* pLastActiveWeapon; // 0x68
+	float		flLastUpdateTime; // 0x6C
+	int			iLastUpdateFrame; // 0x70
+	float		flLastUpdateIncrement; // 0x74
+	float		flEyeYaw; // 0x78
+	float		flEyePitch; // 0x7C
+	float		flGoalFeetYaw; // 0x80
+	float		flLasrFeetYaw; // 0x84
+	float		flMoveYaw; // 0x88
+	float		flLastMoveYaw; // 0x8C // changes when moving/jumping/hitting ground
+	float		flLeanAmount; // 0x90
+	std::byte	pad5[0x4]; // 0x94
+	float		flFeetCycle; // 0x98 0 to 1
+	float		flMoveWeight; // 0x9C 0 to 1
+	float		flMoveWeightSmoothed; // 0xA0
+	float		flDuckAmount; // 0xA4
+	float		flHitGroundCycle; // 0xA8
+	float		flRecrouchWeight; // 0xAC
+	Vector		vecOrigin; // 0xB8
+	Vector		vecLastOrigin;// 0xC4
+	Vector		vecVelocity; // 0xC8
+	Vector		vecVelocityNormalized; // 0xD4
+	Vector		vecVelocityNormalizedNonZero; // 0xE0
+	float		flVelocityLenght2D; // 0xEC
+	float		flJumpFallVelocity; // 0xF0
+	float		flSpeedNormalized; // 0xF4 // clamped velocity from 0 to 1 
+	float		flRunningSpeed; // 0xF8
+	float		flDuckingSpeed; // 0xFC
+	float		flDurationMoving; // 0x100
+	float		flDurationStill; // 0x104
+	bool		bOnGround; // 0x108
+	bool		bHitGroundAnimation; // 0x109
+	std::byte	pad10[0x2]; // 0x10A
+	float		flNextLowerBodyYawUpdateTime; // 0x10C
+	float		flDurationInAir; // 0x110
+	float		flLeftGroundHeight; // 0x114
+	float		flHitGroundWeight; // 0x118 // from 0 to 1, is 1 when standing
+	float		flWalkToRunTransition; // 0x11C // from 0 to 1, doesnt change when walking or crouching, only running
+	std::byte	pad11[0x4]; // 0x120
+	float		flAffectedFraction; // 0x124 // affected while jumping and running, or when just jumping, 0 to 1
+	std::byte	pad12[0x208]; // 0x128
+	float		flMinBodyYaw; // 0x330
+	float		flMaxBodyYaw; // 0x334
+	float		flMinPitch; //0x338
+	float		flMaxPitch; // 0x33C
+	int			iAnimsetVersion; // 0x340
+}; // Size: 0x344

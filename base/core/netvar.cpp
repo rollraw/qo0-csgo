@@ -5,6 +5,18 @@
 // used: client interface
 #include "interfaces.h"
 
+constexpr std::array<std::string_view, DPT_SENDPROPTYPEMAX> arrPropTypes =
+{
+	XorStr("int"),
+	XorStr("float"),
+	XorStr("vector"),
+	XorStr("vector2d"),
+	XorStr("const char*"),
+	XorStr("std::array"),
+	XorStr("void*"),
+	XorStr("std::int64_t")
+};
+
 bool CNetvarManager::Setup(std::string_view szDumpFileName)
 {
 	// clear values
@@ -197,18 +209,6 @@ void CNetvarManager::GrabOffsets()
 
 void CNetvarManager::StoreProps(RecvTable_t* pRecvTable, const std::uintptr_t uOffset, int nDumpTabs)
 {
-	constexpr std::array<std::string_view, DPT_SENDPROPTYPEMAX> arrPropTypes =
-	{
-		XorStr("int"),
-		XorStr("float"),
-		XorStr("vector"),
-		XorStr("vector2d"),
-		XorStr("const char*"),
-		XorStr("std::array"),
-		XorStr("void*"),
-		XorStr("std::int64_t")
-	};
-
 	#if _DEBUG
 	std::string szTable;
 

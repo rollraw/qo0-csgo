@@ -52,6 +52,8 @@ namespace ImGui
 	bool MultiCombo(const char* szLabel, const char** szDisplayName, std::vector<bool>& v, int nHeightInItems);
 	bool ColorEdit3(const char* szLabel, Color* v, ImGuiColorEditFlags flags);
 	bool ColorEdit4(const char* szLabel, Color* v, ImGuiColorEditFlags flags);
+	bool ColorEdit3(const char* szLabel, ImColor* v, ImGuiColorEditFlags flags);
+	bool ColorEdit4(const char* szLabel, ImColor* v, ImGuiColorEditFlags flags);
 
 	// Extra
 	void AddText(ImDrawList* pDrawList, const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const char* szText, ImU32 colText, bool bOutline = false, ImU32 colOutline = ImColor(0, 0, 0));

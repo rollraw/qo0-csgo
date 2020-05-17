@@ -134,7 +134,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 	if (C::Get<bool>(Vars.bScreen))
 	{
 		if (C::Get<bool>(Vars.bScreenHitMarker))
-			HitMarker(pDrawList, pLocal, vecScreenSize, C::Get<Color>(Vars.colScreenHitMarker).GetU32(), C::Get<Color>(Vars.colScreenHitMarkerDamage).GetU32());
+			HitMarker(pDrawList, pLocal, vecScreenSize, C::Get<ImColor>(Vars.colScreenHitMarker), C::Get<ImColor>(Vars.colScreenHitMarkerDamage));
 	}
 
 	for (int i = 1; i < I::ClientEntityList->GetMaxEntities(); i++)
@@ -299,6 +299,13 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 			// world weapons check
 			if (strstr(pClientClass->szNetworkName, XorStr("CWeapon")) != nullptr || nIndex == EClassIndex::CDEagle || nIndex == EClassIndex::CAK47)
 			{
+				// get weapon owner
+				const CBaseEntity* pOwner = I::ClientEntityList->Get<CBaseEntity>(pEntity->GetOwnerEntity());
+
+				// check only dropped weapons for active weapons we using another way
+				if (pOwner != nullptr)
+					break;
+
 				// cast entity to weapon
 				CBaseCombatWeapon* pWeapon = (CBaseCombatWeapon*)pEntity;
 
@@ -308,17 +315,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 				const short nDefinitionIndex = *pWeapon->GetItemDefinitionIndex();
 				CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(nDefinitionIndex);
 
-				if (pWeaponData == nullptr)
-					break;
-
-				if (!pWeaponData->IsGun())
-					break;
-
-				// get weapon owner
-				const CBaseEntity* pOwner = I::ClientEntityList->Get<CBaseEntity>(pEntity->GetOwnerEntity());
-
-				// check only dropped weapons for active weapons we using another way
-				if (pOwner != nullptr)
+				if (pWeaponData == nullptr || !pWeaponData->IsGun())
 					break;
 
 				// create weapon context
@@ -463,7 +460,6 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 			I::StudioRender->SetColorModulation(colVisible.Base());
 
 			// set alpha
-			// @test: sadly but in drawmodel hook doesnt modulates alpha ;(
 			I::StudioRender->SetAlphaModulation((pEntity == pLocal && pLocal->IsScoped() && I::Input->bCameraInThirdPerson) ? 0.3f : colVisible.aBase());
 
 			// override cuztomized material
@@ -990,14 +986,14 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 
 	// @todo: add snaplines with distance scaling and automatic joining to the bounding box
 
-	if (C::Get<int>(Vars.iEspMainBox) != (int)EVisualsBoxType::NONE)
+	if (C::Get<int>(Vars.iEspMainBox) > (int)EVisualsBoxType::NONE)
 	{
 		// get box color based on visibility & enmity
-		Color colBox = pEntity->IsEnemy(pLocal) ?
-			pLocal->IsVisible(pEntity, pEntity->GetEyePosition()) ? C::Get<Color>(Vars.colEspMainBoxEnemies) : C::Get<Color>(Vars.colEspMainBoxEnemiesWall) :
-			pLocal->IsVisible(pEntity, pEntity->GetEyePosition()) ? C::Get<Color>(Vars.colEspMainBoxAllies) : C::Get<Color>(Vars.colEspMainBoxAlliesWall);
+		ImColor colBox = pEntity->IsEnemy(pLocal) ?
+			pLocal->IsVisible(pEntity, pEntity->GetEyePosition()) ? C::Get<ImColor>(Vars.colEspMainBoxEnemies) : C::Get<ImColor>(Vars.colEspMainBoxEnemiesWall) :
+			pLocal->IsVisible(pEntity, pEntity->GetEyePosition()) ? C::Get<ImColor>(Vars.colEspMainBoxAllies) : C::Get<ImColor>(Vars.colEspMainBoxAlliesWall);
 		
-		Box(pDrawList, ctx.box, colBox.GetU32(), ImColor(0, 0, 0, 150));
+		Box(pDrawList, ctx.box, colBox, ImColor(0, 0, 0, 150));
 	}
 
 	// info's master check

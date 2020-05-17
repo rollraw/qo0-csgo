@@ -34,7 +34,7 @@ enum class EAntiAimPitchType : int
 enum class EAntiAimYawType : int
 {
 	NONE = 0,
-	SIDEWAYS
+	DESYNC
 };
 
 enum class EVisualsBoxType : int
@@ -72,6 +72,14 @@ enum class EVisualsViewModelChams : int
 
 struct Variables_t
 {
+	#pragma region variables_rage
+	C_ADDVARIABLE(bool, bRage, false);
+
+	C_ADDVARIABLE(bool, bAntiAim, false);
+	C_ADDVARIABLE(int, iAntiAimPitch, 0);
+	C_ADDVARIABLE(int, iAntiAimYaw, 0);
+	#pragma endregion
+
 	#pragma region variables_legit
 	C_ADDVARIABLE(bool, bLegit, false);
 
@@ -88,14 +96,6 @@ struct Variables_t
 	C_ADDVARIABLE(bool, bTriggerLegs, false);
 	#pragma endregion
 
-	#pragma region variables_rage
-	C_ADDVARIABLE(bool, bRage, false);
-
-	C_ADDVARIABLE(bool, bAntiAim, false);
-	C_ADDVARIABLE(int, iAntiAimPitch, 0);
-	C_ADDVARIABLE(int, iAntiAimYaw, 0);
-	#pragma endregion
-
 	#pragma region variables_visuals
 	C_ADDVARIABLE(bool, bEsp, false);
 
@@ -107,10 +107,10 @@ struct Variables_t
 	C_ADDVARIABLE(bool, bEspMainBomb, false);
 
 	C_ADDVARIABLE(int, iEspMainBox, 1);
-	C_ADDVARIABLE(Color, colEspMainBoxEnemies, Color(160, 60, 60, 255));
-	C_ADDVARIABLE(Color, colEspMainBoxEnemiesWall, Color(200, 185, 110, 255));
-	C_ADDVARIABLE(Color, colEspMainBoxAllies, Color(0, 200, 170, 255));
-	C_ADDVARIABLE(Color, colEspMainBoxAlliesWall, Color(170, 110, 200, 255));
+	C_ADDVARIABLE(ImColor, colEspMainBoxEnemies, ImColor(160, 60, 60, 255));
+	C_ADDVARIABLE(ImColor, colEspMainBoxEnemiesWall, ImColor(200, 185, 110, 255));
+	C_ADDVARIABLE(ImColor, colEspMainBoxAllies, ImColor(0, 200, 170, 255));
+	C_ADDVARIABLE(ImColor, colEspMainBoxAlliesWall, ImColor(170, 110, 200, 255));
 
 	C_ADDVARIABLE(bool, bEspMainInfo, false);
 
@@ -182,8 +182,8 @@ struct Variables_t
 	C_ADDVARIABLE(float, flScreenHitMarkerTime, 1.0f);
 	C_ADDVARIABLE(int, iScreenHitMarkerGap, 5);
 	C_ADDVARIABLE(int, iScreenHitMarkerLenght, 10);
-	C_ADDVARIABLE(Color, colScreenHitMarker, Color(255, 255, 255, 255));
-	C_ADDVARIABLE(Color, colScreenHitMarkerDamage, Color(200, 55, 20, 255));
+	C_ADDVARIABLE(ImColor, colScreenHitMarker, ImColor(255, 255, 255, 255));
+	C_ADDVARIABLE(ImColor, colScreenHitMarkerDamage, ImColor(200, 55, 20, 255));
 	#pragma endregion
 
 	#pragma region variables_misc

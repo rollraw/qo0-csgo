@@ -771,13 +771,13 @@ public:
 		return *(int*)((std::uintptr_t)this + 0x299C);
 	}
 
-	CCSGOPlayerAnimState* GetAnimationState()
+	CBasePlayerAnimState* GetAnimationState()
 	{
 		// @xref: "animset_version"
 		// UpdateAnimationState xref: "%s_aim"
 		// CreateAnimationState xref: "ggprogressive_player_levelup"
 		// ResetAnimationState: xref: "player_spawn"
-		return (CCSGOPlayerAnimState*)((std::uintptr_t)this + 0x3900);
+		return (CBasePlayerAnimState*)((std::uintptr_t)this + 0x3900);
 	}
 
 	#pragma region baseentity_exports
@@ -799,16 +799,21 @@ public:
 	Vector GetEyePosition()
 	{
 		Vector vecIn = { };
-		MEM::CallVFunc<void, Vector&>(this, 284, vecIn);
 
+		// get eye position
+		MEM::CallVFunc<void, Vector&>(this, 168, vecIn);
+
+		// correct this like it do weapon_shootpos
+		// @ida weapon_shootpos: 55 8B EC 56 8B 75 08 57 8B F9 56 8B 07 FF 90
 		if (*(int*)((std::uintptr_t)this + 0x3AB4))
 		{
-			CCSGOPlayerAnimState* pAnimState = this->GetAnimationState();
+			CBasePlayerAnimState* pAnimState = this->GetAnimationState();
 
 			if (pAnimState != nullptr)
 				ModifyEyePosition(pAnimState, &vecIn);
 		}
 
+		// return corrected position
 		return vecIn;
 	}
 
@@ -883,7 +888,7 @@ public:
 	int					GetBoneByHash(const FNV1A_t uBoneHash);
 	Vector				GetHitboxPosition(int iHitbox);
 	Vector				GetHitGroupPosition(int iHitGroup);
-	void				ModifyEyePosition(CCSGOPlayerAnimState* pAnimState, Vector* vecPosition);
+	void				ModifyEyePosition(CBasePlayerAnimState* pAnimState, Vector* vecPosition);
 	int					PostThink();
 	bool				IsEnemy(CBaseEntity* pEntity);
 	bool				IsTargetingLocal(CBaseEntity* pLocal);

@@ -32,6 +32,8 @@ enum EFieldTypes : int
 	FIELD_MODELINDEX,		// a model index
 	FIELD_MATERIALINDEX,	// a material index (using the material precache string table)
 	FIELD_VECTOR2D,			// 2 floats
+	FIELD_INTEGER64,		// 64bit integer
+	FIELD_VECTOR4D,			// 4 floats
 	FIELD_TYPECOUNT
 };
 
@@ -49,7 +51,7 @@ struct TypeDescription_t
 {
 public:
 	EFieldTypes	iFieldType;						//0x0000
-	char*		szFieldName;					//0x0004
+	const char*	szFieldName;					//0x0004
 	int			iFieldOffset[TD_OFFSET_COUNT];	//0x0008
 	std::byte	pad0[0x10];						//0x0010
 	DataMap_t*	pTypeDescription;				//0x0020

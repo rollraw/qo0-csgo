@@ -47,8 +47,8 @@ bool C::Save(std::string_view szFileName)
 		nlohmann::json entry;
 
 		// save hashes to compare it later
-		entry[XorStr("name")] = variable.uNameHash;
-		entry[XorStr("type")] = variable.uTypeHash;
+		entry[XorStr("name-id")] = variable.uNameHash;
+		entry[XorStr("type-id")] = variable.uTypeHash;
 
 		// get current variable
 		switch (variable.uTypeHash)
@@ -70,30 +70,46 @@ bool C::Save(std::string_view szFileName)
 		}
 		case FNV1A::HashConst("Color"):
 		{
-			auto color = variable.Get<Color>();
+			auto colVariable = variable.Get<Color>();
 
 			// store RGBA as sub-node
 			nlohmann::json sub;
 
 			// fill node with all color values
-			sub.push_back(color.r());
-			sub.push_back(color.g());
-			sub.push_back(color.b());
-			sub.push_back(color.a());
+			sub.push_back(colVariable.r());
+			sub.push_back(colVariable.g());
+			sub.push_back(colVariable.b());
+			sub.push_back(colVariable.a());
+
+			entry[XorStr("value")] = sub.dump();
+			break;
+		}
+		case FNV1A::HashConst("ImColor"):
+		{
+			auto colVariable = variable.Get<ImColor>();
+
+			// store RGBA as sub-node
+			nlohmann::json sub;
+
+			// fill node with all color values
+			sub.push_back(colVariable.Value.x);
+			sub.push_back(colVariable.Value.y);
+			sub.push_back(colVariable.Value.z);
+			sub.push_back(colVariable.Value.w);
 
 			entry[XorStr("value")] = sub.dump();
 			break;
 		}
 		case FNV1A::HashConst("std::vector<bool>"):
 		{
-			auto vector = variable.Get<std::vector<bool>>();
+			auto vecVariable = variable.Get<std::vector<bool>>();
 
 			// store vector values as sub-node
 			nlohmann::json sub;
 
 			// fill node with all vector values
-			for (auto& value : vector)
-				sub.push_back((bool)value);
+			for (auto& bValue : vecVariable)
+				sub.push_back((bool)bValue);
 
 			entry[XorStr("value")] = sub.dump();
 			break;
@@ -120,7 +136,7 @@ bool C::Save(std::string_view szFileName)
 	}
 	catch (std::ofstream::failure& ex)
 	{
-		throw std::runtime_error(XorStr("failed to save configuration"));
+		throw std::runtime_error(fmt::format(XorStr("failed to save configuration: {}"), ex.what()));
 		return false;
 	}
 
@@ -132,7 +148,6 @@ bool C::Load(std::string_view szFileName)
 {
 	// get utf-8 full path to config
 	const std::string szFile = std::filesystem::path(fsPath / szFileName).u8string();
-	
 	nlohmann::json config;
 
 	// open input config file
@@ -143,19 +158,19 @@ bool C::Load(std::string_view szFileName)
 
 	try
 	{
-		// parse variables
+		// parse saved variables
 		ifsInputFile >> config;
 		ifsInputFile.close();
 	}
 	catch (std::ifstream::failure& ex)
 	{
-		throw std::runtime_error(XorStr("failed to load configuration"));
+		throw std::runtime_error(fmt::format(XorStr("failed to load configuration: {}"), ex.what()));
 		return false;
 	}
 
 	for (auto& variable : config)
 	{
-		int nIndex = GetVariableIndex(variable[XorStr("name")].get<FNV1A_t>());
+		int nIndex = GetVariableIndex(variable[XorStr("name-id")].get<FNV1A_t>());
 
 		// check is variable exist
 		if (nIndex == C_INVALID_VARIABLE)
@@ -164,7 +179,7 @@ bool C::Load(std::string_view szFileName)
 		// get variable
 		auto& entry = vecVariables.at(nIndex);
 
-		switch (variable[XorStr("type")].get<FNV1A_t>())
+		switch (variable[XorStr("type-id")].get<FNV1A_t>())
 		{
 		case FNV1A::HashConst("bool"):
 		{
@@ -194,16 +209,29 @@ bool C::Load(std::string_view szFileName)
 
 			break;
 		}
+		case FNV1A::HashConst("ImColor"):
+		{
+			auto color = nlohmann::json::parse(variable[XorStr("value")].get<std::string>());
+
+			entry.Set<ImColor>(ImColor(
+				color.at(0).get<float>(),
+				color.at(1).get<float>(),
+				color.at(2).get<float>(),
+				color.at(3).get<float>()
+			));
+
+			break;
+		}
 		case FNV1A::HashConst("std::vector<bool>"):
 		{
 			auto vector = nlohmann::json::parse(variable[XorStr("value")].get<std::string>());
-			auto& vecValues = entry.Get<std::vector<bool>>();
+			auto& vecVariable = entry.Get<std::vector<bool>>();
 
 			for (std::size_t i = 0U; i < vector.size(); i++)
 			{
 				// check is item out of bounds
-				if (i < vecValues.size())
-					vecValues.at(i) = vector.at(i).get<bool>();
+				if (i < vecVariable.size())
+					vecVariable.at(i) = vector.at(i).get<bool>();
 			}
 
 			break;
@@ -234,7 +262,6 @@ void C::Refresh()
 {
 	vecFileNames.clear();
 
-	// fucking string/c_str conversions of fucking iterator quotation marks
 	for (const auto& it : std::filesystem::directory_iterator(fsPath))
     {
 		if (it.path().filename().extension() == XorStr(".qo0"))

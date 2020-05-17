@@ -11,7 +11,6 @@
 #include "../../resources/qo0icons.h"
 
 #pragma region imgui_extended
-
 /*
  * what is changed in imgui framework files (currently used imgui version is v1.75):
  * changed things can be found with "modified by qo0" commentary
@@ -271,6 +270,16 @@ bool ImGui::ColorEdit4(const char* szLabel, Color* v, ImGuiColorEditFlags flags)
 	return false;
 }
 
+bool ImGui::ColorEdit3(const char* szLabel, ImColor* v, ImGuiColorEditFlags flags)
+{
+	return ColorEdit4(szLabel, v, flags);
+}
+
+bool ImGui::ColorEdit4(const char* szLabel, ImColor* v, ImGuiColorEditFlags flags)
+{
+	return ImGui::ColorEdit4(szLabel, &v->Value.x, flags);
+}
+
 void ImGui::AddText(ImDrawList* pDrawList, const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const char* szText, ImU32 colText, bool bOutline, ImU32 colOutline)
 {
 	if (pFont->ContainerAtlas == nullptr)
@@ -292,9 +301,9 @@ void ImGui::AddText(ImDrawList* pDrawList, const ImVec2& vecPosition, const char
 {
 	AddText(pDrawList, nullptr, 0.f, vecPosition, szText, colText, colOutline);
 }
-
 #pragma endregion
 
+#pragma region draw_get
 void D::Setup(IDirect3DDevice9* pDevice, unsigned int uFontFlags)
 {
 	ImGui::CreateContext();
@@ -458,9 +467,9 @@ void D::Destroy()
 	// destroy imgui context
 	ImGui::DestroyContext();
 }
+#pragma endregion
 
 #pragma region draw_extra
-
 bool D::WorldToScreen(const Vector& vecOrigin, Vector2D& vecScreen)
 {
 	static std::uintptr_t uViewMatrixPtr = 0U;
@@ -492,5 +501,4 @@ bool D::WorldToScreen(const Vector& vecOrigin, Vector2D& vecScreen)
 
 	return false;
 }
-
 #pragma endregion

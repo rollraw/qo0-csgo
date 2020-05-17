@@ -69,7 +69,7 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 	ImGuiStyle& style = ImGui::GetStyle();
 	ImDrawList* pDrawList = ImGui::GetForegroundDrawList();
 
-	#pragma region render_main_visuals
+	#pragma region main_visuals
 	if (!I::Engine->IsTakingScreenshot() && !I::Engine->IsDrawingLoadingImage())
 	{
 		ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImColor(0, 0, 0, 10).Value);
@@ -106,7 +106,7 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 	CVisuals::Get().Run(pDrawList, vecScreenSize);
 	#pragma endregion
 
-	#pragma region render_main_window
+	#pragma region main_window
 	ImGui::PushFont(F::Whitney);
 	io.MouseDrawCursor = bMainOpened;
 
@@ -152,7 +152,7 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 }
 #pragma endregion
 
-#pragma region menu_main_tabs
+#pragma region menu_tabs
 template <std::size_t S>
 void T::Render(const char* szTabBar, const std::array<CTab, S> arrTabs, int* nCurrentTab, const ImVec4& colActive, ImGuiTabBarFlags flags)
 {
@@ -183,7 +183,9 @@ void T::Render(const char* szTabBar, const std::array<CTab, S> arrTabs, int* nCu
 	}
 	ImGui::PopStyleColor();
 }
+#pragma endregion
 
+#pragma region menu_tabs_main
 void T::RageBot()
 {
 	ImGuiStyle& style = ImGui::GetStyle();
@@ -221,7 +223,7 @@ void T::RageBot()
 
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
 			ImGui::Combo(XorStr("pitch"), &C::Get<int>(Vars.iAntiAimPitch), XorStr("none\0up\0down\0zero (untrusted)\0\0"));
-			ImGui::Combo(XorStr("yaw"), &C::Get<int>(Vars.iAntiAimYaw), XorStr("none\0sideways\0\0"));
+			ImGui::Combo(XorStr("yaw"), &C::Get<int>(Vars.iAntiAimYaw), XorStr("none\0desync\0\0"));
 			ImGui::PopStyleVar();
 
 			ImGui::EndChild();

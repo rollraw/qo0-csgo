@@ -1,7 +1,7 @@
 #pragma once
 
 // @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/inputsystem/ButtonCode.h
-#pragma region inputsystem_buttoncode
+#pragma region inputsystem_enumerations
 enum EButtonCode : unsigned int
 {
 	BUTTON_CODE_INVALID = -1,

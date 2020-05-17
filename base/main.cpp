@@ -41,7 +41,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 		while (GetModuleHandle(SERVERBROWSER_DLL) == nullptr)
 			std::this_thread::sleep_for(200ms);
 
-		#if ACRONIX_CONSOLE
+		#if DEBUG_CONSOLE
 		// console logging
 		if (!L::Attach(XorStr("qo0's base developer-mode")))
 			throw std::runtime_error(XorStr("failed to attach console"));
@@ -60,7 +60,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 		L::Print(XorStr("interfaces captured"));
 
 		// version check to know when u need to fix something
-		#if ACRONIX_CONSOLE
+		#if DEBUG_CONSOLE
 		if (strcmp(I::Engine->GetProductVersionString(), XorStr("1.37.5.2")) != 0)
 		{
 			L::PushConsoleColor(FOREGROUND_RED | FOREGROUND_YELLOW);
@@ -127,8 +127,8 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 			L::Print(XorStr("[error] failed setup and/or load default configuration"));
 			L::PopConsoleColor();
 		}
-
-		L::Print(XorStr("default config loaded"));
+		else
+			L::Print(XorStr("default config loaded"));
 
 		// show message about successful load in logs and in game console
 		L::PushConsoleColor(FOREGROUND_MAGENTA);
@@ -154,7 +154,7 @@ DWORD WINAPI OnDllDetach(LPVOID lpParameter)
 	while (!IPT::IsKeyReleased(C::Get<int>(Vars.iPanicKey)))
 		std::this_thread::sleep_for(500ms);
 
-	#if ACRONIX_CONSOLE
+	#if DEBUG_CONSOLE
 	// detach console
 	L::Detach();
 	#else

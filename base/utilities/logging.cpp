@@ -49,7 +49,7 @@ void L::Print(std::string_view szText)
 	// format time
 	std::string szTime = fmt::format(XorStr("[{:%d-%m-%Y %X}] "), time);
 
-	#if ACRONIX_CONSOLE
+	#if DEBUG_CONSOLE
 	// print to console
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_INTENSE_GREEN);
 	fmt::print(szTime);

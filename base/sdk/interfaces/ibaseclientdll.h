@@ -33,8 +33,8 @@ public:
 		return MEM::CallVFunc<CBaseClient*>(this, 8);
 	}
 
-	bool DispatchUserMessage(int iMessageType, unsigned int a3, unsigned int uBytes, void* bfMessageData)
+	bool DispatchUserMessage(int iMessageType, unsigned int nFlags, int iSize, const void* pMessageData)
 	{
-		return MEM::CallVFunc<bool>(this, 38, iMessageType, a3, uBytes, bfMessageData);
+		return MEM::CallVFunc<bool>(this, 38, iMessageType, nFlags, iSize, pMessageData);
 	}
 };

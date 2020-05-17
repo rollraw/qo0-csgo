@@ -73,7 +73,7 @@
  - preproccesor definitions:
  1	_DEBUG 1 - disable string encryption enables console logs	// -> automatic switches with compilation configuration
  2	NDEBUG 1 - fully disables debug, opposite of _DEBUG			// -> automatic switches with compilation configuration
- 3	ACRONIX_CONSOLE 1 - enable external console logging but deactivates file logging
+ 3	DEBUG_CONSOLE 1 - enable external console logging but deactivates file logging
  *
  - disabled warnings (release):
  1	4172 - returning address of local variable or temporary

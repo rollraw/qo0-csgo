@@ -71,7 +71,7 @@ std::uintptr_t MEM::FindPattern(const char* szModuleName, const char* szPattern)
 			return (std::uintptr_t)(&puBytes[i]);
 	}
 
-	#if ACRONIX_CONSOLE && _DEBUG
+	#if DEBUG_CONSOLE && _DEBUG
 	L::PushConsoleColor(FOREGROUND_RED);
 	L::Print(fmt::format(XorStr("[error] failed get pattern: [{}] [{}]"), szModuleName, szPattern));
 	L::PopConsoleColor();

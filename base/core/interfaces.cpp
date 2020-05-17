@@ -5,8 +5,6 @@
 
 bool I::Setup()
 {
-	// @note: doesnt check for null cuz anyway should be thrown exception if captured failed
-
 	Client =			Capture<IBaseClientDll>(CLIENT_DLL, XorStr("VClient"));
 	ClientEntityList =	Capture<IClientEntityList>(CLIENT_DLL, XorStr("VClientEntityList"));
 	Effects =			Capture<IEffects>(CLIENT_DLL, XorStr("IEffects"));
@@ -131,7 +129,7 @@ T* I::Capture(const char* szModule, std::string_view szInterface)
 		}
 	}
 
-	#if ACRONIX_CONSOLE && _DEBUG
+	#if DEBUG_CONSOLE && _DEBUG
 	L::PushConsoleColor(FOREGROUND_INTENSE_RED);
 	L::Print(fmt::format(XorStr("[error] failed to find interface \"{}\" in \"{}\""), szInterface, szModule));
 	L::PopConsoleColor();

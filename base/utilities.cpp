@@ -7,9 +7,7 @@
 // used: interfacereg class and convar, clients, globals, engine, trace, materialsystem, model/view render, modelinfo, clientstate interfaces
 #include "core/interfaces.h"
 
-CEventListener	U::EventListener;
-CEntityListener	U::EntityListener;
-
+#pragma region utilities_get
 template <class C>
 C* U::FindHudElement(const char* szName)
 {
@@ -19,9 +17,9 @@ C* U::FindHudElement(const char* szName)
 
 	return (C*)oFindHudElement(pThis, szName);
 }
+#pragma endregion
 
 #pragma region utilities_game
-
 CBaseEntity* U::GetLocalPlayer()
 {
 	return I::ClientEntityList->Get<CBaseEntity>(I::Engine->GetLocalPlayer());
@@ -59,7 +57,7 @@ bool U::LineGoesThroughSmoke(Vector vecStartPos, Vector vecEndPos)
 {
 	using LineGoesThroughSmokeFn = bool(__thiscall*)(Vector, Vector, std::int16_t);
 	static auto oLineGoesThroughSmoke = (LineGoesThroughSmokeFn)(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 EC 08 8B 15 ? ? ? ? 0F 57 C0"))); // @xref: "effects/overlaysmoke"
-	return oLineGoesThroughSmoke(vecStartPos, vecEndPos, true);
+	return oLineGoesThroughSmoke(vecStartPos, vecEndPos, 1);
 }
 
 void U::SetLocalPlayerReady()
@@ -254,11 +252,22 @@ const char* U::GetWeaponIcon(short nItemDefinitionIndex)
 		return "?";
 	}
 }
+#pragma endregion
 
+#pragma region utilities_extra
+void U::FlashWindow(HWND pWindow)
+{
+	FLASHWINFO fwInfo;
+	fwInfo.cbSize = sizeof(FLASHWINFO);
+	fwInfo.hwnd = pWindow;
+	fwInfo.dwFlags = FLASHW_ALL | FLASHW_TIMERNOFG;
+	fwInfo.uCount = 0;
+	fwInfo.dwTimeout = 0;
+	FlashWindowEx(&fwInfo);
+}
 #pragma endregion
 
 #pragma region utilities_string
-
 std::string U::UnicodeAscii(const std::wstring& wszUnicode)
 {
 	std::string szOutput(wszUnicode.cbegin(), wszUnicode.cend());
@@ -270,5 +279,4 @@ std::wstring U::AsciiUnicode(const std::string& szAscii)
 	std::wstring wszOutput(szAscii.cbegin(), szAscii.cend());
 	return wszOutput;
 }
-
 #pragma endregion
