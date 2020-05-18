@@ -491,7 +491,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 		return true;
 	}
 	// check for viewmodel @note: u can separate this
-	else if ((szModelName.find(XorStr("weapons/v_")) != std::string::npos || szModelName.find(XorStr("arms")) != std::string::npos) && C::Get<bool>(Vars.bEspChamsViewModel))
+	else if ((szModelName.find(XorStr("weapons\\v_")) != std::string::npos || szModelName.find(XorStr("arms")) != std::string::npos) && C::Get<bool>(Vars.bEspChamsViewModel))
 	{
 		// get original viewmodel material
 		IMaterial* pViewModelMaterial = I::MaterialSystem->FindMaterial(szModelName.data(), XorStr(TEXTURE_GROUP_MODEL));
