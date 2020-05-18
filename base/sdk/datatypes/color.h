@@ -63,7 +63,7 @@ public:
 	}
 
 	/* convert color to directx rgba */
-	ImColor GetU32()
+	ImU32 GetU32()
 	{
 		return ImColor(arrColor.at(0), arrColor.at(1), arrColor.at(2), arrColor.at(3));
 	}

@@ -173,7 +173,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 
 			// get bomb on-screen position
 			if (!D::WorldToScreen(vecOrigin, vecScreen))
-				return;
+				break;
 
 			// create bomb context
 			Context_t ctx = { };
@@ -197,7 +197,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 
 			// get planted bomb on-screen position
 			if (!D::WorldToScreen(vecOrigin, vecScreen))
-				return;
+				break;
 
 			// setup planted bomb context
 			Context_t ctx = { };
@@ -283,7 +283,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 
 			// get grenade on-screen position
 			if (!D::WorldToScreen(vecOrigin, vecScreen))
-				return;
+				break;
 
 			// setup grenade context
 			Context_t ctx = { };
@@ -300,13 +300,6 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 			// world weapons check
 			if (strstr(pClientClass->szNetworkName, XorStr("CWeapon")) != nullptr || nIndex == EClassIndex::CDEagle || nIndex == EClassIndex::CAK47)
 			{
-				// get weapon owner
-				const CBaseEntity* pOwner = I::ClientEntityList->Get<CBaseEntity>(pEntity->GetOwnerEntity());
-
-				// check only dropped weapons for active weapons we using another way
-				if (pOwner != nullptr)
-					break;
-
 				// cast entity to weapon
 				CBaseCombatWeapon* pWeapon = (CBaseCombatWeapon*)pEntity;
 
@@ -317,6 +310,13 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 				CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(nDefinitionIndex);
 
 				if (pWeaponData == nullptr || !pWeaponData->IsGun())
+					break;
+
+				// get weapon owner
+				const CBaseEntity* pOwner = I::ClientEntityList->Get<CBaseEntity>(pEntity->GetOwnerEntity());
+
+				// check only dropped weapons for active weapons we using another way
+				if (pOwner != nullptr)
 					break;
 
 				// create weapon context
