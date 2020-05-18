@@ -84,22 +84,6 @@ bool C::Save(std::string_view szFileName)
 			entry[XorStr("value")] = sub.dump();
 			break;
 		}
-		case FNV1A::HashConst("ImColor"):
-		{
-			auto colVariable = variable.Get<ImColor>();
-
-			// store RGBA as sub-node
-			nlohmann::json sub;
-
-			// fill node with all color values
-			sub.push_back(colVariable.Value.x);
-			sub.push_back(colVariable.Value.y);
-			sub.push_back(colVariable.Value.z);
-			sub.push_back(colVariable.Value.w);
-
-			entry[XorStr("value")] = sub.dump();
-			break;
-		}
 		case FNV1A::HashConst("std::vector<bool>"):
 		{
 			auto vecVariable = variable.Get<std::vector<bool>>();
@@ -205,19 +189,6 @@ bool C::Load(std::string_view szFileName)
 				color.at(1).get<int>(),
 				color.at(2).get<int>(),
 				color.at(3).get<int>()
-			));
-
-			break;
-		}
-		case FNV1A::HashConst("ImColor"):
-		{
-			auto color = nlohmann::json::parse(variable[XorStr("value")].get<std::string>());
-
-			entry.Set<ImColor>(ImColor(
-				color.at(0).get<float>(),
-				color.at(1).get<float>(),
-				color.at(2).get<float>(),
-				color.at(3).get<float>()
 			));
 
 			break;

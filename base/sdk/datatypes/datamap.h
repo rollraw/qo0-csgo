@@ -45,17 +45,18 @@ enum
 };
 #pragma endregion
 
-struct InputData_t;
 struct DataMap_t;
 struct TypeDescription_t
 {
 public:
-	EFieldTypes	iFieldType;						//0x0000
-	const char*	szFieldName;					//0x0004
-	int			iFieldOffset[TD_OFFSET_COUNT];	//0x0008
-	std::byte	pad0[0x10];						//0x0010
-	DataMap_t*	pTypeDescription;				//0x0020
-	std::byte	pad1[0x18];						//0x0024
+	EFieldTypes			iFieldType;						//0x0000
+	const char*			szFieldName;					//0x0004
+	int					iFieldOffset[TD_OFFSET_COUNT];	//0x0008
+	unsigned short		uFieldSize;						//0x0010
+	short				fFlags;							//0x0012
+	std::byte			pad0[0xC];						//0x0014
+	DataMap_t*			pTypeDescription;				//0x0020
+	std::byte			pad1[0x18];						//0x0024
 }; // size: 0x003C
 
 struct DataMap_t

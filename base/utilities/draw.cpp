@@ -270,16 +270,6 @@ bool ImGui::ColorEdit4(const char* szLabel, Color* v, ImGuiColorEditFlags flags)
 	return false;
 }
 
-bool ImGui::ColorEdit3(const char* szLabel, ImColor* v, ImGuiColorEditFlags flags)
-{
-	return ColorEdit4(szLabel, v, flags);
-}
-
-bool ImGui::ColorEdit4(const char* szLabel, ImColor* v, ImGuiColorEditFlags flags)
-{
-	return ImGui::ColorEdit4(szLabel, &v->Value.x, flags);
-}
-
 void ImGui::AddText(ImDrawList* pDrawList, const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const char* szText, ImU32 colText, bool bOutline, ImU32 colOutline)
 {
 	if (pFont->ContainerAtlas == nullptr)

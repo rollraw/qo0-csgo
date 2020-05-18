@@ -30,10 +30,10 @@ public:
 
 	void Set(std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a)
 	{
-		arrColor[0] = r;
-		arrColor[1] = g;
-		arrColor[2] = b;
-		arrColor[3] = a;
+		arrColor.at(0) = r;
+		arrColor.at(1) = g;
+		arrColor.at(2) = b;
+		arrColor.at(3) = a;
 	}
 
 	void Set(float r, float g, float b, float a)
@@ -63,9 +63,9 @@ public:
 	}
 
 	/* convert color to directx rgba */
-	ImU32 GetU32()
+	ImColor GetU32()
 	{
-		return ImGui::GetColorU32(ImVec4(this->rBase(), this->gBase(), this->bBase(), this->aBase()));
+		return ImColor(arrColor.at(0), arrColor.at(1), arrColor.at(2), arrColor.at(3));
 	}
 
 	bool operator==(const Color& colSecond) const
@@ -181,7 +181,7 @@ public:
 
 	static Color FromHSB(float flHue, float flSaturation, float flBrightness)
 	{
-		float h = flHue == 1.0f ? 0 : flHue * 6.0f;
+		float h = flHue == 1.0f ? 0.0f : flHue * 6.0f;
 		int   i = (int)h;
 		float f = h - (float)i;
 		float p = flBrightness * (1.0f - flSaturation);
@@ -205,6 +205,5 @@ public:
 		}
 	}
 
-private:
 	std::array<std::uint8_t, 4U> arrColor;
 };

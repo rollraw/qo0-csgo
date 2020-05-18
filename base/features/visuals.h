@@ -79,33 +79,33 @@ private:
 	bool GetBoundingBox(CBaseEntity* pEntity, Box_t& box);
 
 	// On-Screen
-	void HitMarker(ImDrawList* pDrawList, CBaseEntity* pLocal, const ImVec2 vecScreenSize, ImColor colLines, ImColor colDamage);
+	void HitMarker(ImDrawList* pDrawList, CBaseEntity* pLocal, const ImVec2 vecScreenSize, Color colLines, Color colDamage);
 
 	// World
 	/* changes the exposure to make the world looks like at night or fullbright */
 	void NightMode(CEnvTonemapController* pController); // @credits: sapphyrus
 	/* draw frame with title at bomb position */
-	void Bomb(ImDrawList* pDrawList, Vector2D vecScreen, Context_t& ctx, ImColor colFrame);
+	void Bomb(ImDrawList* pDrawList, Vector2D vecScreen, Context_t& ctx, Color colFrame);
 	/* draw frame with title, timer and defuse bars at planted bomb position */
-	void PlantedBomb(ImDrawList* pDrawList, CPlantedC4* pBomb, Vector2D vecScreen, Context_t& ctx, ImColor colFrame, ImColor colDefuse, ImColor colFailDefuse, ImColor colBackground, ImColor colOutline);
+	void PlantedBomb(ImDrawList* pDrawList, CPlantedC4* pBomb, Vector2D vecScreen, Context_t& ctx, Color colFrame, Color colDefuse, Color colFailDefuse, Color colBackground, Color colOutline);
 	/* draw frame with name and timer bar at grenade position */
-	void Grenade(ImDrawList* pDrawList, EClassIndex nIndex, CBaseEntity* pGrenade, Vector2D vecScreen, Context_t& ctx, ImColor colFrame, ImColor colBackground, ImColor colOutline);
+	void Grenade(ImDrawList* pDrawList, EClassIndex nIndex, CBaseEntity* pGrenade, Vector2D vecScreen, Context_t& ctx, Color colFrame, Color colBackground, Color colOutline);
 	/* draw weapon icon, ammo bar, distance at dropped weapons positions */
-	void DroppedWeapons(ImDrawList* pDrawList, CBaseCombatWeapon* pWeapon, short nItemDefinitionIndex, Context_t& ctx, ImColor colPrimary, ImColor colAmmo, ImColor colBackground, ImColor colOutline);
+	void DroppedWeapons(ImDrawList* pDrawList, CBaseCombatWeapon* pWeapon, short nItemDefinitionIndex, Context_t& ctx, Color colPrimary, Color colAmmo, Color colBackground, Color colOutline);
 
 	// Player
 	/* draw box, bars, text info's, etc for player */
-	void Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx, ImColor colInfo, ImColor colFrame, ImColor colOutline);
+	void Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx, Color colInfo, Color colFrame, Color colOutline);
 
 	// Entities
 	/* draw entity bounding box */
-	void Box(ImDrawList* pDrawList, const Box_t& box, ImColor colPrimary, ImColor colOutline);
+	void Box(ImDrawList* pDrawList, const Box_t& box, Color colPrimary, Color colOutline);
 	/* draw vertical line with health-based height */
-	void HealthBar(ImDrawList* pDrawList, CBaseEntity* pEntity, Context_t& ctx, ImColor colPrimary, ImColor colBackground, ImColor colOutline);
+	void HealthBar(ImDrawList* pDrawList, CBaseEntity* pEntity, Context_t& ctx, ImU32 colPrimary, Color colBackground, Color colOutline);
 	/* draw horizontal line with ammo-based width */
-	void AmmoBar(ImDrawList* pDrawList, CBaseEntity* pEntity, CBaseCombatWeapon* pWeapon, Context_t& ctx, ImColor colPrimary, ImColor colBackground, ImColor colOutline);
+	void AmmoBar(ImDrawList* pDrawList, CBaseEntity* pEntity, CBaseCombatWeapon* pWeapon, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline);
 	/* draw horizontal line with flashed duration-based width */
-	void FlashBar(ImDrawList* pDrawList, CBaseEntity* pEntity, Context_t& ctx, ImColor colPrimary, ImColor colBackground, ImColor colOutline);
+	void FlashBar(ImDrawList* pDrawList, CBaseEntity* pEntity, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline);
 
 	// Values
 	std::deque<HitMarkerObject_t> vecHitMarks;
