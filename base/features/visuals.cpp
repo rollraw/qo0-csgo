@@ -121,15 +121,15 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 			float flWidth = pWeapon->GetInaccuracy() * 300.f;
 			int iAlpha = std::min<int>(255, 255.f * pWeapon->GetInaccuracy());
 
-			pDrawList->AddLine(ImVec2(0.f, vecScreenSize.y * 0.5f), ImVec2(vecScreenSize.x, vecScreenSize.y * 0.5f), ImColor(0, 0, 0, 200));
-			pDrawList->AddLine(ImVec2(vecScreenSize.x * 0.5f, 0.f), ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y), ImColor(0, 0, 0, 200));
+			pDrawList->AddLine(ImVec2(0.f, vecScreenSize.y * 0.5f), ImVec2(vecScreenSize.x, vecScreenSize.y * 0.5f), IM_COL32(0, 0, 0, 200));
+			pDrawList->AddLine(ImVec2(vecScreenSize.x * 0.5f, 0.f), ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y), IM_COL32(0, 0, 0, 200));
 
 			// horizontal
-			pDrawList->AddRectFilledMultiColor(ImVec2(0.f, vecScreenSize.y * 0.5f), ImVec2(vecScreenSize.x, vecScreenSize.y * 0.5f + flWidth), ImColor(0, 0, 0, iAlpha), ImColor(0, 0, 0, iAlpha), ImColor(0, 0, 0, 0), ImColor(0, 0, 0, 0));
-			pDrawList->AddRectFilledMultiColor(ImVec2(0.f, vecScreenSize.y * 0.5f - flWidth), ImVec2(vecScreenSize.x, vecScreenSize.y * 0.5f), ImColor(0, 0, 0, 0), ImColor(0, 0, 0, 0), ImColor(0, 0, 0, iAlpha), ImColor(0, 0, 0, iAlpha));
+			pDrawList->AddRectFilledMultiColor(ImVec2(0.f, vecScreenSize.y * 0.5f), ImVec2(vecScreenSize.x, vecScreenSize.y * 0.5f + flWidth), IM_COL32(0, 0, 0, iAlpha), IM_COL32(0, 0, 0, iAlpha), IM_COL32(0, 0, 0, 0), IM_COL32(0, 0, 0, 0));
+			pDrawList->AddRectFilledMultiColor(ImVec2(0.f, vecScreenSize.y * 0.5f - flWidth), ImVec2(vecScreenSize.x, vecScreenSize.y * 0.5f), IM_COL32(0, 0, 0, 0), IM_COL32(0, 0, 0, 0), IM_COL32(0, 0, 0, iAlpha), IM_COL32(0, 0, 0, iAlpha));
 			// vertical
-			pDrawList->AddRectFilledMultiColor(ImVec2(vecScreenSize.x * 0.5f, 0.f), ImVec2(vecScreenSize.x * 0.5f + flWidth, vecScreenSize.y), ImColor(0, 0, 0, iAlpha), ImColor(0, 0, 0, 0), ImColor(0, 0, 0, 0), ImColor(0, 0, 0, iAlpha));
-			pDrawList->AddRectFilledMultiColor(ImVec2(vecScreenSize.x * 0.5f - flWidth, 0.f), ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y), ImColor(0, 0, 0, 0), ImColor(0, 0, 0, iAlpha), ImColor(0, 0, 0, iAlpha), ImColor(0, 0, 0, 0));
+			pDrawList->AddRectFilledMultiColor(ImVec2(vecScreenSize.x * 0.5f, 0.f), ImVec2(vecScreenSize.x * 0.5f + flWidth, vecScreenSize.y), IM_COL32(0, 0, 0, iAlpha), IM_COL32(0, 0, 0, 0), IM_COL32(0, 0, 0, 0), IM_COL32(0, 0, 0, iAlpha));
+			pDrawList->AddRectFilledMultiColor(ImVec2(vecScreenSize.x * 0.5f - flWidth, 0.f), ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y), IM_COL32(0, 0, 0, 0), IM_COL32(0, 0, 0, iAlpha), IM_COL32(0, 0, 0, iAlpha), IM_COL32(0, 0, 0, 0));
 		}
 	}
 
@@ -811,9 +811,9 @@ void CVisuals::Bomb(ImDrawList* pDrawList, Vector2D vecScreen, Context_t& ctx, C
 	// frame
 	pDrawList->AddRectFilled(ImVec2(ctx.box.left - 1, ctx.box.top), ImVec2(ctx.box.right + 1, ctx.box.bottom), colFrame.GetU32(), 5.0f);
 	// icon
-	ImGui::AddText(pDrawList, F::Icons, 14.f, ImVec2(ctx.box.left + 5, ctx.box.top + 3), szIcon, ImColor(255, 255, 255));
+	ImGui::AddText(pDrawList, F::Icons, 14.f, ImVec2(ctx.box.left + 5, ctx.box.top + 3), szIcon, Color(255, 255, 255).GetU32());
 	// text
-	ImGui::AddText(pDrawList, F::Verdana, 14.f, ImVec2(ctx.box.left + vecIconSize.x + 7, ctx.box.top + 3), szName, ImColor(255, 255, 255));
+	ImGui::AddText(pDrawList, F::Verdana, 14.f, ImVec2(ctx.box.left + vecIconSize.x + 7, ctx.box.top + 3), szName, Color(255, 255, 255).GetU32());
 }
 
 void CVisuals::PlantedBomb(ImDrawList* pDrawList, CPlantedC4* pBomb, Vector2D vecScreen, Context_t& ctx, Color colFrame, Color colDefuse, Color colFailDefuse, Color colBackground, Color colOutline)
@@ -836,9 +836,9 @@ void CVisuals::PlantedBomb(ImDrawList* pDrawList, CPlantedC4* pBomb, Vector2D ve
 	// frame
 	pDrawList->AddRectFilled(ImVec2(ctx.box.left - 1, ctx.box.top), ImVec2(ctx.box.right + 1, ctx.box.bottom), colFrame.GetU32(), 5.0f);
 	// icon
-	ImGui::AddText(pDrawList, F::Icons, 14.f, ImVec2(ctx.box.left + 5, ctx.box.top + 3), szIcon, pDefuser != nullptr ? colDefuse.GetU32() : ImColor(255, 255, 255));
+	ImGui::AddText(pDrawList, F::Icons, 14.f, ImVec2(ctx.box.left + 5, ctx.box.top + 3), szIcon, pDefuser != nullptr ? colDefuse.GetU32() : Color(255, 255, 255).GetU32());
 	// text
-	ImGui::AddText(pDrawList, F::Verdana, 14.f, ImVec2(ctx.box.left + vecIconSize.x + 10, ctx.box.top + 3), szName, ImColor(255, 255, 255));
+	ImGui::AddText(pDrawList, F::Verdana, 14.f, ImVec2(ctx.box.left + vecIconSize.x + 10, ctx.box.top + 3), szName, Color(255, 255, 255).GetU32());
 
 	/* bar */
 	// get timer values
@@ -854,7 +854,7 @@ void CVisuals::PlantedBomb(ImDrawList* pDrawList, CPlantedC4* pBomb, Vector2D ve
 	// background
 	pDrawList->AddRectFilled(ImVec2(ctx.box.left, ctx.box.bottom + 2), ImVec2(ctx.box.right, ctx.box.bottom + 4), colBackground.GetU32());
 	// bar
-	pDrawList->AddRectFilled(ImVec2(ctx.box.left, ctx.box.bottom + 2), ImVec2(ctx.box.left + ctx.box.width * flFactor, ctx.box.bottom + 4), ImColor::HSV(flHue, 1.f, 1.f));
+	pDrawList->AddRectFilled(ImVec2(ctx.box.left, ctx.box.bottom + 2), ImVec2(ctx.box.left + ctx.box.width * flFactor, ctx.box.bottom + 4), Color::FromHSB(flHue, 1.f, 1.f).GetU32());
 	// outline
 	pDrawList->AddRect(ImVec2(ctx.box.left - 1, ctx.box.bottom + 1), ImVec2(ctx.box.right + 1, ctx.box.bottom + 5), colOutline.GetU32());
 	ctx.arrPadding.at(DIR_BOTTOM) += 5;
@@ -884,7 +884,7 @@ void CVisuals::Grenade(ImDrawList* pDrawList, EClassIndex nIndex, CBaseEntity* p
 	// setup temporary values
 	const char* szName = XorStr("NONE");
 	float flFactor = 0.f;
-	ImColor colGrenade = ImColor(255, 255, 255);
+	Color colGrenade = Color(255, 255, 255);
 
 	// get grenade model name
 	if (std::string_view szModelName = I::ModelInfo->GetModelName(pGrenade->GetModel()); !szModelName.empty())
@@ -909,7 +909,7 @@ void CVisuals::Grenade(ImDrawList* pDrawList, EClassIndex nIndex, CBaseEntity* p
 			// cast to smoke grenade
 			CSmokeGrenade* pSmoke = (CSmokeGrenade*)pGrenade;
 			flFactor = ((TICKS_TO_TIME(pSmoke->GetEffectTickBegin()) + pSmoke->GetMaxTime()) - I::Globals->flCurrentTime) / pSmoke->GetMaxTime();
-			colGrenade = ImColor(230, 130, 0);
+			colGrenade = Color(230, 130, 0);
 			szName = XorStr("SMOKE");
 			break;
 		}
@@ -919,7 +919,7 @@ void CVisuals::Grenade(ImDrawList* pDrawList, EClassIndex nIndex, CBaseEntity* p
 			// cast to inferno grenade
 			CInferno* pInferno = (CInferno*)pGrenade;
 			flFactor = ((TICKS_TO_TIME(pInferno->GetEffectTickBegin()) + pInferno->GetMaxTime()) - I::Globals->flCurrentTime) / pInferno->GetMaxTime();
-			colGrenade = ImColor(255, 100, 100);
+			colGrenade = Color(255, 100, 100);
 
 			// separate greandes by model name
 			if (szModelName.find(XorStr("molotov")) != std::string::npos)
@@ -945,7 +945,7 @@ void CVisuals::Grenade(ImDrawList* pDrawList, EClassIndex nIndex, CBaseEntity* p
 	// frame
 	pDrawList->AddRectFilled(ImVec2(ctx.box.left - 1, ctx.box.top), ImVec2(ctx.box.right + 1, ctx.box.bottom), colFrame.GetU32(), 5.f);
 	// text
-	ImGui::AddText(pDrawList, F::Verdana, 14.f, ImVec2(ctx.box.left + 5, ctx.box.top + 3), szName, ImColor(255, 255, 255));
+	ImGui::AddText(pDrawList, F::Verdana, 14.f, ImVec2(ctx.box.left + 5, ctx.box.top + 3), szName, Color(255, 255, 255).GetU32());
 
 	if (flFactor > 0.f)
 	{
@@ -953,7 +953,7 @@ void CVisuals::Grenade(ImDrawList* pDrawList, EClassIndex nIndex, CBaseEntity* p
 		// background
 		pDrawList->AddRectFilled(ImVec2(ctx.box.left, ctx.box.bottom + 2), ImVec2(ctx.box.right, ctx.box.bottom + 4), colBackground.GetU32());
 		// bar
-		pDrawList->AddRectFilled(ImVec2(ctx.box.left, ctx.box.bottom + 2), ImVec2(ctx.box.left + ctx.box.width * flFactor, ctx.box.bottom + 4), colGrenade);
+		pDrawList->AddRectFilled(ImVec2(ctx.box.left, ctx.box.bottom + 2), ImVec2(ctx.box.left + ctx.box.width * flFactor, ctx.box.bottom + 4), colGrenade.GetU32());
 		// outline
 		pDrawList->AddRect(ImVec2(ctx.box.left - 1, ctx.box.bottom + 1), ImVec2(ctx.box.right + 1, ctx.box.bottom + 5), colOutline.GetU32());
 	}
@@ -1031,7 +1031,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 		if (pInfo.bFakePlayer)
 		{
 			vecBotSize = F::SmallestPixel->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szBot);
-			ImGui::AddText(pDrawList, F::SmallestPixel, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f + 1 + vecNameSize.x * 0.5f - vecBotSize.x * 0.5f, ctx.box.top - 2 - vecBotSize.y - ctx.arrPadding.at(DIR_TOP)), szBot, ImColor(140, 140, 140), true, colOutline.GetU32());
+			ImGui::AddText(pDrawList, F::SmallestPixel, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f + 1 + vecNameSize.x * 0.5f - vecBotSize.x * 0.5f, ctx.box.top - 2 - vecBotSize.y - ctx.arrPadding.at(DIR_TOP)), szBot, Color(140, 140, 140).GetU32(), true, colOutline.GetU32());
 		}
 
 		ImGui::AddText(pDrawList, F::SmallestPixel, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecNameSize.x * 0.5f - vecBotSize.x * 0.5f, ctx.box.top - 2 - vecNameSize.y - ctx.arrPadding.at(DIR_TOP)), szName.c_str(), colInfo.GetU32(), true, colOutline.GetU32());
@@ -1071,7 +1071,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 					// draw weapons list
 					const char* szIcon = U::GetWeaponIcon(nDefinitionIndex);
 					const ImVec2 vecIconSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szIcon);
-					ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecIconSize.x * 0.5f, ctx.box.bottom + 2 + ctx.arrPadding.at(DIR_BOTTOM)), szIcon, pCurrentWeapon == pActiveWeapon ? colInfo.GetU32() : ImColor(160, 160, 160), true, colOutline.GetU32());
+					ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecIconSize.x * 0.5f, ctx.box.bottom + 2 + ctx.arrPadding.at(DIR_BOTTOM)), szIcon, pCurrentWeapon == pActiveWeapon ? colInfo.GetU32() : Color(160, 160, 160).GetU32(), true, colOutline.GetU32());
 					ctx.arrPadding.at(DIR_BOTTOM) += vecIconSize.y;
 				}
 			}
@@ -1093,14 +1093,14 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	{
 		// calculate hp-based color
 		const float flHue = ((pEntity->GetHealth() / 100.f) * 120.f) / 360.f;
-		HealthBar(pDrawList, pEntity, ctx, ImColor::HSV(flHue, 1.f, 1.f), Color(40, 40, 40, 100), Color(0, 0, 0, 150));
+		HealthBar(pDrawList, pEntity, ctx, Color::FromHSB(flHue, 1.f, 1.f), Color(40, 40, 40, 100), Color(0, 0, 0, 150));
 	}
 
 	if (C::Get<bool>(Vars.bEspMainInfoMoney))
 	{
 		std::string szMoney = std::to_string(pEntity->GetMoney()).insert(0U, XorStr("$"));
 		const ImVec2 vecMoneySize = F::SmallestPixel->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szMoney.c_str());
-		ImGui::AddText(pDrawList, F::SmallestPixel, flFontSize, ImVec2(ctx.box.left - 2 - vecMoneySize.x - ctx.arrPadding.at(DIR_LEFT), ctx.box.top), szMoney.c_str(), ImColor(140, 195, 75), true, colOutline.GetU32());
+		ImGui::AddText(pDrawList, F::SmallestPixel, flFontSize, ImVec2(ctx.box.left - 2 - vecMoneySize.x - ctx.arrPadding.at(DIR_LEFT), ctx.box.top), szMoney.c_str(), Color(140, 195, 75).GetU32(), true, colOutline.GetU32());
 		ctx.arrPadding.at(DIR_LEFT) += vecMoneySize.y;
 	}
 	#pragma endregion
@@ -1126,7 +1126,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	{
 		static const char* szKitIcon = u8"\uE20F";
 		const ImVec2 vecKitSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szKitIcon);
-		ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szKitIcon, pEntity->IsDefusing() ? ImColor(80, 180, 200) : colInfo.GetU32(), true, colOutline.GetU32());
+		ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szKitIcon, pEntity->IsDefusing() ? Color(80, 180, 200).GetU32() : colInfo.GetU32(), true, colOutline.GetU32());
 		ctx.arrPadding.at(DIR_RIGHT) += vecKitSize.y;
 	}
 
@@ -1187,12 +1187,12 @@ void CVisuals::Box(ImDrawList* pDrawList, const Box_t& box, Color colPrimary, Co
 	}
 }
 
-void CVisuals::HealthBar(ImDrawList* pDrawList, CBaseEntity* pEntity, Context_t& ctx, ImU32 colPrimary, Color colBackground, Color colOutline)
+void CVisuals::HealthBar(ImDrawList* pDrawList, CBaseEntity* pEntity, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline)
 {
 	// background
 	pDrawList->AddRectFilled(ImVec2(ctx.box.left - 5 - ctx.arrPadding.at(DIR_LEFT), ctx.box.top), ImVec2(ctx.box.left - 3 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom), colBackground.GetU32());
 	// bar
-	pDrawList->AddRectFilled(ImVec2(ctx.box.left - 5 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom - (ctx.box.height * pEntity->GetHealth() / 100)), ImVec2(ctx.box.left - 3 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom), colPrimary);
+	pDrawList->AddRectFilled(ImVec2(ctx.box.left - 5 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom - (ctx.box.height * pEntity->GetHealth() / 100)), ImVec2(ctx.box.left - 3 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom), colPrimary.GetU32());
 	// outline
 	pDrawList->AddRect(ImVec2(ctx.box.left - 6 - ctx.arrPadding.at(DIR_LEFT), ctx.box.top - 1), ImVec2(ctx.box.left - 2 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom + 1), colOutline.GetU32());
 	ctx.arrPadding.at(DIR_LEFT) += 6;

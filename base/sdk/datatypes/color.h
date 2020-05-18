@@ -65,7 +65,7 @@ public:
 	/* convert color to directx rgba */
 	ImU32 GetU32()
 	{
-		return ImColor(arrColor.at(0), arrColor.at(1), arrColor.at(2), arrColor.at(3));
+		return ImGui::GetColorU32(ImVec4(this->rBase(), this->gBase(), this->bBase(), this->aBase()));
 	}
 
 	bool operator==(const Color& colSecond) const
@@ -128,16 +128,16 @@ public:
 		if (arrColor.at(0) == arrColor.at(1) && arrColor.at(1) == arrColor.at(2))
 			return 0.f;
 
-		float r = arrColor[0] / 255.f;
-		float g = arrColor[1] / 255.f;
-		float b = arrColor[2] / 255.f;
+		const float r = arrColor[0] / 255.f;
+		const float g = arrColor[1] / 255.f;
+		const float b = arrColor[2] / 255.f;
 
-		float flMax = std::max<float>(r, std::max<float>(g, b)), flMin = std::min<float>(r, std::min<float>(g, b));
+		const float flMax = std::max<float>(r, std::max<float>(g, b)), flMin = std::min<float>(r, std::min<float>(g, b));
 
 		if (flMax == flMin)
 			return 0.f;
 
-		float flDelta = flMax - flMin;
+		const float flDelta = flMax - flMin;
 		float flHue = 0.f;
 
 		if (flMax == r)
@@ -157,12 +157,12 @@ public:
 
 	float Saturation() const
 	{
-		float r = arrColor.at(0) / 255.f;
-		float g = arrColor.at(1) / 255.f;
-		float b = arrColor.at(2) / 255.f;
+		const float r = arrColor.at(0) / 255.f;
+		const float g = arrColor.at(1) / 255.f;
+		const float b = arrColor.at(2) / 255.f;
 
-		float flMax = std::max<float>(r, std::max<float>(g, b)), flMin = std::min<float>(r, std::min<float>(g, b));
-		float flDelta = flMax - flMin;
+		const float flMax = std::max<float>(r, std::max<float>(g, b)), flMin = std::min<float>(r, std::min<float>(g, b));
+		const float flDelta = flMax - flMin;
 
 		if (flMax == 0.f)
 			return flDelta;
@@ -172,37 +172,47 @@ public:
 
 	float Brightness() const
 	{
-		float r = arrColor.at(0) / 255.f;
-		float g = arrColor.at(1) / 255.f;
-		float b = arrColor.at(2) / 255.f;
+		const float r = arrColor.at(0) / 255.f;
+		const float g = arrColor.at(1) / 255.f;
+		const float b = arrColor.at(2) / 255.f;
 
 		return std::max<float>(r, std::max<float>(g, b));
 	}
 
 	static Color FromHSB(float flHue, float flSaturation, float flBrightness)
 	{
-		float h = flHue == 1.0f ? 0.0f : flHue * 6.0f;
-		int   i = (int)h;
-		float f = h - (float)i;
-		float p = flBrightness * (1.0f - flSaturation);
-		float q = flBrightness * (1.0f - flSaturation * f);
-		float t = flBrightness * (1.0f - flSaturation * (1.0f - f));
+		float r = 0.0f, g = 0.0f, b = 0.0f;
+		const float h = std::fmodf(flHue, 1.0f) / (60.0f / 360.0f);
+		const int i = (int)h;
+		const float f = h - (float)i;
+		const float p = flBrightness * (1.0f - flSaturation);
+		const float q = flBrightness * (1.0f - flSaturation * f);
+		const float t = flBrightness * (1.0f - flSaturation * (1.0f - f));
 
 		switch (i)
 		{
 		case 0:
-			return Color(flBrightness * 255, t * 255, p * 255);
+			r = flBrightness, g = t, b = p;
+			break;
 		case 1:
-			return Color(q * 255, flBrightness * 255, p * 255);
+			r = q, g = flBrightness, b = p;
+			break;
 		case 2:
-			return Color(p * 255, flBrightness, t);
+			r = p, g = flBrightness, b = t;
+			break;
 		case 3:
-			return Color(p * 255, q * 255, flBrightness * 255);
+			r = p, g = q, b = flBrightness;
+			break;
 		case 4:
-			return Color(t * 255, p * 255, flBrightness * 255);
+			r = t, g = p, b = flBrightness;
+			break;
+		case 5:
 		default:
-			return Color(flBrightness * 255, p * 255, q * 255);
+			r = flBrightness, g = p, b = q;
+			break;
 		}
+
+		return Color((std::uint8_t)(r * 255.f), (std::uint8_t)(g * 255.f), (std::uint8_t)(b * 255.f));
 	}
 
 	std::array<std::uint8_t, 4U> arrColor;

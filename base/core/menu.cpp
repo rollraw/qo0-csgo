@@ -72,8 +72,8 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 	#pragma region main_visuals
 	if (!I::Engine->IsTakingScreenshot() && !I::Engine->IsDrawingLoadingImage())
 	{
-		ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImColor(0, 0, 0, 10).Value);
-		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImColor(0, 0, 0, 10).Value);
+		ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0.f, 0.f, 0.f, 0.03f));
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.f, 0.f, 0.f, 0.03f));
 
 		// hmm, another one watermark
 		ImGui::BeginMainMenuBar();
@@ -85,17 +85,17 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 			static ImVec2 vecInsecureSize = F::SmallestPixel->CalcTextSizeA(16.f, FLT_MAX, 0.0f, szInsecure);
 
 			if (strstr(GetCommandLine(), XorStr("-insecure")) != nullptr)
-				ImGui::AddText(pWindowDrawList, F::SmallestPixel, 16.f, ImVec2(0, 0), szInsecure, ImColor(255, 255, 0));
+				ImGui::AddText(pWindowDrawList, F::SmallestPixel, 16.f, ImVec2(0, 0), szInsecure, IM_COL32(255, 255, 0, 255));
 
 			static const char* szSendPackets = XorStr("send packets");
 			static ImVec2 vecSendPacketsSize = F::SmallestPixel->CalcTextSizeA(16.f, FLT_MAX, 0.0f, szSendPackets);
 
 			if (I::Engine->IsInGame())
-				ImGui::AddText(pWindowDrawList, F::SmallestPixel, 16.f, ImVec2(vecInsecureSize.x + 10.f, 0), szSendPackets, G::bSendPacket ? ImColor(0, 255, 0) : ImColor(255, 0, 0));
+				ImGui::AddText(pWindowDrawList, F::SmallestPixel, 16.f, ImVec2(vecInsecureSize.x + 10.f, 0), szSendPackets, G::bSendPacket ? IM_COL32(0, 255, 0, 255) : IM_COL32(255, 0, 0, 255));
 
 			static const char* szName = XorStr("qo0 base | " __DATE__);
 			static ImVec2 vecNameSize = F::SmallestPixel->CalcTextSizeA(16.f, FLT_MAX, 0.0f, szName);
-			ImGui::AddText(pWindowDrawList, F::SmallestPixel, 16.f, ImGui::GetWindowContentRegionMax() - ImVec2(vecNameSize.x, vecNameSize.y * 0.5f), szName, ImColor(255, 255, 255));
+			ImGui::AddText(pWindowDrawList, F::SmallestPixel, 16.f, ImGui::GetWindowContentRegionMax() - ImVec2(vecNameSize.x, vecNameSize.y * 0.5f), szName, IM_COL32(255, 255, 255, 255));
 
 			ImGui::EndMainMenuBar();
 		}
@@ -128,8 +128,8 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 			float flWindowWidth = ImGui::GetWindowWidth();
 
 			// header separate line
-			pDrawList->AddRectFilledMultiColor(ImVec2(vecPos.x - 8.f, vecPos.y - 6.f), ImVec2(vecPos.x + flWindowWidth - flWindowWidth / 3.f - 8.f, vecPos.y - 8.f), ImColor(75, 50, 105, 255), ImColor(110, 100, 130, 255), ImColor(110, 100, 130, 255), ImColor(75, 50, 105, 255));
-			pDrawList->AddRectFilledMultiColor(ImVec2(vecPos.x + flWindowWidth - flWindowWidth / 3.f - 8.f, vecPos.y - 6.f), ImVec2(vecPos.x + flWindowWidth - 8.f, vecPos.y - 8.f), ImColor(110, 100, 130, 255), ImColor(75, 50, 105, 255), ImColor(75, 50, 105, 255), ImColor(110, 100, 130, 255));
+			pDrawList->AddRectFilledMultiColor(ImVec2(vecPos.x - 8.f, vecPos.y - 6.f), ImVec2(vecPos.x + flWindowWidth - flWindowWidth / 3.f - 8.f, vecPos.y - 8.f), IM_COL32(75, 50, 105, 255), IM_COL32(110, 100, 130, 255), IM_COL32(110, 100, 130, 255), IM_COL32(75, 50, 105, 255));
+			pDrawList->AddRectFilledMultiColor(ImVec2(vecPos.x + flWindowWidth - flWindowWidth / 3.f - 8.f, vecPos.y - 6.f), ImVec2(vecPos.x + flWindowWidth - 8.f, vecPos.y - 8.f), IM_COL32(110, 100, 130, 255), IM_COL32(75, 50, 105, 255), IM_COL32(75, 50, 105, 255), IM_COL32(110, 100, 130, 255));
 
 			// add tabs
 			static std::array<CTab, 4U> const arrTabs =

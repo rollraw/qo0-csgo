@@ -54,8 +54,8 @@ namespace ImGui
 	bool ColorEdit4(const char* szLabel, Color* v, ImGuiColorEditFlags flags);
 
 	// Extra
-	void AddText(ImDrawList* pDrawList, const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const char* szText, ImU32 colText, bool bOutline = false, ImU32 colOutline = ImColor(0, 0, 0));
-	void AddText(ImDrawList* pDrawList, const ImVec2& vecPosition, const char* szText, ImU32 colText, bool bOutline = false, ImU32 colOutline = ImColor(0, 0, 0));
+	void AddText(ImDrawList* pDrawList, const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const char* szText, ImU32 colText, bool bOutline = false, ImU32 colOutline = 0x000000FF);
+	void AddText(ImDrawList* pDrawList, const ImVec2& vecPosition, const char* szText, ImU32 colText, bool bOutline = false, ImU32 colOutline = 0x000000FF);
 }
 
 /*
