@@ -243,7 +243,7 @@ class IClientRenderable
 public:
 	virtual IClientUnknown*			GetIClientUnknown() = 0;
 	virtual Vector&					GetRenderOrigin() = 0;
-	virtual Vector&					GetRenderAngles() = 0;
+	virtual QAngle&					GetRenderAngles() = 0;
 	virtual bool					ShouldDraw() = 0;
 	virtual int						GetRenderFlags() = 0;
 	virtual bool					IsTransparent() = 0;
@@ -750,23 +750,23 @@ public:
 		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().nHitboxSet);
 	}
 
-	std::array<float, 24U>& GetPoseParameter()
-	{
-		return *(std::array<float, 24U>*)((std::uintptr_t)this + CNetvarManager::Get().flPoseParameter);
-	}
-
 	float GetCycle()
 	{
 		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flCycle);
 	}
 
-	CUtlVector<CAnimationLayer>& GetAnimationStruct()
+	std::array<float, 24U>& GetPoseParameter()
 	{
-		// @pattern = 8B 89 ? ? ? ? 8D 0C D1 + 0x2 // should work but for me offset is easy to update
-		return (*(CUtlVector<CAnimationLayer>*)((std::uintptr_t)this + 0x2990));
+		return *(std::array<float, 24U>*)((std::uintptr_t)this + CNetvarManager::Get().flPoseParameter);
 	}
 
-	int GetNumAnimationOverlays()
+	CAnimationLayer* GetAnimationLayers()
+	{
+		// @pattern = 8B 89 ? ? ? ? 8D 0C D1 + 0x2 // should work but for me offset is easy to update
+		return *(CAnimationLayer**)((std::uintptr_t)this + 0x2990);
+	}
+
+	int GetAnimationOverlaysCount()
 	{
 		return *(int*)((std::uintptr_t)this + 0x299C);
 	}
@@ -774,9 +774,6 @@ public:
 	CBasePlayerAnimState* GetAnimationState()
 	{
 		// @xref: "animset_version"
-		// UpdateAnimationState xref: "%s_aim"
-		// CreateAnimationState xref: "ggprogressive_player_levelup"
-		// ResetAnimationState: xref: "player_spawn"
 		return (CBasePlayerAnimState*)((std::uintptr_t)this + 0x3900);
 	}
 
@@ -877,7 +874,7 @@ public:
 	inline CAnimationLayer* GetAnimationLayer(int nLayer)
 	{
 		if (nLayer >= 0 && nLayer < MAX_LAYER_RECORDS)
-			return &GetAnimationStruct()[nLayer];
+			return &GetAnimationLayers()[nLayer];
 
 		return nullptr;
 	}

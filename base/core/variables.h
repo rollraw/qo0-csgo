@@ -78,6 +78,7 @@ struct Variables_t
 	C_ADDVARIABLE(bool, bAntiAim, false);
 	C_ADDVARIABLE(int, iAntiAimPitch, 0);
 	C_ADDVARIABLE(int, iAntiAimYaw, 0);
+	C_ADDVARIABLE(int, iAntiAimDesyncKey, VK_XBUTTON1);
 	#pragma endregion
 
 	#pragma region variables_legit

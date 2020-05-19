@@ -283,7 +283,7 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 			CMiscellaneous::Get().FakeLag(pCmd, pLocal, bSendPacket);
 
 		if (C::Get<bool>(Vars.bAntiAim))
-			CAntiAim::Get().Run(pCmd, pLocal, pCmd->angViewPoint, bSendPacket);
+			CAntiAim::Get().Run(pCmd, pLocal, bSendPacket);
 
 		if (C::Get<bool>(Vars.bLegit))
 			CLegitBot::Get().Run(pCmd, pLocal, bSendPacket);
@@ -314,8 +314,6 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	else if (bSendPacket && I::ClientState->iChokedCommands == 0)
 		// apply the sent angles
 		G::angRealView = pCmd->angViewPoint;
-	else if (!bSendPacket)
-		G::vecFakeOrigin = pLocal->GetOrigin();
 
 	if (C::Get<bool>(Vars.bPingSpike))
 		CLagCompensation::Get().UpdateIncomingSequences(pNetChannel);
@@ -443,15 +441,6 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 		// my solution is here cuz camera offset is dynamically by standard functions without any garbage in overrideview hook
 		I::Input->bCameraInThirdPerson = bThirdPerson && pLocal->IsAlive() && !I::Engine->IsTakingScreenshot();
 		I::Input->vecCameraOffset.z = bThirdPerson ? C::Get<float>(Vars.flWorldThirdPersonOffset) : 150.f;
-
-		/*
-		 * @note: set custom thirdperson angles (e.g. real's)
-		 * works, but @ducarii shared more properly thirdperson angles setting here:
-		 * https://www.unknowncheats.me/forum/counterstrike-global-offensive/340475-properly-setting-thirdperson-angles.html
-		 * and it will be more efficient
-		 */
-		if (C::Get<bool>(Vars.bAntiAim) && bThirdPerson && pLocal->IsAlive() && I::Input->bCameraInThirdPerson)
-			*pLocal->GetThirdPersonAngles() = G::angRealView;
 
 		break;
 	};

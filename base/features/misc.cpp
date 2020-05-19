@@ -75,7 +75,7 @@ void CMiscellaneous::MovementCorrection(CUserCmd* pCmd, QAngle& angOldViewPoint)
 	// clamp and apply corrected movement
 	pCmd->flForwardMove = std::clamp(x, -450.f, 450.f);
 	pCmd->flSideMove = std::clamp(y, -450.f, 450.f);
-	pCmd->flUpMove = std::clamp(z, -320.f, 320.f);
+	pCmd->flUpMove = std::clamp(z, -450.f, 450.f);
 }
 
 void CMiscellaneous::BunnyHop(CUserCmd* pCmd, CBaseEntity* pLocal)

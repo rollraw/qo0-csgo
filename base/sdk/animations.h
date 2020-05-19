@@ -1,6 +1,10 @@
 #pragma once
 // used: vector
 #include "datatypes/vector.h"
+// used: angle
+#include "datatypes/qangle.h"
+// used: findpattern
+#include "../utilities/memory.h"
 
 /* max animation overlays */
 #define MAX_LAYER_RECORDS	15
@@ -94,6 +98,39 @@ class CBaseCombatWeapon;
 class CBasePlayerAnimState
 {
 public:
+	void Create(CBaseEntity* pEntity)
+	{
+		using CreateAnimationStateFn = void(__thiscall*)(void*, CBaseEntity*);
+		static auto oCreateAnimationState = (CreateAnimationStateFn)(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 56 8B F1 B9 ? ? ? ? C7 46"))); // @xref: "ggprogressive_player_levelup"
+
+		if (oCreateAnimationState == nullptr)
+			return;
+
+		oCreateAnimationState(this, pEntity);
+	}
+
+	void Update(QAngle angView)
+	{
+		using UpdateAnimationStateFn = void(_vectorcall*)(void*, void*, float, float, float, void*);
+		static auto oUpdateAnimationState = (UpdateAnimationStateFn)(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 83 EC 18 56 57 8B F9 F3 0F 11 54 24"))); // @xref: "%s_aim"
+
+		if (oUpdateAnimationState == nullptr)
+			return;
+
+		oUpdateAnimationState(this, nullptr, 0.0f, angView[YAW], angView[PITCH], nullptr);
+	}
+
+	void Reset()
+	{
+		using ResetAnimationStateFn = void(__thiscall*)(void*);
+		static auto oResetAnimationState = (ResetAnimationStateFn)(MEM::FindPattern(CLIENT_DLL, XorStr("56 6A 01 68 ? ? ? ? 8B F1"))); // @xref: "player_spawn"
+
+		if (oResetAnimationState == nullptr)
+			return;
+
+		oResetAnimationState(this);
+	}
+
 	std::byte	pad0[0x56]; // 0x00
 	int			nCachedModelIndex; // 0x56
 	CBaseEntity* pEntity; // 0x60
