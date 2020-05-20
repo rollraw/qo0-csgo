@@ -302,19 +302,6 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 		pCmd->angViewPoint.Clamp();
 	}
 
-	// we are choking a command, and we have not already choked a command
-	if (!bSendPacket && I::ClientState->iChokedCommands == 0)
-		// save our first choked angles for later use
-		angLastChokedReal = pCmd->angViewPoint;
-	// if we are sending a command, and we have previously choked commands
-	else if (bSendPacket && I::ClientState->iChokedCommands > 0)
-		// apply the first choked angles
-		G::angRealView = angLastChokedReal;
-	// if we are sending a command, and have not choked any commands
-	else if (bSendPacket && I::ClientState->iChokedCommands == 0)
-		// apply the sent angles
-		G::angRealView = pCmd->angViewPoint;
-
 	if (C::Get<bool>(Vars.bPingSpike))
 		CLagCompensation::Get().UpdateIncomingSequences(pNetChannel);
 	else
@@ -329,6 +316,9 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 		if (!DTR::SendDatagram.IsHooked())
 			DTR::SendDatagram.Create(MEM::GetVFunc(pNetChannel, VTABLE::SENDDATAGRAM), H::hkSendDatagram);
 	}
+
+	// save next view angles state
+	G::angRealView = pCmd->angViewPoint;
 
 	// save next global sendpacket state
 	G::bSendPacket = bSendPacket;

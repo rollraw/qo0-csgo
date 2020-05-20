@@ -777,6 +777,11 @@ public:
 		return (CBasePlayerAnimState*)((std::uintptr_t)this + 0x3900);
 	}
 
+	bool* IsClientSideAnimation()
+	{
+		return (bool*)((std::uintptr_t)this + CNetvarManager::Get().bClientSideAnimation);
+	}
+
 	#pragma region baseentity_exports
 	// DoExtraBonesProcessing
 	// pattern xref: "ankle_L"

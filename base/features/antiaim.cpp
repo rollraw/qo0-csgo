@@ -131,7 +131,7 @@ void CAntiAim::UpdateServerAnimations(CUserCmd* pCmd, CBaseEntity* pLocal, float
 		const QAngle angAbsViewOld = pLocal->GetAbsAngles();
 		const std::array<float, 24U> arrPosesOld = pLocal->GetPoseParameter();
 
-		pServerAnimState->Update(G::angRealView);
+		pServerAnimState->Update(angSentView);
 
 		// restore values
 		std::copy(arrNetworkedLayers.begin(), arrNetworkedLayers.end(), pLocal->GetAnimationLayers());
@@ -189,17 +189,22 @@ void CAntiAim::Yaw(CUserCmd* pCmd, CBaseEntity* pLocal, float flServerTime, bool
 			flSide = -flSide;
 
 		// check is lowerbody updated and have choked command
-		if (flServerTime >= flNextLowerBodyUpdate && I::ClientState->iChokedCommands > 0)
-			angSentView.y = G::angRealView.y - (120.f * flSide);
-		else
+		if (flServerTime >= flNextLowerBodyUpdate)
 		{
-			if (bSendPacket)
-				// real
-				angSentView.y = G::angRealView.y - (flMaxDesyncDelta * flSide);
-			else
-				// fake
-				angSentView.y = G::angRealView.y + (flMaxDesyncDelta * flSide);
+			// check is we not choke now
+			if (I::ClientState->iChokedCommands == 0)
+				// choke packet to make update invisibly
+				bSendPacket = false;
+
+			angSentView.y -= 120.f * flSide;
 		}
+
+		if (bSendPacket)
+			// real
+			angSentView.y -= flMaxDesyncDelta * flSide;
+		else
+			// fake
+			angSentView.y += flMaxDesyncDelta * flSide;
 
 		break;
 	}

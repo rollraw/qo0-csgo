@@ -185,6 +185,7 @@ void CNetvarManager::GrabOffsets()
 	dwBoneMatrix =			nForceBone + 0x1C;
 	nHitboxSet =			mapProps[FNV1A::HashConst("DT_BaseAnimating->m_nHitboxSet")].uOffset;
 	flPoseParameter =		mapProps[FNV1A::HashConst("DT_BaseAnimating->m_flPoseParameter")].uOffset;
+	bClientSideAnimation =	mapProps[FNV1A::HashConst("DT_BaseAnimating->m_bClientSideAnimation")].uOffset;
 
 	flCycle =				mapProps[FNV1A::HashConst("DT_ServerAnimationData->m_flCycle")].uOffset;
 

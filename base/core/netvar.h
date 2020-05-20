@@ -252,7 +252,8 @@ public:
 		nForceBone,
 		dwBoneMatrix,
 		nHitboxSet,
-		flPoseParameter;
+		flPoseParameter,
+		bClientSideAnimation;
 
 	// DT_ServerAnimationData
 	std::uintptr_t

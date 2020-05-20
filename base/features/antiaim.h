@@ -16,6 +16,9 @@ public:
 	/* get next lby update */
 	void UpdateServerAnimations(CUserCmd* pCmd, CBaseEntity* pLocal, float flServerTime); // @credits: pazzo
 
+	// Values
+	/* angles modified by antiaim and being sent */
+	QAngle angSentView = { };
 private:
 	// Main
 	void Pitch(CUserCmd* pCmd, CBaseEntity* pLocal);
@@ -26,8 +29,6 @@ private:
 	float GetMaxDesyncDelta(CBasePlayerAnimState* pAnimState); // @credits: sharklaser1's reversed setupvelocity
 
 	// Values
-	/* angles modified by antiaim and being sent */
-	QAngle angSentView = { };
 	/* updated by server animstate */
 	CBasePlayerAnimState* pServerAnimState = nullptr;
 	/* next lower body yaw update time from server */

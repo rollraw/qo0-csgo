@@ -142,11 +142,11 @@ public:
 	float		flEyeYaw; // 0x78
 	float		flEyePitch; // 0x7C
 	float		flGoalFeetYaw; // 0x80
-	float		flLasrFeetYaw; // 0x84
+	float		flLastFeetYaw; // 0x84
 	float		flMoveYaw; // 0x88
 	float		flLastMoveYaw; // 0x8C // changes when moving/jumping/hitting ground
 	float		flLeanAmount; // 0x90
-	std::byte	pad5[0x4]; // 0x94
+	std::byte	pad1[0x4]; // 0x94
 	float		flFeetCycle; // 0x98 0 to 1
 	float		flMoveWeight; // 0x9C 0 to 1
 	float		flMoveWeightSmoothed; // 0xA0
@@ -167,15 +167,15 @@ public:
 	float		flDurationStill; // 0x104
 	bool		bOnGround; // 0x108
 	bool		bHitGroundAnimation; // 0x109
-	std::byte	pad10[0x2]; // 0x10A
+	std::byte	pad2[0x2]; // 0x10A
 	float		flNextLowerBodyYawUpdateTime; // 0x10C
 	float		flDurationInAir; // 0x110
 	float		flLeftGroundHeight; // 0x114
 	float		flHitGroundWeight; // 0x118 // from 0 to 1, is 1 when standing
 	float		flWalkToRunTransition; // 0x11C // from 0 to 1, doesnt change when walking or crouching, only running
-	std::byte	pad11[0x4]; // 0x120
+	std::byte	pad3[0x4]; // 0x120
 	float		flAffectedFraction; // 0x124 // affected while jumping and running, or when just jumping, 0 to 1
-	std::byte	pad12[0x208]; // 0x128
+	std::byte	pad4[0x208]; // 0x128
 	float		flMinBodyYaw; // 0x330
 	float		flMaxBodyYaw; // 0x334
 	float		flMinPitch; //0x338
