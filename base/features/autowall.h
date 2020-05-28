@@ -18,11 +18,7 @@ struct FireBulletData_t
 	Trace_t			enterTrace;
 	CTraceFilter	filter;
 
-	float			flTraceLength;
-	float			flMaxRange;
 	float			flCurrentDamage;
-	float			flReductionDamage;
-	float			flPenetrateDamage;
 	int				iPenetrateCount;
 };
 
@@ -41,7 +37,7 @@ private:
 	// Check
 	void ClipTraceToPlayers(const Vector& vecAbsStart, const Vector& vecAbsEnd, unsigned int fMask, ITraceFilter* pFilter, Trace_t* pTrace);
 	bool IsBreakableEntity(CBaseEntity* pEntity);
-	bool TraceToExit(Trace_t* pEnterTrace, Trace_t* pExitTrace, Vector vecStart, Vector vecDirection);
+	bool TraceToExit(Trace_t* pEnterTrace, Trace_t* pExitTrace, Vector vecPosition, Vector vecDirection);
 	bool HandleBulletPenetration(CBaseEntity* pLocal, surfacedata_t* pEnterSurfaceData, CCSWeaponData* pWeaponData, FireBulletData_t& data);
 	bool SimulateFireBullet(CBaseEntity* pLocal, CBaseCombatWeapon* pWeapon, FireBulletData_t& data);
 };

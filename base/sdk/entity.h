@@ -760,6 +760,11 @@ public:
 		return *(std::array<float, 24U>*)((std::uintptr_t)this + CNetvarManager::Get().flPoseParameter);
 	}
 
+	bool* IsClientSideAnimation()
+	{
+		return (bool*)((std::uintptr_t)this + CNetvarManager::Get().bClientSideAnimation);
+	}
+
 	CAnimationLayer* GetAnimationLayers()
 	{
 		// @pattern = 8B 89 ? ? ? ? 8D 0C D1 + 0x2 // should work but for me offset is easy to update
@@ -775,11 +780,6 @@ public:
 	{
 		// @xref: "animset_version"
 		return (CBasePlayerAnimState*)((std::uintptr_t)this + 0x3900);
-	}
-
-	bool* IsClientSideAnimation()
-	{
-		return (bool*)((std::uintptr_t)this + CNetvarManager::Get().bClientSideAnimation);
 	}
 
 	#pragma region baseentity_exports
@@ -800,10 +800,10 @@ public:
 
 	Vector GetEyePosition()
 	{
-		Vector vecIn = { };
+		Vector vecPosition = { };
 
 		// get eye position
-		MEM::CallVFunc<void, Vector&>(this, 168, vecIn);
+		MEM::CallVFunc<void, Vector&>(this, 168, vecPosition);
 
 		// correct this like it do weapon_shootpos
 		// @ida weapon_shootpos: 55 8B EC 56 8B 75 08 57 8B F9 56 8B 07 FF 90
@@ -812,11 +812,11 @@ public:
 			CBasePlayerAnimState* pAnimState = this->GetAnimationState();
 
 			if (pAnimState != nullptr)
-				ModifyEyePosition(pAnimState, &vecIn);
+				ModifyEyePosition(pAnimState, &vecPosition);
 		}
 
 		// return corrected position
-		return vecIn;
+		return vecPosition;
 	}
 
 	void SetSequence(int iSequence)
@@ -868,7 +868,6 @@ public:
 		return (this->GetLifeState() == LIFE_ALIVE) ? true : false;
 	}
 
-
 	inline void SetPoseAngles(float flYaw, float flPitch)
 	{
 		auto& arrPose = this->GetPoseParameter();
@@ -895,7 +894,7 @@ public:
 	bool				IsEnemy(CBaseEntity* pEntity);
 	bool				IsTargetingLocal(CBaseEntity* pLocal);
 	bool				IsCanShoot(CBaseCombatWeapon* pWeapon);
-	bool				IsVisible(CBaseEntity* pLocal, const Vector& vecSpot, bool bSmokeCheck = false);
+	bool				IsVisible(CBaseEntity* pEntity, const Vector& vecSpot, bool bSmokeCheck = false);
 #pragma endregion
 };
 

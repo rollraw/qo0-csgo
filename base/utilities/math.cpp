@@ -28,33 +28,40 @@ bool M::Setup()
 	return true;
 }
 
-void M::VectorAngles(const Vector& forward, QAngle& angles)
+void M::VectorAngles(const Vector& vecForward, QAngle& angView)
 {
-	if (forward[PITCH] == 0.f && forward[YAW] == 0.f)
+	float flPitch, flYaw;
+
+	if (vecForward[PITCH] == 0.f && vecForward[YAW] == 0.f)
 	{
-		angles[PITCH] = (forward[ROLL] > 0.f) ? 270.f : 90.f;
-		angles[YAW] = 0.f;
+		flPitch = (vecForward[ROLL] > 0.f) ? 270.f : 90.f;
+		flYaw = 0.f;
 	}
 	else
 	{
-		angles[PITCH] = std::atan2f(-forward[ROLL], forward.Length2D()) * -180.f / M_PI;
-		angles[YAW] = std::atan2f(forward[YAW], forward[PITCH]) * 180.f / M_PI;
+		flPitch = std::atan2f(-vecForward[ROLL], vecForward.Length2D()) * 180.f / M_PI;
+		
+		if (flPitch < 0.f)
+			flPitch += 360.f;
 
-		if (angles[YAW] > 90.f) angles[YAW] -= 180.f;
-		else if (angles[YAW] < 90.f) angles[YAW] += 180.f;
-		else if (angles[YAW] == 90.f) angles[YAW] = 0.f;
+		flYaw = std::atan2f(vecForward[YAW], vecForward[PITCH]) * 180.f / M_PI;
+
+		if (flYaw < 0.f)
+			flYaw += 360.f;
 	}
 
-	angles[ROLL] = 0.f;
+	angView[PITCH] = flPitch;
+	angView[YAW] = flYaw;
+	angView[ROLL] = 0.f;
 }
 
-void M::AngleVectors(const QAngle& angles, Vector* pForward, Vector* pRight, Vector* pUp)
+void M::AngleVectors(const QAngle& angView, Vector* pForward, Vector* pRight, Vector* pUp)
 {
-	float sr, sp, sy, cr, cp, cy;
+	float sp, sy, sr, cp, cy, cr;
 
-	DirectX::XMScalarSinCos(&sp, &cp, M_DEG2RAD(angles[PITCH]));
-	DirectX::XMScalarSinCos(&sy, &cy, M_DEG2RAD(angles[YAW]));
-	DirectX::XMScalarSinCos(&sr, &cr, M_DEG2RAD(angles[ROLL]));
+	DirectX::XMScalarSinCos(&sp, &cp, M_DEG2RAD(angView[PITCH]));
+	DirectX::XMScalarSinCos(&sy, &cy, M_DEG2RAD(angView[YAW]));
+	DirectX::XMScalarSinCos(&sr, &cr, M_DEG2RAD(angView[ROLL]));
 
 	if (pForward != nullptr)
 	{
@@ -65,46 +72,46 @@ void M::AngleVectors(const QAngle& angles, Vector* pForward, Vector* pRight, Vec
 
 	if (pRight != nullptr)
 	{
-		pRight->x = (-1 * sr * sp * cy + -1 * cr * -sy);
-		pRight->y = (-1 * sr * sp * sy + -1 * cr * cy);
+		pRight->x = -1 * sr * sp * cy + -1 * cr * -sy;
+		pRight->y = -1 * sr * sp * sy + -1 * cr * cy;
 		pRight->z = -1 * sr * cp;
 	}
 
 	if (pUp != nullptr)
 	{
-		pUp->x = (cr * sp * cy + -sr * -sy);
-		pUp->y = (cr * sp * sy + -sr * cy);
+		pUp->x = cr * sp * cy + -sr * -sy;
+		pUp->y = cr * sp * sy + -sr * cy;
 		pUp->z = cr * cp;
 	}
 }
 
-void M::MatrixGetColumn(const matrix3x4_t& matIn, int nColumn, Vector& vecOut)
+void M::MatrixGetColumn(const matrix3x4_t& matrix, int nColumn, Vector& vecOut)
 {
-	vecOut.x = matIn[0][nColumn];
-	vecOut.y = matIn[1][nColumn];
-	vecOut.z = matIn[2][nColumn];
+	vecOut.x = matrix[0][nColumn];
+	vecOut.y = matrix[1][nColumn];
+	vecOut.z = matrix[2][nColumn];
 }
 
-void M::MatrixSetColumn(const Vector& vecIn, int nColumn, matrix3x4_t& matOut)
+void M::MatrixSetColumn(const Vector& vecColumn, int nColumn, matrix3x4_t& matrix)
 {
-	matOut[0][nColumn] = vecIn.x;
-	matOut[1][nColumn] = vecIn.y;
-	matOut[2][nColumn] = vecIn.z;
+	matrix[0][nColumn] = vecColumn.x;
+	matrix[1][nColumn] = vecColumn.y;
+	matrix[2][nColumn] = vecColumn.z;
 }
 
-void M::MatrixSetOrigin(matrix3x4_t& matrix, const Vector vecOrigin, const Vector vecNewOrigin)
+void M::MatrixSetOrigin(matrix3x4_t& matrix, const Vector& vecOrigin, const Vector& vecNewOrigin)
 {
 	Vector vecMatrixOrigin(matrix[0][3], matrix[1][3], matrix[2][3]);
 	M::MatrixSetColumn(vecNewOrigin + (vecMatrixOrigin - vecOrigin), 3, matrix);
 }
 
-void M::AngleMatrix(const QAngle& angles, matrix3x4_t& matrix)
+void M::AngleMatrix(const QAngle& angView, matrix3x4_t& matrix)
 {
-	float sr, sp, sy, cr, cp, cy;
+	float sp, sy, sr, cp, cy, cr;
 
-	DirectX::XMScalarSinCos(&sp, &cp, M_DEG2RAD(angles[PITCH]));
-	DirectX::XMScalarSinCos(&sy, &cy, M_DEG2RAD(angles[YAW]));
-	DirectX::XMScalarSinCos(&sr, &cr, M_DEG2RAD(angles[ROLL]));
+	DirectX::XMScalarSinCos(&sp, &cp, M_DEG2RAD(angView[PITCH]));
+	DirectX::XMScalarSinCos(&sy, &cy, M_DEG2RAD(angView[YAW]));
+	DirectX::XMScalarSinCos(&sr, &cr, M_DEG2RAD(angView[ROLL]));
 
 	matrix[0][0] = cp * cy;
 	matrix[1][0] = cp * sy;
@@ -155,23 +162,20 @@ float M::GetFov(const QAngle& angView, const QAngle& angAimPoint)
 	return M_RAD2DEG(std::acosf(vecView.DotProduct(vecAim) / vecView.LengthSqr()));
 }
 
-QAngle M::CalcAngle(Vector src, Vector dst)
+QAngle M::CalcAngle(Vector vecStart, Vector vecEnd)
 {
-	QAngle angles;
-	Vector vecDelta = src - dst;
-	VectorAngles(vecDelta, angles);
+	QAngle angView;
+	Vector vecDelta = vecStart - vecEnd;
+	VectorAngles(vecDelta, angView);
 	vecDelta.Normalize();
-	return angles;
+	return angView;
 }
 
-float M::VectorDistance(Vector src, Vector dst)
+Vector M::VectorTransform(const Vector& vecTransform, const matrix3x4_t& matrix)
 {
-	return std::sqrtf(std::pow(src.x - dst.x, 2) + std::pow(src.y - dst.y, 2) + std::pow(src.z - dst.z, 2));
-}
-
-Vector M::VectorTransform(const Vector& vecIn, const matrix3x4_t& matrix)
-{
-	return Vector(vecIn.DotProduct(matrix[0]) + matrix[0][3], vecIn.DotProduct(matrix[1]) + matrix[1][3], vecIn.DotProduct(matrix[2]) + matrix[2][3]);
+	return Vector(vecTransform.DotProduct(matrix[0]) + matrix[0][3],
+		vecTransform.DotProduct(matrix[1]) + matrix[1][3],
+		vecTransform.DotProduct(matrix[2]) + matrix[2][3]);
 }
 
 Vector M::ExtrapolateTick(Vector p0, Vector v0)

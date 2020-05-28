@@ -65,7 +65,7 @@ void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 		}
 	}
 
-	// get angles
+	// save angles to modify later
 	angSentView = pCmd->angViewPoint;
 
 	/* edge antiaim, fakewalk, other hvhboi$tuff do here */
@@ -83,7 +83,7 @@ void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 		angSentView.Clamp();
 	}
 
-	// set angles
+	// send angles
 	pCmd->angViewPoint = angSentView;
 }
 
@@ -188,7 +188,7 @@ void CAntiAim::Yaw(CUserCmd* pCmd, CBaseEntity* pLocal, float flServerTime, bool
 		if (C::Get<int>(Vars.iAntiAimDesyncKey) > 0 && IPT::IsKeyReleased(C::Get<int>(Vars.iAntiAimDesyncKey)))
 			flSide = -flSide;
 
-		// check is lowerbody updated and have choked command
+		// check is lowerbody updated
 		if (flServerTime >= flNextLowerBodyUpdate)
 		{
 			// check is we not choke now

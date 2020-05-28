@@ -42,13 +42,13 @@ namespace M
 	/* convert vector to angles */
 	void	VectorAngles(const Vector& vecForward, QAngle& angView);
 	/* convert angles to x, y, z vectors */
-	void	AngleVectors(const QAngle& angles, Vector* pForward, Vector* pRight = nullptr, Vector* pUp = nullptr);
+	void	AngleVectors(const QAngle& angView, Vector* pForward, Vector* pRight = nullptr, Vector* pUp = nullptr);
 	/* set vector position by matrix column */
-	void	MatrixGetColumn(const matrix3x4_t& matIn, int nColumn, Vector& vecOut);
+	void	MatrixGetColumn(const matrix3x4_t& matrix, int nColumn, Vector& vecOut);
 	/* set matrix column position by vector */
-	void	MatrixSetColumn(const Vector& vecIn, int nColumn, matrix3x4_t& matOut);
+	void	MatrixSetColumn(const Vector& vecColumn, int nColumn, matrix3x4_t& matrix);
 	/* set matrix origin with matrix columns position */
-	void	MatrixSetOrigin(matrix3x4_t& matIn, const Vector vecOrigin, const Vector vecNewOrigin);
+	void	MatrixSetOrigin(matrix3x4_t& matIn, const Vector& vecOrigin, const Vector& vecNewOrigin);
 	/* convert angles to matrix */
 	void	AngleMatrix(const QAngle& angles, matrix3x4_t& matrix);
 	/* convert angle to screen pixels by sensivity, pitch and yaw */
@@ -59,9 +59,7 @@ namespace M
 	/* calculate fov by view and target angles */
 	float	GetFov(const QAngle& angView, const QAngle& angAimPoint);
 	/* calculate angles by source and destination vectors */
-	QAngle	CalcAngle(const Vector src, Vector dst);
-	/* get distance from source to destination vectors */
-	float	VectorDistance(Vector src, Vector dst);
+	QAngle	CalcAngle(const Vector vecStart, Vector vecEnd);
 	/* transform vector by matrix and return it */
 	Vector	VectorTransform(const Vector& vecIn, const matrix3x4_t& matrix);
 	/* calculate next tick position */

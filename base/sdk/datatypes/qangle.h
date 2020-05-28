@@ -1,4 +1,6 @@
 #pragma once
+// used: isfinite, fmodf, remainderf
+#include <cmath>
 
 class QAngle
 {
@@ -151,8 +153,8 @@ public:
 
 	QAngle Normalize()
 	{
-		this->x = std::isfinite(this->x) ? std::remainder(this->x, 360.f) : 0.f;
-		this->y = std::isfinite(this->y) ? std::remainder(this->y, 360.f) : 0.f;
+		this->x = std::isfinite(this->x) ? std::remainderf(this->x, 360.f) : 0.f;
+		this->y = std::isfinite(this->y) ? std::remainderf(this->y, 360.f) : 0.f;
 		this->z = 0.f;
 		return *this;
 	}
