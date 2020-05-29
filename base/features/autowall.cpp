@@ -82,10 +82,10 @@ void CAutoWall::ScaleDamage(int iHitGroup, CBaseEntity* pEntity, float flWeaponA
 // @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/shared/util_shared.cpp#L687
 void CAutoWall::ClipTraceToPlayers(const Vector& vecAbsStart, const Vector& vecAbsEnd, unsigned int fMask, ITraceFilter* pFilter, Trace_t* pTrace)
 {
-	Trace_t trace;
+	Trace_t trace = { };
 	float flSmallestFraction = pTrace->flFraction;
 
-	Ray_t ray;
+	Ray_t ray = { };
 	ray.Init(vecAbsStart, vecAbsEnd);
 
 	for (int i = 1; i <= I::Globals->nMaxClients; i++)
@@ -257,13 +257,6 @@ bool CAutoWall::HandleBulletPenetration(CBaseEntity* pLocal, surfacedata_t* pEnt
 	const MaterialHandle_t hEnterMaterial = pEnterSurfaceData->game.hMaterial;
 	const float flEnterPenetrationModifier = pEnterSurfaceData->game.flPenetrationModifier;
 
-	/*if (data.iPenetrateCount <= 0)
-		return false;
-
-	Trace_t exitTrace = { };
-	if (!TraceToExit(&data.enterTrace, &exitTrace, data.enterTrace.vecEnd, data.vecDir) && !(I::EngineTrace->GetPointContents(data.enterTrace.vecEnd, MASK_SHOT_HULL, nullptr) & MASK_SHOT_HULL))
-		return false;*/
-
 	Trace_t exitTrace = { };
 	if ((!data.iPenetrateCount &&
 		!(data.enterTrace.surface.uFlags >> 7 & SURF_LIGHT) && !((data.enterTrace.iContents >> 3) & CONTENTS_SOLID) &&
@@ -352,7 +345,7 @@ bool CAutoWall::SimulateFireBullet(CBaseEntity* pLocal, CBaseCombatWeapon* pWeap
 	data.iPenetrateCount = 4;
 	data.flCurrentDamage = (float)pWeaponData->iDamage;
 
-	Trace_t trace;
+	Trace_t trace = { };
 	CTraceFilterSkipEntity filter(pLocal);
 
 	while (data.iPenetrateCount > 0 && data.flCurrentDamage >= 1.0f)
@@ -362,11 +355,7 @@ bool CAutoWall::SimulateFireBullet(CBaseEntity* pLocal, CBaseCombatWeapon* pWeap
 
 		// end position of bullet
 		const Vector vecEnd = data.vecPosition + data.vecDir * flMaxRange;
-		//U::TraceLine(data.vecPosition, vecEnd, MASK_SHOT_HULL | CONTENTS_HITBOX, pLocal, &data.enterTrace);
-
-		Ray_t ray;
-		ray.Init(data.vecPosition, vecEnd);
-		I::EngineTrace->TraceRay(ray, MASK_SHOT_HULL | CONTENTS_HITBOX, &filter, &data.enterTrace);
+		U::TraceLine(data.vecPosition, vecEnd, MASK_SHOT_HULL | CONTENTS_HITBOX, pLocal, &data.enterTrace);
 
 		// check for player hitboxes extending outside their collision bounds
 		ClipTraceToPlayers(data.vecPosition, vecEnd + data.vecDir * 40.0f, MASK_SHOT_HULL | CONTENTS_HITBOX, &data.filter, &data.enterTrace);

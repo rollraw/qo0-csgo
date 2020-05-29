@@ -16,5 +16,5 @@ public:
 private:
 	// Values
 	/* timer for delay before shoot */
-	CTimer timer;
+	CTimer timer = { };
 };

@@ -27,7 +27,7 @@ CBaseEntity* U::GetLocalPlayer()
 
 void U::TraceLine(const Vector& vecAbsStart, const Vector& vecAbsEnd, unsigned int fMask, IHandleEntity* pSkip, Trace_t* pTrace)
 {
-	Ray_t ray;
+	Ray_t ray = { };
 	ray.Init(vecAbsStart, vecAbsEnd);
 	CTraceFilterSkipEntity filter(pSkip);
 	I::EngineTrace->TraceRay(ray, fMask, &filter, pTrace);

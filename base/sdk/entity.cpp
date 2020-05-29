@@ -229,7 +229,7 @@ bool CBaseEntity::IsTargetingLocal(CBaseEntity* pLocal)
 	Vector vecStart = this->GetEyePosition();
 	Vector vecEnd = vecStart + vecForward;
 
-	Trace_t trace;
+	Trace_t trace = { };
 	U::TraceLine(vecStart, vecEnd, MASK_SHOT, this, &trace);
 
 	if (trace.pHitEntity == pLocal)
@@ -273,10 +273,10 @@ bool CBaseEntity::IsVisible(CBaseEntity* pEntity, const Vector& vecEnd, bool bSm
 {
 	const Vector vecStart = this->GetEyePosition();
 
-	Ray_t ray;
+	Ray_t ray = { };
 	ray.Init(vecStart, vecEnd);
 
-	Trace_t trace;
+	Trace_t trace = { };
 	CTraceFilterSkipTwoEntities filter(this, pEntity);
 	I::EngineTrace->TraceRay(ray, MASK_SHOT, &filter, &trace);
 
