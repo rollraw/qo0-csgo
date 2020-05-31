@@ -32,10 +32,6 @@ class CVisuals : public CSingleton<CVisuals>
 {
 public:
 	// Get
-	/* create .vmt materials with customized parameters for chams */
-	void Create();
-	/* remove chams materials what we created */
-	void Remove();
 	/* sort entities and render */
 	void Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize);
 	/* get info for hitmarker or e.g. bullettracer */
@@ -46,14 +42,8 @@ public:
 	/* glow effect on entities like while spectating */
 	void Glow(CBaseEntity* pLocal);
 
-	// Values
-	/* is needed update chams materials for players */
-	bool bUpdatePlayersChams;
-	/* is needed update chams materials for viewmodel */
-	bool bUpdateViewModelChams;
 private:
-
-	enum EPaddingDirections : unsigned int
+	enum EPaddingDirection : unsigned int
 	{
 		DIR_LEFT = 0,
 		DIR_TOP,
@@ -77,6 +67,8 @@ private:
 	Vector* GetPoints(CBaseEntity* pEntity);
 	/* get bounding box points of given entity */
 	bool GetBoundingBox(CBaseEntity* pEntity, Box_t& box);
+	/* create .vmt materials with customized parameters for chams */
+	IMaterial* CreateMaterial(std::string_view szName, std::string_view szShader, std::string_view szBaseTexture = XorStr("vgui/white"), bool bIgnorez = false, bool bWireframe = false, std::string_view szProxies = "");
 
 	// On-Screen
 	void HitMarker(ImDrawList* pDrawList, CBaseEntity* pLocal, const ImVec2 vecScreenSize, Color colLines, Color colDamage);

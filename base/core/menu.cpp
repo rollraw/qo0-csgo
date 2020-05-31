@@ -398,16 +398,13 @@ void T::Visuals()
 
 				if (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies))
 				{
+					ImGui::Combo(XorStr("players style##chams"), &C::Get<int>(Vars.iEspChamsPlayers), XorStr("covered\0flat\0wireframe\0reflective\0\0"));
 					ImGui::Checkbox(XorStr("xqz"), &C::Get<bool>(Vars.bEspChamsXQZ));
-
-					if (ImGui::Combo(XorStr("players style##chams"), &C::Get<int>(Vars.iEspChamsPlayers), XorStr("covered\0flat\0wireframe\0reflective\0\0")))
-						CVisuals::Get().bUpdatePlayersChams = true;
 				}
 
 				if (C::Get<bool>(Vars.bEspChamsViewModel))
 				{
-					if (ImGui::Combo(XorStr("viewmodel style##chams"), &C::Get<int>(Vars.iEspChamsViewModel), XorStr("no draw\0covered\0flat\0wireframe\0glow\0scroll\0\0")))
-						CVisuals::Get().bUpdateViewModelChams = true;
+					ImGui::Combo(XorStr("viewmodel style##chams"), &C::Get<int>(Vars.iEspChamsViewModel), XorStr("no draw\0covered\0flat\0wireframe\0glow\0scroll\0chrome\0\0"));
 				}
 
 				ImGui::PopStyleVar();

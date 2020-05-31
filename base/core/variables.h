@@ -66,7 +66,8 @@ enum class EVisualsViewModelChams : int
 	FLAT,
 	WIREFRAME,
 	GLOW,
-	SCROLL
+	SCROLL,
+	CHROME
 };
 #pragma endregion
 

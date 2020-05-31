@@ -115,10 +115,6 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 
 		L::Print(XorStr("proxies applied"));
 
-		// create materials or search completed materials
-		CVisuals::Get().Create();
-		L::Print(XorStr("materials created"));
-
 		// setup values to save/load cheat variables in/from files and load default configuration
 		if (!C::Setup(XorStr("default.qo0")))
 		{
@@ -171,9 +167,6 @@ DWORD WINAPI OnDllDetach(LPVOID lpParameter)
 
 	// reset crosshair state
 	I::ConVar->FindVar(XorStr("crosshair"))->SetValue(true);
-
-	// remove created chams materials
-	CVisuals::Get().Remove();
 
 	// @note: as example
 	#if 0
