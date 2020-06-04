@@ -49,7 +49,7 @@ void CTriggerBot::Run(CUserCmd* pCmd, CBaseEntity* pLocal)
 	if (C::Get<bool>(Vars.bTriggerAutoWall))
 	{
 		FireBulletData_t data = { };
-		float flDamage = CAutoWall::Get().GetDamage(pLocal, vecEnd, &data);
+		float flDamage = CAutoWall::Get().GetDamage(pLocal, vecEnd, data);
 
 		// check for minimal damage
 		if (flDamage < C::Get<int>(Vars.iTriggerMinimalDamage))

@@ -328,7 +328,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 	 *	2 - viewmodel	[+/-] [-/-]
 	 *	3 - custom		[+/+] [+/-]
 	 */
-	static const std::array<std::pair<IMaterial*, IMaterial*>, 3U> arrMaterials =
+	static std::array<std::pair<IMaterial*, IMaterial*>, 3U> arrMaterials =
 	{
 		std::make_pair(CreateMaterial(XorStr("qo0_players"), XorStr("VertexLitGeneric")),
 		CreateMaterial(XorStr("qo0_players_flat"), XorStr("UnlitGeneric"))),
@@ -371,6 +371,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 
 			IMaterialVar* pEnvMap = pMaterial->FindVar(XorStr("$envmap"), nullptr);
 
+			// set environment map for reflections
 			if (C::Get<int>(Vars.iEspChamsPlayers) == (int)EVisualsPlayersChams::REFLECTIVE)
 				pEnvMap->SetString(XorStr("env_cubemap"));
 
@@ -490,21 +491,25 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 
 		IMaterialVar* pBaseTexture = pMaterial->FindVar(XorStr("$basetexture"), nullptr);
 
+		// do not override base texture for glow
 		if (C::Get<int>(Vars.iEspChamsPlayers) == (int)EVisualsViewModelChams::GLOW)
 			pBaseTexture->SetString("");
 
 		IMaterialVar* pEnvMap = pMaterial->FindVar(XorStr("$envmap"), nullptr);
 
+		// set environment map for glow
 		if (C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::GLOW)
 			pEnvMap->SetString(XorStr("models/effects/cube_white"));
 
 		IMaterialVar* pEnvMapFresnel = pMaterial->FindVar(XorStr("$envmapfresnel"), nullptr);
 
+		// add fresnel effect for glow
 		if (C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::GLOW)
 			pEnvMapFresnel->SetInt(1);
 
 		IMaterialVar* pTranslucent = pMaterial->FindVar(XorStr("$translucent"), nullptr);
 
+		// add the materials colour values to the existing image
 		if (C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::GLOW)
 			pTranslucent->SetInt(1);
 

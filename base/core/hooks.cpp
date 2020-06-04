@@ -249,14 +249,6 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	 */
 	bool& bSendPacket = *(bool*)(vlBaseAddress - 0x1C);
 
-	/*
-	 * if you are not choking commands your real angle
-	 * will be sent to the server every tick
-	 * and the code to get 'real angles' will not be run 
-	 * your angles will be stuck on your last choked command's angles until you start choking again
-	 */
-	static QAngle angLastChokedReal;
-
 	// save previous view angles for movement correction
 	QAngle angOldViewPoint = pCmd->angViewPoint;
 

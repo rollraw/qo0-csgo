@@ -7,7 +7,7 @@
 // used: convar, cliententitylist, physics, trace, clients, globals interfaces
 #include "../core/interfaces.h"
 
-float CAutoWall::GetDamage(CBaseEntity* pLocal, const Vector& vecPoint, FireBulletData_t* dataOut)
+float CAutoWall::GetDamage(CBaseEntity* pLocal, const Vector& vecPoint, FireBulletData_t& dataOut)
 {
 	QAngle angView;
 	Vector vecDirection;
@@ -32,7 +32,7 @@ float CAutoWall::GetDamage(CBaseEntity* pLocal, const Vector& vecPoint, FireBull
 	if (SimulateFireBullet(pLocal, pWeapon, data))
 		flDamage = data.flCurrentDamage;
 
-	*dataOut = data;
+	dataOut = data;
 	return flDamage;
 }
 

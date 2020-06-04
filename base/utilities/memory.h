@@ -6,7 +6,7 @@
 
 #pragma region utilities_modules_definitions
 #define ENGINE_DLL				XorStr("engine.dll")
-#define CLIENT_DLL				XorStr("client_panorama.dll")
+#define CLIENT_DLL				XorStr("client.dll")
 #define LOCALIZE_DLL			XorStr("localize.dll")
 #define MATERIALSYSTEM_DLL		XorStr("materialsystem.dll")
 #define VGUI_DLL				XorStr("vguimatsurface.dll")

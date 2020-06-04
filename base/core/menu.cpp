@@ -123,7 +123,6 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 		ImGui::SetNextWindowSize(ImVec2(500, 320), ImGuiCond_Always);
 		ImGui::Begin(XorStr("qo0 base"), &bMainOpened, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse);
 		{
-			ImDrawList* pWindowDrawList = ImGui::GetWindowDrawList();
 			ImVec2 vecPos = ImGui::GetCursorScreenPos();
 			float flWindowWidth = ImGui::GetWindowWidth();
 
