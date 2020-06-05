@@ -40,7 +40,7 @@ void M::VectorAngles(const Vector& vecForward, QAngle& angView)
 	else
 	{
 		flPitch = std::atan2f(-vecForward[ROLL], vecForward.Length2D()) * 180.f / M_PI;
-		
+
 		if (flPitch < 0.f)
 			flPitch += 360.f;
 
@@ -154,20 +154,13 @@ QAngle M::PixelsAngle(float flSensitivity, float flPitch, float flYaw, const Vec
 	return QAngle(flAngleMoveYaw, flAngleMovePitch, 0.f);
 }
 
-float M::GetFov(const QAngle& angView, const QAngle& angAimPoint)
-{
-	Vector vecView, vecAim;
-	AngleVectors(angView, &vecView);
-	AngleVectors(angAimPoint, &vecAim);
-	return M_RAD2DEG(std::acosf(vecView.DotProduct(vecAim) / vecView.LengthSqr()));
-}
-
 QAngle M::CalcAngle(Vector vecStart, Vector vecEnd)
 {
 	QAngle angView;
-	Vector vecDelta = vecStart - vecEnd;
-	VectorAngles(vecDelta, angView);
+	Vector vecDelta = vecEnd - vecStart;
 	vecDelta.Normalize();
+	VectorAngles(vecDelta, angView);
+
 	return angView;
 }
 

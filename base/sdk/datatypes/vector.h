@@ -195,8 +195,8 @@ public:
 	bool IsZero(float flErrorMargin = 0.01f) const
 	{
 		return (this->x > -flErrorMargin && this->x < flErrorMargin &&
-			this->y > -flErrorMargin && this->y < flErrorMargin &&
-			this->z > -flErrorMargin && this->z < flErrorMargin);
+				this->y > -flErrorMargin && this->y < flErrorMargin &&
+				this->z > -flErrorMargin && this->z < flErrorMargin);
 	}
 
 	Vector2D ToVector2D()

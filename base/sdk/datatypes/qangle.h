@@ -134,6 +134,13 @@ public:
 		return QAngle(this->x / v.x, this->y / v.y, this->z / v.z);
 	}
 
+	bool IsZero(float flErrorMargin = 0.01f) const
+	{
+		return (this->x > -flErrorMargin && this->x < flErrorMargin &&
+				this->y > -flErrorMargin && this->y < flErrorMargin &&
+				this->z > -flErrorMargin && this->z < flErrorMargin);
+	}
+
 	float Length() const
 	{
 		return std::sqrtf(this->x * this->x + this->y * this->y + this->z * this->z);

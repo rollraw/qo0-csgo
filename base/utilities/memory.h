@@ -4,7 +4,7 @@
 // used: std::vector for getfilledvector
 #include <vector>
 
-#pragma region utilities_modules_definitions
+#pragma region memory_modules_definitions
 #define ENGINE_DLL				XorStr("engine.dll")
 #define CLIENT_DLL				XorStr("client.dll")
 #define LOCALIZE_DLL			XorStr("localize.dll")

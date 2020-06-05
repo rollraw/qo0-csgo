@@ -28,7 +28,7 @@ class CAutoWall : public CSingleton<CAutoWall>
 public:
 	// Get
 	/* returns damage at point and bullet data (if given) */
-	float GetDamage(CBaseEntity* pLocal, const Vector& vecPoint, FireBulletData_t& dataOut = FireBulletData_t{});
+	float GetDamage(CBaseEntity* pLocal, const Vector& vecPoint, FireBulletData_t& dataOut = FireBulletData_t{ });
 
 private:
 	// Damage Multiplier

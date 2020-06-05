@@ -55,9 +55,7 @@ namespace M
 	// @note: can be useful at mouse event aimbot
 	Vector2D AnglePixels(float flSensitivity, float flPitch, float flYaw, const QAngle& angBegin, const QAngle& angEnd);
 	/* convert screen pixels to angles by sensivity, pitch and yaw */
-	QAngle PixelsAngle(float flSensitivity, float flPitch, float flYaw, const Vector2D& vecPixels);
-	/* calculate fov by view and target angles */
-	float	GetFov(const QAngle& angView, const QAngle& angAimPoint);
+	QAngle	PixelsAngle(float flSensitivity, float flPitch, float flYaw, const Vector2D& vecPixels);
 	/* calculate angles by source and destination vectors */
 	QAngle	CalcAngle(const Vector vecStart, Vector vecEnd);
 	/* transform vector by matrix and return it */

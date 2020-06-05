@@ -501,7 +501,7 @@ int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, const Vector& vecMins,
 	static std::uintptr_t uInsertIntoTree = (MEM::FindPattern(CLIENT_DLL, XorStr("56 52 FF 50 18")) + 0x5); // @xref: "<unknown renderable>"
 
 	// check for esp state and call from CClientLeafSystem::InsertIntoTree
-	if (C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams) && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies)) && std::uintptr_t(_ReturnAddress()) == uInsertIntoTree)
+	if (C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams) && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies)) && (std::uintptr_t)_ReturnAddress() == uInsertIntoTree)
 	{
 		// get current renderable info from stack https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L1470
 		if (const auto pInfo = *(RenderableInfo_t**)((std::uintptr_t)_AddressOfReturnAddress() + 0x14); pInfo != nullptr)
@@ -509,7 +509,7 @@ int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, const Vector& vecMins,
 			if (const auto pRenderable = pInfo->pRenderable; pRenderable != nullptr)
 			{
 				// check if disabling occulusion for players
-				if (const auto pEntity = pRenderable->GetIClientUnknown()->GetBaseEntity(); pEntity && pEntity->IsPlayer())
+				if (const auto pEntity = pRenderable->GetIClientUnknown()->GetBaseEntity(); pEntity != nullptr && pEntity->IsPlayer())
 				{
 					// fix render order, force translucent group (https://www.unknowncheats.me/forum/2429206-post15.html)
 					// AddRenderablesToRenderLists: https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L2473
