@@ -2,6 +2,13 @@
 // used: isfinite, fmodf, remainderf
 #include <cmath>
 
+enum
+{
+	PITCH = 0,
+	YAW,
+	ROLL
+};
+
 class QAngle
 {
 public:
@@ -15,12 +22,12 @@ public:
 		Init(x, y, z);
 	}
 
-	QAngle(const float* angles)
+	QAngle(const float* arrAngles)
 	{
-		Init(angles[0], angles[1], angles[2]);
+		Init(arrAngles[0], arrAngles[1], arrAngles[2]);
 	}
 
-	const void Init(float x = 0.f, float y = 0.f, float z = 0.f)
+	constexpr void Init(float x = 0.f, float y = 0.f, float z = 0.f)
 	{
 		this->x = x; this->y = y; this->z = z;
 	}
@@ -35,110 +42,122 @@ public:
 		return ((float*)this)[nIndex];
 	}
 
-	bool operator==(const QAngle& v) const
+	bool operator==(const QAngle& angBase) const
 	{
-		return (this->x == v[0] &&
-			this->y == v[1] &&
-			this->z == v[2]);
+		return this->IsEqual(angBase);
 	}
 
-	bool operator!=(const QAngle& v) const
+	bool operator!=(const QAngle& angBase) const
 	{
-		return !(this->x == v[0] &&
-			this->y == v[1] &&
-			this->z == v[2]);
+		return !this->IsEqual(angBase);
 	}
 
-	QAngle& operator=(const QAngle& v)
+	QAngle& operator=(const QAngle& angBase)
 	{
-		this->x = v.x; this->y = v.y; this->z = v.z; return *this;
+		this->x = angBase.x; this->y = angBase.y; this->z = angBase.z;
+		return *this;
 	}
 
-	QAngle& operator+=(const QAngle& v)
+	QAngle& operator+=(const QAngle& angBase)
 	{
-		this->x += v.x; this->y += v.y; this->z += v.z; return *this;
+		this->x += angBase.x; this->y += angBase.y; this->z += angBase.z;
+		return *this;
 	}
 
-	QAngle& operator-=(const QAngle& v)
+	QAngle& operator-=(const QAngle& angBase)
 	{
-		this->x -= v.x; this->y -= v.y; this->z -= v.z; return *this;
+		this->x -= angBase.x; this->y -= angBase.y; this->z -= angBase.z;
+		return *this;
 	}
 
-	QAngle& operator*=(const QAngle& v)
+	QAngle& operator*=(const QAngle& angBase)
 	{
-		this->x *= v.x; this->y *= v.y; this->z *= v.z; return *this;
+		this->x *= angBase.x; this->y *= angBase.y; this->z *= angBase.z;
+		return *this;
 	}
 
-	QAngle& operator/=(const QAngle& v)
+	QAngle& operator/=(const QAngle& angBase)
 	{
-		this->x /= v.x; this->y /= v.y; this->z /= v.z; return *this;
+		this->x /= angBase.x; this->y /= angBase.y; this->z /= angBase.z;
+		return *this;
 	}
 
-	QAngle& operator+=(float v)
+	QAngle& operator+=(float flAdd)
 	{
-		this->x += v; this->y += v; this->z += v; return *this;
+		this->x += flAdd; this->y += flAdd; this->z += flAdd;
+		return *this;
 	}
 
-	QAngle& operator-=(float v)
+	QAngle& operator-=(float flSubtract)
 	{
-		this->x -= v; this->y -= v; this->z -= v; return *this;
+		this->x -= flSubtract; this->y -= flSubtract; this->z -= flSubtract;
+		return *this;
 	}
 
-	QAngle& operator*=(float v)
+	QAngle& operator*=(float flMultiply)
 	{
-		this->x *= v; this->y *= v; this->z *= v; return *this;
+		this->x *= flMultiply; this->y *= flMultiply; this->z *= flMultiply;
+		return *this;
 	}
 
-	QAngle& operator/=(float v)
+	QAngle& operator/=(float flDivide)
 	{
-		this->x /= v; this->y /= v; this->z /= v; return *this;
+		this->x /= flDivide; this->y /= flDivide; this->z /= flDivide;
+		return *this;
 	}
 
-	QAngle operator+(float v) const
+	QAngle operator+(const QAngle& angAdd) const
 	{
-		return QAngle(this->x + v, this->y + v, this->z + v);
+		return QAngle(this->x + angAdd.x, this->y + angAdd.y, this->z + angAdd.z);
 	}
 
-	QAngle operator-(float v) const
+	QAngle operator-(const QAngle& angSubtract) const
 	{
-		return QAngle(this->x - v, this->y - v, this->z - v);
+		return QAngle(this->x - angSubtract.x, this->y - angSubtract.y, this->z - angSubtract.z);
 	}
 
-	QAngle operator*(float v) const
+	QAngle operator*(const QAngle& angMultiply) const
 	{
-		return QAngle(this->x * v, this->y * v, this->z * v);
+		return QAngle(this->x * angMultiply.x, this->y * angMultiply.y, this->z * angMultiply.z);
 	}
 
-	QAngle operator/(float v) const
+	QAngle operator/(const QAngle& angDivide) const
 	{
-		return QAngle(this->x / v, this->y / v, this->z / v);
+		return QAngle(this->x / angDivide.x, this->y / angDivide.y, this->z / angDivide.z);
 	}
 
-	QAngle operator+(const QAngle& v) const
+	QAngle operator+(float flAdd) const
 	{
-		return QAngle(this->x + v.x, this->y + v.y, this->z + v.z);
+		return QAngle(this->x + flAdd, this->y + flAdd, this->z + flAdd);
 	}
 
-	QAngle operator-(const QAngle& v) const
+	QAngle operator-(float flSubtract) const
 	{
-		return QAngle(this->x - v.x, this->y - v.y, this->z - v.z);
+		return QAngle(this->x - flSubtract, this->y - flSubtract, this->z - flSubtract);
 	}
 
-	QAngle operator*(const QAngle& v) const
+	QAngle operator*(float flMultiply) const
 	{
-		return QAngle(this->x * v.x, this->y * v.y, this->z * v.z);
+		return QAngle(this->x * flMultiply, this->y * flMultiply, this->z * flMultiply);
 	}
 
-	QAngle operator/(const QAngle& v) const
+	QAngle operator/(float flDivide) const
 	{
-		return QAngle(this->x / v.x, this->y / v.y, this->z / v.z);
+		return QAngle(this->x / flDivide, this->y / flDivide, this->z / flDivide);
 	}
 
-	bool IsZero(float flErrorMargin = 0.01f) const
+	bool IsEqual(const QAngle& angEqual) const
 	{
-		return (this->x > -flErrorMargin && this->x < flErrorMargin &&
-				this->y > -flErrorMargin && this->y < flErrorMargin &&
-				this->z > -flErrorMargin && this->z < flErrorMargin);
+		return (std::fabsf(this->x - angEqual.x) < std::numeric_limits<float>::epsilon() &&
+				std::fabsf(this->y - angEqual.y) < std::numeric_limits<float>::epsilon() &&
+				std::fabsf(this->z - angEqual.z) < std::numeric_limits<float>::epsilon());
+	}
+
+	bool IsZero() const
+	{
+		return (std::fpclassify(this->x) == FP_ZERO &&
+				std::fpclassify(this->y) == FP_ZERO &&
+				std::fpclassify(this->z) == FP_ZERO);
 	}
 
 	float Length() const
@@ -155,7 +174,7 @@ public:
 	{
 		std::clamp(this->x, -89.f, 89.f);
 		std::clamp(this->y, -180.f, 180.f);
-		this->z = 0.f; // @note: i think doesnt need clamp it at -50, 50 cuz it stay useless long ago
+		std::clamp(this->y, -50.f, 50.f);
 	}
 
 	QAngle Normalize()

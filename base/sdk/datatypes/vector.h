@@ -4,13 +4,6 @@
 
 // @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/mathlib/vector.h
 
-enum
-{
-	PITCH = 0,
-	YAW,
-	ROLL
-};
-
 class Vector2D
 {
 public:
@@ -37,9 +30,9 @@ public:
 		Init(x, y, z);
 	}
 
-	Vector(const float* flVector)
+	Vector(const float* arrVector)
 	{
-		this->x = flVector[PITCH]; this->y = flVector[YAW]; this->z = flVector[ROLL];
+		Init(arrVector[0], arrVector[1], arrVector[2]);
 	}
 
 	Vector(const Vector& vecBase)
@@ -67,6 +60,29 @@ public:
 		this->x = this->y = this->z = std::numeric_limits<float>::infinity();
 	}
 
+	float operator[](std::size_t nIndex) const
+	{
+		return ((float*)this)[nIndex];
+	}
+
+	float& operator[](std::size_t nIndex)
+	{
+		return ((float*)this)[nIndex];
+	}
+
+	bool operator==(const Vector& vecBase) const
+	{
+		if (this->x == vecBase.x && this->y == vecBase.y && this->z == vecBase.z)
+			return true;
+
+		return false;
+	}
+
+	bool operator!=(const Vector& vecBase) const
+	{
+		return !this->IsEqual(vecBase);
+	}
+
 	Vector& operator=(const Vector& vecBase)
 	{
 		this->x = vecBase.x; this->y = vecBase.y; this->z = vecBase.z;
@@ -77,32 +93,6 @@ public:
 	{
 		this->x = vecBase2D.x; this->y = vecBase2D.y; this->z = 0.0f;
 		return *this;
-	}
-
-	bool operator==(const Vector& vecBase)
-	{
-		if (this->x == vecBase.x && this->y == vecBase.y && this->z == vecBase.z)
-			return true;
-
-		return false;
-	}
-
-	bool operator!=(const Vector& vecBase)
-	{
-		if (this->x != vecBase.x || this->y != vecBase.y || this->z != vecBase.z)
-			return true;
-
-		return false;
-	}
-
-	float operator[](std::size_t nIndex) const
-	{
-		return ((float*)this)[nIndex];
-	}
-
-	float& operator[](std::size_t nIndex)
-	{
-		return ((float*)this)[nIndex];
 	}
 
 	Vector& operator+=(const Vector& vecBase)
@@ -192,11 +182,18 @@ public:
 		return Vector(this->x / flDivide, this->y / flDivide, this->z / flDivide);
 	}
 
-	bool IsZero(float flErrorMargin = 0.01f) const
+	bool IsEqual(const Vector& vecEqual) const
 	{
-		return (this->x > -flErrorMargin && this->x < flErrorMargin &&
-				this->y > -flErrorMargin && this->y < flErrorMargin &&
-				this->z > -flErrorMargin && this->z < flErrorMargin);
+		return (std::fabsf(this->x - vecEqual.x) < std::numeric_limits<float>::epsilon() &&
+				std::fabsf(this->y - vecEqual.y) < std::numeric_limits<float>::epsilon() &&
+				std::fabsf(this->z - vecEqual.z) < std::numeric_limits<float>::epsilon());
+	}
+
+	bool IsZero() const
+	{
+		return (std::fpclassify(this->x) == FP_ZERO &&
+				std::fpclassify(this->y) == FP_ZERO &&
+				std::fpclassify(this->z) == FP_ZERO);
 	}
 
 	Vector2D ToVector2D()
@@ -256,7 +253,7 @@ public:
 		Vector vecOut = *this;
 
 		float flLength = vecOut.Length();
-		float flRadius = 1.f / (flLength + std::numeric_limits<float>::epsilon());
+		float flRadius = 1.0f / (flLength + std::numeric_limits<float>::epsilon());
 
 		vecOut.x *= flRadius;
 		vecOut.y *= flRadius;

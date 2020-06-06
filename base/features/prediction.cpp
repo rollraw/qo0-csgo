@@ -8,6 +8,8 @@
 
 void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 {
+	// @xref: "CPrediction::ProcessMovement"
+
 	if (pLocal == nullptr || !pLocal->IsAlive() || I::MoveHelper == nullptr)
 		return;
 
@@ -15,6 +17,8 @@ void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 
 	// start command
 	*pLocal->GetCurrentCommand() = pCmd;
+	pLocal->GetLastCommand() = *pCmd;
+
 	// setup prediction seed
 	*iPredictionRandomSeed = MD5::PseudoRandom(pCmd->iCommandNumber) & std::numeric_limits<int>::max();
 	// set ourselves as a predictable entity

@@ -479,6 +479,11 @@ public:
 		return (CUserCmd**)((std::uintptr_t)this + m_pCurrentCommand);
 	}
 
+	CUserCmd& GetLastCommand()
+	{
+		return *(CUserCmd*)((std::uintptr_t)this + 0x3288);
+	}
+
 	QAngle* GetThirdPersonAngles()
 	{
 		return (QAngle*)((std::uintptr_t)this + CNetvarManager::Get().deadflag + 0x4);
