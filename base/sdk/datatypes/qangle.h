@@ -174,14 +174,14 @@ public:
 	{
 		std::clamp(this->x, -89.f, 89.f);
 		std::clamp(this->y, -180.f, 180.f);
-		std::clamp(this->y, -50.f, 50.f);
+		std::clamp(this->z, -50.f, 50.f);
 	}
 
 	QAngle Normalize()
 	{
 		this->x = std::isfinite(this->x) ? std::remainderf(this->x, 360.f) : 0.f;
 		this->y = std::isfinite(this->y) ? std::remainderf(this->y, 360.f) : 0.f;
-		this->z = 0.f;
+		std::clamp(this->z, -50.f, 50.f);
 		return *this;
 	}
 
