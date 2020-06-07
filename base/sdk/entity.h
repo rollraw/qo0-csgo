@@ -1260,8 +1260,8 @@ public:
 	}
 
 	// this all here cuz msvc fucked up
-	float GetTimer();
-	float GetDefuseTimer();
+	float GetTimer(float flServerTime);
+	float GetDefuseTimer(float flServerTime);
 };
 
 class CEnvTonemapController

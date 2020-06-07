@@ -291,16 +291,16 @@ bool CBaseEntity::IsVisible(CBaseEntity* pEntity, const Vector& vecEnd, bool bSm
 #pragma endregion
 
 #pragma region entity_plantedc4
-float CPlantedC4::GetTimer()
+float CPlantedC4::GetTimer(float flServerTime)
 {
 	float flBlowTime = *(float*)((std::uintptr_t)this + CNetvarManager::Get().flC4Blow);
-	float flTimer = flBlowTime - I::Globals->flCurrentTime;
+	float flTimer = flBlowTime - flServerTime;
 	return std::max<float>(0.f, flTimer);
 }
 
-float CPlantedC4::GetDefuseTimer()
+float CPlantedC4::GetDefuseTimer(float flServerTime)
 {
 	float flDefuseCountDown = *(float*)((std::uintptr_t)this + CNetvarManager::Get().flDefuseCountDown);
-	return flDefuseCountDown - I::Globals->flCurrentTime;
+	return flDefuseCountDown - flServerTime;
 }
 #pragma endregion

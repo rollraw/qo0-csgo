@@ -71,7 +71,7 @@ private:
 	IMaterial* CreateMaterial(std::string_view szName, std::string_view szShader, std::string_view szBaseTexture = XorStr("vgui/white"), bool bIgnorez = false, bool bWireframe = false, std::string_view szProxies = "");
 
 	// On-Screen
-	void HitMarker(ImDrawList* pDrawList, CBaseEntity* pLocal, const ImVec2 vecScreenSize, Color colLines, Color colDamage);
+	void HitMarker(ImDrawList* pDrawList, float flServerTime, const ImVec2 vecScreenSize, Color colLines, Color colDamage);
 
 	// World
 	/* changes the exposure to make the world looks like at night or fullbright */
@@ -79,9 +79,9 @@ private:
 	/* draw frame with title at bomb position */
 	void Bomb(ImDrawList* pDrawList, Vector2D vecScreen, Context_t& ctx, Color colFrame);
 	/* draw frame with title, timer and defuse bars at planted bomb position */
-	void PlantedBomb(ImDrawList* pDrawList, CPlantedC4* pBomb, Vector2D vecScreen, Context_t& ctx, Color colFrame, Color colDefuse, Color colFailDefuse, Color colBackground, Color colOutline);
+	void PlantedBomb(ImDrawList* pDrawList, CPlantedC4* pBomb, float flServerTime, Vector2D vecScreen, Context_t& ctx, Color colFrame, Color colDefuse, Color colFailDefuse, Color colBackground, Color colOutline);
 	/* draw frame with name and timer bar at grenade position */
-	void Grenade(ImDrawList* pDrawList, EClassIndex nIndex, CBaseEntity* pGrenade, Vector2D vecScreen, Context_t& ctx, Color colFrame, Color colBackground, Color colOutline);
+	void Grenade(ImDrawList* pDrawList, EClassIndex nIndex, CBaseEntity* pGrenade, float flServerTime, Vector2D vecScreen, Context_t& ctx, Color colFrame, Color colBackground, Color colOutline);
 	/* draw weapon icon, ammo bar, distance at dropped weapons positions */
 	void DroppedWeapons(ImDrawList* pDrawList, CBaseCombatWeapon* pWeapon, short nItemDefinitionIndex, Context_t& ctx, Color colPrimary, Color colAmmo, Color colBackground, Color colOutline);
 

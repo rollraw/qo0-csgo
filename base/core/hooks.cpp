@@ -229,6 +229,13 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	if (pCmd->iCommandNumber == 0)
 		return oCreateMove(thisptr, edx, flInputSampleTime, pCmd);
 
+	/*
+	 * SetViewAngles isnt called if return false and can cause sluttering
+	 * then we can call only SetLocalViewAngles like sdk do that
+	 */
+	if (oCreateMove(thisptr, edx, flInputSampleTime, pCmd))
+		I::Prediction->SetLocalViewAngles(pCmd->angViewPoint);
+
 	// save global cmd pointer
 	G::pCmd = pCmd;
 

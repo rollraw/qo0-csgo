@@ -35,6 +35,8 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 	if (pLocal == nullptr)
 		return;
 
+	float flServerTime = TICKS_TO_TIME(pLocal->GetTickBase());
+
 	// disable postproccesing
 	static CConVar* mat_postprocess_enable = I::ConVar->FindVar(XorStr("mat_postprocess_enable"));
 	mat_postprocess_enable->fnChangeCallbacks.Size() = NULL;
@@ -71,7 +73,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 	if (C::Get<bool>(Vars.bScreen))
 	{
 		if (C::Get<bool>(Vars.bScreenHitMarker))
-			HitMarker(pDrawList, pLocal, vecScreenSize, C::Get<Color>(Vars.colScreenHitMarker), C::Get<Color>(Vars.colScreenHitMarkerDamage));
+			HitMarker(pDrawList, flServerTime, vecScreenSize, C::Get<Color>(Vars.colScreenHitMarker), C::Get<Color>(Vars.colScreenHitMarkerDamage));
 	}
 
 	for (int i = 1; i < I::ClientEntityList->GetMaxEntities(); i++)
@@ -136,7 +138,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 			// setup planted bomb context
 			Context_t ctx = { };
 
-			PlantedBomb(pDrawList, pBomb, vecScreen, ctx, Color(20, 20, 20, 150), Color(80, 180, 200, 200), Color(255, 100, 100), Color(40, 40, 40, 100), Color(0, 0, 0, 100));
+			PlantedBomb(pDrawList, pBomb, flServerTime, vecScreen, ctx, Color(20, 20, 20, 150), Color(80, 180, 200, 200), Color(255, 100, 100), Color(40, 40, 40, 100), Color(0, 0, 0, 100));
 			break;
 		}
 		case EClassIndex::CCSPlayer:
@@ -222,7 +224,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 			// setup grenade context
 			Context_t ctx = { };
 
-			Grenade(pDrawList, nIndex, pEntity, vecScreen, ctx, Color(20, 20, 20, 150), Color(40, 40, 40, 100), Color(0, 0, 0, 100));
+			Grenade(pDrawList, nIndex, pEntity, flServerTime, vecScreen, ctx, Color(20, 20, 20, 150), Color(40, 40, 40, 100), Color(0, 0, 0, 100));
 			break;
 		}
 		default:
@@ -274,26 +276,32 @@ void CVisuals::Event(IGameEvent* pEvent)
 	if (pEvent == nullptr || !I::Engine->IsInGame())
 		return;
 
+	CBaseEntity* pLocal = U::GetLocalPlayer();
+
+	if (pLocal == nullptr || !pLocal->IsAlive())
+		return;
+
+	float flServerTime = TICKS_TO_TIME(pLocal->GetTickBase());
+
 	const FNV1A_t uNameHash = FNV1A::Hash(pEvent->GetName());
 
 	/* get hitmarker info */
 	if (C::Get<bool>(Vars.bScreen) && C::Get<bool>(Vars.bScreenHitMarker) && uNameHash == FNV1A::HashConst("player_hurt"))
 	{
-		const int nPlayerIndex = I::Engine->GetPlayerForUserID(pEvent->GetInt(XorStr("userid")));
-		const int nAttackerIndex = I::Engine->GetPlayerForUserID(pEvent->GetInt(XorStr("attacker")));
+		CBaseEntity* pAttacker = I::ClientEntityList->Get<CBaseEntity>(I::Engine->GetPlayerForUserID(pEvent->GetInt(XorStr("attacker"))));
 
-		if (nAttackerIndex == I::Engine->GetLocalPlayer() && nPlayerIndex != I::Engine->GetLocalPlayer())
+		if (pAttacker == pLocal)
 		{
-			CBaseEntity* pEntity = I::ClientEntityList->Get<CBaseEntity>(nPlayerIndex);
+			CBaseEntity* pEntity = I::ClientEntityList->Get<CBaseEntity>(I::Engine->GetPlayerForUserID(pEvent->GetInt(XorStr("userid"))));
 
-			if (pEntity != nullptr)
+			if (pEntity != nullptr && pEntity != pLocal)
 			{
 				// play hit sound
 				if (C::Get<bool>(Vars.bScreenHitMarkerSound))
 					I::Surface->PlaySoundSurface(XorStr("buttons\\arena_switch_press_02.wav"));
 
 				// add hit info
-				vecHitMarks.emplace_back(HitMarkerObject_t{ pEntity->GetHitGroupPosition(pEvent->GetInt(XorStr("hitgroup"))), pEvent->GetInt(XorStr("dmg_health")), I::Globals->flCurrentTime + C::Get<float>(Vars.flScreenHitMarkerTime) });
+				vecHitMarks.emplace_back(HitMarkerObject_t{ pEntity->GetHitGroupPosition(pEvent->GetInt(XorStr("hitgroup"))), pEvent->GetInt(XorStr("dmg_health")), flServerTime + C::Get<float>(Vars.flScreenHitMarkerTime) });
 			}
 		}
 	}
@@ -741,13 +749,13 @@ IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view sz
 	return I::MaterialSystem->CreateMaterial(szName.data(), pKeyValues);
 }
 
-void CVisuals::HitMarker(ImDrawList* pDrawList, CBaseEntity* pLocal, const ImVec2 vecScreenSize, Color colLines, Color colDamage)
+void CVisuals::HitMarker(ImDrawList* pDrawList, float flServerTime, const ImVec2 vecScreenSize, Color colLines, Color colDamage)
 {
 	float flAlpha = 0.f;
 
 	for (std::size_t i = 0U; i < vecHitMarks.size(); i++)
 	{
-		float flDelta = vecHitMarks.at(i).flTime - I::Globals->flCurrentTime;
+		float flDelta = vecHitMarks.at(i).flTime - flServerTime;
 
 		if (flDelta < 0.f)
 		{
@@ -758,14 +766,18 @@ void CVisuals::HitMarker(ImDrawList* pDrawList, CBaseEntity* pLocal, const ImVec
 		if (!C::Get<bool>(Vars.bScreenHitMarkerDamage))
 			continue;
 
+		// max distance for floating damage
 		constexpr int iDistance = 40;
+
 		float flRatio = 1.f - (flDelta / C::Get<float>(Vars.flScreenHitMarkerTime));
 		flAlpha = flDelta / C::Get<float>(Vars.flScreenHitMarkerTime);
 
 		Vector2D vecScreen = { };
 		if (D::WorldToScreen(vecHitMarks.at(i).vecPosition, vecScreen))
 		{
+			// set fade out alpha
 			colDamage.arrColor.at(3) = std::min<float>(colDamage.aBase(), flAlpha) * 255.f;
+			// draw dealt damage
 			ImGui::AddText(pDrawList, F::SmallestPixel, 20.f, ImVec2(vecScreen.x, vecScreen.y - flRatio * iDistance), std::to_string(vecHitMarks.at(i).iDamage).c_str(), colDamage.GetU32(), true);
 		}
 	}
@@ -775,7 +787,9 @@ void CVisuals::HitMarker(ImDrawList* pDrawList, CBaseEntity* pLocal, const ImVec
 		constexpr int arrSides[4][2] = { { -1, -1 }, { 1, 1 }, { -1, 1 }, { 1, -1 } };
 		for (auto iSide : arrSides)
 		{
+			// set fade out alpha
 			colLines.arrColor.at(3) = std::min<float>(colLines.aBase(), flAlpha) * 255.f;
+			// draw mark cross
 			pDrawList->AddLine(ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * iSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * iSide[1]), ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * iSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * iSide[1]), colLines.GetU32());
 		}
 	}
@@ -819,7 +833,7 @@ void CVisuals::Bomb(ImDrawList* pDrawList, Vector2D vecScreen, Context_t& ctx, C
 	ImGui::AddText(pDrawList, F::Verdana, 14.f, ImVec2(ctx.box.left + vecIconSize.x + 7, ctx.box.top + 3), szName, Color(255, 255, 255).GetU32());
 }
 
-void CVisuals::PlantedBomb(ImDrawList* pDrawList, CPlantedC4* pBomb, Vector2D vecScreen, Context_t& ctx, Color colFrame, Color colDefuse, Color colFailDefuse, Color colBackground, Color colOutline)
+void CVisuals::PlantedBomb(ImDrawList* pDrawList, CPlantedC4* pBomb, float flServerTime, Vector2D vecScreen, Context_t& ctx, Color colFrame, Color colDefuse, Color colFailDefuse, Color colBackground, Color colOutline)
 {
 	const char* szIcon = U::GetWeaponIcon(WEAPON_C4);
 	static ImVec2 vecIconSize = F::Icons->CalcTextSizeA(14.f, FLT_MAX, 0.f, szIcon);
@@ -845,7 +859,7 @@ void CVisuals::PlantedBomb(ImDrawList* pDrawList, CPlantedC4* pBomb, Vector2D ve
 
 	/* bar */
 	// get timer values
-	const float flCurrentTime = pBomb->GetTimer();
+	const float flCurrentTime = pBomb->GetTimer(flServerTime);
 	const float flMaxTime = pBomb->GetTimerLength();
 
 	// calculate bomb timer-based width factor
@@ -866,7 +880,7 @@ void CVisuals::PlantedBomb(ImDrawList* pDrawList, CPlantedC4* pBomb, Vector2D ve
 	if (pDefuser != nullptr)
 	{
 		// get defuse timer value
-		const float flDefuseTime = pBomb->GetDefuseTimer();
+		const float flDefuseTime = pBomb->GetDefuseTimer(flServerTime);
 		const float flMaxDefuseTime = pBomb->GetDefuseLength();
 
 		// calculate bomb defuse timer-based width factor
@@ -882,7 +896,7 @@ void CVisuals::PlantedBomb(ImDrawList* pDrawList, CPlantedC4* pBomb, Vector2D ve
 	}
 }
 
-void CVisuals::Grenade(ImDrawList* pDrawList, EClassIndex nIndex, CBaseEntity* pGrenade, Vector2D vecScreen, Context_t& ctx, Color colFrame, Color colBackground, Color colOutline)
+void CVisuals::Grenade(ImDrawList* pDrawList, EClassIndex nIndex, CBaseEntity* pGrenade, float flServerTime, Vector2D vecScreen, Context_t& ctx, Color colFrame, Color colBackground, Color colOutline)
 {
 	// setup temporary values
 	const char* szName = XorStr("NONE");
@@ -911,7 +925,7 @@ void CVisuals::Grenade(ImDrawList* pDrawList, EClassIndex nIndex, CBaseEntity* p
 		{
 			// cast to smoke grenade
 			CSmokeGrenade* pSmoke = (CSmokeGrenade*)pGrenade;
-			flFactor = ((TICKS_TO_TIME(pSmoke->GetEffectTickBegin()) + pSmoke->GetMaxTime()) - I::Globals->flCurrentTime) / pSmoke->GetMaxTime();
+			flFactor = ((TICKS_TO_TIME(pSmoke->GetEffectTickBegin()) + pSmoke->GetMaxTime()) - flServerTime) / pSmoke->GetMaxTime();
 			colGrenade = Color(230, 130, 0);
 			szName = XorStr("SMOKE");
 			break;
@@ -921,7 +935,7 @@ void CVisuals::Grenade(ImDrawList* pDrawList, EClassIndex nIndex, CBaseEntity* p
 		{
 			// cast to inferno grenade
 			CInferno* pInferno = (CInferno*)pGrenade;
-			flFactor = ((TICKS_TO_TIME(pInferno->GetEffectTickBegin()) + pInferno->GetMaxTime()) - I::Globals->flCurrentTime) / pInferno->GetMaxTime();
+			flFactor = ((TICKS_TO_TIME(pInferno->GetEffectTickBegin()) + pInferno->GetMaxTime()) - flServerTime) / pInferno->GetMaxTime();
 			colGrenade = Color(255, 100, 100);
 
 			// separate greandes by model name
