@@ -333,10 +333,11 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 	 * [N]	[group]		[lit][proxy]
 	 *					[1/2] [1/2]
 	 *	0 - players		[+/-] [-/-]
-	 *	2 - viewmodel	[+/-] [-/-]
+	 *	1 - viewmodel	[+/-] [-/-]
+	 *	2 - reflects	[+/+] [-/-]
 	 *	3 - custom		[+/+] [+/-]
 	 */
-	static std::array<std::pair<IMaterial*, IMaterial*>, 3U> arrMaterials =
+	static std::array<std::pair<IMaterial*, IMaterial*>, 4U> arrMaterials =
 	{
 		std::make_pair(CreateMaterial(XorStr("qo0_players"), XorStr("VertexLitGeneric")),
 		CreateMaterial(XorStr("qo0_players_flat"), XorStr("UnlitGeneric"))),
@@ -344,7 +345,10 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 		std::make_pair(CreateMaterial(XorStr("qo0_viewmodel"), XorStr("VertexLitGeneric")),
 		CreateMaterial(XorStr("qo0_viewmodel_flat"), XorStr("UnlitGeneric"))),
 
-		std::make_pair(CreateMaterial(XorStr("qo0_scroll"), XorStr("VertexLitGeneric"), XorStr("dev/screenhighlight_pulse"), false, false, szScrollProxies),
+		std::make_pair(CreateMaterial(XorStr("qo0_reflective"), XorStr("VertexLitGeneric"), XorStr("env_cubemap")),
+		CreateMaterial(XorStr("qo0_glow"), XorStr("VertexLitGeneric"), XorStr("models/effects/cube_white"))),
+
+		std::make_pair(CreateMaterial(XorStr("qo0_scroll"), XorStr("VertexLitGeneric"), "", false, false, szScrollProxies),
 		I::MaterialSystem->FindMaterial(XorStr("models/inventory_items/hydra_crystal/hydra_crystal_detail"), TEXTURE_GROUP_OTHER))
 	};
 	
@@ -366,8 +370,25 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 			// teammates & local
 			(((pEntity == pLocal && I::Input->bCameraInThirdPerson) || !pLocal->IsEnemy(pEntity)) && C::Get<bool>(Vars.bEspChamsAllies)))
 		{
+			static IMaterial* pMaterial = nullptr;
+
 			// set players material
-			static IMaterial* pMaterial = C::Get<int>(Vars.iEspChamsPlayers) == (int)EVisualsPlayersChams::FLAT ? arrMaterials.at(0).second : arrMaterials.at(0).first;
+			switch (C::Get<int>(Vars.iEspChamsPlayers))
+			{
+			case (int)EVisualsPlayersChams::FLAT:
+				pMaterial = arrMaterials.at(0).second;
+				break;
+			case (int)EVisualsPlayersChams::REFLECTIVE:
+				pMaterial = arrMaterials.at(2).first;
+				break;
+			default:
+				pMaterial = arrMaterials.at(0).first;
+				break;
+			}
+
+			// check is valid material
+			if (pMaterial == nullptr || pMaterial->IsErrorMaterial())
+				return false;
 
 			// check is valid material
 			if (pMaterial == nullptr || pMaterial->IsErrorMaterial())
@@ -376,12 +397,6 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 			// get colors
 			Color colVisible = pLocal->IsEnemy(pEntity) ? C::Get<Color>(Vars.colEspChamsEnemies) : C::Get<Color>(Vars.colEspChamsAllies);
 			Color colHidden = pLocal->IsEnemy(pEntity) ? C::Get<Color>(Vars.colEspChamsEnemiesWall) : C::Get<Color>(Vars.colEspChamsAlliesWall);
-
-			IMaterialVar* pEnvMap = pMaterial->FindVar(XorStr("$envmap"), nullptr);
-
-			// set environment map for reflections
-			if (C::Get<int>(Vars.iEspChamsPlayers) == (int)EVisualsPlayersChams::REFLECTIVE)
-				pEnvMap->SetString(XorStr("env_cubemap"));
 
 			/* chams through walls */
 			if (C::Get<bool>(Vars.bEspChamsXQZ))
@@ -478,11 +493,14 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 		case (int)EVisualsViewModelChams::FLAT:
 			pMaterial = arrMaterials.at(1).second;
 			break;
+		case (int)EVisualsViewModelChams::GLOW:
+			pMaterial = arrMaterials.at(2).second;
+			break;
 		case (int)EVisualsViewModelChams::SCROLL:
-			pMaterial = arrMaterials.at(2).first;
+			pMaterial = arrMaterials.at(3).first;
 			break;
 		case (int)EVisualsViewModelChams::CHROME:
-			pMaterial = arrMaterials.at(2).second;
+			pMaterial = arrMaterials.at(3).second;
 			break;
 		default:
 			pMaterial = arrMaterials.at(1).first;
@@ -497,33 +515,33 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 		Color colAdditional = C::Get<Color>(Vars.colEspChamsViewModelAdditional);
 		Color colViewModel = C::Get<Color>(Vars.colEspChamsViewModel);
 
-		IMaterialVar* pBaseTexture = pMaterial->FindVar(XorStr("$basetexture"), nullptr);
-
-		// do not override base texture for glow
-		if (C::Get<int>(Vars.iEspChamsPlayers) == (int)EVisualsViewModelChams::GLOW)
-			pBaseTexture->SetString("");
-
-		IMaterialVar* pEnvMap = pMaterial->FindVar(XorStr("$envmap"), nullptr);
-
-		// set environment map for glow
-		if (C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::GLOW)
-			pEnvMap->SetString(XorStr("models/effects/cube_white"));
-
-		IMaterialVar* pEnvMapFresnel = pMaterial->FindVar(XorStr("$envmapfresnel"), nullptr);
-
-		// add fresnel effect for glow
-		if (C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::GLOW)
-			pEnvMapFresnel->SetInt(1);
-
-		IMaterialVar* pTranslucent = pMaterial->FindVar(XorStr("$translucent"), nullptr);
-
-		// add the materials colour values to the existing image
-		if (C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::GLOW)
-			pTranslucent->SetInt(1);
-
 		pMaterial->IncrementReferenceCount();
 
 		// get material variables
+		static bool bBaseTextureFound = false;
+		IMaterialVar* pBaseTexture = pMaterial->FindVar(XorStr("$basetexture"), &bBaseTextureFound);
+
+		// do not override base texture for glow
+		if (C::Get<int>(Vars.iEspChamsPlayers) == (int)EVisualsViewModelChams::GLOW && bBaseTextureFound)
+			pBaseTexture->SetString("");
+		// set another texture for scroll
+		else if (C::Get<int>(Vars.iEspChamsPlayers) == (int)EVisualsViewModelChams::SCROLL && bBaseTextureFound)
+			pBaseTexture->SetString(XorStr("dev/screenhighlight_pulse"));
+
+		static bool bEnvMapFresnelFound = false;
+		IMaterialVar* pEnvMapFresnel = pMaterial->FindVar(XorStr("$envmapfresnel"), &bEnvMapFresnelFound);
+
+		// add fresnel effect for glow
+		if (C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::GLOW && bEnvMapFresnelFound)
+			pEnvMapFresnel->SetInt(1);
+
+		static bool bTranslucentFound = false;
+		IMaterialVar* pTranslucent = pMaterial->FindVar(XorStr("$translucent"), &bTranslucentFound);
+
+		// add the materials colour values to the existing image
+		if (C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::GLOW && bTranslucentFound)
+			pTranslucent->SetInt(1);
+
 		static bool bFoundEnvMapTint = false;
 		IMaterialVar* pEnvMapTint = pMaterial->FindVar(XorStr("$envmaptint"), &bFoundEnvMapTint);
 
@@ -713,7 +731,7 @@ bool CVisuals::GetBoundingBox(CBaseEntity* pEntity, Box_t& box)
 	return true;
 }
 
-IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view szShader, std::string_view szBaseTexture, bool bIgnorez, bool bWireframe, std::string_view szProxies)
+IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view szShader, std::string_view szEnvMap, bool bIgnorez, bool bWireframe, std::string_view szProxies)
 {
 	/*
 	 * @note: materials info:
@@ -727,7 +745,8 @@ IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view sz
 
 	std::string szMaterial = fmt::format(XorStr(R"#("{shader}"
 	{{
-		"$basetexture"	"{texture}"
+		"$basetexture"	"vgui/white"
+		"$envmap"		"{envmap}"
 		"$model"		"1"
 		"$ignorez"		"{ignorez}"
 		"$selfillum"	"1"
@@ -738,7 +757,7 @@ IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view sz
 		{{
 			{proxies}
 		}}
-	}})#"), fmt::arg(XorStr("shader"), szShader), fmt::arg(XorStr("texture"), szBaseTexture), fmt::arg(XorStr("ignorez"), bIgnorez ? 1 : 0), fmt::arg(XorStr("wireframe"), bWireframe ? 1 : 0), fmt::arg(XorStr("proxies"), szProxies));
+	}})#"), fmt::arg(XorStr("shader"), szShader), fmt::arg(XorStr("envmap"), szEnvMap), fmt::arg(XorStr("ignorez"), bIgnorez ? 1 : 0), fmt::arg(XorStr("wireframe"), bWireframe ? 1 : 0), fmt::arg(XorStr("proxies"), szProxies));
 
 	// load to memory
 	CKeyValues* pKeyValues = (CKeyValues*)CKeyValues::operator new(sizeof(CKeyValues));

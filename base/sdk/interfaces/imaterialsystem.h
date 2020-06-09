@@ -248,13 +248,13 @@ public:
 	virtual bool			InMaterialPage() = 0;
 	virtual	void			GetMaterialOffset(float* flOffset) = 0;
 	virtual void			GetMaterialScale(float* flScale) = 0;
-	virtual IMaterial*		GetMaterialPage(void) = 0;
+	virtual IMaterial*		GetMaterialPage() = 0;
 	virtual IMaterialVar*	FindVar(const char* szName, bool* bFound, bool bComplain = true) = 0;
-	virtual void			IncrementReferenceCount(void) = 0;
-	virtual void			DecrementReferenceCount(void) = 0;
+	virtual void			IncrementReferenceCount() = 0;
+	virtual void			DecrementReferenceCount() = 0;
 	inline void				AddReference() { IncrementReferenceCount(); }
 	inline void				Release() { DecrementReferenceCount(); }
-	virtual int 			GetEnumerationID(void) const = 0;
+	virtual int 			GetEnumerationID() const = 0;
 	virtual void			GetLowResColorSample(float s, float t, float* arrColor) const = 0;
 	virtual void			RecomputeStateSnapshots() = 0;
 	virtual bool			IsTranslucent() = 0;
