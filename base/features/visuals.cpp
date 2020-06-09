@@ -345,10 +345,10 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 		std::make_pair(CreateMaterial(XorStr("qo0_viewmodel"), XorStr("VertexLitGeneric")),
 		CreateMaterial(XorStr("qo0_viewmodel_flat"), XorStr("UnlitGeneric"))),
 
-		std::make_pair(CreateMaterial(XorStr("qo0_reflective"), XorStr("VertexLitGeneric"), XorStr("env_cubemap")),
-		CreateMaterial(XorStr("qo0_glow"), XorStr("VertexLitGeneric"), XorStr("models/effects/cube_white"))),
+		std::make_pair(CreateMaterial(XorStr("qo0_reflective"), XorStr("VertexLitGeneric"), XorStr("vgui/white"), XorStr("env_cubemap")),
+		CreateMaterial(XorStr("qo0_glow"), XorStr("VertexLitGeneric"), XorStr("vgui/white"), XorStr("models/effects/cube_white"))),
 
-		std::make_pair(CreateMaterial(XorStr("qo0_scroll"), XorStr("VertexLitGeneric"), "", false, false, szScrollProxies),
+		std::make_pair(CreateMaterial(XorStr("qo0_scroll"), XorStr("VertexLitGeneric"), XorStr("dev/screenhighlight_pulse"), "", false, false, szScrollProxies),
 		I::MaterialSystem->FindMaterial(XorStr("models/inventory_items/hydra_crystal/hydra_crystal_detail"), TEXTURE_GROUP_OTHER))
 	};
 	
@@ -524,9 +524,6 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 		// do not override base texture for glow
 		if (C::Get<int>(Vars.iEspChamsPlayers) == (int)EVisualsViewModelChams::GLOW && bBaseTextureFound)
 			pBaseTexture->SetString("");
-		// set another texture for scroll
-		else if (C::Get<int>(Vars.iEspChamsPlayers) == (int)EVisualsViewModelChams::SCROLL && bBaseTextureFound)
-			pBaseTexture->SetString(XorStr("dev/screenhighlight_pulse"));
 
 		static bool bEnvMapFresnelFound = false;
 		IMaterialVar* pEnvMapFresnel = pMaterial->FindVar(XorStr("$envmapfresnel"), &bEnvMapFresnelFound);
@@ -731,7 +728,7 @@ bool CVisuals::GetBoundingBox(CBaseEntity* pEntity, Box_t& box)
 	return true;
 }
 
-IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view szShader, std::string_view szEnvMap, bool bIgnorez, bool bWireframe, std::string_view szProxies)
+IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view szShader, std::string_view szBaseTexture, std::string_view szEnvMap, bool bIgnorez, bool bWireframe, std::string_view szProxies)
 {
 	/*
 	 * @note: materials info:
@@ -745,7 +742,7 @@ IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view sz
 
 	std::string szMaterial = fmt::format(XorStr(R"#("{shader}"
 	{{
-		"$basetexture"	"vgui/white"
+		"$basetexture"	"{texture}"
 		"$envmap"		"{envmap}"
 		"$model"		"1"
 		"$ignorez"		"{ignorez}"
@@ -757,7 +754,7 @@ IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view sz
 		{{
 			{proxies}
 		}}
-	}})#"), fmt::arg(XorStr("shader"), szShader), fmt::arg(XorStr("envmap"), szEnvMap), fmt::arg(XorStr("ignorez"), bIgnorez ? 1 : 0), fmt::arg(XorStr("wireframe"), bWireframe ? 1 : 0), fmt::arg(XorStr("proxies"), szProxies));
+	}})#"), fmt::arg(XorStr("shader"), szShader), fmt::arg(XorStr("texture"), szBaseTexture), fmt::arg(XorStr("envmap"), szEnvMap), fmt::arg(XorStr("ignorez"), bIgnorez ? 1 : 0), fmt::arg(XorStr("wireframe"), bWireframe ? 1 : 0), fmt::arg(XorStr("proxies"), szProxies));
 
 	// load to memory
 	CKeyValues* pKeyValues = (CKeyValues*)CKeyValues::operator new(sizeof(CKeyValues));

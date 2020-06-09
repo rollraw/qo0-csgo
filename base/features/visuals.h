@@ -68,7 +68,7 @@ private:
 	/* get bounding box points of given entity */
 	bool GetBoundingBox(CBaseEntity* pEntity, Box_t& box);
 	/* create .vmt materials with customized parameters for chams */
-	IMaterial* CreateMaterial(std::string_view szName, std::string_view szShader, std::string_view szEnvMap = "", bool bIgnorez = false, bool bWireframe = false, std::string_view szProxies = "");
+	IMaterial* CreateMaterial(std::string_view szName, std::string_view szShader, std::string_view szBaseTexture = XorStr("vgui/white"), std::string_view szEnvMap = "", bool bIgnorez = false, bool bWireframe = false, std::string_view szProxies = "");
 
 	// On-Screen
 	void HitMarker(ImDrawList* pDrawList, float flServerTime, const ImVec2 vecScreenSize, Color colLines, Color colDamage);
