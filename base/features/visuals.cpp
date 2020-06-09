@@ -355,7 +355,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 	std::string_view szModelName = info.pStudioHdr->szName;
 
 	// check for players
-	if (const auto pClientClass = pEntity->GetClientClass(); pClientClass != nullptr && pClientClass->nClassID == EClassIndex::CCSPlayer && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies)))
+	if (szModelName.find(XorStr("player")) != std::string_view::npos && szModelName.find(XorStr("shadow")) == std::string_view::npos && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies)))
 	{
 		// skip glow models
 		if (nFlags & (STUDIO_RENDER | STUDIO_SKIP_FLEXES | STUDIO_DONOTMODIFYSTENCILSTATE | STUDIO_NOLIGHTING_OR_CUBEMAP | STUDIO_SKIP_DECALS))
@@ -443,7 +443,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 		}
 	}
 	// check for viewmodel sleeves
-	else if (szModelName.find(XorStr("sleeve")) != std::string::npos && C::Get<bool>(Vars.bEspChamsViewModel) && C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::NO_DRAW)
+	else if (szModelName.find(XorStr("sleeve")) != std::string_view::npos && C::Get<bool>(Vars.bEspChamsViewModel) && C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::NO_DRAW)
 	{
 		// get original sleeves material
 		IMaterial* pSleeveMaterial = I::MaterialSystem->FindMaterial(szModelName.data(), XorStr(TEXTURE_GROUP_MODEL));
@@ -461,7 +461,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 		return true;
 	}
 	// check for viewmodel @note: u can separate this
-	else if ((szModelName.find(XorStr("weapons\\v_")) != std::string::npos || szModelName.find(XorStr("arms")) != std::string::npos) && C::Get<bool>(Vars.bEspChamsViewModel))
+	else if ((szModelName.find(XorStr("weapons\\v_")) != std::string_view::npos || szModelName.find(XorStr("arms")) != std::string_view::npos) && C::Get<bool>(Vars.bEspChamsViewModel))
 	{
 		// get original viewmodel material
 		IMaterial* pViewModelMaterial = I::MaterialSystem->FindMaterial(szModelName.data(), XorStr(TEXTURE_GROUP_MODEL));
@@ -473,7 +473,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 		if (C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::NO_DRAW)
 		{
 			pViewModelMaterial->SetMaterialVarFlag(MATERIAL_VAR_NO_DRAW, true);
-			I::ModelRender->ForcedMaterialOverride(pViewModelMaterial);
+			I::StudioRender->ForcedMaterialOverride(pViewModelMaterial);
 
 			// then draw original model with our flags
 
