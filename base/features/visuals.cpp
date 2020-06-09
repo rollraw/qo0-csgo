@@ -390,10 +390,6 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 			if (pMaterial == nullptr || pMaterial->IsErrorMaterial())
 				return false;
 
-			// check is valid material
-			if (pMaterial == nullptr || pMaterial->IsErrorMaterial())
-				return false;
-
 			// get colors
 			Color colVisible = pLocal->IsEnemy(pEntity) ? C::Get<Color>(Vars.colEspChamsEnemies) : C::Get<Color>(Vars.colEspChamsAllies);
 			Color colHidden = pLocal->IsEnemy(pEntity) ? C::Get<Color>(Vars.colEspChamsEnemiesWall) : C::Get<Color>(Vars.colEspChamsAlliesWall);
