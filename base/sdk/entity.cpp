@@ -24,6 +24,15 @@ CBaseCombatWeapon* CBaseEntity::GetWeapon()
 	return I::ClientEntityList->Get<CBaseCombatWeapon>(this->GetActiveWeapon());
 }
 
+int CBaseEntity::GetMaxHealth()
+{
+	// check is dangerzone
+	if (I::GameTypes->GetCurrentGameType() == GAMETYPE_FREEFORALL)
+		return 120;
+
+	return 100;
+}
+
 matrix3x4_t* CBaseEntity::GetBoneMatrix(bool bSingleBone, int nSingleBone)
 {
 	matrix3x4_t* matBoneToWorld = nullptr;
@@ -208,8 +217,19 @@ int CBaseEntity::PostThink()
 
 bool CBaseEntity::IsEnemy(CBaseEntity* pEntity)
 {
+	// check is dangerzone
+	if (I::GameTypes->GetCurrentGameType() == GAMETYPE_FREEFORALL)
+	{
+		// check is not teammate
+		if (this->GetSurvivalTeam() != pEntity->GetSurvivalTeam())
+			return true;
+		else
+			return false;
+	}
+
 	static CConVar* mp_teammates_are_enemies = I::ConVar->FindVar(XorStr("mp_teammates_are_enemies"));
 	
+	// check is deathmatch
 	if (mp_teammates_are_enemies != nullptr && mp_teammates_are_enemies->GetBool() && this->GetTeam() == pEntity->GetTeam() && this != pEntity)
 		return true;
 
@@ -281,7 +301,7 @@ bool CBaseEntity::IsVisible(CBaseEntity* pEntity, const Vector& vecEnd, bool bSm
 	I::EngineTrace->TraceRay(ray, MASK_SHOT, &filter, &trace);
 
 	// trace check
-	if ((trace.IsVisible() || trace.pHitEntity == this) &&
+	if ((trace.IsVisible() || trace.pHitEntity == pEntity) &&
 		// smoke check
 		!(bSmokeCheck && U::LineGoesThroughSmoke(vecStart, vecEnd)))
 		return true;

@@ -411,6 +411,9 @@
     <ClInclude Include="utilities\detourhook.h">
       <Filter>include\utilities</Filter>
     </ClInclude>
+    <ClInclude Include="sdk\interfaces\igametypes.h">
+      <Filter>include\sdk\interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="features\antiaim.cpp">

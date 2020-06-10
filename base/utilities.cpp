@@ -190,8 +190,10 @@ const char* U::GetWeaponIcon(short nItemDefinitionIndex)
 	case WEAPON_SMOKEGRENADE:
 		return u8"\uE02D";
 	case WEAPON_MOLOTOV:
+	case WEAPON_FIREBOMB:
 		return u8"\uE02E";
 	case WEAPON_DECOY:
+	case WEAPON_DIVERSION:
 		return u8"\uE02F";
 	case WEAPON_INCGRENADE:
 		return u8"\uE030";
@@ -210,6 +212,20 @@ const char* U::GetWeaponIcon(short nItemDefinitionIndex)
 		return u8"\uE03F";
 	case WEAPON_REVOLVER:
 		return u8"\uE040";
+	case WEAPON_TAGRENADE:
+		return u8"\uE044";
+	case WEAPON_FISTS:
+		return u8"\uE045";
+	case WEAPON_TABLET:
+		return u8"\uE048";
+	case WEAPON_MELEE:
+		return u8"\uE04A";
+	case WEAPON_AXE:
+		return u8"\uE04B";
+	case WEAPON_HAMMER:
+		return u8"\uE04C";
+	case WEAPON_SPANNER:
+		return u8"\uE04E";
 	case WEAPON_KNIFE_BAYONET:
 		return u8"\uE1F4";
 	case WEAPON_KNIFE_CSS:

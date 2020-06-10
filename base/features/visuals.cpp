@@ -149,11 +149,10 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 			if (!pEntity->IsAlive() || pEntity->IsDormant())
 				break;
 
-			// check is not spectating current entity
 			if (!pLocal->IsAlive())
 			{
-				if (const CBaseEntity* pObserverEntity = I::ClientEntityList->Get<CBaseEntity>(pLocal->GetObserverTarget());
-					pObserverEntity != nullptr && pObserverEntity == pEntity)
+				// check is not spectating current entity
+				if (const auto pObserverEntity = I::ClientEntityList->Get<CBaseEntity>(pLocal->GetObserverTarget()); pObserverEntity != nullptr && pObserverEntity == pEntity)
 					break;
 			}
 
@@ -1079,7 +1078,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 		// get all other weapons
 		if (C::Get<bool>(Vars.bEspMainInfoWeapons))
 		{
-			if (CBaseHandle* hWeapons = pEntity->GetWeapons(); hWeapons != nullptr)
+			if (const auto hWeapons = pEntity->GetWeapons(); hWeapons != nullptr)
 			{
 				// -1 to prevent double active weapon
 				for (int nIndex = MAX_WEAPONS - 1; hWeapons[nIndex]; nIndex--)
@@ -1091,10 +1090,15 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 						continue;
 
 					const short nDefinitionIndex = *pCurrentWeapon->GetItemDefinitionIndex();
+
+					// do not draw some useless dangerzone weapons (lmao i just dont add icons)
+					if (nDefinitionIndex == WEAPON_SHIELD || nDefinitionIndex == WEAPON_BREACHCHARGE || nDefinitionIndex == WEAPON_BUMPMINE)
+						continue;
+
 					CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(nDefinitionIndex);
 
-					// pass only active grenades // @todo: or make it on right/left bottom side
-					if (pWeaponData == nullptr || (pWeaponData->nWeaponType == WEAPONTYPE_GRENADE && pCurrentWeapon != pActiveWeapon))
+					// pass only active grenades/fists/tablet // @todo: or make it on right/left bottom side
+					if (pWeaponData == nullptr || ((pWeaponData->nWeaponType == WEAPONTYPE_GRENADE || nDefinitionIndex == WEAPON_FISTS || nDefinitionIndex == WEAPON_TABLET) && pCurrentWeapon != pActiveWeapon))
 						continue;
 
 					// draw weapons list
@@ -1121,7 +1125,8 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	if (C::Get<bool>(Vars.bEspMainInfoHealth))
 	{
 		// calculate hp-based color
-		const float flHue = ((pEntity->GetHealth() / 100.f) * 120.f) / 360.f;
+		const float flFactor = (float)pEntity->GetHealth() / (float)pEntity->GetMaxHealth();
+		const float flHue = (flFactor * 120.f) / 360.f;
 		HealthBar(pDrawList, pEntity, ctx, Color::FromHSB(flHue, 1.f, 1.f), Color(40, 40, 40, 100), Color(0, 0, 0, 150));
 	}
 
@@ -1221,7 +1226,7 @@ void CVisuals::HealthBar(ImDrawList* pDrawList, CBaseEntity* pEntity, Context_t&
 	// background
 	pDrawList->AddRectFilled(ImVec2(ctx.box.left - 5 - ctx.arrPadding.at(DIR_LEFT), ctx.box.top), ImVec2(ctx.box.left - 3 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom), colBackground.GetU32());
 	// bar
-	pDrawList->AddRectFilled(ImVec2(ctx.box.left - 5 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom - (ctx.box.height * pEntity->GetHealth() / 100)), ImVec2(ctx.box.left - 3 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom), colPrimary.GetU32());
+	pDrawList->AddRectFilled(ImVec2(ctx.box.left - 5 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom - (ctx.box.height * pEntity->GetHealth() / pEntity->GetMaxHealth())), ImVec2(ctx.box.left - 3 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom), colPrimary.GetU32());
 	// outline
 	pDrawList->AddRect(ImVec2(ctx.box.left - 6 - ctx.arrPadding.at(DIR_LEFT), ctx.box.top - 1), ImVec2(ctx.box.left - 2 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom + 1), colOutline.GetU32());
 	ctx.arrPadding.at(DIR_LEFT) += 6;

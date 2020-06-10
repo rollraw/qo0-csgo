@@ -264,3 +264,4 @@ __pycache__/
 # User Defined
 injector/
 issues/
+*.exe

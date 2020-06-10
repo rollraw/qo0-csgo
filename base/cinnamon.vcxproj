@@ -83,6 +83,7 @@
     <ClInclude Include="sdk\interfaces\ienginevgui.h" />
     <ClInclude Include="sdk\interfaces\igameconsole.h" />
     <ClInclude Include="sdk\interfaces\igameeventmanager.h" />
+    <ClInclude Include="sdk\interfaces\igametypes.h" />
     <ClInclude Include="sdk\interfaces\igameui.h" />
     <ClInclude Include="sdk\interfaces\iglobalvarsbase.h" />
     <ClInclude Include="sdk\interfaces\iglowmanager.h" />

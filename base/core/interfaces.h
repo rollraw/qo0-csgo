@@ -25,6 +25,7 @@
 #include "../sdk/interfaces/iinputsystem.h"
 #include "../sdk/interfaces/ilocalize.h"
 #include "../sdk/interfaces/imatchframework.h"
+#include "../sdk/interfaces/igametypes.h"
 #include "../sdk/interfaces/imaterialsystem.h"
 #include "../sdk/interfaces/imdlcache.h"
 #include "../sdk/interfaces/imemalloc.h"
@@ -94,6 +95,7 @@ namespace I
 	inline IInputSystem*			InputSystem;
 	inline ILocalize*				Localize;
 	inline IMatchFramework*			MatchFramework;
+	inline IGameTypes*				GameTypes;
 	inline IServerGameDLL*			Server;
 	inline IPlayerInfoManager*		PlayerInfoManager;
 	inline IGlobalVarsBase*			Globals;

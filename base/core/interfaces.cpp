@@ -33,6 +33,7 @@ bool I::Setup()
 	InputSystem =		Capture<IInputSystem>(INPUTSYSTEM_DLL, XorStr("InputSystemVersion"));
 	Localize =			Capture<ILocalize>(LOCALIZE_DLL, XorStr("Localize_"));
 	MatchFramework =	Capture<IMatchFramework>(MATCHMAKING_DLL, XorStr("MATCHFRAMEWORK_"));
+	GameTypes =			Capture<IGameTypes>(MATCHMAKING_DLL, XorStr("VENGINE_GAMETYPES_VERSION"));
 	Server =			Capture<IServerGameDLL>(SERVER_DLL, XorStr("ServerGameDLL"));
 	PlayerInfoManager =	Capture<IPlayerInfoManager>(SERVER_DLL, XorStr("PlayerInfoManager"));
 

@@ -561,6 +561,11 @@ public:
 		return *(QAngle*)((std::uintptr_t)this + CNetvarManager::Get().angEyeAngles);
 	}
 
+	int GetSurvivalTeam()
+	{
+		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().nSurvivalTeam);
+	}
+
 	float GetSpawnTime()
 	{
 		return *(float*)((std::uintptr_t)this + 0xA360);
@@ -889,6 +894,7 @@ public:
 	}
 
 	CBaseCombatWeapon*	GetWeapon();
+	int					GetMaxHealth();
 	matrix3x4_t*		GetBoneMatrix(bool bSingleBone = false, int iSingleBone = BONE_INVALID);
 	Vector				GetBonePosition(int iBone);
 	int					GetBoneByHash(const FNV1A_t uBoneHash);
