@@ -1127,7 +1127,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 		// calculate hp-based color
 		const float flFactor = (float)pEntity->GetHealth() / (float)pEntity->GetMaxHealth();
 		const float flHue = (flFactor * 120.f) / 360.f;
-		HealthBar(pDrawList, pEntity, ctx, Color::FromHSB(flHue, 1.f, 1.f), Color(40, 40, 40, 100), Color(0, 0, 0, 150));
+		HealthBar(pDrawList, flFactor, ctx, Color::FromHSB(flHue, 1.f, 1.f), Color(40, 40, 40, 100), Color(0, 0, 0, 150));
 	}
 
 	if (C::Get<bool>(Vars.bEspMainInfoMoney))
@@ -1210,23 +1210,23 @@ void CVisuals::Box(ImDrawList* pDrawList, const Box_t& box, Color colPrimary, Co
 			{ ImVec2(box.right, box.bottom), ImVec2(box.right - box.width / nDivideParts, box.bottom) }
 		};
 
-		for (const auto point : arrPoints)
+		for (const auto arrPoint : arrPoints)
 		{
 			// outline
 			// not a best way of doing that but one-lined :(
 			//pDrawList->AddRect(point.first, point.second, colOutline.GetU32(), 0.0f, 15, 1.4f);
 			// box
-			pDrawList->AddLine(point.first, point.second, colPrimary.GetU32());
+			pDrawList->AddLine(arrPoint.first, arrPoint.second, colPrimary.GetU32());
 		}
 	}
 }
 
-void CVisuals::HealthBar(ImDrawList* pDrawList, CBaseEntity* pEntity, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline)
+void CVisuals::HealthBar(ImDrawList* pDrawList, float flFactor, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline)
 {
 	// background
 	pDrawList->AddRectFilled(ImVec2(ctx.box.left - 5 - ctx.arrPadding.at(DIR_LEFT), ctx.box.top), ImVec2(ctx.box.left - 3 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom), colBackground.GetU32());
 	// bar
-	pDrawList->AddRectFilled(ImVec2(ctx.box.left - 5 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom - (ctx.box.height * pEntity->GetHealth() / pEntity->GetMaxHealth())), ImVec2(ctx.box.left - 3 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom), colPrimary.GetU32());
+	pDrawList->AddRectFilled(ImVec2(ctx.box.left - 5 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom - (ctx.box.height * flFactor)), ImVec2(ctx.box.left - 3 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom), colPrimary.GetU32());
 	// outline
 	pDrawList->AddRect(ImVec2(ctx.box.left - 6 - ctx.arrPadding.at(DIR_LEFT), ctx.box.top - 1), ImVec2(ctx.box.left - 2 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom + 1), colOutline.GetU32());
 	ctx.arrPadding.at(DIR_LEFT) += 6;

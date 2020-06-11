@@ -93,7 +93,7 @@ private:
 	/* draw entity bounding box */
 	void Box(ImDrawList* pDrawList, const Box_t& box, Color colPrimary, Color colOutline);
 	/* draw vertical line with health-based height */
-	void HealthBar(ImDrawList* pDrawList, CBaseEntity* pEntity, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline);
+	void HealthBar(ImDrawList* pDrawList, float flFactor, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline);
 	/* draw horizontal line with ammo-based width */
 	void AmmoBar(ImDrawList* pDrawList, CBaseEntity* pEntity, CBaseCombatWeapon* pWeapon, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline);
 	/* draw horizontal line with flashed duration-based width */

@@ -568,7 +568,8 @@ public:
 
 	float GetSpawnTime()
 	{
-		return *(float*)((std::uintptr_t)this + 0xA360);
+		// @ida: 89 86 ? ? ? ? E8 ? ? ? ? 80 + 0x2
+		return *(float*)((std::uintptr_t)this + 0xA370);
 	}
 
 	#pragma region baseentity_checks
@@ -777,19 +778,19 @@ public:
 
 	CAnimationLayer* GetAnimationLayers()
 	{
-		// @pattern = 8B 89 ? ? ? ? 8D 0C D1 + 0x2 // should work but for me offset is easy to update
-		return *(CAnimationLayer**)((std::uintptr_t)this + 0x2990);
+		// @ida = 8B 89 ? ? ? ? 8D 0C D1 + 0x2
+		return *(CAnimationLayer**)((std::uintptr_t)this + 0x2980);
 	}
 
 	int GetAnimationOverlaysCount()
 	{
-		return *(int*)((std::uintptr_t)this + 0x299C);
+		return *(int*)((std::uintptr_t)this + 0x298C);
 	}
 
 	CBasePlayerAnimState* GetAnimationState()
 	{
-		// @xref: "animset_version"
-		return (CBasePlayerAnimState*)((std::uintptr_t)this + 0x3900);
+		// @ida: 8B 8E ? ? ? ? F3 0F 10 48 ? E8 ? ? ? ? C7 + 0x2
+		return (CBasePlayerAnimState*)((std::uintptr_t)this + 0x3914);
 	}
 
 	#pragma region baseentity_exports

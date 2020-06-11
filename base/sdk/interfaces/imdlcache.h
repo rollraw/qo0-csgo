@@ -62,7 +62,7 @@ class IMDLCache : public IAppSystem
 {
 public:
 	virtual void SetCacheNotify(IMDLCacheNotify* pNotify) = 0;
-	virtual MDLHandle_t FindMDL(const char* szMDLRelativePath) = 0; // @idx:10
+	virtual MDLHandle_t FindMDL(const char* szMDLRelativePath) = 0;
 
 	// Reference counting 
 	virtual int AddRef(MDLHandle_t handle) = 0;

@@ -569,7 +569,7 @@ bool FASTCALL H::hkSendNetMsg(INetChannel* thisptr, int edx, INetMessage* pMessa
 	 * check for voicedata group and enable voice stream
 	 * @credits: Flaww
 	 */
-	if (pMessage->GetGroup() == 9)
+	if (pMessage->GetGroup() == INetChannelInfo::VOICE)
 		bVoice = true;
 
 	return oSendNetMsg(thisptr, edx, pMessage, bForceReliable, bVoice);
@@ -616,7 +616,7 @@ void FASTCALL H::hkOverrideView(IClientModeShared* thisptr, int edx, CViewSetup*
 		return oOverrideView(thisptr, edx, pSetup);
 
 	if (CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(*pWeapon->GetItemDefinitionIndex());
-		pWeaponData != nullptr && C::Get<bool>(Vars.bScreen) && C::Get<float>(Vars.flScreenCameraFOV) != 0.f &&
+		pWeaponData != nullptr && C::Get<bool>(Vars.bScreen) && std::fpclassify(C::Get<float>(Vars.flScreenCameraFOV)) != FP_ZERO &&
 		// check is we not scoped
 		(pWeaponData->nWeaponType == WEAPONTYPE_SNIPER ? !pLocal->IsScoped() : true))
 		// set camera fov
@@ -644,7 +644,7 @@ float FASTCALL H::hkGetViewModelFOV(IClientModeShared* thisptr, int edx)
 
 	if (auto pLocal = U::GetLocalPlayer();
 		pLocal != nullptr && pLocal->IsAlive() &&
-		C::Get<bool>(Vars.bScreen) && C::Get<float>(Vars.flScreenViewModelFOV) != 0.f)
+		C::Get<bool>(Vars.bScreen) && std::fpclassify(C::Get<float>(Vars.flScreenViewModelFOV)) != FP_ZERO)
 		return oGetViewModelFOV(thisptr, edx) + C::Get<float>(Vars.flScreenViewModelFOV);
 
 	return oGetViewModelFOV(thisptr, edx);

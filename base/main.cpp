@@ -61,7 +61,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 
 		// version check to know when u need to fix something
 		#if DEBUG_CONSOLE
-		if (strcmp(I::Engine->GetProductVersionString(), XorStr("1.37.5.2")) != 0)
+		if (strcmp(I::Engine->GetProductVersionString(), XorStr("1.37.5.6")) != 0)
 		{
 			L::PushConsoleColor(FOREGROUND_RED | FOREGROUND_YELLOW);
 			L::Print(fmt::format(XorStr("[warning] version doesnt match! current cs:go version: {}"), I::Engine->GetProductVersionString()));

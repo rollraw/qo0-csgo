@@ -6,37 +6,6 @@
 #define FLOW_INCOMING	1
 #define MAX_FLOWS		2
 
-// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/inetmessage.h
-class INetMessage
-{
-public:
-	virtual					~INetMessage() { }
-	virtual void			SetNetChannel(void* pNetChannel) = 0;
-	virtual void			SetReliable(bool bState) = 0;
-	virtual bool			Process() = 0;
-	virtual	bool			ReadFromBuffer(bf_read& buffer) = 0;
-	virtual	bool			WriteToBuffer(bf_write& buffer) = 0;
-	virtual bool			IsReliable() const = 0;
-	virtual int				GetType() const = 0;
-	virtual int				GetGroup() const = 0;
-	virtual const char*		GetName() const = 0;
-	virtual void*			GetNetChannel(void) const = 0;
-	virtual const char*		ToString() const = 0;
-};
-
-class CCLCMsg_Move
-{
-private:
-	std::byte pad0[0x8];
-public:
-	int nBackupCommands;
-	int nNewCommands;
-};
-
-template <typename T>
-class CNetMessagePB : public INetMessage, public T { };
-using CCLCMsg_Move_t = CNetMessagePB<CCLCMsg_Move>;
-
 // @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/inetchannelinfo.h
 class INetChannelInfo
 {
@@ -118,12 +87,45 @@ public:
 	}
 }; // Size: 0x0444
 
+// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/inetmessage.h
+class INetMessage
+{
+public:
+	virtual					~INetMessage() { }
+	virtual void			SetNetChannel(void* pNetChannel) = 0;
+	virtual void			SetReliable(bool bState) = 0;
+	virtual bool			Process() = 0;
+	virtual	bool			ReadFromBuffer(bf_read& buffer) = 0;
+	virtual	bool			WriteToBuffer(bf_write& buffer) = 0;
+	virtual bool			IsReliable() const = 0;
+	virtual int				GetType() const = 0;
+	virtual int				GetGroup() const = 0;
+	virtual const char*		GetName() const = 0;
+	virtual INetChannel*	GetNetChannel() const = 0;
+	virtual const char*		ToString() const = 0;
+	virtual std::size_t		GetSize() const = 0;
+};
+
+class CCLCMsg_Move
+{
+private:
+	std::byte pad0[0x8];
+public:
+	int nBackupCommands;
+	int nNewCommands;
+};
+
+template <typename T>
+class CNetMessagePB : public INetMessage, public T { };
+using CCLCMsg_Move_t = CNetMessagePB<CCLCMsg_Move>;
+
 // @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/inetmsghandler.h
 class INetChannelHandler
 {
 public:
 	virtual			~INetChannelHandler() { }
 	virtual void	ConnectionStart(INetChannel* pChannel) = 0; // called first time network channel is established
+	virtual void	ConnectionStop() = 0; // called first time network channel is established
 	virtual void	ConnectionClosing(const char* szReason) = 0; // network channel is being closed by remote site
 	virtual void	ConnectionCrashed(const char* szReason) = 0; // network error occured
 	virtual void	PacketStart(int iIncomingSequence, int iOutgoingAcknowledged) = 0;	// called each time a new packet arrived
@@ -132,4 +134,5 @@ public:
 	virtual void	FileReceived(const char* szFileName, unsigned int uTransferID, bool bReplayDemoFile) = 0; // we received a file
 	virtual void	FileDenied(const char* szFileName, unsigned int uTransferID, bool bReplayDemoFile) = 0; // a file request was denied by other side
 	virtual void	FileSent(const char* szFileName, unsigned int uTransferID, bool bReplayDemoFile) = 0; // we sent a file
+	virtual bool	ChangeSplitscreenUser(int nSplitScreenUserSlot) = 0; // interleaved networking used by SS system is changing the SS player slot that the subsequent messages pertain to
 };
