@@ -521,12 +521,12 @@ public:
 
 	CBaseHandle GetObserverTarget()
 	{
-		return (CBaseHandle)((std::uintptr_t)this, CNetvarManager::Get().hObserverTarget);
+		return *(CBaseHandle*)((std::uintptr_t)this + CNetvarManager::Get().hObserverTarget);
 	}
 
 	CBaseHandle GetViewModel()
 	{
-		return (CBaseHandle)((std::uintptr_t)this + CNetvarManager::Get().hViewModel);
+		return *(CBaseHandle*)((std::uintptr_t)this + CNetvarManager::Get().hViewModel);
 	}
 
 	const char* GetLastPlace()
