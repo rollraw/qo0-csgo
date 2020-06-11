@@ -136,6 +136,9 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data)
 	if (g_pd3dDevice->CreateStateBlock(D3DSBT_PIXELSTATE, &d3d9_state_block) < 0)
 		return;
 
+	// @credits: T0b1
+	d3d9_state_block->Capture();
+
 	// modified by qo0
 	/*
 	 * also need create vert shader and declaration

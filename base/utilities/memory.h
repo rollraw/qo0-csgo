@@ -1,8 +1,8 @@
 #pragma once
-// used: winapi, fmt includes
-#include "../common.h"
 // used: std::vector for getfilledvector
 #include <vector>
+// used: winapi, fmt includes
+#include "../common.h"
 
 #pragma region memory_modules_definitions
 #define ENGINE_DLL				XorStr("engine.dll")
