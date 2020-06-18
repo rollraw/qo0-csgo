@@ -188,7 +188,7 @@ int CBaseEntity::PostThink()
 	// @ida postthink: 56 8B 35 ? ? ? ? 57 8B F9 8B CE 8B 06 FF 90 ? ? ? ? 8B 07
 
 	using PostThinkVPhysicsFn = bool(__thiscall*)(CBaseEntity*);
-	static auto oPostThinkVPhysics = (PostThinkVPhysicsFn)(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 81 EC ? ? ? ? 53 8B D9")));
+	static auto oPostThinkVPhysics = (PostThinkVPhysicsFn)(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 81 EC ? ? ? ? 53 8B D9 56 57 83 BB")));
 
 	using SimulatePlayerSimulatedEntitiesFn = void(__thiscall*)(CBaseEntity*);
 	static auto oSimulatePlayerSimulatedEntities = (SimulatePlayerSimulatedEntitiesFn)(MEM::FindPattern(CLIENT_DLL, XorStr("56 8B F1 57 8B BE ? ? ? ? 83 EF 01 78 72")));

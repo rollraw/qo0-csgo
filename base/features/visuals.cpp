@@ -152,7 +152,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 			if (!pLocal->IsAlive())
 			{
 				// check is not spectating current entity
-				if (const auto pObserverEntity = I::ClientEntityList->Get<CBaseEntity>(pLocal->GetObserverTarget()); pObserverEntity != nullptr && pObserverEntity == pEntity)
+				if (const auto pObserverEntity = I::ClientEntityList->Get<CBaseEntity>(pLocal->GetObserverTarget()); pObserverEntity != nullptr && pObserverEntity == pEntity && *pLocal->GetObserverMode() == OBS_MODE_IN_EYE)
 					break;
 			}
 

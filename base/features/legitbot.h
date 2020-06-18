@@ -20,5 +20,3 @@ private:
 	// Check
 	/* is entity valid */
 };
-
-

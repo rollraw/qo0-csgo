@@ -26,7 +26,7 @@ namespace W
 	inline bool bMainOpened = false;
 	/* current selected tab in main window */
 	inline int iMainTab = 0;
-};
+}
 
 /*
  * TABS
@@ -54,4 +54,4 @@ namespace T
 	inline int			iSelectedConfig = 0;
 	/* current selected color setting in miscellaneous tab */
 	inline int			iSelectedColor = 0;
-};
+}

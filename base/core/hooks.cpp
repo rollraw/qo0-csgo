@@ -165,7 +165,7 @@ long D3DAPI H::hkReset(IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pPresen
 long D3DAPI H::hkEndScene(IDirect3DDevice9* pDevice)
 {
 	static auto oEndScene = DTR::EndScene.GetOriginal<decltype(&hkEndScene)>();
-	static void* pUsedAddress = _ReturnAddress();
+	static void* pUsedAddress = nullptr;
 
 	// search for gameoverlay address
 	MEMORY_BASIC_INFORMATION memInfo;
@@ -410,6 +410,7 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 			// save old values
 			angViewPunchOld = pLocal->GetViewPunch();
 			angAimPunchOld = pLocal->GetPunch();
+
 			if (C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_PUNCH))
 			{
 				// change current values
@@ -432,7 +433,23 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 		I::Input->vecCameraOffset.z = bThirdPerson ? C::Get<float>(Vars.flWorldThirdPersonOffset) : 150.f;
 
 		break;
-	};
+	}
+	case FRAME_RENDER_END:
+	{
+		/*
+		 * finished rendering the scene
+		 * here we can restore our modified things
+		 */
+
+		// restore original visual punch values
+		if (pLocal->IsAlive() && C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_PUNCH))
+		{
+			pLocal->GetViewPunch() = angViewPunchOld;
+			pLocal->GetPunch() = angAimPunchOld;
+		}
+
+		break;
+	}
 	case FRAME_NET_UPDATE_END:
 	{
 		/*
@@ -441,7 +458,7 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 		 */
 
 		break;
-	};
+	}
 	case FRAME_NET_UPDATE_POSTDATAUPDATE_START:
 	{
 		/*
@@ -450,7 +467,7 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 		 */
 
 		break;
-	};
+	}
 	case FRAME_NET_UPDATE_POSTDATAUPDATE_END:
 	{
 		/*
@@ -465,16 +482,6 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 	}
 
 	oFrameStageNotify(thisptr, edx, stage);
-
-	if (stage == FRAME_RENDER_START)
-	{
-		// restore original visual punch values
-		if (C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_PUNCH))
-		{
-			pLocal->GetViewPunch() = angViewPunchOld;
-			pLocal->GetPunch() = angAimPunchOld;
-		}
-	}
 }
 
 void FASTCALL H::hkDrawModel(IStudioRender* thisptr, int edx, DrawModelResults_t* pResults, const DrawModelInfo_t& info, matrix3x4_t* pBoneToWorld, float* flFlexWeights, float* flFlexDelayedWeights, const Vector& vecModelOrigin, int nFlags)
@@ -547,7 +554,7 @@ bool FASTCALL H::hkIsConnected(IEngineClient* thisptr, int edx)
 	static std::uintptr_t uLoadoutAllowedReturn = (MEM::FindPattern(CLIENT_DLL, XorStr("75 04 B0 01 5F")) - 0x2);
 
 	// @credits: gavreel
-	if (_ReturnAddress() == (void*)uLoadoutAllowedReturn && C::Get<bool>(Vars.bUnlockInventory))
+	if ((std::uintptr_t)_ReturnAddress() == uLoadoutAllowedReturn && C::Get<bool>(Vars.bUnlockInventory))
 		return false;
 
 	return oIsConnected(thisptr, edx);
@@ -739,7 +746,7 @@ bool FASTCALL H::hkSvCheatsGetBool(CConVar* thisptr, int edx)
 	static auto oSvCheatsGetBool = DTR::SvCheatsGetBool.GetOriginal<decltype(&hkSvCheatsGetBool)>();
 	static std::uintptr_t uCAM_ThinkReturn = (MEM::FindPattern(CLIENT_DLL, XorStr("85 C0 75 30 38 86"))); // @xref: "Pitch: %6.1f   Yaw: %6.1f   Dist: %6.1f %16s"
 
-	if (_ReturnAddress() == (void*)uCAM_ThinkReturn)
+	if ((std::uintptr_t)_ReturnAddress() == uCAM_ThinkReturn)
 		return true;
 
 	return oSvCheatsGetBool(thisptr, edx);

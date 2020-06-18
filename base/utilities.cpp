@@ -11,11 +11,12 @@
 template <class C>
 C* U::FindHudElement(const char* szName)
 {
-	using FindHudElementFn = std::uintptr_t(__thiscall*)(void*, const char*);
-	static auto oFindHudElement = (FindHudElementFn)MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 53 8B 5D 08 56 57 8B F9 33 F6 39 77 28"));
-	static auto pThis = *(std::uintptr_t**)(MEM::FindPattern(CLIENT_DLL, XorStr("B9 ? ? ? ? 68 ? ? ? ? E8 ? ? ? ? 89")) + 0x1);
+	// @xref: https://www.unknowncheats.me/forum/counterstrike-global-offensive/342743-finding-sigging-chud-pointer-chud-findelement.html
 
-	return (C*)oFindHudElement(pThis, szName);
+	using FindHudElementFn = std::uintptr_t(__thiscall*)(void*, const char*);
+	static auto oFindHudElement = (FindHudElementFn)MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 53 8B 5D 08 56 57 8B F9 33 F6 39 77 28")); // @xref: "[%d] Could not find Hud Element: %s\n"
+	static auto pHud = *(void**)(MEM::FindPattern(CLIENT_DLL, XorStr("B9 ? ? ? ? 68 ? ? ? ? E8 ? ? ? ? 89")) + 0x1);
+	return (C*)oFindHudElement(pHud, szName);
 }
 #pragma endregion
 
@@ -35,18 +36,20 @@ void U::TraceLine(const Vector& vecAbsStart, const Vector& vecAbsEnd, unsigned i
 
 void U::ForceFullUpdate()
 {
-	// update hud weapon icon
 	using ClearHudWeaponIconFn = int(__thiscall*)(void*, int);
-	static auto oClearHudWeaponIcon = (ClearHudWeaponIconFn)(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 51 53 56 8B 75 08 8B D9 57 6B FE 2C"))); // @xref: https://www.unknowncheats.me/forum/counterstrike-global-offensive/342743-finding-sigging-chud-pointer-chud-findelement.html
+	static auto oClearHudWeaponIcon = (ClearHudWeaponIconFn)(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 51 53 56 8B 75 08 8B D9 57 6B"))); // @xref: "WeaponIcon--itemcount"
 
-	if (auto dwHudWeaponSelection = FindHudElement<std::uintptr_t*>(XorStr("CCSGO_HudWeaponSelection")); dwHudWeaponSelection != nullptr)
+	if (oClearHudWeaponIcon != nullptr)
 	{
-		if (auto pHudWeapons = (int*)(dwHudWeaponSelection - 0xA0); pHudWeapons != nullptr && *pHudWeapons) // get by weapons count (pHudWeapons + 0x80)
+		if (const auto dwHudWeaponSelection = FindHudElement<std::uintptr_t*>(XorStr("CCSGO_HudWeaponSelection")); dwHudWeaponSelection != nullptr)
 		{
-			for (int i = 0; i < *pHudWeapons; i++)
-				i = oClearHudWeaponIcon(pHudWeapons, i);
-
-			*pHudWeapons = 0;
+			// get hud weapons
+			if (const auto pHudWeapons = (void*)((std::uintptr_t)dwHudWeaponSelection - 0xA0); pHudWeapons != nullptr && *(int*)((std::uintptr_t)pHudWeapons + 0x80) > 0)
+			{
+				// go through all weapons
+				for (int i = 0; i < *(int*)((std::uintptr_t)pHudWeapons + 0x80) > 0; i++)
+					i = oClearHudWeaponIcon(pHudWeapons, i);
+			}
 		}
 	}
 
