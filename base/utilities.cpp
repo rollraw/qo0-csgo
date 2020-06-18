@@ -47,7 +47,7 @@ void U::ForceFullUpdate()
 			if (const auto pHudWeapons = (void*)((std::uintptr_t)dwHudWeaponSelection - 0xA0); pHudWeapons != nullptr && *(int*)((std::uintptr_t)pHudWeapons + 0x80) > 0)
 			{
 				// go through all weapons
-				for (int i = 0; i < *(int*)((std::uintptr_t)pHudWeapons + 0x80) > 0; i++)
+				for (int i = 0; i < *(int*)((std::uintptr_t)pHudWeapons + 0x80); i++)
 					i = oClearHudWeaponIcon(pHudWeapons, i);
 			}
 		}
