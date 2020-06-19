@@ -123,7 +123,7 @@ void CAntiAim::UpdateServerAnimations(CUserCmd* pCmd, CBaseEntity* pLocal, float
 		// note animstate for future use
 		pServerAnimState = pAnimState;
 	}
-	else if (I::ClientState->iChokedCommands == 0)
+	else
 	{
 		// backup values
 		std::array<CAnimationLayer, 13U> arrNetworkedLayers;

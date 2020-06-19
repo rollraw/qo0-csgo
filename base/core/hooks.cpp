@@ -30,10 +30,10 @@
 
 constexpr std::array<const char*, 3U> arrSmokeMaterials =
 {
-	//XorStr("particle/vistasmokev1/vistasmokev1_fire"),  // to look cool fresh fashionable yo :sunglasses: (if u wont be cool just uncomment this)
-	XorStr("particle/vistasmokev1/vistasmokev1_smokegrenade"),
-	XorStr("particle/vistasmokev1/vistasmokev1_emods"),
-	XorStr("particle/vistasmokev1/vistasmokev1_emods_impactdust"),
+	//"particle/vistasmokev1/vistasmokev1_fire",  // to look cool fresh fashionable yo :sunglasses: (if u wont be cool just uncomment this)
+	"particle/vistasmokev1/vistasmokev1_smokegrenade",
+	"particle/vistasmokev1/vistasmokev1_emods",
+	"particle/vistasmokev1/vistasmokev1_emods_impactdust",
 };
 
 #pragma region hooks_get

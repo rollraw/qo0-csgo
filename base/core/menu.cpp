@@ -20,26 +20,26 @@
 #pragma region menu_arrays
 const std::pair<const char*, std::uint32_t> arrColors[] =
 {
-	{ XorStr("[esp] box - enemies"), Vars.colEspMainBoxEnemies },
-	{ XorStr("[esp] box - enemies wall"), Vars.colEspMainBoxEnemiesWall },
-	{ XorStr("[esp] box - allies"), Vars.colEspMainBoxAllies },
-	{ XorStr("[esp] box - allies wall"), Vars.colEspMainBoxAlliesWall },
-	{ XorStr("[glow] enemies"), Vars.colEspGlowEnemies },
-	{ XorStr("[glow] enemies wall"), Vars.colEspGlowEnemiesWall },
-	{ XorStr("[glow] allies"), Vars.colEspGlowAllies },
-	{ XorStr("[glow] allies wall"), Vars.colEspGlowAlliesWall },
-	{ XorStr("[glow] weapons"), Vars.colEspGlowWeapons },
-	{ XorStr("[glow] grenades"), Vars.colEspGlowGrenades },
-	{ XorStr("[glow] bomb"), Vars.colEspGlowBomb },
-	{ XorStr("[glow] planted bomb"), Vars.colEspGlowBombPlanted },
-	{ XorStr("[chams] enemies"), Vars.colEspChamsEnemies },
-	{ XorStr("[chams] enemies wall"), Vars.colEspChamsEnemiesWall },
-	{ XorStr("[chams] allies"), Vars.colEspChamsAllies },
-	{ XorStr("[chams] allies wall"), Vars.colEspChamsAlliesWall },
-	{ XorStr("[chams] viewmodel"), Vars.colEspChamsViewModel },
-	{ XorStr("[chams] viewmodel additional"), Vars.colEspChamsViewModelAdditional },
-	{ XorStr("[screen] hitmarker - lines"), Vars.colScreenHitMarker },
-	{ XorStr("[screen] hitmarker - damage"), Vars.colScreenHitMarkerDamage }
+	{ "[esp] box - enemies", Vars.colEspMainBoxEnemies },
+	{ "[esp] box - enemies wall", Vars.colEspMainBoxEnemiesWall },
+	{ "[esp] box - allies", Vars.colEspMainBoxAllies },
+	{ "[esp] box - allies wall", Vars.colEspMainBoxAlliesWall },
+	{ "[glow] enemies", Vars.colEspGlowEnemies },
+	{ "[glow] enemies wall", Vars.colEspGlowEnemiesWall },
+	{ "[glow] allies", Vars.colEspGlowAllies },
+	{ "[glow] allies wall", Vars.colEspGlowAlliesWall },
+	{ "[glow] weapons", Vars.colEspGlowWeapons },
+	{ "[glow] grenades", Vars.colEspGlowGrenades },
+	{ "[glow] bomb", Vars.colEspGlowBomb },
+	{ "[glow] planted bomb", Vars.colEspGlowBombPlanted },
+	{ "[chams] enemies", Vars.colEspChamsEnemies },
+	{ "[chams] enemies wall", Vars.colEspChamsEnemiesWall },
+	{ "[chams] allies", Vars.colEspChamsAllies },
+	{ "[chams] allies wall", Vars.colEspChamsAlliesWall },
+	{ "[chams] viewmodel", Vars.colEspChamsViewModel },
+	{ "[chams] viewmodel additional", Vars.colEspChamsViewModelAdditional },
+	{ "[screen] hitmarker - lines", Vars.colScreenHitMarker },
+	{ "[screen] hitmarker - damage", Vars.colScreenHitMarkerDamage }
 };
 
 const char* arrVisualsFlags[] =
@@ -78,25 +78,20 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 		// hmm, another one watermark
 		ImGui::BeginMainMenuBar();
 		{
-			ImDrawList* pWindowDrawList = ImGui::GetWindowDrawList();
-
-			// our debug text or something other
-			static const char* szInsecure = XorStr("insecure");
-			static ImVec2 vecInsecureSize = F::SmallestPixel->CalcTextSizeA(16.f, FLT_MAX, 0.0f, szInsecure);
+			ImGui::PushFont(F::Verdana);
 
 			if (strstr(GetCommandLine(), XorStr("-insecure")) != nullptr)
-				ImGui::AddText(pWindowDrawList, F::SmallestPixel, 16.f, ImVec2(0, 0), szInsecure, IM_COL32(255, 255, 0, 255));
-
-			static const char* szSendPackets = XorStr("send packets");
-			static ImVec2 vecSendPacketsSize = F::SmallestPixel->CalcTextSizeA(16.f, FLT_MAX, 0.0f, szSendPackets);
+				ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), XorStr("insecure"));
 
 			if (I::Engine->IsInGame())
-				ImGui::AddText(pWindowDrawList, F::SmallestPixel, 16.f, ImVec2(vecInsecureSize.x + 10.f, 0), szSendPackets, G::bSendPacket ? IM_COL32(0, 255, 0, 255) : IM_COL32(255, 0, 0, 255));
+				ImGui::TextColored(G::bSendPacket ? ImVec4(0.0f, 1.0f, 0.0f, 1.0f) : ImVec4(1.0f, 0.0f, 0.0f, 1.0f), XorStr("send packets"));
 
-			static const char* szName = XorStr("qo0 base | " __DATE__);
+			const char* const szName = XorStr("qo0 base | " __DATE__);
 			static ImVec2 vecNameSize = F::SmallestPixel->CalcTextSizeA(16.f, FLT_MAX, 0.0f, szName);
-			ImGui::AddText(pWindowDrawList, F::SmallestPixel, 16.f, ImGui::GetWindowContentRegionMax() - ImVec2(vecNameSize.x, vecNameSize.y * 0.5f), szName, IM_COL32(255, 255, 255, 255));
+			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - vecNameSize.x);
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), szName);
 
+			ImGui::PopFont();
 			ImGui::EndMainMenuBar();
 		}
 
@@ -133,11 +128,11 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 			// add tabs
 			static std::array<CTab, 4U> const arrTabs =
 			{
-				CTab{ XorStr("rage"), &T::RageBot },
-				CTab{ XorStr("legit"), &T::LegitBot },
-				CTab{ XorStr("visuals"), &T::Visuals },
-				CTab{ XorStr("miscellaneous"), &T::Miscellaneous }
-				//CTab{ XorStr("skinchanger"), &T::SkinChanger }
+				CTab{ "rage", &T::RageBot },
+				CTab{ "legit", &T::LegitBot },
+				CTab{ "visuals", &T::Visuals },
+				CTab{ "miscellaneous", &T::Miscellaneous }
+				//CTab{ "skinchanger", &T::SkinChanger }
 			};
 
 			T::Render<arrTabs.size()>(XorStr("main_tabs"), arrTabs, &iMainTab, style.Colors[ImGuiCol_TabActive]);
@@ -350,7 +345,7 @@ void T::Visuals()
 
 			static std::array<CTab, 3U> const arrEspTabs =
 			{
-				CTab{ XorStr("main"), [&style]()
+				CTab{ "main", [&style]()
 			{
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
 				ImGui::Checkbox(XorStr("enable##main"), &C::Get<bool>(Vars.bEspMain));
@@ -379,7 +374,7 @@ void T::Visuals()
 
 				ImGui::PopStyleVar();
 			}},
-				CTab{ XorStr("glow"), [&style]()
+				CTab{ "glow", [&style]()
 			{
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
 				ImGui::Checkbox(XorStr("enable##glow"), &C::Get<bool>(Vars.bEspGlow));
@@ -390,7 +385,7 @@ void T::Visuals()
 
 				ImGui::PopStyleVar();
 			}},
-				CTab{ XorStr("chams"), [&style]()
+				CTab{ "chams", [&style]()
 			{
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
 				ImGui::Checkbox(XorStr("enable##chams"), &C::Get<bool>(Vars.bEspChams));

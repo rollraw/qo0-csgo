@@ -229,7 +229,6 @@ public:
 	virtual IClientAlphaProperty*	GetClientAlphaProperty() = 0;
 };
 
-
 struct RenderableInstance_t
 {
 	std::uint8_t uAlpha;
@@ -325,8 +324,8 @@ class IClientEntity : public IClientUnknown, public IClientRenderable, public IC
 {
 public:
 	virtual void					Release() override = 0;
-	virtual const Vector&			GetAbsOrigin() const = 0; // can be used, i have reached the correctness
-	virtual const QAngle&			GetAbsAngles() const = 0; // can be used, i have reached the correctness
+	virtual const Vector&			GetAbsOrigin() const = 0;
+	virtual const QAngle&			GetAbsAngles() const = 0;
 	virtual void*					GetMouth() = 0;
 	virtual bool					GetSoundSpatialization(struct SpatializationInfo_t& info) = 0;
 	virtual bool					IsBlurred() = 0;
@@ -356,7 +355,6 @@ public:
 	}
 };
 
-/* base viewmodel data table class */
 class CBaseViewModel
 {
 public:
@@ -561,11 +559,6 @@ public:
 		return *(QAngle*)((std::uintptr_t)this + CNetvarManager::Get().angEyeAngles);
 	}
 
-	int GetSurvivalTeam()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().nSurvivalTeam);
-	}
-
 	float GetSpawnTime()
 	{
 		// @ida: 89 86 ? ? ? ? E8 ? ? ? ? 80 + 0x2
@@ -655,12 +648,19 @@ public:
 		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flLowerBodyYawTarget);
 	}
 
-	/* DT_BaseEntity */
+	int GetSurvivalTeam()
+	{
+		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().nSurvivalTeam);
+	}
+
+	/* DT_AnimTimeMustBeFirst */
 
 	float GetAnimationTime()
 	{
 		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flAnimTime);
 	}
+
+	/* DT_BaseEntity */
 
 	float GetSimulationTime()
 	{

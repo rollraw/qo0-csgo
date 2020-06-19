@@ -1051,7 +1051,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 		if (szName.length() > 24U)
 			szName = szName.substr(0U, 24U).append(XorStr("..."));
 
-		static const char* szBot = XorStr("[BOT]");
+		const char* const szBot = XorStr("[BOT]");
 		ImVec2 vecBotSize{ };
 		const ImVec2 vecNameSize = F::SmallestPixel->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szName.c_str());
 
@@ -1142,7 +1142,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	#pragma region visuals_player_right
 	if (C::Get<std::vector<bool>>(Vars.vecEspMainInfoFlags).at(INFO_FLAG_HELMET) && pEntity->HasHelmet())
 	{
-		static const char* szHelmetIcon = u8"\uE20E";
+		constexpr const char* szHelmetIcon = u8"\uE20E";
 		const ImVec2 vecHelmetSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szHelmetIcon);
 		ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szHelmetIcon, colInfo.GetU32(), true, colOutline.GetU32());
 		ctx.arrPadding.at(DIR_RIGHT) += vecHelmetSize.y;
@@ -1150,7 +1150,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 
 	if (C::Get<std::vector<bool>>(Vars.vecEspMainInfoFlags).at(INFO_FLAG_KEVLAR) && pEntity->GetArmor() > 0)
 	{
-		static const char* szKevlarIcon = u8"\uE210";
+		constexpr const char* szKevlarIcon = u8"\uE210";
 		const ImVec2 vecKevlarSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szKevlarIcon);
 		ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szKevlarIcon, colInfo.GetU32(), true, colOutline.GetU32());
 		ctx.arrPadding.at(DIR_RIGHT) += vecKevlarSize.y;
@@ -1158,7 +1158,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 
 	if (C::Get<std::vector<bool>>(Vars.vecEspMainInfoFlags).at(INFO_FLAG_KIT) && pEntity->HasDefuser())
 	{
-		static const char* szKitIcon = u8"\uE20F";
+		constexpr const char* szKitIcon = u8"\uE20F";
 		const ImVec2 vecKitSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szKitIcon);
 		ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szKitIcon, pEntity->IsDefusing() ? Color(80, 180, 200).GetU32() : colInfo.GetU32(), true, colOutline.GetU32());
 		ctx.arrPadding.at(DIR_RIGHT) += vecKitSize.y;
@@ -1166,7 +1166,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 
 	if (C::Get<std::vector<bool>>(Vars.vecEspMainInfoFlags).at(INFO_FLAG_ZOOM) && pEntity->IsScoped())
 	{
-		static const char* szTargetIcon = u8"\uE212";
+		constexpr const char* szTargetIcon = u8"\uE212";
 		const ImVec2 vecZoomSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szTargetIcon);
 		ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szTargetIcon, colInfo.GetU32(), true, colOutline.GetU32());
 		ctx.arrPadding.at(DIR_RIGHT) += vecZoomSize.y;

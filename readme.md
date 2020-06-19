@@ -19,14 +19,30 @@ panic key is <kbd>END</kbd>
 
 ### :test_tube: conventions
 1. prefix classes with 'C' and interfaces classes 'I'
+```cpp
+class CSomeClass;
+class ISomeInterface;
 ```
-CSomeClass
-ISomeInterface
+
+2. postfix structs with '_t'
+```cpp
+struct SomeStruct_t;
 ```
-2. postfix structs with '_t' e.g. `SomeStruct_t`
-3. prefix enums with 'E' e.g. `enum ESomeEnum`
-4. thirdparty (sdk, dependencies) macroses should be uppercase e.g. `#define SOMEMACROS`
-5. prefix own macroses with the first filename character e.g. `#define M_SOMEMATHMACROS`
+
+3. prefix enums with 'E'
+```cpp
+enum ESomeEnum
+```
+
+4. thirdparty (sdk, dependencies) macroses should be uppercase
+```cpp
+#define SOMEMACROS
+```
+
+5. prefix own macroses with the first filename character
+```cpp
+#define M_SOMEMATHMACROS
+```
 
 #
 
@@ -50,11 +66,19 @@ BYTE dSomeByte; DWORD dwSomeDword; unsigned uSomeInt + type (e.g. unsigned long 
 CSomeClass someClass; CSomeClass* pSomeClass;
 ```
 
-3. enumerations must inherit type e.g. `enum ESomeEnum : short`
+3. enumerations must inherit type
+```cpp
+enum ESomeEnum : short
+```
 
-3.1. enumerations members should be uppercase `SOME_ENUM_MEMBER = 0`
+3.1. enumerations members should be uppercase
+```cpp
+SOME_ENUM_MEMBER = 0
+```
 
-4. includes paths must be separated with one slash *`additional:` file names preferably be lowercase*
+4. includes paths must be separated with one slash
+
+4.1. `additional:` *file names preferably be lowercase*
 
 5. use number literal's (uppercase)
 ```cpp
@@ -64,14 +88,16 @@ unsigned int uSomeInt = 0U;
 unsigned long ulSomeULong = 0UL;
 ```
 
-6. use c-style casts `int* pSomePointer = *(int**)pSomeAddress;`
+6. use c-style casts
+```cpp
+int* pSomePointer = *(int**)pSomeAddress;
+```
 
 #
 
 ### :bookmark: preproccesor definitions
 1. `_DEBUG 1` - disable string encryption enables console logs (automatic switches with compilation configuration)
-2. `NDEBUG 1` - fully disables debug, opposite of _DEBUG (automatic switches with compilation configuration)
-3. `DEBUG_CONSOLE 1` - enables external console logging but deactivates file logging
+2. `DEBUG_CONSOLE 1` - enables external console logging but deactivates file logging
 
 #
 

@@ -90,13 +90,6 @@ void U::SendClanTag(const char* szClanTag, const char* szIdentifier)
 		oSendClanTag(szClanTag, szIdentifier);
 }
 
-int U::GetChokedTicks(CBaseEntity* pLocal, CBaseEntity* pEntity)
-{
-	float flSimulationTime = pEntity->GetSimulationTime();
-	float flDifference = pLocal->GetTickBase() * I::Globals->flIntervalPerTick - flSimulationTime;
-	return TIME_TO_TICKS(std::max<float>(0.f, flDifference));
-}
-
 bool U::PrecacheModel(const char* szModelName)
 {
 	if (auto pModelPrecache = I::StringContainer->FindTable(XorStr("modelprecache")); pModelPrecache != nullptr)

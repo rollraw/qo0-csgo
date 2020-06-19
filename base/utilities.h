@@ -58,7 +58,7 @@ namespace U
 	// Game
 	/* returns localplayer pointer */
 	CBaseEntity* GetLocalPlayer();
-	/* trace ray implementation, returns modified trace */
+	/* trace ray implementation, modifies given trace */
 	void TraceLine(const Vector& vecAbsStart, const Vector& vecAbsEnd, unsigned int fMask, IHandleEntity* pSkip, Trace_t* pTrace);
 	/* updates hud, clears delta tick */
 	void ForceFullUpdate();
@@ -70,8 +70,6 @@ namespace U
 	void SendName(const char* szName);
 	/* set given string to clantag */
 	void SendClanTag(const char* szClanTag, const char* szIdentifier);
-	/* calculate ~chocked ticks num for given entity */
-	int GetChokedTicks(CBaseEntity* pLocal, CBaseEntity* pEntity);
 	/* load specified model before you will be in-game */
 	bool PrecacheModel(const char* szModelName);
 	/* returns icon of given index for custom font */

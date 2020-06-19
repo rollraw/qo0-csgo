@@ -188,7 +188,7 @@ bool ImGui::HotKey(const char* szLabel, int* v)
 	}
 
 	char chBuffer[64];
-	XorCompileTime::w_sprintf_s(chBuffer, sizeof(chBuffer), XorStr("[ %s ]"), *v != 0 && g.ActiveId != nIndex ? arrKeyNames.at(*v) : g.ActiveId == nIndex ? XorStr("press") : XorStr("none"));
+	sprintf_s(chBuffer, sizeof(chBuffer), XorStr("[ %s ]"), *v != 0 && g.ActiveId != nIndex ? arrKeyNames.at(*v) : g.ActiveId == nIndex ? XorStr("press") : XorStr("none"));
 	
 	// modified by qo0
 	PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
@@ -425,7 +425,7 @@ void D::Setup(IDirect3DDevice9* pDevice, unsigned int uFontFlags)
 
 	ImFontConfig imWhitneyConfig;
 	imWhitneyConfig.RasterizerFlags = ImGuiFreeType::ForceAutoHint;
-	F::Whitney = io.Fonts->AddFontFromMemoryCompressedTTF(whitney_compressed_data, whitney_compressed_size, 13.f, &imWhitneyConfig, io.Fonts->GetGlyphRangesDefault());
+	F::Whitney = io.Fonts->AddFontFromMemoryCompressedTTF(whitney_compressed_data, whitney_compressed_size, 13.f, &imWhitneyConfig, io.Fonts->GetGlyphRangesCyrillic());
 
 	ImFontConfig imVerdanaConfig;
 	imVerdanaConfig.RasterizerFlags = ImGuiFreeType::Bold;

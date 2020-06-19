@@ -7,14 +7,14 @@
 
 constexpr std::array<std::string_view, DPT_SENDPROPTYPEMAX> arrPropTypes =
 {
-	XorStr("int"),
-	XorStr("float"),
-	XorStr("vector"),
-	XorStr("vector2d"),
-	XorStr("const char*"),
-	XorStr("std::array"),
-	XorStr("void*"),
-	XorStr("std::int64_t")
+	"int",
+	"float",
+	"vector",
+	"vector2d",
+	"const char*",
+	"std::array",
+	"void*",
+	"std::int64_t"
 };
 
 bool CNetvarManager::Setup(std::string_view szDumpFileName)
