@@ -1,4 +1,5 @@
 # qo0-base
+<a href="https://ci.appveyor.com/project/rollraw/qo0-base"><img alt="AppVeyor" src="https://img.shields.io/appveyor/build/rollraw/qo0-base?color=blueviolet&logo=appveyor&logoColor=white&logoWidth=10"></a>
 <a href="https://github.com/rollraw/qo0-base/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/rollraw/qo0-base?color=blueviolet"></a>
 <a href="https://github.com/rollraw/qo0-base/blob/master/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/rollraw/qo0-base?color=blueviolet"></a>
 

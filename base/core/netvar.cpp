@@ -86,8 +86,8 @@ void CNetvarManager::StoreProps(const char* szClassName, RecvTable_t* pRecvTable
 		const std::uintptr_t uTotalOffset = (std::uintptr_t)pCurrentProp->iOffset + uOffset;
 
 		// check if we not already grabbed property pointer and offset
-		//if (!mapProps[uHash].uOffset)
-		//{
+		if (!mapProps[uHash].uOffset)
+		{
 			#if _DEBUG
 			if (fsDumpFile.good())
 				fsDumpFile << szTable << XorStr("\t") << GetPropertyType(pCurrentProp->iRecvType, pCurrentProp->iElements, pCurrentProp->nStringBufferSize) << " " << pCurrentProp->szVarName << XorStr(" = 0x") << std::uppercase << std::hex << uTotalOffset << ";\n";
@@ -97,7 +97,7 @@ void CNetvarManager::StoreProps(const char* szClassName, RecvTable_t* pRecvTable
 			mapProps[uHash] = { pCurrentProp, uTotalOffset };
 			// count total stored props
 			iStoredProps++;
-		//}
+		}
 	}
 
 	// count total stored tables
