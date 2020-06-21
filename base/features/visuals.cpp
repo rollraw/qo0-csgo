@@ -98,7 +98,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 				break;
 
 			// get bomb owner
-			const CBaseEntity* pOwner = I::ClientEntityList->Get<CBaseEntity>(pEntity->GetOwnerEntity());
+			const CBaseEntity* pOwner = I::ClientEntityList->Get<CBaseEntity>(pEntity->GetOwnerEntityHandle());
 
 			// check only for dropped bomb, for bomb carrier need another way
 			if (pOwner != nullptr)
@@ -152,7 +152,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 			if (!pLocal->IsAlive())
 			{
 				// check is not spectating current entity
-				if (const auto pObserverEntity = I::ClientEntityList->Get<CBaseEntity>(pLocal->GetObserverTarget()); pObserverEntity != nullptr && pObserverEntity == pEntity && *pLocal->GetObserverMode() == OBS_MODE_IN_EYE)
+				if (const auto pObserverEntity = I::ClientEntityList->Get<CBaseEntity>(pLocal->GetObserverTargetHandle()); pObserverEntity != nullptr && pObserverEntity == pEntity && *pLocal->GetObserverMode() == OBS_MODE_IN_EYE)
 					break;
 			}
 
@@ -165,7 +165,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 			{
 				// set entity spotted in-game radar
 				if (C::Get<bool>(Vars.bEspMainFarRadar))
-					*pEntity->GetSpotted() = true;
+					*pEntity->IsSpotted() = true;
 
 				// setup player context
 				Context_t ctx = { };
@@ -248,7 +248,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 					break;
 
 				// get weapon owner
-				const CBaseEntity* pOwner = I::ClientEntityList->Get<CBaseEntity>(pEntity->GetOwnerEntity());
+				const CBaseEntity* pOwner = I::ClientEntityList->Get<CBaseEntity>(pEntity->GetOwnerEntityHandle());
 
 				// check only dropped weapons for active weapons we using another way
 				if (pOwner != nullptr)
@@ -320,12 +320,12 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 	if (pEntity == nullptr)
 		return false;
 
-	static std::string_view szScrollProxies = XorStr(R"#("texturescroll"
+	constexpr std::string_view szScrollProxies = R"#("texturescroll"
 	{
 		"texturescrollvar"		"$basetexturetransform"
 		"texturescrollrate"		"0.2"
 		"texturescrollangle"	"90"
-	})#");
+	})#";
 
 	/*
 	 * materials navigation:
@@ -858,7 +858,7 @@ void CVisuals::PlantedBomb(ImDrawList* pDrawList, CPlantedC4* pBomb, float flSer
 	ctx.box = { vecScreen.x - vecSize.x * 0.5f, vecScreen.y - vecSize.y * 0.5f, vecScreen.x + vecSize.x * 0.5f, vecScreen.y + vecSize.y * 0.5f, vecSize.x, vecSize.y };
 
 	// get defuser entity
-	const CBaseEntity* pDefuser = I::ClientEntityList->Get<CBaseEntity>(pBomb->GetDefuser());
+	const CBaseEntity* pDefuser = I::ClientEntityList->Get<CBaseEntity>(pBomb->GetDefuserHandle());
 
 	/* info */
 	// frame
@@ -1078,7 +1078,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 		// get all other weapons
 		if (C::Get<bool>(Vars.bEspMainInfoWeapons))
 		{
-			if (const auto hWeapons = pEntity->GetWeapons(); hWeapons != nullptr)
+			if (const auto hWeapons = pEntity->GetWeaponsHandle(); hWeapons != nullptr)
 			{
 				// -1 to prevent double active weapon
 				for (int nIndex = MAX_WEAPONS - 1; hWeapons[nIndex]; nIndex--)

@@ -272,13 +272,13 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	// @note: need do bunnyhop and other movements before prediction
 	CPrediction::Get().Start(pCmd, pLocal);
 	{
-		if (C::Get<bool>(Vars.bAutoPistol))
+		if (C::Get<bool>(Vars.bMiscAutoPistol))
 			CMiscellaneous::Get().AutoPistol(pCmd, pLocal);
 
 		if (C::Get<bool>(Vars.bRage))
 			CRageBot::Get().Run(pCmd, pLocal, bSendPacket);
 
-		if (C::Get<bool>(Vars.bFakeLag) || C::Get<bool>(Vars.bAntiAim))
+		if (C::Get<bool>(Vars.bMiscFakeLag) || C::Get<bool>(Vars.bAntiAim))
 			CMiscellaneous::Get().FakeLag(pCmd, pLocal, bSendPacket);
 
 		if (C::Get<bool>(Vars.bAntiAim))
@@ -295,13 +295,13 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	CMiscellaneous::Get().MovementCorrection(pCmd, angOldViewPoint);
 
 	// clamp & normalize view angles
-	if (C::Get<bool>(Vars.bAntiUntrusted))
+	if (C::Get<bool>(Vars.bMiscAntiUntrusted))
 	{
 		pCmd->angViewPoint.Normalize();
 		pCmd->angViewPoint.Clamp();
 	}
 
-	if (C::Get<bool>(Vars.bPingSpike))
+	if (C::Get<bool>(Vars.bMiscPingSpike))
 		CLagCompensation::Get().UpdateIncomingSequences(pNetChannel);
 	else
 		CLagCompensation::Get().ClearIncomingSequences();
@@ -554,7 +554,7 @@ bool FASTCALL H::hkIsConnected(IEngineClient* thisptr, int edx)
 	static std::uintptr_t uLoadoutAllowedReturn = (MEM::FindPattern(CLIENT_DLL, XorStr("75 04 B0 01 5F")) - 0x2);
 
 	// @credits: gavreel
-	if ((std::uintptr_t)_ReturnAddress() == uLoadoutAllowedReturn && C::Get<bool>(Vars.bUnlockInventory))
+	if ((std::uintptr_t)_ReturnAddress() == uLoadoutAllowedReturn && C::Get<bool>(Vars.bMiscUnlockInventory))
 		return false;
 
 	return oIsConnected(thisptr, edx);
@@ -586,7 +586,7 @@ int FASTCALL H::hkSendDatagram(INetChannel* pNetChannel, int edx, bf_write* pDat
 {
 	static auto oSendDatagram = DTR::SendDatagram.GetOriginal<decltype(&hkSendDatagram)>();
 
-	if (!I::Engine->IsInGame() || !C::Get<bool>(Vars.bPingSpike) || pDatagram != nullptr)
+	if (!I::Engine->IsInGame() || !C::Get<bool>(Vars.bMiscPingSpike) || pDatagram != nullptr)
 		return oSendDatagram(pNetChannel, edx, pDatagram);
 
 	int oInReliableState = pNetChannel->iInReliableState;
@@ -722,7 +722,7 @@ int FASTCALL H::hkRetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::
 	#endif
 
 	// check for k_EMsgGCCStrike15_v2_GCToClientSteamdatagramTicket message when we can accept the game
-	if (C::Get<bool>(Vars.bAutoAccept) && uMessageType == 9177)
+	if (C::Get<bool>(Vars.bMiscAutoAccept) && uMessageType == 9177)
 	{
 		U::SetLocalPlayerReady();
 		Beep(500, 800);

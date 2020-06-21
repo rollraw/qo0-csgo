@@ -472,7 +472,8 @@ void T::Miscellaneous()
 
 	ImGui::Columns(2, nullptr, false);
 	{
-		ImGui::BeginChild(XorStr("misc.movement"), ImVec2(0, 0), true, ImGuiWindowFlags_MenuBar);
+		static float flMovementChildSize = 0.f;
+		ImGui::BeginChild(XorStr("misc.movement"), ImVec2(0, flMovementChildSize), true, ImGuiWindowFlags_MenuBar);
 		{
 			if (ImGui::BeginMenuBar())
 			{
@@ -481,19 +482,33 @@ void T::Miscellaneous()
 			}
 
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
-			ImGui::Checkbox(XorStr("bunny hop"), &C::Get<bool>(Vars.bBunnyHop));
-			ImGui::SliderInt(XorStr("chance"), &C::Get<int>(Vars.iBunnyHopChance), 0, 100, "%d%%");
-			ImGui::Checkbox(XorStr("autostrafe"), &C::Get<bool>(Vars.bAutoStrafe));
+			ImGui::Checkbox(XorStr("bunny hop"), &C::Get<bool>(Vars.bMiscBunnyHop));
+			ImGui::SliderInt(XorStr("chance"), &C::Get<int>(Vars.iMiscBunnyHopChance), 0, 100, "%d%%");
+			ImGui::Checkbox(XorStr("autostrafe"), &C::Get<bool>(Vars.bMiscAutoStrafe));
 			ImGui::Separator();
 
-			ImGui::Checkbox(XorStr("fake lag"), &C::Get<bool>(Vars.bFakeLag));
-			ImGui::Checkbox(XorStr("ping spike"), &C::Get<bool>(Vars.bPingSpike));
-			ImGui::Checkbox(XorStr("auto pistol"), &C::Get<bool>(Vars.bAutoPistol));
-			ImGui::Checkbox(XorStr("no crouch cooldown"), &C::Get<bool>(Vars.bNoCrouchCooldown));
-			ImGui::Checkbox(XorStr("auto accept"), &C::Get<bool>(Vars.bAutoAccept));
-			ImGui::Checkbox(XorStr("reveal ranks"), &C::Get<bool>(Vars.bRankReveal));
-			ImGui::Checkbox(XorStr("unlock inventory"), &C::Get<bool>(Vars.bUnlockInventory));
-			ImGui::Checkbox(XorStr("anti-untrusted"), &C::Get<bool>(Vars.bAntiUntrusted));
+			ImGui::Checkbox(XorStr("fake lag"), &C::Get<bool>(Vars.bMiscFakeLag));
+			ImGui::Checkbox(XorStr("auto accept"), &C::Get<bool>(Vars.bMiscAutoAccept));
+			ImGui::Checkbox(XorStr("auto pistol"), &C::Get<bool>(Vars.bMiscAutoPistol));
+			ImGui::Checkbox(XorStr("no crouch cooldown"), &C::Get<bool>(Vars.bMiscNoCrouchCooldown));
+			ImGui::PopStyleVar();
+
+			flMovementChildSize = ImGui::GetCursorPosY() + style.ItemSpacing.y;
+			ImGui::EndChild();
+		}
+
+		ImGui::BeginChild(XorStr("misc.exploits"), ImVec2(0, 0), true, ImGuiWindowFlags_MenuBar);
+		{
+			if (ImGui::BeginMenuBar())
+			{
+				ImGui::TextUnformatted(XorStr("exploits"));
+				ImGui::EndMenuBar();
+			}
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
+			ImGui::Checkbox(XorStr("ping spike"), &C::Get<bool>(Vars.bMiscPingSpike));
+			ImGui::Checkbox(XorStr("reveal ranks"), &C::Get<bool>(Vars.bMiscRevealRanks));
+			ImGui::Checkbox(XorStr("unlock inventory"), &C::Get<bool>(Vars.bMiscUnlockInventory));
+			ImGui::Checkbox(XorStr("anti-untrusted"), &C::Get<bool>(Vars.bMiscAntiUntrusted));
 			ImGui::PopStyleVar();
 
 			ImGui::EndChild();
@@ -501,8 +516,6 @@ void T::Miscellaneous()
 	}
 	ImGui::NextColumn();
 	{
-		// current displaying configuration name
-		static char szDisplayConfig[FILENAME_MAX] = { };
 		// current selected configuration name
 		static std::string szCurrentConfig;
 
@@ -521,8 +534,8 @@ void T::Miscellaneous()
 
 				ImGui::ListBox(XorStr("##config.list"), &iSelectedConfig, [](int nIndex)
 					{
-						strcpy_s(szDisplayConfig, sizeof(szDisplayConfig), C::vecFileNames.at(nIndex).c_str());
-						return szDisplayConfig;
+						// return current displaying configuration name
+						return C::vecFileNames.at(nIndex).c_str();
 					}, C::vecFileNames.size(), 5);
 
 				szCurrentConfig = C::vecFileNames.at(iSelectedConfig);
@@ -532,24 +545,17 @@ void T::Miscellaneous()
 			{
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
 				ImGui::PushItemWidth(-1);
-				ImGui::InputTextWithHint(XorStr("##config.file"), XorStr("enter filename..."), &szConfigFile);
+				if (ImGui::InputTextWithHint(XorStr("##config.file"), XorStr("create new..."), &szConfigFile, ImGuiInputTextFlags_EnterReturnsTrue))
+				{
+					C::Save(szConfigFile);
+					szConfigFile.clear();
+					C::Refresh();
+				}
 				if (ImGui::IsItemHovered())
-					ImGui::SetTooltip(XorStr("write file name to create new config\nor clear input to load choosed file"));
+					ImGui::SetTooltip(XorStr("press enter to create new configuration"));
 
-				if (!szConfigFile.empty())
-				{
-					if (ImGui::Button(XorStr("create"), ImVec2(-1, 15)))
-					{
-						C::Save(szConfigFile);
-						szConfigFile.clear();
-						C::Refresh();
-					}
-				}
-				else
-				{
-					if (ImGui::Button(XorStr("save"), ImVec2(-1, 15)))
-						C::Save(szCurrentConfig);
-				}
+				if (ImGui::Button(XorStr("save"), ImVec2(-1, 15)))
+					C::Save(szCurrentConfig);
 
 				if (ImGui::Button(XorStr("load"), ImVec2(-1, 15)))
 					C::Load(szCurrentConfig);
@@ -565,7 +571,7 @@ void T::Miscellaneous()
 			}
 			ImGui::Columns(1);
 
-			if (ImGui::BeginPopupModal(XorStr("confirmation##config.remove"), false, ImGuiWindowFlags_NoResize))
+			if (ImGui::BeginPopupModal(XorStr("confirmation##config.remove"), false, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize))
 			{
 				ImGui::Text(XorStr("are you sure you want to remove \"%s\" configuration?"), szCurrentConfig.c_str());
 				ImGui::Spacing();

@@ -13,6 +13,50 @@
 // used: datamap struct
 #include "../sdk/datatypes/datamap.h"
 
+#pragma region netvar_definitions
+/* add function to get variable with additional offset from netvar offset */
+#define N_ADD_VARIABLE_OFFSET( Type, szFunctionName, szNetVar, uAdditional )								\
+	[[nodiscard]] std::add_lvalue_reference_t<Type> szFunctionName()										\
+	{																										\
+		constexpr FNV1A_t uHash = FNV1A::HashConst(szNetVar);												\
+		static std::uintptr_t uOffset = CNetvarManager::Get().mapProps[uHash].uOffset;						\
+		return *(std::add_pointer_t<Type>)((std::uintptr_t)this + uOffset + uAdditional);					\
+	}
+
+/* add function to get netvar variable */
+#define N_ADD_VARIABLE( Type, szFunctionName, szNetVar ) N_ADD_VARIABLE_OFFSET( Type, szFunctionName, szNetVar, 0U )
+
+/* add function to get variable pointer with additional offset from netvar offset */
+#define N_ADD_PVARIABLE_OFFSET( Type, szFunctionName, szNetVar, uAdditional )								\
+	[[nodiscard]] std::add_pointer_t<Type> szFunctionName()													\
+	{																										\
+		constexpr FNV1A_t uHash = FNV1A::HashConst(szNetVar);												\
+		static std::uintptr_t uOffset = CNetvarManager::Get().mapProps[uHash].uOffset;						\
+		return (std::add_pointer_t<Type>)((std::uintptr_t)this + uOffset + uAdditional);					\
+	}
+
+/* add function to get netvar variable pointer */
+#define N_ADD_PVARIABLE( Type, szFunctionName, szNetVar ) N_ADD_PVARIABLE_OFFSET( Type, szFunctionName, szNetVar, 0U )
+
+/* add function to get datamap variable */
+#define N_ADD_DATAFIELD( Type, szFunctionName, pMap, szDataField )											\
+	[[nodiscard]] std::add_lvalue_reference_t<Type> szFunctionName()										\
+	{																										\
+		constexpr FNV1A_t uHash = FNV1A::HashConst(szDataField);											\
+		static std::uintptr_t uOffset = CNetvarManager::Get().FindInDataMap(pMap, uHash);					\
+		return *(std::add_pointer_t<Type>)((std::uintptr_t)this + uOffset);									\
+	}
+
+/* add function to get datamap variable pointer */
+#define N_ADD_PDATAFIELD( Type, szFunctionName, pMap, szDataField )											\
+	[[nodiscard]] std::add_pointer_t<Type> szFunctionName()													\
+	{																										\
+		constexpr FNV1A_t uHash = FNV1A::HashConst(szDataField);											\
+		static std::uintptr_t uOffset = CNetvarManager::Get().FindInDataMap(pMap, uHash);					\
+		return (std::add_pointer_t<Type>)((std::uintptr_t)this + uOffset);									\
+	}
+#pragma endregion
+
 class CRecvPropHook
 {
 public:
@@ -66,13 +110,11 @@ public:
 	// Get
 	/* fill map with netvars and also dump it to given file */
 	bool Setup(std::string_view szDumpFileName);
-	/* get offsets of certain networked vars in certain tables */
-	void GrabOffsets();
 	/*
 	 * stores the variables of objects in the hierarchy
 	 * used to iterate through an object's data descriptions from data map
 	 */
-	std::uintptr_t FindInDataMap(DataMap_t* pMap, FNV1A_t uFieldHash);
+	std::uintptr_t FindInDataMap(DataMap_t* pMap, const FNV1A_t uFieldHash);
 
 	// Values
 	/* logging counters */
@@ -81,213 +123,15 @@ public:
 	/* networkable properties map */
 	std::map<FNV1A_t, NetvarObject_t> mapProps;
 
-	/* netvars */
-	// DT_BasePlayer
-	std::uintptr_t
-		flFallVelocity,
-		viewPunchAngle,
-		aimPunchAngle,
-		vecViewOffset,
-		nTickBase,
-		nNextThinkTick,
-		vecVelocity,
-		hConstraintEntity,
-		deadflag,
-		hGroundEntity,
-		iHealth,
-		lifeState,
-		flMaxspeed,
-		fFlags,
-		iObserverMode,
-		hObserverTarget,
-		hViewModel,
-		szLastPlaceName;
-
-	// DT_CSPlayer
-	std::uintptr_t
-		iShotsFired,
-		iAccount,
-		totalHitsOnServer,
-		ArmorValue,
-		angEyeAngles,
-		bIsDefusing,
-		bIsScoped,
-		bIsGrabbingHostage,
-		bIsRescuing,
-		bHasHelmet,
-		bHasHeavyArmor,
-		bHasDefuser,
-		iCrosshairId,
-		bGunGameImmunity,
-		bInBuyZone,
-		flFriction,
-		flStepSize,
-		flFlashMaxAlpha,
-		flFlashDuration,
-		iGlowIndex,
-		flLowerBodyYawTarget,
-		nSurvivalTeam;
-
-	// DT_AnimTimeMustBeFirst
-	std::uintptr_t
-		flAnimTime;
-
-	// DT_BaseEntity
-	std::uintptr_t
-		flSimulationTime,
-		vecOrigin,
-		angRotation,
-		iTeamNum,
-		hOwnerEntity,
-		Collision,
-		CollisionGroup,
-		bSpotted;
-
-	// DT_BCCLocalPlayerExclusive
-	std::uintptr_t
-		flNextAttack;
-
-	// DT_BaseCombatCharacter
-	std::uintptr_t
-		hActiveWeapon,
-		hMyWeapons,
-		hMyWearables;
-
-	// DT_LocalActiveWeaponData
-	std::uintptr_t
-		flNextPrimaryAttack,
-		flNextSecondaryAttack;
-
-	// DT_BaseCombatWeapon
-	std::uintptr_t
-		iClip1,
-		iPrimaryReserveAmmoCount,
-		iViewModelIndex,
-		iWorldModelIndex,
-		hWeaponWorldModel;
-
-	// DT_WeaponCSBaseGun
-	std::uintptr_t
-		zoomLevel,
-		iBurstShotsRemaining;
-
-	// DT_WeaponCSBase
-	std::uintptr_t
-		fAccuracyPenalty,
-		bBurstMode,
-		flPostponeFireReadyTime,
-		bReloadVisuallyComplete;
-
-	// DT_BaseCSGrenade
-	std::uintptr_t
-		bPinPulled,
-		fThrowTime,
-		flThrowStrength;
-
-	// DT_BaseCSGrenadeProjectile
-	std::uintptr_t
-		nExplodeEffectTickBegin;
-
-	// DT_SmokeGrenadeProjectile
-	std::uintptr_t
-		nSmokeEffectTickBegin;
-
-	// DT_Inferno
-	std::uintptr_t
-		nFireEffectTickBegin;
-
-	// DT_PlantedC4
-	std::uintptr_t
-		flC4Blow,
-		flDefuseCountDown,
-		flTimerLength,
-		flDefuseLength,
-		bBombTicking,
-		hBombDefuser,
-		bBombDefused;
-
-	// DT_BreakableSurface
-	std::uintptr_t
-		bIsBroken;
-
-	// DT_EnvTonemapController
-	std::uintptr_t
-		bUseCustomAutoExposureMin,
-		bUseCustomAutoExposureMax,
-		bUseCustomBloomScale,
-		flCustomAutoExposureMin,
-		flCustomAutoExposureMax,
-		flCustomBloomScale,
-		flCustomBloomScaleMinimum,
-		flBloomExponent,
-		flBloomSaturation;
-
-	// DT_PlayerResource
-	std::uintptr_t
-		iPing;
-
-	// DT_CSPlayerResource
-	std::uintptr_t
-		iCompetitiveRanking,
-		iCompetitiveWins,
-		nActiveCoinRank,
-		nMusicID,
-		nPersonaDataPublicLevel,
-		nPersonaDataPublicCommendsLeader,
-		nPersonaDataPublicCommendsTeacher,
-		nPersonaDataPublicCommendsFriendly,
-		szClan;
-
-	// DT_CSGameRules
-	std::uintptr_t
-		bFreezePeriod,
-		iRoundTime,
-		bIsValveDS,
-		bBombDropped,
-		bBombPlanted;
-
-	// DT_BaseAnimating
-	std::uintptr_t
-		nSequence,
-		nForceBone,
-		dwBoneMatrix,
-		nHitboxSet,
-		flPoseParameter,
-		bClientSideAnimation;
-
-	// DT_ServerAnimationData
-	std::uintptr_t
-		flCycle;
-
-	// DT_BaseViewModel
-	std::uintptr_t
-		nModelIndex,
-		hOwner,
-		hWeapon;
-
-	// DT_ScriptCreatedItem
-	std::uintptr_t
-		iItemDefinitionIndex,
-		iItemIDHigh,
-		iItemIDLow,
-		iAccountID,
-		iEntityQuality,
-		szCustomName;
-
-	// DT_BaseAttributableItem
-	std::uintptr_t
-		OriginalOwnerXuidLow,
-		OriginalOwnerXuidHigh,
-		nFallbackPaintKit,
-		nFallbackSeed,
-		flFallbackWear,
-		nFallbackStatTrak;
 private:
 	/*
 	 * recursively stores networked properties info from data tables in our map
 	 * and also format our dump and write values to file
 	 */
-	void StoreProps(RecvTable_t* pRecvTable, const std::uintptr_t uOffset, int nDumpTabs);
+	void StoreProps(const char* szClassName, RecvTable_t* pRecvTable, const std::uintptr_t uOffset, int nDumpTabs);
+
+	// Extra
+	std::string GetPropertyType(ESendPropType nPropertyType, int iElements, int nStringBufferSize);
 
 	// Values
 	/* output file */

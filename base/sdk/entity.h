@@ -19,6 +19,8 @@
 // used: model
 #include "interfaces/ivmodelinfo.h"
 
+// @note: all clasees values arranged in order similar to the tables! keep it like that
+
 #pragma region entities_definitions
 #define INVALID_EHANDLE_INDEX		0xFFFFFFFF
 #define NUM_ENT_ENTRY_BITS			(11 + 2)
@@ -349,131 +351,47 @@ public:
 		return MEM::CallVFunc<DataMap_t*>(this, 15);
 	}
 
-	DataMap_t* GetPredDescMap()
+	DataMap_t* GetPredictionDescMap()
 	{
 		return MEM::CallVFunc<DataMap_t*>(this, 17);
 	}
 };
 
-class CBaseViewModel
+class CWeaponCSBase;
+class CBaseEntity : public IClientEntity
 {
 public:
-	int* GetModelIndex()
-	{
-		return (int*)((std::uintptr_t)this + CNetvarManager::Get().nModelIndex);
-	}
+	#pragma region DT_BasePlayer
+	N_ADD_PVARIABLE(float, GetFallVelocity, "CBasePlayer->m_flFallVelocity");
+	N_ADD_VARIABLE(QAngle, GetViewPunch, "CBasePlayer->m_viewPunchAngle");
+	N_ADD_VARIABLE(QAngle, GetPunch, "CBasePlayer->m_aimPunchAngle");
+	N_ADD_VARIABLE(Vector, GetViewOffset, "CBasePlayer->m_vecViewOffset[0]");
+	N_ADD_VARIABLE(float, GetFriction, "CBasePlayer->m_flFriction");
+	N_ADD_VARIABLE(int, GetTickBase, "CBasePlayer->m_nTickBase");
+	N_ADD_PVARIABLE(int, GetNextThinkTick, "CBasePlayer->m_nNextThinkTick");
+	N_ADD_VARIABLE(Vector, GetVelocity, "CBasePlayer->m_vecVelocity[0]");
+	N_ADD_PVARIABLE_OFFSET(QAngle, GetThirdPersonAngles, "CBasePlayer->deadflag", 0x4);
+	N_ADD_VARIABLE(CBaseHandle, GetGroundEntityHandle, "CBasePlayer->m_hGroundEntity");
+	N_ADD_VARIABLE(int, GetHealth, "CBasePlayer->m_iHealth");
+	N_ADD_VARIABLE(int, GetLifeState, "CBasePlayer->m_lifeState");
+	N_ADD_VARIABLE(float, GetMaxSpeed, "CBasePlayer->m_flMaxspeed");
+	N_ADD_VARIABLE(int, GetFlags, "CBasePlayer->m_fFlags");
+	N_ADD_PVARIABLE(int, GetObserverMode, "CBasePlayer->m_iObserverMode");
+	N_ADD_VARIABLE(CBaseHandle, GetObserverTargetHandle, "CBasePlayer->m_hObserverTarget");
+	N_ADD_VARIABLE(CBaseHandle, GetViewModelHandle, "CBasePlayer->m_hViewModel[0]");
+	N_ADD_PVARIABLE(const char, GetLastPlace, "CBasePlayer->m_szLastPlaceName");
 
-	void SetModelIndex(int nModelIndex)
-	{
-		MEM::CallVFunc<void>(this, 75, nModelIndex);
-	}
-
-	CBaseHandle GetOwner()
-	{
-		return *(CBaseHandle*)((std::uintptr_t)this + CNetvarManager::Get().hOwner);
-	}
-
-	CBaseHandle GetWeaponHandle()
-	{
-		return *(CBaseHandle*)((std::uintptr_t)this + CNetvarManager::Get().hWeapon);
-	}
-
-	void SendViewModelMatchingSequence(int nSequence)
-	{
-		MEM::CallVFunc<void>(this, 246, nSequence);
-	}
-
-	void SetWeaponModel(const char* szFileName, CBaseCombatWeapon* pWeapon)
-	{
-		// @ida setweaponmodel: 57 8B F9 8B 97 ? ? ? ? 83 FA FF 74 6A
-		MEM::CallVFunc<void>(this, 247, szFileName, pWeapon);
-	}
-};
-
-class CBaseEntity : public IClientEntity, public CBaseViewModel
-{
-public:
-	/* DT_BasePlayer */
-
-	int* GetButtons()
-	{
-		static std::uintptr_t m_nButtons = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_nButtons"));
-		return (int*)((std::uintptr_t)this + m_nButtons);
-	}
-
-	int& GetButtonLast()
-	{
-		static std::uintptr_t m_afButtonLast = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_afButtonLast"));
-		return *(int*)((std::uintptr_t)this + m_afButtonLast);
-	}
-
-	int& GetButtonPressed()
-	{
-		static std::uintptr_t m_afButtonPressed = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_afButtonPressed"));
-		return *(int*)((std::uintptr_t)this + m_afButtonPressed);
-	}
-
-	int& GetButtonReleased()
-	{
-		static std::uintptr_t m_afButtonReleased = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_afButtonReleased"));
-		return *(int*)((std::uintptr_t)this + m_afButtonReleased);
-	}
-
-	int GetButtonDisabled()
-	{
-		return *(int*)((std::uintptr_t)this + 0x3330);
-	}
-
-	int GetButtonForced()
-	{
-		return *(int*)((std::uintptr_t)this + 0x3334);
-	}
-
-	float* GetFallVelocity()
-	{
-		return (float*)((std::uintptr_t)this + CNetvarManager::Get().flFallVelocity);
-	}
-
-	QAngle& GetViewPunch()
-	{
-		return *(QAngle*)((std::uintptr_t)this + CNetvarManager::Get().viewPunchAngle);
-	}
-
-	QAngle& GetPunch()
-	{
-		return *(QAngle*)((std::uintptr_t)this + CNetvarManager::Get().aimPunchAngle);
-	}
-
-	Vector& GetViewOffset()
-	{
-		return *(Vector*)((std::uintptr_t)this + CNetvarManager::Get().vecViewOffset);
-	}
-
-	int* GetImpulse()
-	{
-		static std::uintptr_t m_nImpulse = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_nImpulse"));
-		return (int*)((std::uintptr_t)this + m_nImpulse);
-	}
-
-	int& GetTickBase()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().nTickBase);
-	}
-
-	int* GetNextThinkTick()
-	{
-		return (int*)((std::uintptr_t)this + CNetvarManager::Get().nNextThinkTick);
-	}
-
-	Vector GetVelocity()
-	{
-		return *(Vector*)((std::uintptr_t)this + CNetvarManager::Get().vecVelocity);
-	}
+	N_ADD_PDATAFIELD(int, GetButtons, this->GetPredictionDescMap(), "m_nButtons");
+	N_ADD_DATAFIELD(int, GetButtonLast, this->GetPredictionDescMap(), "m_afButtonLast");
+	N_ADD_DATAFIELD(int, GetButtonPressed, this->GetPredictionDescMap(), "m_afButtonPressed");
+	N_ADD_DATAFIELD(int, GetButtonReleased, this->GetPredictionDescMap(), "m_afButtonReleased");
+	N_ADD_PDATAFIELD(int, GetImpulse, this->GetPredictionDescMap(), "m_nImpulse");
+	N_ADD_DATAFIELD(float, GetSurfaceFriction, this->GetPredictionDescMap(), "m_surfaceFriction");
 
 	CUserCmd** GetCurrentCommand()
 	{
 		// @pattern = 89 BE ? ? ? ? E8 ? ? ? ? 85 FF + 0x2
-		static std::uintptr_t m_pCurrentCommand = CNetvarManager::Get().hConstraintEntity - 0xC;
+		static std::uintptr_t m_pCurrentCommand = CNetvarManager::Get().mapProps[FNV1A::HashConst("CBasePlayer->m_hConstraintEntity")].uOffset - 0xC;
 		return (CUserCmd**)((std::uintptr_t)this + m_pCurrentCommand);
 	}
 
@@ -482,321 +400,135 @@ public:
 		return *(CUserCmd*)((std::uintptr_t)this + 0x3288);
 	}
 
-	QAngle* GetThirdPersonAngles()
+	[[nodiscard]] int GetButtonDisabled()
 	{
-		return (QAngle*)((std::uintptr_t)this + CNetvarManager::Get().deadflag + 0x4);
+		return *(int*)((std::uintptr_t)this + 0x3330);
 	}
 
-	CBaseHandle GetGroundEntity()
+	[[nodiscard]] int GetButtonForced()
 	{
-		return *(CBaseHandle*)((std::uintptr_t)this + CNetvarManager::Get().hGroundEntity);
+		return *(int*)((std::uintptr_t)this + 0x3334);
 	}
 
-	int GetHealth()
+	[[nodiscard]] int& GetTakeDamage()
 	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().iHealth);
+		return *(int*)((std::uintptr_t)this + 0x280);
 	}
 
-	int GetLifeState()
+	inline bool IsAlive()
 	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().lifeState);
-	}
+		/*
+		 * @note: if u have problems with lifestate check (some servers has plugin for health restore and entity lifestate doesnt switch back to the alive)
+		 * required to check for health and/or check lifestate where needed
+		 * GetHealth() > 0
+		 */
 
-	float GetMaxSpeed()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flMaxspeed);
+		return (this->GetLifeState() == LIFE_ALIVE) ? true : false;
 	}
+	#pragma endregion
 
-	int GetFlags()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().fFlags);
-	}
+	#pragma region DT_CSPlayer
+	N_ADD_VARIABLE(int, GetShotsFired, "CCSPlayer->m_iShotsFired");
+	N_ADD_VARIABLE(int, GetMoney, "CCSPlayer->m_iAccount");
+	N_ADD_VARIABLE(int, GetTotalHits, "CCSPlayer->m_totalHitsOnServer");
+	N_ADD_VARIABLE(int, GetArmor, "CCSPlayer->m_ArmorValue");
+	N_ADD_VARIABLE(QAngle, GetEyeAngles, "CCSPlayer->m_angEyeAngles");
+	N_ADD_VARIABLE(bool, IsDefusing, "CCSPlayer->m_bIsDefusing");
+	N_ADD_VARIABLE(bool, IsScoped, "CCSPlayer->m_bIsScoped");
+	N_ADD_VARIABLE(bool, IsGrabbingHostage, "CCSPlayer->m_bIsGrabbingHostage");
+	N_ADD_VARIABLE(bool, IsRescuing, "CCSPlayer->m_bIsRescuing");
+	N_ADD_VARIABLE(bool, HasHelmet, "CCSPlayer->m_bHasHelmet");
+	N_ADD_VARIABLE(bool, HasHeavyArmor, "CCSPlayer->m_bHasHeavyArmor");
+	N_ADD_VARIABLE(bool, HasDefuser, "CCSPlayer->m_bHasDefuser");
+	N_ADD_VARIABLE(bool, HasImmunity, "CCSPlayer->m_bGunGameImmunity");
+	N_ADD_VARIABLE(bool, IsInBuyZone, "CCSPlayer->m_bInBuyZone");
+	N_ADD_PVARIABLE(float, GetFlashMaxAlpha, "CCSPlayer->m_flFlashMaxAlpha");
+	N_ADD_VARIABLE_OFFSET(float, GetFlashAlpha, "CCSPlayer->m_flFlashMaxAlpha", -0x8);
+	N_ADD_VARIABLE(float, GetFlashDuration, "CCSPlayer->m_flFlashDuration");
+	N_ADD_VARIABLE_OFFSET(int, GetGlowIndex, "CCSPlayer->m_flFlashDuration", 0x18);
+	N_ADD_VARIABLE(float, GetLowerBodyYaw, "CCSPlayer->m_flLowerBodyYawTarget");
+	N_ADD_VARIABLE(int, GetSurvivalTeam, "CCSPlayer->m_nSurvivalTeam");
+	#pragma endregion
 
-	EObserverMode* GetObserverMode()
-	{
-		return (EObserverMode*)((std::uintptr_t)this + CNetvarManager::Get().iObserverMode);
-	}
+	#pragma region DT_BaseEntity
+	N_ADD_VARIABLE(float, GetAnimationTime, "CBaseEntity->m_flAnimTime");
+	N_ADD_VARIABLE(float, GetSimulationTime, "CBaseEntity->m_flSimulationTime");
+	N_ADD_VARIABLE_OFFSET(float, GetOldSimulationTime, "CBaseEntity->m_flSimulationTime", 0x4);
+	N_ADD_VARIABLE(Vector, GetOrigin, "CBaseEntity->m_vecOrigin");
+	N_ADD_VARIABLE(QAngle, GetRotation, "CBaseEntity->m_angRotation");
+	N_ADD_VARIABLE(int, GetTeam, "CBaseEntity->m_iTeamNum");
+	N_ADD_VARIABLE(CBaseHandle, GetOwnerEntityHandle, "CBaseEntity->m_hOwnerEntity");
+	N_ADD_PVARIABLE(ICollideable, GetCollision, "CBaseEntity->m_Collision");
+	N_ADD_VARIABLE(int, GetCollisionGroup, "CBaseEntity->m_CollisionGroup");
+	N_ADD_PVARIABLE(bool, IsSpotted, "CBaseEntity->m_bSpotted");
 
-	CBaseHandle GetObserverTarget()
-	{
-		return *(CBaseHandle*)((std::uintptr_t)this + CNetvarManager::Get().hObserverTarget);
-	}
-
-	CBaseHandle GetViewModel()
-	{
-		return *(CBaseHandle*)((std::uintptr_t)this + CNetvarManager::Get().hViewModel);
-	}
-
-	const char* GetLastPlace()
-	{
-		return (const char*)((std::uintptr_t)this + CNetvarManager::Get().szLastPlaceName);
-	}
-
-	/* DT_CSPlayer */
-
-	int GetShotsFired()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().iShotsFired);
-	}
-
-	int GetMoney()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().iAccount);
-	}
-
-	int GetTotalHits()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().totalHitsOnServer);
-	}
-
-	int GetArmor()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().ArmorValue);
-	}
-
-	QAngle& GetEyeAngles()
-	{
-		return *(QAngle*)((std::uintptr_t)this + CNetvarManager::Get().angEyeAngles);
-	}
+	N_ADD_DATAFIELD(QAngle, GetAbsRotation, this->GetDataDescMap(), "m_angAbsRotation");
+	N_ADD_DATAFIELD(const matrix3x4_t, GetCoordinateFrame, this->GetDataDescMap(), "m_rgflCoordinateFrame");
+	N_ADD_DATAFIELD(int, GetMoveType, this->GetPredictionDescMap(), "m_MoveType");
 
 	float GetSpawnTime()
 	{
 		// @ida: 89 86 ? ? ? ? E8 ? ? ? ? 80 + 0x2
 		return *(float*)((std::uintptr_t)this + 0xA370);
 	}
-
-	#pragma region baseentity_checks
-	bool IsDefusing()
-	{
-		return *(bool*)((std::uintptr_t)this + CNetvarManager::Get().bIsDefusing);
-	}
-
-	bool IsScoped()
-	{
-		return *(bool*)((std::uintptr_t)this + CNetvarManager::Get().bIsScoped);
-	}
-
-	bool IsGrabbingHostage()
-	{
-		return *(bool*)((std::uintptr_t)this + CNetvarManager::Get().bIsGrabbingHostage);
-	}
-
-	bool IsRescuing()
-	{
-		return *(bool*)((std::uintptr_t)this + CNetvarManager::Get().bIsRescuing);
-	}
-
-	bool HasHelmet()
-	{
-		return *(bool*)((std::uintptr_t)this + CNetvarManager::Get().bHasHelmet);
-	}
-
-	bool HasHeavyArmor()
-	{
-		return *(bool*)((std::uintptr_t)this + CNetvarManager::Get().bHasHeavyArmor);
-	}
-
-	bool HasDefuser()
-	{
-		return *(bool*)((std::uintptr_t)this + CNetvarManager::Get().bHasDefuser);
-	}
-
-	bool HasImmunity()
-	{
-		return *(bool*)((std::uintptr_t)this + CNetvarManager::Get().bGunGameImmunity);
-	}
 	#pragma endregion
 
-	float GetFriction()
+	#pragma region DT_BaseCombatCharacter
+	N_ADD_VARIABLE(float, GetNextAttack, "CBaseCombatCharacter->m_flNextAttack");
+	N_ADD_VARIABLE(CBaseHandle, GetActiveWeaponHandle, "CBaseCombatCharacter->m_hActiveWeapon");
+	N_ADD_PVARIABLE(CBaseHandle, GetWeaponsHandle, "CBaseCombatCharacter->m_hMyWeapons");
+	N_ADD_PVARIABLE(CBaseHandle, GetWearablesHandle, "CBaseCombatCharacter->m_hMyWearables");
+	#pragma endregion
+
+	#pragma region DT_BaseAnimating
+	N_ADD_VARIABLE(int, GetSequence, "CBaseAnimating->m_nSequence");
+	N_ADD_PVARIABLE_OFFSET(CBoneAccessor, GetBoneAccessor, "CBaseAnimating->m_nForceBone", 0x1C);
+	N_ADD_VARIABLE(int, GetHitboxSet, "CBaseAnimating->m_nHitboxSet");
+	N_ADD_VARIABLE(bool, IsClientSideAnimation, "CBaseAnimating->m_bClientSideAnimation");
+	N_ADD_VARIABLE(float, GetCycle, "CBaseAnimating->m_flCycle");
+
+	[[nodiscard]] std::array<float, 24U>& GetPoseParameter()
 	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flFriction);
+		static std::uintptr_t m_flPoseParameter = CNetvarManager::Get().mapProps[FNV1A::HashConst("CBaseAnimating->m_flPoseParameter")].uOffset;
+		return *(std::array<float, 24U>*)((std::uintptr_t)this + m_flPoseParameter);
 	}
 
-	float GetSurfaceFriction()
+	inline void SetPoseAngles(float flYaw, float flPitch)
 	{
-		static std::uintptr_t m_surfaceFriction = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_surfaceFriction"));
-		return *(float*)((std::uintptr_t)this + m_surfaceFriction);
+		auto& arrPose = this->GetPoseParameter();
+		arrPose.at(11U) = (flPitch + 90.f) / 180.f;
+		arrPose.at(2U) = (flYaw + 180.f) / 360.f;
 	}
 
-	int& GetTakeDamage()
-	{
-		return *(int*)((std::uintptr_t)this + 0x280);
-	}
-
-	float GetFlashAlpha()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flFlashMaxAlpha - 0x8);
-	}
-
-	float* GetFlashMaxAlpha()
-	{
-		return (float*)((std::uintptr_t)this + CNetvarManager::Get().flFlashMaxAlpha);
-	}
-
-	float GetFlashDuration()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flFlashDuration);
-	}
-
-	int GetGlowIndex()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().iGlowIndex);
-	}
-
-	float GetLowerBodyYaw()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flLowerBodyYawTarget);
-	}
-
-	int GetSurvivalTeam()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().nSurvivalTeam);
-	}
-
-	/* DT_AnimTimeMustBeFirst */
-
-	float GetAnimationTime()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flAnimTime);
-	}
-
-	/* DT_BaseEntity */
-
-	float GetSimulationTime()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flSimulationTime);
-	}
-
-	float GetOldSimulationTime()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flSimulationTime + 0x4);
-	}
-
-	Vector GetOrigin()
-	{
-		return *(Vector*)((std::uintptr_t)this + CNetvarManager::Get().vecOrigin);
-	}
-
-	QAngle GetRotation()
-	{
-		return *(QAngle*)((std::uintptr_t)this + CNetvarManager::Get().angRotation);
-	}
-
-	QAngle GetAbsRotation()
-	{
-		static std::uintptr_t m_angAbsRotation = CNetvarManager::Get().FindInDataMap(this->GetDataDescMap(), FNV1A::HashConst("m_angAbsRotation"));
-		return *(QAngle*)((std::uintptr_t)this + m_angAbsRotation);
-	}
-
-	EMoveType GetMoveType()
-	{
-		static std::uintptr_t m_MoveType = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_MoveType"));
-		return *(EMoveType*)((std::uintptr_t)this + m_MoveType);
-	}
-
-	int GetTeam()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().iTeamNum);
-	}
-
-	CBaseHandle GetOwnerEntity()
-	{
-		return *(CBaseHandle*)((std::uintptr_t)this + CNetvarManager::Get().hOwnerEntity);
-	}
-
-	ICollideable* GetCollideable()
-	{
-		return (ICollideable*)((std::uintptr_t)this + CNetvarManager::Get().Collision);
-	}
-
-	int GetCollisionGroup()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().CollisionGroup);
-	}
-
-	const matrix3x4_t& GetCoordinateFrame()
-	{
-		static std::uintptr_t m_rgflCoordinateFrame = CNetvarManager::Get().FindInDataMap(this->GetDataDescMap(), FNV1A::HashConst("m_rgflCoordinateFrame"));
-		return *(const matrix3x4_t*)((std::uintptr_t)this + m_rgflCoordinateFrame);
-	}
-
-	bool* GetSpotted()
-	{
-		return (bool*)((std::uintptr_t)this + CNetvarManager::Get().bSpotted);
-	}
-
-	/* DT_BCCLocalPlayerExclusive */
-
-	float GetNextAttack()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flNextAttack);
-	}
-
-	/* DT_BaseCombatCharacter */
-
-	CBaseHandle GetActiveWeapon()
-	{
-		return *(CBaseHandle*)((std::uintptr_t)this + CNetvarManager::Get().hActiveWeapon);
-	}
-
-	CBaseHandle* GetWeapons()
-	{
-		return (CBaseHandle*)((std::uintptr_t)this + CNetvarManager::Get().hMyWeapons);
-	}
-
-	CBaseHandle* GetWearables()
-	{
-		return (CBaseHandle*)((std::uintptr_t)this + CNetvarManager::Get().hMyWearables);
-	}
-
-	/* DT_BaseAnimating */
-
-	int GetSequence()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().nSequence);
-	}
-
-	int GetHitboxSet()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().nHitboxSet);
-	}
-
-	float GetCycle()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flCycle);
-	}
-
-	std::array<float, 24U>& GetPoseParameter()
-	{
-		return *(std::array<float, 24U>*)((std::uintptr_t)this + CNetvarManager::Get().flPoseParameter);
-	}
-
-	bool* IsClientSideAnimation()
-	{
-		return (bool*)((std::uintptr_t)this + CNetvarManager::Get().bClientSideAnimation);
-	}
-
-	CAnimationLayer* GetAnimationLayers()
+	[[nodiscard]] CAnimationLayer* GetAnimationOverlays()
 	{
 		// @ida = 8B 89 ? ? ? ? 8D 0C D1 + 0x2
 		return *(CAnimationLayer**)((std::uintptr_t)this + 0x2980);
 	}
 
-	int GetAnimationOverlaysCount()
+	[[nodiscard]] inline CAnimationLayer* GetAnimationLayer(int nLayer)
+	{
+		if (nLayer >= 0 && nLayer < MAX_LAYER_RECORDS)
+			return &GetAnimationOverlays()[nLayer];
+
+		return nullptr;
+	}
+
+	[[nodiscard]] int GetAnimationOverlaysCount()
 	{
 		return *(int*)((std::uintptr_t)this + 0x298C);
 	}
 
-	CBasePlayerAnimState* GetAnimationState()
+	[[nodiscard]] CBasePlayerAnimState* GetAnimationState()
 	{
 		// @ida: 8B 8E ? ? ? ? F3 0F 10 48 ? E8 ? ? ? ? C7 + 0x2
 		return (CBasePlayerAnimState*)((std::uintptr_t)this + 0x3914);
 	}
+	#pragma endregion
 
-	#pragma region baseentity_exports
 	// DoExtraBonesProcessing
-	// pattern xref: "ankle_L"
-	// index xref: "SetupBones: invalid bone array size (%d - needs %d)\n"
+	// pattern @xref: "ankle_L"
+	// index @xref: "SetupBones: invalid bone array size (%d - needs %d)\n"
 
 	void Think()
 	{
@@ -809,7 +541,7 @@ public:
 		return MEM::CallVFunc<bool>(this, 157);
 	}
 
-	Vector GetEyePosition()
+	[[nodiscard]] Vector GetEyePosition()
 	{
 		Vector vecPosition = { };
 
@@ -843,7 +575,7 @@ public:
 	void UpdateClientSideAnimations()
 	{
 		// @xref: "UpdateClientSideAnimations"
-		// @pattern = 55 8B EC 51 56 8B F1 80 BE ? ? ? ? 00 74 ? 8B 06 FF
+		// @ida updateclientsideanimations: 55 8B EC 51 56 8B F1 80 BE ? ? ? ? 00 74 ? 8B 06 FF
 		MEM::CallVFunc<void>(this, 223);
 	}
 
@@ -859,44 +591,15 @@ public:
 
 	bool PhysicsRunThink(int nThinkMethod)
 	{
+		// @xref: from sub with "CLIENT:  %s(%s) thinking for %.02f ms!!!\n"
 		using PhysicsRunThinkFn = bool(__thiscall*)(void*, int);
 		static auto oPhysicsRunThink = (PhysicsRunThinkFn)MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 EC 10 53 56 57 8B F9 8B 87"));
 		return oPhysicsRunThink(this, nThinkMethod);
 	}
 
-	int GetSequenceActivity(int iSequence);
-	#pragma endregion
-
-	#pragma region baseentity_automatics
-	inline bool IsAlive()
-	{
-		/*
-		 * @note: if u have problems with lifestate check (some servers has plugin for health restore and entity lifestate doesnt switch back to the alive)
-		 * required to check for health and/or check lifestate where needed
-		 * GetHealth() > 0
-		 */
-
-		return (this->GetLifeState() == LIFE_ALIVE) ? true : false;
-	}
-
-	inline void SetPoseAngles(float flYaw, float flPitch)
-	{
-		auto& arrPose = this->GetPoseParameter();
-		arrPose.at(11U) = (flPitch + 90.f) / 180.f;
-		arrPose.at(2U) = (flYaw + 180.f) / 360.f;
-	}
-
-	inline CAnimationLayer* GetAnimationLayer(int nLayer)
-	{
-		if (nLayer >= 0 && nLayer < MAX_LAYER_RECORDS)
-			return &GetAnimationLayers()[nLayer];
-
-		return nullptr;
-	}
-
+	int					GetSequenceActivity(int iSequence);
 	CBaseCombatWeapon*	GetWeapon();
 	int					GetMaxHealth();
-	matrix3x4_t*		GetBoneMatrix(bool bSingleBone = false, int iSingleBone = BONE_INVALID);
 	Vector				GetBonePosition(int iBone);
 	int					GetBoneByHash(const FNV1A_t uBoneHash);
 	Vector				GetHitboxPosition(int iHitbox);
@@ -905,9 +608,8 @@ public:
 	int					PostThink();
 	bool				IsEnemy(CBaseEntity* pEntity);
 	bool				IsTargetingLocal(CBaseEntity* pLocal);
-	bool				IsCanShoot(CBaseCombatWeapon* pWeapon);
+	bool				CanShoot(CWeaponCSBase* pBaseWeapon);
 	bool				IsVisible(CBaseEntity* pEntity, const Vector& vecSpot, bool bSmokeCheck = false);
-#pragma endregion
 };
 
 class CCSWeaponData
@@ -978,6 +680,62 @@ public:
 	}
 };
 
+class CBaseCombatWeapon : public IClientEntity
+{
+public:
+	#pragma region DT_BaseCombatWeapon
+	N_ADD_VARIABLE(float, GetNextPrimaryAttack, "CBaseCombatWeapon->m_flNextPrimaryAttack");
+	N_ADD_VARIABLE(float, GetNextSecondaryAttack, "CBaseCombatWeapon->m_flNextSecondaryAttack");
+	N_ADD_VARIABLE(int, GetAmmo, "CBaseCombatWeapon->m_iClip1");
+	N_ADD_VARIABLE(int, GetAmmoReserve, "CBaseCombatWeapon->m_iPrimaryReserveAmmoCount");
+	N_ADD_VARIABLE(int, GetViewModelIndex, "CBaseCombatWeapon->m_iViewModelIndex");
+	N_ADD_VARIABLE(int, GetWorldModelIndex, "CBaseCombatWeapon->m_iWorldModelIndex");
+	N_ADD_VARIABLE(CBaseHandle, GetWorldModelHandle, "CBaseCombatWeapon->m_hWeaponWorldModel");
+
+	N_ADD_DATAFIELD(bool, IsReloading, this->GetPredictionDescMap(), "m_bInReload");
+	#pragma endregion
+
+	#pragma region DT_BaseAttributableItem
+	N_ADD_PVARIABLE(short, GetItemDefinitionIndex, "CBaseAttributableItem->m_iItemDefinitionIndex");
+	N_ADD_VARIABLE(int, GetItemIDHigh, "CBaseAttributableItem->m_iItemIDHigh");
+	N_ADD_VARIABLE(int, GetItemIDLow, "CBaseAttributableItem->m_iItemIDLow");
+	N_ADD_VARIABLE(int, GetAccountID, "CBaseAttributableItem->m_iAccountID");
+	N_ADD_VARIABLE(int, GetEntityQuality, "CBaseAttributableItem->m_iEntityQuality");
+	N_ADD_PVARIABLE(char, GetCustomName, "CBaseAttributableItem->m_szCustomName");
+	N_ADD_VARIABLE(int, GetOwnerXuidLow, "CBaseAttributableItem->m_OriginalOwnerXuidLow");
+	N_ADD_VARIABLE(int, GetOwnerXuidHigh, "CBaseAttributableItem->m_OriginalOwnerXuidHigh");
+	N_ADD_VARIABLE(int, GetFallbackPaintKit, "CBaseAttributableItem->m_nFallbackPaintKit");
+	N_ADD_VARIABLE(int, GetFallbackSeed, "CBaseAttributableItem->m_nFallbackSeed");
+	N_ADD_VARIABLE(float, GetFallbackWear, "CBaseAttributableItem->m_flFallbackWear");
+	N_ADD_VARIABLE(int, GetFallbackStatTrak, "CBaseAttributableItem->m_nFallbackStatTrak");
+	#pragma endregion
+
+	void SetModelIndex(int nModelIndex)
+	{
+		MEM::CallVFunc<void>(this, 75, nModelIndex);
+	}
+
+	bool IsWeapon()
+	{
+		return MEM::CallVFunc<bool>(this, 165);
+	}
+
+	[[nodiscard]] float GetSpread()
+	{
+		return MEM::CallVFunc<float>(this, 452);
+	}
+
+	[[nodiscard]] float GetInaccuracy()
+	{
+		return MEM::CallVFunc<float>(this, 482);
+	}
+
+	void UpdateAccuracyPenalty()
+	{
+		MEM::CallVFunc<void>(this, 483);
+	}
+};
+
 class IRefCounted;
 class CEconItemView
 {
@@ -1016,9 +774,9 @@ public:
 	float		flRecoilIndex;			//0x0044
 	float		flSpread;				//0x0048
 	int			nSoundType;				//0x004C
-};
+}; // Size: 0x0050
 
-class CWeaponCSBase
+class CWeaponCSBase : public CBaseCombatWeapon
 {
 public:
 	std::byte					pad0[0x9CC];				//0x0000
@@ -1028,194 +786,38 @@ public:
 	std::byte					pad2[0x32C];				//0x3004
 	bool						bCustomMaterialInitialized; //0x3330
 
-	int	GetZoomLevel()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().zoomLevel);
-	}
+	#pragma region DT_WeaponCSBaseGun
+	N_ADD_VARIABLE(int, GetZoomLevel, "CWeaponCSBaseGun->m_zoomLevel");
+	N_ADD_VARIABLE(int, GetBurstShotsRemaining, "CWeaponCSBaseGun->m_iBurstShotsRemaining");
+	#pragma endregion
 
-	bool GetBurstMode()
-	{
-		return *(bool*)((std::uintptr_t)this + CNetvarManager::Get().bBurstMode);
-	}
-
-	int GetBurstShotsRemaining()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().iBurstShotsRemaining);
-	}
-
-	float& GetAccuracyPenalty()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().fAccuracyPenalty);
-	}
-
-	float GetFireReadyTime()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flPostponeFireReadyTime);
-	}
+	#pragma region DT_WeaponCSBase
+	N_ADD_VARIABLE(bool, IsBurstMode, "CWeaponCSBase->m_bBurstMode");
+	N_ADD_VARIABLE(float, GetAccuracyPenalty, "CWeaponCSBase->m_fAccuracyPenalty");
+	N_ADD_VARIABLE(float, GetFireReadyTime, "CWeaponCSBase->m_flPostponeFireReadyTime");
+	#pragma endregion
 }; // Size: 0x3331
 
-class CBaseAttributableItem
+class CBaseCSGrenade : public CWeaponCSBase
 {
 public:
-	int* GetItemIDHigh()
-	{
-		return (int*)((std::uintptr_t)this + CNetvarManager::Get().iItemIDHigh);
-	}
-
-	int* GetItemIDLow()
-	{
-		return (int*)((std::uintptr_t)this + CNetvarManager::Get().iItemIDLow);
-	}
-
-	int* GetAccountID()
-	{
-		return (int*)((std::uintptr_t)this + CNetvarManager::Get().iAccountID);
-	}
-
-	int* GetEntityQuality()
-	{
-		return (int*)((std::uintptr_t)this + CNetvarManager::Get().iEntityQuality);
-	}
-
-	char* GetCustomName()
-	{
-		return (char*)((std::uintptr_t)this + CNetvarManager::Get().szCustomName);
-	}
-
-	int* GetOwnerXuidLow()
-	{
-		return (int*)((std::uintptr_t)this + CNetvarManager::Get().OriginalOwnerXuidLow);
-	}
-
-	int* GetOwnerXuidHigh()
-	{
-		return (int*)((std::uintptr_t)this + CNetvarManager::Get().OriginalOwnerXuidHigh);
-	}
-
-	int* GetFallbackPaintKit()
-	{
-		return (int*)((std::uintptr_t)this + CNetvarManager::Get().nFallbackPaintKit);
-	}
-
-	int* GetFallbackSeed()
-	{
-		return (int*)((std::uintptr_t)this + CNetvarManager::Get().nFallbackSeed);
-	}
-
-	float* GetFallbackWear()
-	{
-		return (float*)((std::uintptr_t)this + CNetvarManager::Get().flFallbackWear);
-	}
-
-	int* GetFallbackStatTrak()
-	{
-		return (int*)((std::uintptr_t)this + CNetvarManager::Get().nFallbackStatTrak);
-	}
-};
-
-class CBaseCombatWeapon : public IClientEntity, public CWeaponCSBase, public CBaseViewModel, public CBaseAttributableItem
-{
-public:
-	short* GetItemDefinitionIndex()
-	{
-		return (short*)((std::uintptr_t)this + CNetvarManager::Get().iItemDefinitionIndex);
-	}
-
-	float GetNextPrimaryAttack()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flNextPrimaryAttack);
-	}
-
-	float GetNextSecondaryAttack()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flNextSecondaryAttack);
-	}
-
-	int GetAmmo()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().iClip1);
-	}
-
-	int GetAmmoReserve()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().iPrimaryReserveAmmoCount);
-	}
-
-	int GetViewModelIndex()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().iViewModelIndex);
-	}
-
-	int GetWorldModelIndex()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().iWorldModelIndex);
-	}
-
-	CBaseHandle GetWeaponWorldModel()
-	{
-		return *(CBaseHandle*)((std::uintptr_t)this + CNetvarManager::Get().hWeaponWorldModel);
-	}
-
-	bool IsReloading()
-	{
-		static std::uintptr_t m_bInReload = CNetvarManager::Get().FindInDataMap(this->GetPredDescMap(), FNV1A::HashConst("m_bInReload"));
-		return *(bool*)((std::uintptr_t)this + m_bInReload);
-	}
-
-	#pragma region baseweapon_exports
-	bool IsWeapon()
-	{
-		return MEM::CallVFunc<bool>(this, 165);
-	}
-
-	float GetSpread()
-	{
-		return MEM::CallVFunc<float>(this, 452);
-	}
-
-	float GetInaccuracy()
-	{
-		return MEM::CallVFunc<float>(this, 482);
-	}
-
-	void UpdateAccuracyPenalty()
-	{
-		MEM::CallVFunc<void>(this, 483);
-	}
+	#pragma region DT_BaseCSGrenade
+	N_ADD_VARIABLE(bool, IsPinPulled, "CBaseCSGrenade->m_bPinPulled");
+	N_ADD_VARIABLE(float, GetThrowTime, "CBaseCSGrenade->m_fThrowTime");
+	N_ADD_VARIABLE(float, GetThrowStrength, "CBaseCSGrenade->m_flThrowStrength");
 	#pragma endregion
-};
 
-class CBaseCSGrenade
-{
-public:
-	bool IsPinPulled()
-	{
-		return *(bool*)((std::uintptr_t)this + CNetvarManager::Get().bPinPulled);
-	}
-
-	float GetThrowTime()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().fThrowTime);
-	}
-
-	float GetThrowStrength()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flThrowStrength);
-	}
-
-	int GetEffectTickBegin()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().nExplodeEffectTickBegin);
-	}
+	#pragma region DT_BaseCSGrenadeProjectile
+	N_ADD_VARIABLE(int, GetEffectTickBegin, "CBaseCSGrenadeProjectile->m_nExplodeEffectTickBegin");
+	#pragma endregion
 };
 
 class CSmokeGrenade
 {
 public:
-	int GetEffectTickBegin()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().nSmokeEffectTickBegin);
-	}
+	#pragma region DT_SmokeGrenadeProjectile
+	N_ADD_VARIABLE(int, GetEffectTickBegin, "CSmokeGrenadeProjectile->m_nSmokeEffectTickBegin");
+	#pragma endregion
 
 	inline int GetMaxTime()
 	{
@@ -1226,10 +828,9 @@ public:
 class CInferno
 {
 public:
-	int GetEffectTickBegin()
-	{
-		return *(int*)((std::uintptr_t)this + CNetvarManager::Get().nFireEffectTickBegin);
-	}
+	#pragma region DT_Inferno
+	N_ADD_VARIABLE(int, GetEffectTickBegin, "CInferno->m_nFireEffectTickBegin");
+	#pragma endregion
 
 	inline int GetMaxTime()
 	{
@@ -1240,91 +841,69 @@ public:
 class CPlantedC4
 {
 public:
-	bool IsPlanted()
+	#pragma region DT_PlantedC4
+	N_ADD_VARIABLE(float, GetTimerLength, "CPlantedC4->m_flTimerLength");
+	N_ADD_VARIABLE(float, GetDefuseLength, "CPlantedC4->m_flDefuseLength");
+	N_ADD_VARIABLE(bool, IsPlanted, "CPlantedC4->m_bBombTicking");
+	N_ADD_VARIABLE(CBaseHandle, GetDefuserHandle, "CPlantedC4->m_hBombDefuser");
+	N_ADD_VARIABLE(bool, IsDefused, "CPlantedC4->m_bBombDefused");
+
+	inline float GetTimer(float flServerTime)
 	{
-		return *(bool*)((std::uintptr_t)this + CNetvarManager::Get().bBombTicking);
+		static std::uintptr_t m_flC4Blow = CNetvarManager::Get().mapProps[FNV1A::HashConst("CPlantedC4->m_flC4Blow")].uOffset;
+		const float flTimer = *(float*)((std::uintptr_t)this + m_flC4Blow) - flServerTime;
+		return std::max<float>(0.f, flTimer);
 	}
 
-	CBaseHandle GetDefuser()
+	inline float GetDefuseTimer(float flServerTime)
 	{
-		return *(CBaseHandle*)((std::uintptr_t)this + CNetvarManager::Get().hBombDefuser);
+		static std::uintptr_t m_flDefuseCountDown = CNetvarManager::Get().mapProps[FNV1A::HashConst("CPlantedC4->m_flDefuseCountDown")].uOffset;
+		return *(float*)((std::uintptr_t)this + m_flDefuseCountDown) - flServerTime;
+	}
+	#pragma endregion
+};
+
+class CBaseViewModel
+{
+public:
+	#pragma region DT_BaseViewModel
+	N_ADD_VARIABLE(int, GetModelIndex, "CBaseViewModel->m_nModelIndex");
+	N_ADD_VARIABLE(CBaseHandle, GetOwnerHandle, "CBaseViewModel->m_hOwner");
+	N_ADD_VARIABLE(CBaseHandle, GetWeaponHandle, "CBaseViewModel->m_hWeapon");
+	#pragma endregion
+
+	void SendViewModelMatchingSequence(int nSequence)
+	{
+		MEM::CallVFunc<void>(this, 246, nSequence);
 	}
 
-	bool IsDefused()
+	void SetWeaponModel(const char* szFileName, CBaseCombatWeapon* pWeapon)
 	{
-		return *(bool*)((std::uintptr_t)this + CNetvarManager::Get().bBombDefused);
+		// @ida setweaponmodel: 57 8B F9 8B 97 ? ? ? ? 83 FA FF 74 6A
+		MEM::CallVFunc<void>(this, 247, szFileName, pWeapon);
 	}
-
-	// replacement for mp_c4timer
-	float GetTimerLength()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flTimerLength);
-	}
-
-	float GetDefuseLength()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flDefuseLength);
-	}
-
-	// this all here cuz msvc fucked up
-	float GetTimer(float flServerTime);
-	float GetDefuseTimer(float flServerTime);
 };
 
 class CEnvTonemapController
 {
 public:
-	bool& IsUseCustomAutoExposureMin()
-	{
-		return *(bool*)((std::uintptr_t)this + CNetvarManager::Get().bUseCustomAutoExposureMin);
-	}
-
-	bool& IsUseCustomAutoExposureMax()
-	{
-		return *(bool*)((std::uintptr_t)this + CNetvarManager::Get().bUseCustomAutoExposureMax);
-	}
-
-	bool& IsUseCustomBloomScale()
-	{
-		return *(bool*)((std::uintptr_t)this + CNetvarManager::Get().bUseCustomBloomScale);
-	}
-
-	float& GetCustomAutoExposureMin()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flCustomAutoExposureMin);
-	}
-
-	float& GetCustomAutoExposureMax()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flCustomAutoExposureMax);
-	}
-
-	float& GetCustomBloomScale()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flCustomBloomScale);
-	}
-
-	float& GetCustomBloomScaleMin()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flCustomBloomScaleMinimum);
-	}
-
-	float& GetBloomExponent()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flBloomExponent);
-	}
-
-	float& GetBloomSaturation()
-	{
-		return *(float*)((std::uintptr_t)this + CNetvarManager::Get().flBloomSaturation);
-	}
+	#pragma region DT_EnvTonemapController
+	N_ADD_VARIABLE(bool, IsUseCustomAutoExposureMin, "CEnvTonemapController->m_bUseCustomAutoExposureMin");
+	N_ADD_VARIABLE(bool, IsUseCustomAutoExposureMax, "CEnvTonemapController->m_bUseCustomAutoExposureMax");
+	N_ADD_VARIABLE(bool, IsUseCustomBloomScale, "CEnvTonemapController->m_bUseCustomBloomScale");
+	N_ADD_VARIABLE(float, GetCustomAutoExposureMin, "CEnvTonemapController->m_flCustomAutoExposureMin");
+	N_ADD_VARIABLE(float, GetCustomAutoExposureMax, "CEnvTonemapController->m_flCustomAutoExposureMax");
+	N_ADD_VARIABLE(float, GetCustomBloomScale, "CEnvTonemapController->m_flCustomBloomScale");
+	N_ADD_VARIABLE(float, GetCustomBloomScaleMin, "CEnvTonemapController->m_flCustomBloomScaleMinimum");
+	N_ADD_VARIABLE(float, GetBloomExponent, "CEnvTonemapController->m_flBloomExponent");
+	N_ADD_VARIABLE(float, GetBloomSaturation, "CEnvTonemapController->m_flBloomSaturation");
+	#pragma endregion
 };
 
 class CBreakableSurface
 {
 public:
-	bool IsBroken() // dead inside
-	{
-		return *(bool*)((std::uintptr_t)this + CNetvarManager::Get().bIsBroken);
-	}
+	#pragma region DT_BreakableSurface
+	N_ADD_VARIABLE(bool, IsBroken, "CBreakableSurface->m_bIsBroken");
+	#pragma endregion
 };

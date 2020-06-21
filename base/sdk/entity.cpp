@@ -21,7 +21,7 @@ int CBaseEntity::GetSequenceActivity(int iSequence)
 
 CBaseCombatWeapon* CBaseEntity::GetWeapon()
 {
-	return I::ClientEntityList->Get<CBaseCombatWeapon>(this->GetActiveWeapon());
+	return I::ClientEntityList->Get<CBaseCombatWeapon>(this->GetActiveWeaponHandle());
 }
 
 int CBaseEntity::GetMaxHealth()
@@ -31,30 +31,6 @@ int CBaseEntity::GetMaxHealth()
 		return 120;
 
 	return 100;
-}
-
-matrix3x4_t* CBaseEntity::GetBoneMatrix(bool bSingleBone, int nSingleBone)
-{
-	matrix3x4_t* matBoneToWorld = nullptr;
-
-	if (const auto pBoneMatrix = *(matrix3x4_t**)((std::uintptr_t)this + CNetvarManager::Get().dwBoneMatrix); pBoneMatrix != nullptr)
-	{
-		if (bSingleBone && nSingleBone != BONE_INVALID)
-			matBoneToWorld = *(matrix3x4_t**)((std::uintptr_t)pBoneMatrix + 0x30 * nSingleBone);
-		else
-		{
-			if (const auto pModel = this->GetModel(); pModel != nullptr)
-			{
-				if (auto pStudioHdr = I::ModelInfo->GetStudioModel(pModel); pStudioHdr != nullptr)
-				{
-					for (int i = 0; i < pStudioHdr->nBones; i++)
-						memcpy(matBoneToWorld + i, pBoneMatrix + i, sizeof(matrix3x4_t));
-				}
-			}
-		}
-	}
-
-	return matBoneToWorld;
 }
 
 Vector CBaseEntity::GetBonePosition(int iBone)
@@ -163,7 +139,7 @@ void CBaseEntity::ModifyEyePosition(CBasePlayerAnimState* pAnimState, Vector* ve
 	{
 		CBaseEntity* pBaseEntity = pAnimState->pEntity;
 
-		if (pBaseEntity != nullptr && I::ClientEntityList->GetClientEntityFromHandle(pAnimState->pEntity->GetGroundEntity()))
+		if (pBaseEntity != nullptr && I::ClientEntityList->GetClientEntityFromHandle(pAnimState->pEntity->GetGroundEntityHandle()))
 		{
 			Vector vecBonePos = pBaseEntity->GetBonePosition(pBaseEntity->GetBoneByHash(FNV1A::HashConst("head_0")));
 			vecBonePos.z += 1.7f;
@@ -258,32 +234,32 @@ bool CBaseEntity::IsTargetingLocal(CBaseEntity* pLocal)
 	return false;
 }
 
-bool CBaseEntity::IsCanShoot(CBaseCombatWeapon* pWeapon)
+bool CBaseEntity::CanShoot(CWeaponCSBase* pBaseWeapon)
 {
 	float flServerTime = TICKS_TO_TIME(this->GetTickBase());
 
 	// check is have ammo
-	if (pWeapon->GetAmmo() <= 0)
+	if (pBaseWeapon->GetAmmo() <= 0)
 		return false;
 
 	// is player ready to shoot
 	if (this->GetNextAttack() > flServerTime)
 		return false;
 
-	short nDefinitionIndex = *pWeapon->GetItemDefinitionIndex();
+	short nDefinitionIndex = *pBaseWeapon->GetItemDefinitionIndex();
 
 	// check is weapon with burst mode
 	if ((nDefinitionIndex == WEAPON_FAMAS || nDefinitionIndex == WEAPON_GLOCK) &&
 		// check is burst mode
-		pWeapon->GetBurstMode() && pWeapon->GetBurstShotsRemaining() > 0)
+		pBaseWeapon->IsBurstMode() && pBaseWeapon->GetBurstShotsRemaining() > 0)
 		return true;
 
 	// is weapon ready to shoot
-	if (pWeapon->GetNextPrimaryAttack() > flServerTime)
+	if (pBaseWeapon->GetNextPrimaryAttack() > flServerTime)
 		return false;
 
 	// check for revolver cocking ready
-	if (nDefinitionIndex == WEAPON_REVOLVER && pWeapon->GetFireReadyTime() > flServerTime)
+	if (nDefinitionIndex == WEAPON_REVOLVER && pBaseWeapon->GetFireReadyTime() > flServerTime)
 		return false;
 
 	return true;
@@ -307,20 +283,5 @@ bool CBaseEntity::IsVisible(CBaseEntity* pEntity, const Vector& vecEnd, bool bSm
 		return true;
 
 	return false;
-}
-#pragma endregion
-
-#pragma region entity_plantedc4
-float CPlantedC4::GetTimer(float flServerTime)
-{
-	float flBlowTime = *(float*)((std::uintptr_t)this + CNetvarManager::Get().flC4Blow);
-	float flTimer = flBlowTime - flServerTime;
-	return std::max<float>(0.f, flTimer);
-}
-
-float CPlantedC4::GetDefuseTimer(float flServerTime)
-{
-	float flDefuseCountDown = *(float*)((std::uintptr_t)this + CNetvarManager::Get().flDefuseCountDown);
-	return flDefuseCountDown - flServerTime;
 }
 #pragma endregion

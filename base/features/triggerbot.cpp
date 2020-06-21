@@ -86,7 +86,7 @@ void CTriggerBot::Run(CUserCmd* pCmd, CBaseEntity* pLocal)
 		// legs
 		(C::Get<bool>(Vars.bTriggerLegs) && (trace.iHitGroup == HITGROUP_LEFTLEG || trace.iHitGroup == HITGROUP_RIGHTLEG)))
 	{
-		if (pLocal->IsCanShoot(pWeapon))
+		if (pLocal->CanShoot((CWeaponCSBase*)pWeapon))
 		{
 			// check is delay elapsed
 			if (C::Get<int>(Vars.iTriggerDelay) > 0)

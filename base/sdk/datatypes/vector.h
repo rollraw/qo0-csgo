@@ -60,22 +60,19 @@ public:
 		this->x = this->y = this->z = std::numeric_limits<float>::infinity();
 	}
 
-	float operator[](std::size_t nIndex) const
+	constexpr float operator[](std::size_t nIndex) const
 	{
 		return ((float*)this)[nIndex];
 	}
 
-	float& operator[](std::size_t nIndex)
+	constexpr float& operator[](std::size_t nIndex)
 	{
 		return ((float*)this)[nIndex];
 	}
 
 	bool operator==(const Vector& vecBase) const
 	{
-		if (this->x == vecBase.x && this->y == vecBase.y && this->z == vecBase.z)
-			return true;
-
-		return false;
+		return this->IsEqual(vecBase);
 	}
 
 	bool operator!=(const Vector& vecBase) const
@@ -83,60 +80,60 @@ public:
 		return !this->IsEqual(vecBase);
 	}
 
-	Vector& operator=(const Vector& vecBase)
+	constexpr Vector& operator=(const Vector& vecBase)
 	{
 		this->x = vecBase.x; this->y = vecBase.y; this->z = vecBase.z;
 		return *this;
 	}
 
-	Vector& operator=(const Vector2D& vecBase2D)
+	constexpr Vector& operator=(const Vector2D& vecBase2D)
 	{
 		this->x = vecBase2D.x; this->y = vecBase2D.y; this->z = 0.0f;
 		return *this;
 	}
 
-	Vector& operator+=(const Vector& vecBase)
+	constexpr Vector& operator+=(const Vector& vecBase)
 	{
 		this->x += vecBase.x; this->y += vecBase.y; this->z += vecBase.z;
 		return *this;
 	}
 
-	Vector& operator-=(const Vector& vecBase)
+	constexpr Vector& operator-=(const Vector& vecBase)
 	{
 		this->x -= vecBase.x; this->y -= vecBase.y; this->z -= vecBase.z;
 		return *this;
 	}
 
-	Vector& operator*=(const Vector& vecBase)
+	constexpr Vector& operator*=(const Vector& vecBase)
 	{
 		this->x *= vecBase.x; this->y *= vecBase.y; this->z *= vecBase.z;
 		return *this;
 	}
 
-	Vector& operator/=(const Vector& vecBase)
+	constexpr Vector& operator/=(const Vector& vecBase)
 	{
 		this->x /= vecBase.x; this->y /= vecBase.y; this->z /= vecBase.z; return *this;
 	}
 
-	Vector& operator+=(float flAdd)
+	constexpr Vector& operator+=(float flAdd)
 	{
 		this->x += flAdd; this->y += flAdd; this->z += flAdd;
 		return *this;
 	}
 
-	Vector& operator-=(float flSubtract)
+	constexpr Vector& operator-=(float flSubtract)
 	{
 		this->x -= flSubtract; this->y -= flSubtract; this->z -= flSubtract;
 		return *this;
 	}
 
-	Vector& operator*=(float flMultiply)
+	constexpr Vector& operator*=(float flMultiply)
 	{
 		this->x *= flMultiply; this->y *= flMultiply; this->z *= flMultiply;
 		return *this;
 	}
 
-	Vector& operator/=(float flDivide)
+	constexpr Vector& operator/=(float flDivide)
 	{
 		this->x /= flDivide; this->y /= flDivide; this->z /= flDivide;
 		return *this;
@@ -216,7 +213,7 @@ public:
 		return std::sqrtf(this->x * this->x + this->y * this->y);
 	}
 
-	float Length2DSqr() const
+	constexpr float Length2DSqr() const
 	{
 		return (this->x * this->x + this->y * this->y);
 	}
@@ -262,7 +259,7 @@ public:
 		return flLength;
 	}
 
-	float DotProduct(const Vector& vecDot) const
+	constexpr float DotProduct(const Vector& vecDot) const
 	{
 		return (this->x * vecDot.x + this->y * vecDot.y + this->z * vecDot.z);
 	}
@@ -272,12 +269,12 @@ public:
 		return Vector(this->y * vecCross.z - this->z * vecCross.y, this->z * vecCross.x - this->x * vecCross.z, this->x * vecCross.y - this->y * vecCross.x);
 	}
 
-	float* Base()
+	constexpr float* Base()
 	{
 		return (float*)this;
 	}
 
-	float const* Base() const
+	constexpr float const* Base() const
 	{
 		return (float const*)this;
 	}

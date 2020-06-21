@@ -35,7 +35,7 @@
 #define SEQUENCE_DAGGERS_HEAVY_MISS1 12
 #define SEQUENCE_BOWIE_IDLE1 1
 
-enum EAnimationActivity : int
+enum ESequenceActivity : int
 {
 	ACT_CSGO_NULL = 957,
 	ACT_CSGO_DEFUSE,
@@ -71,8 +71,19 @@ enum EAnimationActivity : int
 	ACT_CSGO_LAND_LIGHT,
 	ACT_CSGO_LAND_HEAVY,
 	ACT_CSGO_EXIT_LADDER_TOP,
-	ACT_CSGO_EXIT_LADDER_BOTTOM,
+	ACT_CSGO_EXIT_LADDER_BOTTOM
 };
+
+class matrix3x4a_t;
+class CBaseAnimating;
+class CBoneAccessor
+{
+public:
+	const CBaseAnimating*	pAnimating;		//0x00
+	matrix3x4a_t*			matBones;		//0x04
+	int						nReadableBones;	//0x08
+	int						nWritableBones;	//0x0C
+}; // Size: 0x10
 
 class CAnimationLayer
 {

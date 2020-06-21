@@ -19,7 +19,7 @@ bool IPT::Setup()
 	if (hWindow == nullptr)
 		return false;
 
-	pOldWndProc = (WNDPROC)SetWindowLongW(hWindow, GWL_WNDPROC, (LONG_PTR)H::hkWndProc);
+	pOldWndProc = (WNDPROC)SetWindowLongPtrW(hWindow, GWLP_WNDPROC, (LONG_PTR)H::hkWndProc);
 
 	if (pOldWndProc == nullptr)
 		return false;
@@ -31,7 +31,7 @@ void IPT::Restore()
 {
 	if (pOldWndProc != nullptr)
 	{
-		SetWindowLongW(hWindow, GWL_WNDPROC, (LONG_PTR)pOldWndProc);
+		SetWindowLongPtrW(hWindow, GWLP_WNDPROC, (LONG_PTR)pOldWndProc);
 		pOldWndProc = nullptr;
 	}
 

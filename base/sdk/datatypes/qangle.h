@@ -32,12 +32,12 @@ public:
 		this->x = x; this->y = y; this->z = z;
 	}
 
-	float operator[](std::size_t nIndex) const
+	constexpr float operator[](std::size_t nIndex) const
 	{
 		return ((float*)this)[nIndex];
 	}
 
-	float& operator[](std::size_t nIndex)
+	constexpr float& operator[](std::size_t nIndex)
 	{
 		return ((float*)this)[nIndex];
 	}
@@ -52,55 +52,55 @@ public:
 		return !this->IsEqual(angBase);
 	}
 
-	QAngle& operator=(const QAngle& angBase)
+	constexpr QAngle& operator=(const QAngle& angBase)
 	{
 		this->x = angBase.x; this->y = angBase.y; this->z = angBase.z;
 		return *this;
 	}
 
-	QAngle& operator+=(const QAngle& angBase)
+	constexpr QAngle& operator+=(const QAngle& angBase)
 	{
 		this->x += angBase.x; this->y += angBase.y; this->z += angBase.z;
 		return *this;
 	}
 
-	QAngle& operator-=(const QAngle& angBase)
+	constexpr QAngle& operator-=(const QAngle& angBase)
 	{
 		this->x -= angBase.x; this->y -= angBase.y; this->z -= angBase.z;
 		return *this;
 	}
 
-	QAngle& operator*=(const QAngle& angBase)
+	constexpr QAngle& operator*=(const QAngle& angBase)
 	{
 		this->x *= angBase.x; this->y *= angBase.y; this->z *= angBase.z;
 		return *this;
 	}
 
-	QAngle& operator/=(const QAngle& angBase)
+	constexpr QAngle& operator/=(const QAngle& angBase)
 	{
 		this->x /= angBase.x; this->y /= angBase.y; this->z /= angBase.z;
 		return *this;
 	}
 
-	QAngle& operator+=(float flAdd)
+	constexpr QAngle& operator+=(float flAdd)
 	{
 		this->x += flAdd; this->y += flAdd; this->z += flAdd;
 		return *this;
 	}
 
-	QAngle& operator-=(float flSubtract)
+	constexpr QAngle& operator-=(float flSubtract)
 	{
 		this->x -= flSubtract; this->y -= flSubtract; this->z -= flSubtract;
 		return *this;
 	}
 
-	QAngle& operator*=(float flMultiply)
+	constexpr QAngle& operator*=(float flMultiply)
 	{
 		this->x *= flMultiply; this->y *= flMultiply; this->z *= flMultiply;
 		return *this;
 	}
 
-	QAngle& operator/=(float flDivide)
+	constexpr QAngle& operator/=(float flDivide)
 	{
 		this->x /= flDivide; this->y /= flDivide; this->z /= flDivide;
 		return *this;
@@ -165,7 +165,7 @@ public:
 		return std::sqrtf(this->x * this->x + this->y * this->y + this->z * this->z);
 	}
 
-	float LengthSqr() const
+	constexpr float LengthSqr() const
 	{
 		return this->x * this->x + this->y * this->y + this->z * this->z;
 	}

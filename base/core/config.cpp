@@ -237,8 +237,8 @@ void C::Refresh()
     {
 		if (it.path().filename().extension() == XorStr(".qo0"))
 		{
-			L::Print(fmt::format(XorStr("found configuration file: {}"), it.path().filename().string()));
-			vecFileNames.push_back(it.path().filename().string());
+			L::Print(fmt::format(XorStr("found configuration file: {}"), it.path().filename().u8string()));
+			vecFileNames.push_back(it.path().filename().u8string());
 		}
     }
 }

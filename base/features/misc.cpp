@@ -17,16 +17,16 @@ void CMiscellaneous::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 		return;
 
 	// @credits: a8pure c:
-	if (C::Get<bool>(Vars.bNoCrouchCooldown))
+	if (C::Get<bool>(Vars.bMiscNoCrouchCooldown))
 		pCmd->iButtons |= IN_BULLRUSH;
 
-	if (C::Get<bool>(Vars.bBunnyHop))
+	if (C::Get<bool>(Vars.bMiscBunnyHop))
 		BunnyHop(pCmd, pLocal);
 
-	if (C::Get<bool>(Vars.bAutoStrafe))
+	if (C::Get<bool>(Vars.bMiscAutoStrafe))
 		AutoStrafe(pCmd, pLocal);
 
-	if (C::Get<bool>(Vars.bRankReveal) && pCmd->iButtons & IN_SCORE)
+	if (C::Get<bool>(Vars.bMiscRevealRanks) && pCmd->iButtons & IN_SCORE)
 		I::Client->DispatchUserMessage(CS_UM_ServerRankRevealAll, 0U, 0, nullptr);
 }
 
@@ -92,7 +92,7 @@ void CMiscellaneous::BunnyHop(CUserCmd* pCmd, CBaseEntity* pLocal)
 	std::mt19937 generate(randomDevice());
 	std::uniform_int_distribution<> chance(0, 100);
 
-	if (chance(generate) > C::Get<int>(Vars.iBunnyHopChance))
+	if (chance(generate) > C::Get<int>(Vars.iMiscBunnyHopChance))
 		return;
 
 	static bool bLastJumped = false, bShouldFake = false;
@@ -147,7 +147,7 @@ void CMiscellaneous::AutoPistol(CUserCmd* pCmd, CBaseEntity* pLocal)
 	if (pWeaponData == nullptr || pWeaponData->bFullAuto || pWeaponData->nWeaponType != WEAPONTYPE_PISTOL || !(pCmd->iButtons & IN_ATTACK))
 		return;
 
-	if (pLocal->IsCanShoot(pWeapon))
+	if (pLocal->CanShoot((CWeaponCSBase*)pWeapon))
 		pCmd->iButtons |= IN_ATTACK;
 	else
 		pCmd->iButtons &= ~IN_ATTACK;
@@ -173,7 +173,7 @@ void CMiscellaneous::FakeLag(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPac
 	 * 2 ticks reserved for server info else player can be stacked
 	 * while antiaiming and fakelag is disabled choke only 1 tick
 	 */
-	const int iMaxCmdProcessTicks = C::Get<bool>(Vars.bFakeLag) ? sv_maxusrcmdprocessticks->GetInt() - 2 :
+	const int iMaxCmdProcessTicks = C::Get<bool>(Vars.bMiscFakeLag) ? sv_maxusrcmdprocessticks->GetInt() - 2 :
 		C::Get<bool>(Vars.bAntiAim) ? 1 : 0;
 
 	// choke

@@ -4,7 +4,7 @@ using FNV1A_t = std::uint32_t;
 
 /*
  * 32-BIT FNV1A HASH
- * use fnv1a instead crc32 with randomly access ~1kb much proper
+ * much proper to use fnv1a instead crc32 with randomly access ~1kb 
  * @credits: underscorediscovery
  */
 namespace FNV1A
@@ -13,13 +13,13 @@ namespace FNV1A
 	constexpr std::uint32_t ullBasis = 0x811C9DC5;
 	constexpr std::uint32_t ullPrime = 0x1000193;
 
-	// create compile time hash
+	/* create compile time hash */
 	constexpr FNV1A_t HashConst(const char* szString, const FNV1A_t uValue = ullBasis) noexcept
 	{
 		return !*szString ? uValue : HashConst(&szString[1], (uValue ^ FNV1A_t(szString[0])) * ullPrime);
 	}
 
-	// create runtime hash
+	/* create runtime hash */
 	inline const FNV1A_t Hash(const char* szString)
 	{
 		FNV1A_t uHashed = ullBasis;

@@ -78,10 +78,6 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 
 		L::Print(fmt::format(XorStr("found [{:d}] props in [{:d}] tables"), CNetvarManager::Get().iStoredProps, CNetvarManager::Get().iStoredTables));
 
-		// grab netvars from map
-		CNetvarManager::Get().GrabOffsets();
-		L::Print(XorStr("grab offsets successful"));
-
 		// export completed mathematics functions from game/steam (not always) modules
 		if (!M::Setup())
 			throw std::runtime_error(XorStr("failed to get math exports"));

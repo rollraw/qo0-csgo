@@ -43,7 +43,7 @@ void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 	UpdateServerAnimations(pCmd, pLocal, flServerTime);
 
 	// weapon shoot check
-	if (pWeaponData->IsGun() && pLocal->IsCanShoot(pWeapon) && (pCmd->iButtons & IN_ATTACK || (nDefinitionIndex == WEAPON_REVOLVER && pCmd->iButtons & IN_SECOND_ATTACK)))
+	if (pWeaponData->IsGun() && pLocal->CanShoot((CWeaponCSBase*)pWeapon) && (pCmd->iButtons & IN_ATTACK || (nDefinitionIndex == WEAPON_REVOLVER && pCmd->iButtons & IN_SECOND_ATTACK)))
 		return;
 	// knife attack check
 	else if (pWeaponData->nWeaponType == WEAPONTYPE_KNIFE)
@@ -77,7 +77,7 @@ void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 	// do antiaim for yaw
 	Yaw(pCmd, pLocal, flServerTime, bSendPacket);
 
-	if (C::Get<bool>(Vars.bAntiUntrusted))
+	if (C::Get<bool>(Vars.bMiscAntiUntrusted))
 	{
 		angSentView.Normalize();
 		angSentView.Clamp();
@@ -127,14 +127,14 @@ void CAntiAim::UpdateServerAnimations(CUserCmd* pCmd, CBaseEntity* pLocal, float
 	{
 		// backup values
 		std::array<CAnimationLayer, 13U> arrNetworkedLayers;
-		std::copy(pLocal->GetAnimationLayers(), pLocal->GetAnimationLayers() + arrNetworkedLayers.size(), arrNetworkedLayers.data());
+		std::copy(pLocal->GetAnimationOverlays(), pLocal->GetAnimationOverlays() + arrNetworkedLayers.size(), arrNetworkedLayers.data());
 		const QAngle angAbsViewOld = pLocal->GetAbsAngles();
 		const std::array<float, 24U> arrPosesOld = pLocal->GetPoseParameter();
 
 		pServerAnimState->Update(angSentView);
 
 		// restore values
-		std::copy(arrNetworkedLayers.begin(), arrNetworkedLayers.end(), pLocal->GetAnimationLayers());
+		std::copy(arrNetworkedLayers.begin(), arrNetworkedLayers.end(), pLocal->GetAnimationOverlays());
 		pLocal->GetPoseParameter() = arrPosesOld;
 		pLocal->SetAbsAngles(angAbsViewOld);
 
