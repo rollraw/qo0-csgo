@@ -187,7 +187,7 @@ bool ImGui::HotKey(const char* szLabel, int* v)
 			*v = nKey;
 	}
 
-	char chBuffer[64];
+	char chBuffer[64] = { };
 	sprintf_s(chBuffer, sizeof(chBuffer), XorStr("[ %s ]"), *v != 0 && g.ActiveId != nIndex ? arrKeyNames.at(*v) : g.ActiveId == nIndex ? XorStr("press") : XorStr("none"));
 	
 	// modified by qo0
@@ -211,28 +211,31 @@ bool ImGui::MultiCombo(const char* szLabel, const char** szDisplayName, std::vec
 	ImGuiIO& io = g.IO;
 	const ImGuiStyle& style = g.Style;
 
-	std::string szBuffer;
+	std::string szBuffer = { };
+	static ImVec2 vecTextSize = { };
 	const ImVec2 vecLabelSize = CalcTextSize(szLabel);
-	float flActiveWidth = CalcItemWidth() - (style.ItemInnerSpacing.x + GetFrameHeight()) - 40.f;
-	
+	const float flActiveWidth = CalcItemWidth() - (style.ItemInnerSpacing.x + GetFrameHeight()) - 40.f;
+
 	for (int i = 0; i < nHeightInItems; i++)
 	{
 		if (v[i])
 		{
-			ImVec2 vecTextSize = CalcTextSize(szBuffer.c_str());
+			vecTextSize = CalcTextSize(szBuffer.c_str());
 
 			if (szBuffer.empty())
 				szBuffer.assign(szDisplayName[i]);
 			else
 				szBuffer.append(", ").append(szDisplayName[i]);
-
-			if (vecTextSize.x > flActiveWidth)
-				szBuffer.erase(szBuffer.find_last_of(",")).append("...");
 		}
 	}
 
 	if (szBuffer.empty())
-		szBuffer.assign("-");
+		szBuffer.assign("none");
+	else if (vecTextSize.x > flActiveWidth)
+	{
+		szBuffer.resize((std::size_t)(flActiveWidth * 0.26f));
+		szBuffer.append("...");
+	}
 
 	bool bValueChanged = false;
 	if (BeginCombo(szLabel, szBuffer.c_str()))

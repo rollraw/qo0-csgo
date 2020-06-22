@@ -50,6 +50,8 @@ namespace ImGui
 	bool ListBox(const char* szLabel, int* iCurrentItem, std::function<const char* (int)> pLambda, int nItemsCount, int iHeightInItems);
 	bool HotKey(const char* szLabel, int* v);
 	bool MultiCombo(const char* szLabel, const char** szDisplayName, std::vector<bool>& v, int nHeightInItems);
+
+	// Wrappers
 	bool ColorEdit3(const char* szLabel, Color* v, ImGuiColorEditFlags flags);
 	bool ColorEdit4(const char* szLabel, Color* v, ImGuiColorEditFlags flags);
 

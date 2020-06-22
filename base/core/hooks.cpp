@@ -783,7 +783,7 @@ bool P::Setup()
 {
 	// @note: as example
 	#if 0
-	RecvProp_t* pSmokeEffectTickBegin = CNetvarManager::Get().mapProps[FNV1A::HashConst("DT_SmokeGrenadeProjectile->m_nSmokeEffectTickBegin")].pRecvProp;
+	RecvProp_t* pSmokeEffectTickBegin = CNetvarManager::Get().mapProps[FNV1A::HashConst("CSmokeGrenadeProjectile->m_nSmokeEffectTickBegin")].pRecvProp;
 	if (pSmokeEffectTickBegin == nullptr)
 		return false;
 
