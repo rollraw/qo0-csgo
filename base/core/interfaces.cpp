@@ -119,7 +119,7 @@ T* I::Capture(const char* szModule, std::string_view szInterface)
 		// found needed interface
 		if ((!std::string(pRegister->szName).compare(0U, szInterface.length(), szInterface) &&
 			// and has digits after name
-			atoi(pRegister->szName + szInterface.length()) > 0) ||
+			std::atoi(pRegister->szName + szInterface.length()) > 0) ||
 			// or given full interface with hardcoded digits
 			!szInterface.compare(pRegister->szName))
 		{

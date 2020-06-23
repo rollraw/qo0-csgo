@@ -164,10 +164,8 @@ DWORD WINAPI OnDllDetach(LPVOID lpParameter)
 	// reset crosshair state
 	I::ConVar->FindVar(XorStr("crosshair"))->SetValue(true);
 
-	// @note: as example
-	#if 0
+	// restore proxies
 	P::Restore();
-	#endif
 
 	// restore hooks
 	H::Restore();

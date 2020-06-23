@@ -158,8 +158,8 @@ QAngle M::CalcAngle(Vector vecStart, Vector vecEnd)
 {
 	QAngle angView;
 	Vector vecDelta = vecEnd - vecStart;
-	vecDelta.Normalize();
 	VectorAngles(vecDelta, angView);
+	angView.Normalize();
 
 	return angView;
 }
