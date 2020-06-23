@@ -29,6 +29,10 @@ void CEventListener::Destroy()
 
 void CEventListener::FireGameEvent(IGameEvent* pEvent)
 {
-	CVisuals::Get().Event(pEvent);
-	CMiscellaneous::Get().Event(pEvent);
+	// get hash of event name
+	const FNV1A_t uNameHash = FNV1A::Hash(pEvent->GetName());
+
+	#pragma region eventlistener_handlers
+	CVisuals::Get().Event(pEvent, uNameHash);
+	#pragma endregion
 }

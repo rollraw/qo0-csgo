@@ -100,7 +100,7 @@ public:
 	// Get
 	void Run();
 	/* knife kill icons replace */
-	void Event(IGameEvent* pEvent);
+	void Event(IGameEvent* pEvent, const FNV1A_t uNameHash);
 	/* dump stikers and paintkits */
 	void Dump();
 private:

@@ -15,7 +15,7 @@ public:
 	// Get
 	void Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket);
 	/* get warmup state */
-	void Event(IGameEvent* pEvent);
+	void Event(IGameEvent* pEvent, const FNV1A_t uNameHash);
 	/* correct movement when antiaiming */
 	void MovementCorrection(CUserCmd* pCmd, QAngle& angOldViewPoint);
 

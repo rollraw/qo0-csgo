@@ -30,12 +30,10 @@ void CMiscellaneous::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 		I::Client->DispatchUserMessage(CS_UM_ServerRankRevealAll, 0U, 0, nullptr);
 }
 
-void CMiscellaneous::Event(IGameEvent* pEvent)
+void CMiscellaneous::Event(IGameEvent* pEvent, const FNV1A_t uNameHash)
 {
 	if (pEvent == nullptr || !I::Engine->IsInGame())
 		return;
-
-	FNV1A_t uNameHash = FNV1A::Hash(pEvent->GetName());
 }
 
 void CMiscellaneous::MovementCorrection(CUserCmd* pCmd, QAngle& angOldViewPoint)

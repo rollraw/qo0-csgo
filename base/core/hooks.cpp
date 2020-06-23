@@ -230,7 +230,7 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 		return oCreateMove(thisptr, edx, flInputSampleTime, pCmd);
 
 	/*
-	 * SetViewAngles isnt called if return false and can cause sluttering
+	 * SetViewAngles isnt called if return false and can cause stuttering
 	 * then we can call only SetLocalViewAngles like sdk do that
 	 */
 	if (oCreateMove(thisptr, edx, flInputSampleTime, pCmd))
@@ -420,17 +420,17 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 		}
 
 		// thirdperson
-		static bool bThirdPerson = false;
-
 		if (C::Get<bool>(Vars.bWorld) && C::Get<int>(Vars.iWorldThirdPersonKey) > 0)
 		{
+			static bool bThirdPerson = false;
+
 			if (!I::Engine->IsConsoleVisible() && !W::bMainOpened && IPT::IsKeyReleased(C::Get<int>(Vars.iWorldThirdPersonKey)))
 				bThirdPerson = !bThirdPerson;
-		}
 
-		// my solution is here cuz camera offset is dynamically by standard functions without any garbage in overrideview hook
-		I::Input->bCameraInThirdPerson = bThirdPerson && pLocal->IsAlive() && !I::Engine->IsTakingScreenshot();
-		I::Input->vecCameraOffset.z = bThirdPerson ? C::Get<float>(Vars.flWorldThirdPersonOffset) : 150.f;
+			// my solution is here cuz camera offset is dynamically by standard functions without any garbage in overrideview hook
+			I::Input->bCameraInThirdPerson = bThirdPerson && pLocal->IsAlive() && !I::Engine->IsTakingScreenshot();
+			I::Input->vecCameraOffset.z = bThirdPerson ? C::Get<float>(Vars.flWorldThirdPersonOffset) : 150.f;
+		}
 
 		break;
 	}
@@ -510,7 +510,7 @@ int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, const Vector& vecMins,
 	// @todo: sometimes models doesnt drawn on certain maps (not only me: https://www.unknowncheats.me/forum/counterstrike-global-offensive/330483-disable-model-occulusion-3.html)
 
 	// @credits: soufiw
-	// occulusion getting updated on player movement/angle change,
+	// occlusion getting updated on player movement/angle change,
 	// in RecomputeRenderableLeaves https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L674
 	static std::uintptr_t uInsertIntoTree = (MEM::FindPattern(CLIENT_DLL, XorStr("56 52 FF 50 18")) + 0x5); // @xref: "<unknown renderable>"
 
@@ -522,7 +522,7 @@ int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, const Vector& vecMins,
 		{
 			if (const auto pRenderable = pInfo->pRenderable; pRenderable != nullptr)
 			{
-				// check if disabling occulusion for players
+				// check if disabling occlusion for players
 				if (const auto pEntity = pRenderable->GetIClientUnknown()->GetBaseEntity(); pEntity != nullptr && pEntity->IsPlayer())
 				{
 					// fix render order, force translucent group (https://www.unknowncheats.me/forum/2429206-post15.html)
@@ -746,7 +746,7 @@ bool FASTCALL H::hkSvCheatsGetBool(CConVar* thisptr, int edx)
 	static auto oSvCheatsGetBool = DTR::SvCheatsGetBool.GetOriginal<decltype(&hkSvCheatsGetBool)>();
 	static std::uintptr_t uCAM_ThinkReturn = (MEM::FindPattern(CLIENT_DLL, XorStr("85 C0 75 30 38 86"))); // @xref: "Pitch: %6.1f   Yaw: %6.1f   Dist: %6.1f %16s"
 
-	if ((std::uintptr_t)_ReturnAddress() == uCAM_ThinkReturn)
+	if ((std::uintptr_t)_ReturnAddress() == uCAM_ThinkReturn && C::Get<bool>(Vars.bWorld) && C::Get<int>(Vars.iWorldThirdPersonKey) > 0)
 		return true;
 
 	return oSvCheatsGetBool(thisptr, edx);
@@ -795,6 +795,7 @@ bool P::Setup()
 
 void P::Restore()
 {
+	// @note: as example
 	#if 0
 	// restore smoke effect
 	RVP::SmokeEffectTickBegin->~CRecvPropHook();

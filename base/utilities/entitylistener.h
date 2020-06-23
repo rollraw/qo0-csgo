@@ -2,9 +2,9 @@
 // used: std::vector
 #include <vector>
 
-// uisng: hooks setup/remove
+// used: hooks setup/remove
 #include "../utilities/detourhook.h"
-// uisng: cliententitylistener class
+// used: cliententitylistener class
 #include "../sdk/interfaces/icliententitylist.h"
 
 class CEntityListener : public IClientEntityListener // @credits: alpine971

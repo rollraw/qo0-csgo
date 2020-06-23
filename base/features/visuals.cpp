@@ -270,7 +270,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 	}
 }
 
-void CVisuals::Event(IGameEvent* pEvent)
+void CVisuals::Event(IGameEvent* pEvent, const FNV1A_t uNameHash)
 {
 	if (pEvent == nullptr || !I::Engine->IsInGame())
 		return;
@@ -281,8 +281,6 @@ void CVisuals::Event(IGameEvent* pEvent)
 		return;
 
 	float flServerTime = TICKS_TO_TIME(pLocal->GetTickBase());
-
-	const FNV1A_t uNameHash = FNV1A::Hash(pEvent->GetName());
 
 	/* get hitmarker info */
 	if (C::Get<bool>(Vars.bScreen) && C::Get<bool>(Vars.bScreenHitMarker) && uNameHash == FNV1A::HashConst("player_hurt"))
@@ -1003,8 +1001,6 @@ void CVisuals::DroppedWeapons(ImDrawList* pDrawList, CBaseCombatWeapon* pWeapon,
 
 	// ammo bar
 	AmmoBar(pDrawList, nullptr, pWeapon, ctx, colAmmo, colBackground, colOutline);
-
-	// @todo: add ammo count and distance
 }
 
 void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx, Color colInfo, Color colFrame, Color colOutline)
@@ -1012,8 +1008,6 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	PlayerInfo_t pInfo;
 	if (!I::Engine->GetPlayerInfo(pEntity->GetIndex(), &pInfo))
 		return;
-
-	// @todo: add snaplines with distance scaling and automatic joining to the bounding box
 
 	if (C::Get<int>(Vars.iEspMainBox) > (int)EVisualsBoxType::NONE)
 	{

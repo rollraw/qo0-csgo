@@ -44,7 +44,7 @@ void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 	I::Prediction->bIsFirstTimePredicted = false;
 	I::Prediction->bInPrediction = true;
 
-	/* skiped weapon select and vehicle predicts */
+	/* skipped weapon select and vehicle predicts */
 
 	if (pCmd->uImpulse)
 		*pLocal->GetImpulse() = pCmd->uImpulse;

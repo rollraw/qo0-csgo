@@ -35,7 +35,7 @@ public:
 	/* sort entities and render */
 	void Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize);
 	/* get info for hitmarker or e.g. bullettracer */
-	void Event(IGameEvent* pEvent);
+	void Event(IGameEvent* pEvent, const FNV1A_t uNameHash);
 	// Other
 	/* color player models, returns true when need clear overrides */
 	bool Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const DrawModelInfo_t& info, matrix3x4_t* pBoneToWorld, float* flFlexWeights, float* flFlexDelayedWeights, const Vector& vecModelOrigin, int nFlags);

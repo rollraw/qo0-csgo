@@ -16,7 +16,7 @@ void CResolver::Run()
 	}
 }
 
-void CResolver::Event(IGameEvent* pEvent)
+void CResolver::Event(IGameEvent* pEvent, const FNV1A_t uNameHash)
 {
 	if (pEvent == nullptr || !I::Engine->IsInGame())
 		return;
