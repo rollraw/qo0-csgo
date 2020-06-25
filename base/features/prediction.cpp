@@ -13,8 +13,6 @@ void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 	if (pLocal == nullptr || !pLocal->IsAlive() || I::MoveHelper == nullptr)
 		return;
 
-	memset(&cMoveData, 0, sizeof(CMoveData));
-
 	// start command
 	*pLocal->GetCurrentCommand() = pCmd;
 	pLocal->GetLastCommand() = *pCmd;
@@ -92,11 +90,11 @@ void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 	I::MoveHelper->SetHost(pLocal);
 
 	// setup move
-	I::Prediction->SetupMove(pLocal, pCmd, I::MoveHelper, &cMoveData);
-	I::GameMovement->ProcessMovement(pLocal, &cMoveData);
+	I::Prediction->SetupMove(pLocal, pCmd, I::MoveHelper, &moveData);
+	I::GameMovement->ProcessMovement(pLocal, &moveData);
 
 	// finish move
-	I::Prediction->FinishMove(pLocal, pCmd, &cMoveData);
+	I::Prediction->FinishMove(pLocal, pCmd, &moveData);
 	I::MoveHelper->ProcessImpacts();
 
 	// run post think

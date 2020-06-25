@@ -10,31 +10,34 @@
 class CMoveData
 {
 public:
-	bool    bFirstRunOfFunctions : 1;
-	bool    bGameCodeMovedPlayer : 1;
-	int     nPlayerHandle;		// edict index on server, client entity handle on client=
-	int     nImpulseCommand;	// impulse command issued.
-	Vector  vecViewAngles;		// command view angles (local space)
-	Vector  vecAbsViewAngles;	// command view angles (world space)
-	int     nButtons;			// attack buttons.
-	int     nOldButtons;		// from host_client->oldbuttons;
-	float   flForwardMove;
-	float   flSideMove;
-	float   flUpMove;
-	float   flMaxSpeed;
-	float   flClientMaxSpeed;
-	Vector  vecVelocity;		// edict::velocity	// current movement direction.
-	Vector  vecAngles;			// edict::angles
-	Vector  vecOldAngles;
-	float   flOutStepHeight;	// how much you climbed this move
-	Vector  vecOutWishVel;		// this is where you tried 
-	Vector  vecOutJumpVel;		// this is your jump velocity
-	Vector  vecConstraintCenter;
-	float   flConstraintRadius;
-	float   flConstraintWidth;
-	float   flConstraintSpeedFactor;
-	float   flUnknown[5];
-	Vector  vecAbsOrigin;
+	bool			bFirstRunOfFunctions : 1;
+	bool			bGameCodeMovedPlayer : 1;
+	bool			bNoAirControl : 1;
+	std::uintptr_t	hPlayerHandle;		// edict index on server, client entity handle on client=
+	int				nImpulseCommand;	// impulse command issued.
+	QAngle			angViewAngles;		// command view angles (local space)
+	QAngle			angAbsViewAngles;	// command view angles (world space)
+	int				nButtons;			// attack buttons.
+	int				nOldButtons;		// from host_client->oldbuttons;
+	float			flForwardMove;
+	float			flSideMove;
+	float			flUpMove;
+	float			flMaxSpeed;
+	float			flClientMaxSpeed;
+	Vector			vecVelocity;		// edict::velocity	// current movement direction.
+	Vector			vecTrailingVelocity;
+	float			flTrailingVelocityTime;
+	Vector			vecAngles;			// edict::angles
+	Vector			vecOldAngles;
+	float			flOutStepHeight;	// how much you climbed this move
+	Vector			vecOutWishVel;		// this is where you tried 
+	Vector			vecOutJumpVel;		// this is your jump velocity
+	Vector			vecConstraintCenter;
+	float			flConstraintRadius;
+	float			flConstraintWidth;
+	float			flConstraintSpeedFactor;
+	bool			bConstraintPastRadius;
+	Vector			vecAbsOrigin;
 };
 
 // @credits: https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/shared/imovehelper.h
@@ -81,13 +84,15 @@ public:
 class IPrediction
 {
 public:
-	std::byte	pad0[0x8];				// 0x0000
-	bool		bInPrediction;			// 0x0008
-	std::byte	pad1[0x1];				// 0x0009
-	bool		bEnginePaused;			// 0x000A
-	std::byte	pad2[0xD];				// 0x000B
-	bool		bIsFirstTimePredicted;	// 0x0018
+	std::byte		pad0[0x4];				// 0x0000
+	std::uintptr_t	hLastGround;			// 0x0004
+	bool			bInPrediction;			// 0x0008
+	bool			bOldCLPredictValue;		// 0x0009
+	bool			bEnginePaused;			// 0x000A
+	std::byte		pad2[0xD];				// 0x000B
+	bool			bIsFirstTimePredicted;	// 0x0018
 
+public:
 	void Update(int iStartFrame, bool bValidFrame, int nIncomingAcknowledged, int nOutgoingCommand)
 	{
 		MEM::CallVFunc<void>(this, 3, iStartFrame, bValidFrame, nIncomingAcknowledged, nOutgoingCommand);

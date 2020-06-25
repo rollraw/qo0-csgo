@@ -158,7 +158,7 @@ void T::Render(const char* szTabBar, const std::array<CTab, S> arrTabs, int* nCu
 	ImGui::PushStyleColor(ImGuiCol_TabActive, colActive);
 	if (ImGui::BeginTabBar(szTabBar, flags))
 	{
-		for (auto i = 0U; i < arrTabs.size(); i++)
+		for (std::size_t i = 0U; i < arrTabs.size(); i++)
 		{
 			// add tab
 			if (ImGui::BeginTabItem(arrTabs.at(i).szName))

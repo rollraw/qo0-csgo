@@ -791,10 +791,10 @@ void CVisuals::HitMarker(ImDrawList* pDrawList, float flServerTime, const ImVec2
 		}
 	}
 
-	if (vecHitMarks.size() > 0U)
+	if (!vecHitMarks.empty())
 	{
 		constexpr int arrSides[4][2] = { { -1, -1 }, { 1, 1 }, { -1, 1 }, { 1, -1 } };
-		for (auto iSide : arrSides)
+		for (auto& iSide : arrSides)
 		{
 			// set fade out alpha
 			colLines.arrColor.at(3) = std::min<float>(colLines.aBase(), flAlpha) * 255.f;
@@ -1204,7 +1204,7 @@ void CVisuals::Box(ImDrawList* pDrawList, const Box_t& box, Color colPrimary, Co
 			{ ImVec2(box.right, box.bottom), ImVec2(box.right - box.width / nDivideParts, box.bottom) }
 		};
 
-		for (const auto arrPoint : arrPoints)
+		for (const auto& arrPoint : arrPoints)
 		{
 			// outline
 			// not a best way of doing that but one-lined :(

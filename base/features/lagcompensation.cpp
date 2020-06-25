@@ -3,6 +3,14 @@
 // used: globals interface
 #include "../core/interfaces.h"
 
+void CLagCompensation::Run(CUserCmd* pCmd)
+{
+	/*
+	 * we have much public info for that
+	 * now it is your own way gl
+	 */
+}
+
 void CLagCompensation::UpdateIncomingSequences(INetChannel* pNetChannel)
 {
 	if (pNetChannel == nullptr)
@@ -44,12 +52,4 @@ void CLagCompensation::AddLatencyToNetChannel(INetChannel* pNetChannel, float fl
 			break;
 		}
 	}
-}
-
-void CLagCompensation::Run(CUserCmd* pCmd)
-{
-	/*
-	 * we have much public info for that
-	 * now it is your own way gl
-	 */
 }

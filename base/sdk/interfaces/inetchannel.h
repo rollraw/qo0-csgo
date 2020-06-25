@@ -54,7 +54,7 @@ public:
 	virtual float		GetPacketTime(int iFlow, int nFrame) const = 0; // time when packet was send
 	virtual int			GetPacketBytes(int iFlow, int nFrame, int group) const = 0; // group size of this packet
 	virtual bool		GetStreamProgress(int iFlow, int* piReceived, int* piTotal) const = 0; // TCP progress if transmitting
-	virtual float		GetTimeSinceLastReceived(void) const = 0; // get time since last recieved packet in seconds
+	virtual float		GetTimeSinceLastReceived(void) const = 0; // get time since last received packet in seconds
 	virtual	float		GetCommandInterpolationAmount(int iFlow, int nFrame) const = 0;
 	virtual void		GetPacketResponseLatency(int iFlow, int frame_number, int* pnLatencyMsecs, int* pnChoke) const = 0;
 	virtual void		GetRemoteFramerate(float* pflFrameTime, float* pflFrameTimeStdDeviation, float* pflFrameStartTimeStdDeviation) const = 0;

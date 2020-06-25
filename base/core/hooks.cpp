@@ -380,6 +380,33 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 
 	switch (stage)
 	{
+	case FRAME_NET_UPDATE_POSTDATAUPDATE_START:
+	{
+		/*
+		 * data has been received and we are going to start calling postdataupdate
+		 * e.g. resolver or skinchanger and other visuals
+		 */
+
+		break;
+	}
+	case FRAME_NET_UPDATE_POSTDATAUPDATE_END:
+	{
+		/*
+		 * data has been received and called postdataupdate on all data recipients
+		 * e.g. now we can modify interpolation, other lagcompensation stuff
+		 */
+
+		break;
+	}
+	case FRAME_NET_UPDATE_END:
+	{
+		/*
+		 * received all packets, now do interpolation, prediction, etc
+		 * e.g. backtrack stuff
+		 */
+
+		break;
+	}
 	case FRAME_RENDER_START:
 	{
 		/*
@@ -404,7 +431,7 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 		if (C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SMOKE))
 			*(int*)(*(std::uintptr_t*)uSmokeCount) = 0;
 
-		 // remove visual punch
+		// remove visual punch
 		if (pLocal->IsAlive() && C::Get<bool>(Vars.bWorld))
 		{
 			// save old values
@@ -447,33 +474,6 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 			pLocal->GetViewPunch() = angViewPunchOld;
 			pLocal->GetPunch() = angAimPunchOld;
 		}
-
-		break;
-	}
-	case FRAME_NET_UPDATE_END:
-	{
-		/*
-		 * received all packets, now do interpolation, prediction, etc
-		 * e.g. backtrack stuff
-		 */
-
-		break;
-	}
-	case FRAME_NET_UPDATE_POSTDATAUPDATE_START:
-	{
-		/*
-		 * data has been received and we are going to start calling postdataupdate
-		 * e.g. resolver or skinchanger and other visuals
-		 */
-
-		break;
-	}
-	case FRAME_NET_UPDATE_POSTDATAUPDATE_END:
-	{
-		/*
-		 * data has been received and called postdataupdate on all data recipients
-		 * e.g. now we can modify interpolation, other lagcompensation stuff
-		 */
 
 		break;
 	}

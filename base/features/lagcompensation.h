@@ -43,19 +43,17 @@ struct SequenceObject_t
 class CLagCompensation : public CSingleton<CLagCompensation>
 {
 public:
-	/* fake latency amount, min: 0.0 - max: 1.0 */
-	float flFakeLatencyAmount = 0.4f;
-public:
 	// Get
 	void Run(CUserCmd* pCmd);
 
-	// Get
+	// Main
 	void UpdateIncomingSequences(INetChannel* pNetChannel);
 	void ClearIncomingSequences();
 	void AddLatencyToNetChannel(INetChannel* pNetChannel, float flLatency);
 
-	// Main
-	/* ticks edit */
+	// Values
+	/* fake latency amount, min: 0.0 - max: 1.0 */
+	float flFakeLatencyAmount = 0.4f;
 private:
 	// Values
 	std::deque<SequenceObject_t> vecSequences = { };

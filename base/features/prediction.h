@@ -34,7 +34,8 @@ private:
 	int* iPredictionRandomSeed = nullptr;
 	/* current predictable entity */
 	CBaseEntity* pSetPredictionEntity = nullptr;
-	CMoveData cMoveData = { };
+	/* encapsulated input parameters to player movement */
+	CMoveData moveData = { };
 
 	/* backup */
 	float flOldCurrentTime = 0.f;
