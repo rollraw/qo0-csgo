@@ -175,5 +175,5 @@ void CMiscellaneous::FakeLag(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPac
 		C::Get<bool>(Vars.bAntiAim) ? 1 : 0;
 
 	// choke
-	bSendPacket = I::ClientState->iChokedCommands >= iMaxCmdProcessTicks;
+	bSendPacket = I::ClientState->nChokedCommands >= iMaxCmdProcessTicks;
 }

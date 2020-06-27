@@ -62,12 +62,12 @@ private:
 class CEventInfo
 {
 public:
-	std::uint16_t	sClassID;		//0x00 //0 implies not in use
+	std::uint16_t	uClassID;		//0x00 // 0 implies not in use
 	std::byte		pad0[0x2];		//0x02 
-	float			flFireDelay;	//0x04 //if non-zero, the delay time when the event should be fired ( fixed up on the client )
+	float			flFireDelay;	//0x04 // if non-zero, the delay time when the event should be fired ( fixed up on the client )
 	std::byte		pad1[0x4];		//0x08
-	CBaseClient*	pClientClass;	//0x0C //clienclass pointer
-	void*			pData;			//0x10 //raw event data
+	CBaseClient*	pClientClass;	//0x0C // clienclass pointer
+	void*			pData;			//0x10 // raw event data
 	std::byte		pad2[0x30];		//0x14
 }; //Size: 0x0044
 
@@ -82,7 +82,7 @@ public:
 	int				iSignonState;			//0x0108
 	std::byte		pad2[0x8];				//0x010C
 	float			flNextCmdTime;			//0x0114
-	int				iServerCount;			//0x0118
+	int				nServerCount;			//0x0118
 	int				iCurrentSequence;		//0x011C
 	std::byte		pad3[0x54];				//0x0120
 	int				iDeltaTick;				//0x0174
@@ -94,7 +94,7 @@ public:
 	char			szLevelNameShort[80];	//0x028C
 	char			szGroupName[80];		//0x02DC
 	std::byte		pad5[0x5C];				//0x032C
-	int				iMaxClients;			//0x0388
+	int				nMaxClients;			//0x0388
 	std::byte		pad6[0x4984];			//0x038C
 	float			flLastServerTickTime;	//0x4D10
 	bool			bInSimulation;			//0x4D14
@@ -102,9 +102,9 @@ public:
 	int				iOldTickcount;			//0x4D18
 	float			flTickRemainder;		//0x4D1C
 	float			flFrameTime;			//0x4D20
-	int				nLastOutgoingCommand;	//0x4D24
-	int				iChokedCommands;		//0x4D28
-	int				nLastCommandAck;		//0x4D2C
+	int				iLastOutgoingCommand;	//0x4D24
+	int				nChokedCommands;		//0x4D28
+	int				iLastCommandAck;		//0x4D2C
 	int				iCommandAck;			//0x4D30
 	int				iSoundSequence;			//0x4D34
 	std::byte		pad8[0x50];				//0x4D38

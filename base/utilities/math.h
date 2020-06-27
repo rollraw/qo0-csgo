@@ -24,8 +24,8 @@ extern "C" typedef float(__cdecl* RandomGaussianFloatFn)(float flMean, float flS
 #define M_GPI			1.6180339887498f	// golden ratio
 #define M_RADPI			57.295779513082f	// pi in radians
 
-#define M_METRE2UNIT( x )	( x * 22.49f )
-#define M_UNIT2METRE( x )	( x / 22.49f )
+#define M_METRE2INCH( x )	( x / 0.0254f )
+#define M_INCH2METRE( x )	( x * 0.0254f )
 #define M_METRE2FOOT( x )	( x * 3.28f )
 #define M_FOOT2METRE( x )	( x / 3.28f )
 #define M_RAD2DEG( x )		DirectX::XMConvertToDegrees( x )

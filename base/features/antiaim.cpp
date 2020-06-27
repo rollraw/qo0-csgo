@@ -192,7 +192,7 @@ void CAntiAim::Yaw(CUserCmd* pCmd, CBaseEntity* pLocal, float flServerTime, bool
 		if (flServerTime >= flNextLowerBodyUpdate)
 		{
 			// check is we not choke now
-			if (I::ClientState->iChokedCommands == 0)
+			if (I::ClientState->nChokedCommands == 0)
 				// choke packet to make update invisibly
 				bSendPacket = false;
 

@@ -267,7 +267,7 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	 * https://github.com/VSES/SourceEngine2007/blob/master/se2007/engine/cl_pred.cpp#L41
 	 */
 	if (I::ClientState->iDeltaTick > 0)
-		I::Prediction->Update(I::ClientState->iDeltaTick, I::ClientState->iDeltaTick > 0, I::ClientState->nLastCommandAck, I::ClientState->nLastOutgoingCommand + I::ClientState->iChokedCommands);
+		I::Prediction->Update(I::ClientState->iDeltaTick, I::ClientState->iDeltaTick > 0, I::ClientState->iLastCommandAck, I::ClientState->iLastOutgoingCommand + I::ClientState->nChokedCommands);
 
 	// @note: need do bunnyhop and other movements before prediction
 	CPrediction::Get().Start(pCmd, pLocal);

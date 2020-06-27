@@ -97,6 +97,9 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 			if (!C::Get<bool>(Vars.bEsp) || !C::Get<bool>(Vars.bEspMain) || !C::Get<bool>(Vars.bEspMainBomb))
 				break;
 
+			if (pEntity->IsDormant())
+				break;
+
 			// get bomb owner
 			const CBaseEntity* pOwner = I::ClientEntityList->Get<CBaseEntity>(pEntity->GetOwnerEntityHandle());
 
@@ -120,6 +123,9 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 		case EClassIndex::CPlantedC4:
 		{
 			if (!C::Get<bool>(Vars.bEsp) || !C::Get<bool>(Vars.bEspMain) || !C::Get<bool>(Vars.bEspMainBomb))
+				break;
+
+			if (pEntity->IsDormant())
 				break;
 
 			// cast to planted bomb entity
@@ -213,6 +219,9 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 			if (!C::Get<bool>(Vars.bEsp) || !C::Get<bool>(Vars.bEspMain) || !C::Get<bool>(Vars.bEspMainGrenades))
 				break;
 
+			if (pEntity->IsDormant())
+				break;
+
 			const Vector vecOrigin = pEntity->GetOrigin();
 			Vector2D vecScreen = { };
 
@@ -230,6 +239,9 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 		{
 			// check for esp state and skip weapon in hands
 			if (!C::Get<bool>(Vars.bEsp) || !C::Get<bool>(Vars.bEspMain) || !C::Get<bool>(Vars.bEspMainWeapons) || nIndex == EClassIndex::CBaseWeaponWorldModel)
+				break;
+
+			if (pEntity->IsDormant())
 				break;
 
 			// world weapons check
@@ -1024,8 +1036,8 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 		return;
 
 	// @note: distance font scale
-	const float flDistance = std::fabsf((pEntity->GetRenderOrigin() - G::vecCamera).Length2D());
-	const float flFontSize = std::clamp<float>(70.f / (flDistance / 70.f), 10.f, 40.f);
+	const float flDistance = std::fabsf((pEntity->GetRenderOrigin() - G::vecCamera).Length());
+	const float flFontSize = std::clamp<float>(100.f / (flDistance / 100.f), 10.f, 40.f);
 
 	#pragma region visuals_player_top
 	if (C::Get<bool>(Vars.bEspMainInfoFlash) && pEntity->GetFlashDuration() > 0.2f)
@@ -1107,7 +1119,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 
 	if (C::Get<bool>(Vars.bEspMainInfoDistance))
 	{
-		const int iDistance = M_UNIT2METRE(flDistance);
+		const int iDistance = M_INCH2METRE(flDistance);
 		std::string szDistance = std::to_string(iDistance).append(XorStr("M"));
 		const ImVec2 vecDistanceSize = F::SmallestPixel->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szDistance.c_str());
 		ImGui::AddText(pDrawList, F::SmallestPixel, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecDistanceSize.x * 0.5f, ctx.box.bottom + 2 + ctx.arrPadding.at(DIR_BOTTOM)), szDistance.c_str(), colInfo.GetU32(), true, colOutline.GetU32());
