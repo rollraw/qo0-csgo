@@ -88,12 +88,12 @@ public:
 class CAnimationLayer
 {
 public:
-	bool			bClientBlend;			//0x00
-	float			flBlendIn;				//0x04
+	float			flAnimationTime;		//0x00
+	float			flFadeOut;				//0x04
 	void*			pStudioHdr;				//0x08
 	int				nDispatchedSrc;			//0x0C
 	int				nDispatchedDst;			//0x10
-	std::uintptr_t  iOrder;					//0x14
+	int				iOrder;					//0x14
 	std::uintptr_t  nSequence;				//0x18
 	float			flPrevCycle;			//0x1C
 	float			flWeight;				//0x20
@@ -142,8 +142,7 @@ public:
 		oResetAnimationState(this);
 	}
 
-	std::byte	pad0[0x56]; // 0x00
-	int			nCachedModelIndex; // 0x56
+	std::byte	pad0[0x60]; // 0x00
 	CBaseEntity* pEntity; // 0x60
 	CBaseCombatWeapon* pActiveWeapon; // 0x64
 	CBaseCombatWeapon* pLastActiveWeapon; // 0x68

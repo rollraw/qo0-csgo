@@ -571,7 +571,7 @@ void T::Miscellaneous()
 			}
 			ImGui::Columns(1);
 
-			if (ImGui::BeginPopupModal(XorStr("confirmation##config.remove"), false, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize))
+			if (ImGui::BeginPopupModal(XorStr("confirmation##config.remove"), nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize))
 			{
 				ImGui::Text(XorStr("are you sure you want to remove \"%s\" configuration?"), szCurrentConfig.c_str());
 				ImGui::Spacing();
