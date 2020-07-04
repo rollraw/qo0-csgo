@@ -115,6 +115,7 @@
     <ClInclude Include="sdk\interfaces\ivpanel.h" />
     <ClInclude Include="sdk\interfaces\ivrenderview.h" />
     <ClInclude Include="sdk\interfaces\iweaponsystem.h" />
+    <ClInclude Include="sdk\studio.h" />
     <ClInclude Include="utilities.h" />
     <ClInclude Include="utilities\draw.h" />
     <ClInclude Include="utilities\entitylistener.h" />

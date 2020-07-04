@@ -107,6 +107,8 @@ Vector CBaseEntity::GetHitGroupPosition(int iHitGroup)
 					for (int i = 0; i < pHitboxSet->nHitboxes; i++)
 					{
 						pHitbox = pHitboxSet->GetHitbox(i);
+
+						// check is reached needed group
 						if (pHitbox->iGroup == iHitGroup)
 							break;
 					}
@@ -139,21 +141,26 @@ void CBaseEntity::ModifyEyePosition(CBasePlayerAnimState* pAnimState, Vector* ve
 	{
 		CBaseEntity* pBaseEntity = pAnimState->pEntity;
 
-		if (pBaseEntity != nullptr && I::ClientEntityList->GetClientEntityFromHandle(pAnimState->pEntity->GetGroundEntityHandle()))
+		if (pBaseEntity != nullptr)
 		{
-			Vector vecBonePos = pBaseEntity->GetBonePosition(pBaseEntity->GetBoneByHash(FNV1A::HashConst("head_0")));
-			vecBonePos.z += 1.7f;
-
-			if ((*vecPosition).z > vecBonePos.z)
+			IClientEntity* pGroundEntity = I::ClientEntityList->GetClientEntityFromHandle(pBaseEntity->GetGroundEntityHandle());
+			
+			if (pGroundEntity != nullptr)
 			{
-				float flFactor = 0.0f;
-				float flDelta = (*vecPosition).z - vecBonePos.z;
-				float flOffset = (flDelta - 4.0f) / 6.0f;
+				Vector vecBonePos = pBaseEntity->GetBonePosition(pBaseEntity->GetBoneByHash(FNV1A::HashConst("head_0")));
+				vecBonePos.z += 1.7f;
 
-				if (flOffset >= 0.f)
-					flFactor = std::min<float>(flOffset, 1.0f);
+				if ((*vecPosition).z > vecBonePos.z)
+				{
+					float flFactor = 0.0f;
+					float flDelta = (*vecPosition).z - vecBonePos.z;
+					float flOffset = (flDelta - 4.0f) / 6.0f;
 
-				(*vecPosition).z += ((vecBonePos.z - (*vecPosition).z) * (((flFactor * flFactor) * 3.0f) - (((flFactor * flFactor) * 2.0f) * flFactor)));
+					if (flOffset >= 0.f)
+						flFactor = std::min<float>(flOffset, 1.0f);
+
+					(*vecPosition).z += ((vecBonePos.z - (*vecPosition).z) * (((flFactor * flFactor) * 3.0f) - (((flFactor * flFactor) * 2.0f) * flFactor)));
+				}
 			}
 		}
 	}

@@ -226,12 +226,14 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	 */
 	CBaseEntity* pLocal = G::pLocal = U::GetLocalPlayer();
 	
+	// is called from CInput::ExtraMouseSample
 	if (pCmd->iCommandNumber == 0)
 		return oCreateMove(thisptr, edx, flInputSampleTime, pCmd);
 
 	/*
-	 * SetViewAngles isnt called if return false and can cause stuttering
-	 * then we can call only SetLocalViewAngles like sdk do that
+	 * check is called from CInput::CreateMove
+	 * and SetLocalViewAngles for engine/prediction at the same time
+	 * cuz SetViewAngles isn't called if return false and can cause frame stuttering
 	 */
 	if (oCreateMove(thisptr, edx, flInputSampleTime, pCmd))
 		I::Prediction->SetLocalViewAngles(pCmd->angViewPoint);

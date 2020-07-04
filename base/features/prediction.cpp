@@ -17,7 +17,7 @@ void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 	*pLocal->GetCurrentCommand() = pCmd;
 	pLocal->GetLastCommand() = *pCmd;
 
-	// setup prediction seed
+	// random_seed isn't generated in ClientMode::CreateMove yet, we must generate it ourselves
 	*iPredictionRandomSeed = MD5::PseudoRandom(pCmd->iCommandNumber) & std::numeric_limits<int>::max();
 	// set ourselves as a predictable entity
 	pSetPredictionEntity = pLocal;
