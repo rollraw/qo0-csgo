@@ -6,8 +6,11 @@
 // used: findpattern
 #include "../utilities/memory.h"
 
-/* max animation overlays */
-#define MAX_LAYER_RECORDS	15
+/*
+ * max animation layers
+ * @test: max count of overlays always returns 13 but in sdk it still 15?
+ */
+#define MAX_LAYER_RECORDS 15
 
 /* knife sequences */
 #define SEQUENCE_DEFAULT_DRAW 0
@@ -163,8 +166,8 @@ public:
 	float		flDuckAmount; // 0xA4
 	float		flHitGroundCycle; // 0xA8
 	float		flRecrouchWeight; // 0xAC
-	Vector		vecOrigin; // 0xB8
-	Vector		vecLastOrigin;// 0xC4
+	Vector		vecOrigin; // 0xB0
+	Vector		vecLastOrigin;// 0xBC
 	Vector		vecVelocity; // 0xC8
 	Vector		vecVelocityNormalized; // 0xD4
 	Vector		vecVelocityNormalizedNonZero; // 0xE0

@@ -137,32 +137,29 @@ void CBaseEntity::ModifyEyePosition(CBasePlayerAnimState* pAnimState, Vector* ve
 	if (I::Engine->IsHLTV() || I::Engine->IsPlayingDemo())
 		return;
 
-	if (pAnimState->bHitGroundAnimation && pAnimState->flDuckAmount != 0.f)
+	CBaseEntity* pBaseEntity = pAnimState->pEntity;
+
+	if (pBaseEntity == nullptr)
+		return;
+
+	IClientEntity* pGroundEntity = I::ClientEntityList->GetClientEntityFromHandle(pBaseEntity->GetGroundEntityHandle());
+
+	if (!pAnimState->bHitGroundAnimation && pAnimState->flDuckAmount == 0.f && pGroundEntity != nullptr)
+		return;
+
+	Vector vecBonePos = pBaseEntity->GetBonePosition(pBaseEntity->GetBoneByHash(FNV1A::HashConst("head_0")));
+	vecBonePos.z += 1.7f;
+
+	if (vecPosition->z > vecBonePos.z)
 	{
-		CBaseEntity* pBaseEntity = pAnimState->pEntity;
+		float flFactor = 0.0f;
+		float flDelta = vecPosition->z - vecBonePos.z;
+		float flOffset = (flDelta - 4.0f) / 6.0f;
 
-		if (pBaseEntity != nullptr)
-		{
-			IClientEntity* pGroundEntity = I::ClientEntityList->GetClientEntityFromHandle(pBaseEntity->GetGroundEntityHandle());
-			
-			if (pGroundEntity != nullptr)
-			{
-				Vector vecBonePos = pBaseEntity->GetBonePosition(pBaseEntity->GetBoneByHash(FNV1A::HashConst("head_0")));
-				vecBonePos.z += 1.7f;
+		if (flOffset >= 0.f)
+			flFactor = std::min<float>(flOffset, 1.0f);
 
-				if ((*vecPosition).z > vecBonePos.z)
-				{
-					float flFactor = 0.0f;
-					float flDelta = (*vecPosition).z - vecBonePos.z;
-					float flOffset = (flDelta - 4.0f) / 6.0f;
-
-					if (flOffset >= 0.f)
-						flFactor = std::min<float>(flOffset, 1.0f);
-
-					(*vecPosition).z += ((vecBonePos.z - (*vecPosition).z) * (((flFactor * flFactor) * 3.0f) - (((flFactor * flFactor) * 2.0f) * flFactor)));
-				}
-			}
-		}
+		vecPosition->z += ((vecBonePos.z - vecPosition->z) * (((flFactor * flFactor) * 3.0f) - (((flFactor * flFactor) * 2.0f) * flFactor)));
 	}
 }
 
@@ -274,7 +271,7 @@ bool CBaseEntity::CanShoot(CWeaponCSBase* pBaseWeapon)
 
 bool CBaseEntity::IsVisible(CBaseEntity* pEntity, const Vector& vecEnd, bool bSmokeCheck)
 {
-	const Vector vecStart = this->GetEyePosition();
+	const Vector vecStart = this->GetEyePosition(false);
 
 	Ray_t ray = { };
 	ray.Init(vecStart, vecEnd);

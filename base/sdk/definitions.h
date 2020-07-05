@@ -1,5 +1,5 @@
 #pragma once
-// uisng: winapi includes
+// used: winapi includes
 #include "../common.h"
 
 // info: contains other simplified/modified/updated valve's definitions (i tried keep it look's not like shit)
@@ -50,35 +50,36 @@ enum EFlags : int
 {
 	FL_ONGROUND =				(1 << 0),
 	FL_DUCKING =				(1 << 1),
-	FL_WATERJUMP =				(1 << 2),
-	FL_ONTRAIN =				(1 << 3),
-	FL_INRAIN =					(1 << 4),
-	FL_FROZEN =					(1 << 5),
-	FL_ATCONTROLS =				(1 << 6),
-	FL_CLIENT =					(1 << 7),
-	FL_FAKECLIENT =				(1 << 8),
-	FL_INWATER =				(1 << 9),
-	FL_FLY =					(1 << 10),
-	FL_SWIM =					(1 << 11),
-	FL_CONVEYOR =				(1 << 12),
-	FL_NPC =					(1 << 13),
-	FL_GODMODE =				(1 << 14),
-	FL_NOTARGET =				(1 << 15),
-	FL_AIMTARGET =				(1 << 16),
-	FL_PARTIALGROUND =			(1 << 17),
-	FL_STATICPROP =				(1 << 18),
-	FL_GRAPHED =				(1 << 19),
-	FL_GRENADE =				(1 << 20),
-	FL_STEPMOVEMENT =			(1 << 21),
-	FL_DONTTOUCH =				(1 << 22),
-	FL_BASEVELOCITY =			(1 << 23),
-	FL_WORLDBRUSH =				(1 << 24),
-	FL_OBJECT =					(1 << 25),
-	FL_KILLME =					(1 << 26),
-	FL_ONFIRE =					(1 << 27),
-	FL_DISSOLVING =				(1 << 28),
-	FL_TRANSRAGDOLL =			(1 << 29),
-	FL_UNBLOCKABLE_BY_PLAYER =	(1 << 30)
+	FL_ANIMDUCKING =			(1 << 2),
+	FL_WATERJUMP =				(1 << 3),
+	FL_ONTRAIN =				(1 << 4),
+	FL_INRAIN =					(1 << 5),
+	FL_FROZEN =					(1 << 6),
+	FL_ATCONTROLS =				(1 << 7),
+	FL_CLIENT =					(1 << 8),
+	FL_FAKECLIENT =				(1 << 9),
+	FL_INWATER =				(1 << 10),
+	FL_FLY =					(1 << 11),
+	FL_SWIM =					(1 << 12),
+	FL_CONVEYOR =				(1 << 13),
+	FL_NPC =					(1 << 14),
+	FL_GODMODE =				(1 << 15),
+	FL_NOTARGET =				(1 << 16),
+	FL_AIMTARGET =				(1 << 17),
+	FL_PARTIALGROUND =			(1 << 18),
+	FL_STATICPROP =				(1 << 19),
+	FL_GRAPHED =				(1 << 20),
+	FL_GRENADE =				(1 << 21),
+	FL_STEPMOVEMENT =			(1 << 22),
+	FL_DONTTOUCH =				(1 << 23),
+	FL_BASEVELOCITY =			(1 << 24),
+	FL_WORLDBRUSH =				(1 << 25),
+	FL_OBJECT =					(1 << 26),
+	FL_KILLME =					(1 << 27),
+	FL_ONFIRE =					(1 << 28),
+	FL_DISSOLVING =				(1 << 29),
+	FL_TRANSRAGDOLL =			(1 << 30),
+	FL_UNBLOCKABLE_BY_PLAYER =	(1 << 31)
 };
 
 enum EMoveType : int
@@ -113,17 +114,41 @@ enum ESolidType : int
 
 enum ESolidFlags : unsigned int
 {
-	FSOLID_CUSTOMRAYTEST =			0x0001,		// ignore solid type + always call into the entity for ray tests
-	FSOLID_CUSTOMBOXTEST =			0x0002,		// ignore solid type + always call into the entity for swept box tests
-	FSOLID_NOT_SOLID =				0x0004,		// are we currently not solid?
-	FSOLID_TRIGGER =				0x0008,		// this is something may be collideable but fires touch functions
-	FSOLID_NOT_STANDABLE =			0x0010,		// you can't stand on this
-	FSOLID_VOLUME_CONTENTS =		0x0020,		// contains volumetric contents (like water)
-	FSOLID_FORCE_WORLD_ALIGNED =	0x0040,		// forces the collision rep to be world-aligned even if it's solid_bsp or solid_vphysics
-	FSOLID_USE_TRIGGER_BOUNDS =		0x0080,		// uses a special trigger bounds separate from the normal obb
-	FSOLID_ROOT_PARENT_ALIGNED =	0x0100,		// collisions are defined in root parent's local coordinate space
-	FSOLID_TRIGGER_TOUCH_DEBRIS =	0x0200,		// this trigger will touch debris objects
+	FSOLID_CUSTOMRAYTEST =			0x0001,	// ignore solid type + always call into the entity for ray tests
+	FSOLID_CUSTOMBOXTEST =			0x0002,	// ignore solid type + always call into the entity for swept box tests
+	FSOLID_NOT_SOLID =				0x0004,	// are we currently not solid?
+	FSOLID_TRIGGER =				0x0008,	// this is something may be collideable but fires touch functions
+	FSOLID_NOT_STANDABLE =			0x0010,	// you can't stand on this
+	FSOLID_VOLUME_CONTENTS =		0x0020,	// contains volumetric contents (like water)
+	FSOLID_FORCE_WORLD_ALIGNED =	0x0040,	// forces the collision rep to be world-aligned even if it's solid_bsp or solid_vphysics
+	FSOLID_USE_TRIGGER_BOUNDS =		0x0080,	// uses a special trigger bounds separate from the normal obb
+	FSOLID_ROOT_PARENT_ALIGNED =	0x0100,	// collisions are defined in root parent's local coordinate space
+	FSOLID_TRIGGER_TOUCH_DEBRIS =	0x0200,	// this trigger will touch debris objects
 	FSOLID_MAX_BITS =				10
+};
+
+enum EEffectFlags : unsigned int
+{
+	EF_BONEMERGE =					0x001,	// performs bone merge on client side
+	EF_BRIGHTLIGHT =				0x002,	// dlight centered at entity origin
+	EF_DIMLIGHT =					0x004,	// player flashlight
+	EF_NOINTERP =					0x008,	// don't interpolate the next frame
+	EF_NOSHADOW =					0x010,	// don't cast no shadow
+	EF_NODRAW =						0x020,	// don't draw entity
+	EF_NORECEIVESHADOW =			0x040,	// don't receive no shadow
+	EF_BONEMERGE_FASTCULL =			0x080,	// for use with EF_BONEMERGE. if this is set, then it places this ent's origin at its
+											// parent and uses the parent's bbox + the max extents of the aiment.
+											// otherwise, it sets up the parent's bones every frame to figure out where to place
+											// the aiment, which is inefficient because it'll setup the parent's bones even if
+											// the parent is not in the pvs.
+	EF_ITEM_BLINK =					0x100,	// blink an item so that the user notices it.
+	EF_PARENT_ANIMATES =			0x200,	// always assume that the parent entity is animating
+	EF_MARKED_FOR_FAST_REFLECTION = 0x400,	// marks an entity for reflection rendering when using $reflectonlymarkedentities material variable
+	EF_NOSHADOWDEPTH =				0x800,	// indicates this entity does not render into any shadow depthmap
+	EF_SHADOWDEPTH_NOCACHE =		0x1000,	// indicates this entity cannot be cached in shadow depthmap and should render every frame
+	EF_NOFLASHLIGHT =				0x2000,
+	EF_NOCSM =						0x4000,	// indicates this entity does not render into the cascade shadow depthmap
+	EF_MAX_BITS =					15
 };
 
 enum ECollisionGroup : int

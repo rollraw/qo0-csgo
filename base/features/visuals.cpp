@@ -1025,8 +1025,8 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	{
 		// get box color based on visibility & enmity
 		Color colBox = pEntity->IsEnemy(pLocal) ?
-			pLocal->IsVisible(pEntity, pEntity->GetEyePosition()) ? C::Get<Color>(Vars.colEspMainBoxEnemies) : C::Get<Color>(Vars.colEspMainBoxEnemiesWall) :
-			pLocal->IsVisible(pEntity, pEntity->GetEyePosition()) ? C::Get<Color>(Vars.colEspMainBoxAllies) : C::Get<Color>(Vars.colEspMainBoxAlliesWall);
+			pLocal->IsVisible(pEntity, pEntity->GetEyePosition(false)) ? C::Get<Color>(Vars.colEspMainBoxEnemies) : C::Get<Color>(Vars.colEspMainBoxEnemiesWall) :
+			pLocal->IsVisible(pEntity, pEntity->GetEyePosition(false)) ? C::Get<Color>(Vars.colEspMainBoxAllies) : C::Get<Color>(Vars.colEspMainBoxAlliesWall);
 
 		Box(pDrawList, ctx.box, colBox, Color(0, 0, 0, 150));
 	}
@@ -1037,7 +1037,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 
 	// @note: distance font scale
 	const float flDistance = std::fabsf((pEntity->GetRenderOrigin() - G::vecCamera).Length());
-	const float flFontSize = std::clamp<float>(100.f / (flDistance / 100.f), 10.f, 40.f);
+	const float flFontSize = std::clamp<float>(90.f / (flDistance / 90.f), 10.f, 40.f);
 
 	#pragma region visuals_player_top
 	if (C::Get<bool>(Vars.bEspMainInfoFlash) && pEntity->GetFlashDuration() > 0.2f)

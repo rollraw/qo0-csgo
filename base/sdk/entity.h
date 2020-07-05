@@ -457,6 +457,7 @@ public:
 	N_ADD_VARIABLE_OFFSET(float, GetOldSimulationTime, "CBaseEntity->m_flSimulationTime", 0x4);
 	N_ADD_VARIABLE(Vector, GetOrigin, "CBaseEntity->m_vecOrigin");
 	N_ADD_VARIABLE(QAngle, GetRotation, "CBaseEntity->m_angRotation");
+	N_ADD_VARIABLE(int, GetEffects, "CBaseEntity->m_fEffects");
 	N_ADD_VARIABLE(int, GetTeam, "CBaseEntity->m_iTeamNum");
 	N_ADD_VARIABLE(CBaseHandle, GetOwnerEntityHandle, "CBaseEntity->m_hOwnerEntity");
 	N_ADD_PVARIABLE(ICollideable, GetCollision, "CBaseEntity->m_Collision");
@@ -523,7 +524,7 @@ public:
 	[[nodiscard]] CBasePlayerAnimState* GetAnimationState()
 	{
 		// @ida: 8B 8E ? ? ? ? F3 0F 10 48 ? E8 ? ? ? ? C7 + 0x2
-		return (CBasePlayerAnimState*)((std::uintptr_t)this + 0x3914);
+		return *(CBasePlayerAnimState**)((std::uintptr_t)this + 0x3914);
 	}
 	#pragma endregion
 
@@ -542,7 +543,7 @@ public:
 		return MEM::CallVFunc<bool>(this, 157);
 	}
 
-	[[nodiscard]] Vector GetEyePosition()
+	[[nodiscard]] Vector GetEyePosition(bool bShouldCorrect = true)
 	{
 		Vector vecPosition = { };
 
@@ -551,7 +552,7 @@ public:
 
 		// correct this like it do weapon_shootpos
 		// @ida weapon_shootpos: 55 8B EC 56 8B 75 08 57 8B F9 56 8B 07 FF 90
-		if (*(int*)((std::uintptr_t)this + 0x3AB4))
+		if (*(int*)((std::uintptr_t)this + 0x3AC8) && bShouldCorrect)
 		{
 			CBasePlayerAnimState* pAnimState = this->GetAnimationState();
 
