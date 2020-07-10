@@ -6,11 +6,11 @@ using Quaternion = float[4];
 #pragma region studio_definitions
 #define MAXSTUDIOBONECTRLS			4
 #define MAXSTUDIOPOSEPARAM			24
-#define MAXSTUDIOSKINS				32
-#define MAXSTUDIOFLEXCTRL			96
-#define MAXSTUDIOBONES				128
+#define MAXSTUDIOSKINS				32		// total textures
+#define MAXSTUDIOFLEXCTRL			96		// maximum number of flexcontrollers (input sliders)
+#define MAXSTUDIOBONES				256		// total bones actually used
 #define MAXSTUDIOANIMBLOCKS			256
-#define MAXSTUDIOFLEXDESC			1024
+#define MAXSTUDIOFLEXDESC			1024	// maximum number of low level flexes (actual morph targets)
 
 #define BONE_CALCULATE_MASK			0x1F
 #define BONE_PHYSICALLY_SIMULATED	0x01

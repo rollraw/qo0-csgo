@@ -13,8 +13,8 @@ class CAntiAim : public CSingleton<CAntiAim>
 public:
 	// Get
 	void Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket);
-	/* get next lby update */
-	void UpdateServerAnimations(CUserCmd* pCmd, CBaseEntity* pLocal, float flServerTime); // @credits: pazzo
+	/* align local animations to server */
+	void UpdateServerAnimations(CBaseEntity* pLocal, float flServerTime); // @credits: pazzo
 
 	// Values
 	/* angles modified by antiaim and being sent */

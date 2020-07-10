@@ -158,7 +158,12 @@ enum EWeaponType : int
 	WEAPONTYPE_C4 = 7,
 	WEAPONTYPE_PLACEHOLDER = 8,
 	WEAPONTYPE_GRENADE = 9,
-	WEAPONTYPE_HEALTHSHOT = 11
+	WEAPONTYPE_HEALTHSHOT = 11,
+	WEAPONTYPE_FISTS = 12,
+	WEAPONTYPE_BREACHCHARGE = 13,
+	WEAPONTYPE_BUMPMINE = 14,
+	WEAPONTYPE_TABLET = 15,
+	WEAPONTYPE_MELEE = 16
 };
 #pragma endregion
 
@@ -489,10 +494,10 @@ public:
 	N_ADD_VARIABLE(bool, IsClientSideAnimation, "CBaseAnimating->m_bClientSideAnimation");
 	N_ADD_VARIABLE(float, GetCycle, "CBaseAnimating->m_flCycle");
 
-	[[nodiscard]] std::array<float, 24U>& GetPoseParameter()
+	[[nodiscard]] std::array<float, MAXSTUDIOPOSEPARAM>& GetPoseParameter()
 	{
 		static std::uintptr_t m_flPoseParameter = CNetvarManager::Get().mapProps[FNV1A::HashConst("CBaseAnimating->m_flPoseParameter")].uOffset;
-		return *(std::array<float, 24U>*)((std::uintptr_t)this + m_flPoseParameter);
+		return *(std::array<float, MAXSTUDIOPOSEPARAM>*)((std::uintptr_t)this + m_flPoseParameter);
 	}
 
 	inline void SetPoseAngles(float flYaw, float flPitch)

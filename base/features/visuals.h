@@ -66,7 +66,7 @@ private:
 	/* get collideable box points */
 	Vector* GetPoints(CBaseEntity* pEntity);
 	/* get bounding box points of given entity */
-	bool GetBoundingBox(CBaseEntity* pEntity, Box_t& box);
+	bool GetBoundingBox(CBaseEntity* pEntity, Box_t* pBox);
 	/* create .vmt materials with customized parameters for chams */
 	IMaterial* CreateMaterial(std::string_view szName, std::string_view szShader, std::string_view szBaseTexture = XorStr("vgui/white"), std::string_view szEnvMap = "", bool bIgnorez = false, bool bWireframe = false, std::string_view szProxies = "");
 
@@ -91,7 +91,7 @@ private:
 
 	// Entities
 	/* draw entity bounding box */
-	void Box(ImDrawList* pDrawList, const Box_t& box, Color colPrimary, Color colOutline);
+	void Box(ImDrawList* pDrawList, const Box_t& box, const int nBoxType, Color colPrimary, Color colOutline);
 	/* draw vertical line with health-based height */
 	void HealthBar(ImDrawList* pDrawList, float flFactor, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline);
 	/* draw horizontal line with ammo-based width */

@@ -51,9 +51,6 @@ public:
 	void ClearIncomingSequences();
 	void AddLatencyToNetChannel(INetChannel* pNetChannel, float flLatency);
 
-	// Values
-	/* fake latency amount, min: 0.0 - max: 1.0 */
-	float flFakeLatencyAmount = 0.4f;
 private:
 	// Values
 	std::deque<SequenceObject_t> vecSequences = { };

@@ -40,8 +40,6 @@ void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 
 	float flServerTime = TICKS_TO_TIME(CPrediction::Get().GetTickbase(pCmd, pLocal));
 
-	UpdateServerAnimations(pCmd, pLocal, flServerTime);
-
 	// weapon shoot check
 	if (pWeaponData->IsGun() && pLocal->CanShoot((CWeaponCSBase*)pWeapon) && (pCmd->iButtons & IN_ATTACK || (nDefinitionIndex == WEAPON_REVOLVER && pCmd->iButtons & IN_SECOND_ATTACK)))
 		return;
@@ -68,9 +66,26 @@ void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 	// save angles to modify later
 	angSentView = pCmd->angViewPoint;
 
+	// get next lby update
+	UpdateServerAnimations(pLocal, flServerTime);
+
 	/* edge antiaim, fakewalk, other hvhboi$tuff do here */
 
-	// @note: fyi: https://www2.clarku.edu/faculty/djoyce/complex/polarangle.gif
+	/*
+	 * @note: fyi: https://www2.clarku.edu/faculty/djoyce/complex/polarangle.gif
+	 *
+	 *	 \     90|450    /
+	 *	   \     |     /
+	 *	135  \   |   /  45,405
+	 *	       \ | /
+	 *	-180,180 | 0,360,720
+	 *	--------------------
+	 *	       / | \
+	 *	-135 /   |   \ -45,315
+	 *	   /     |     \
+	 *	 /    -90|270    \
+	 *
+	 */
 
 	// do antiaim for pitch
 	Pitch(pCmd, pLocal);
@@ -87,7 +102,7 @@ void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 	pCmd->angViewPoint = angSentView;
 }
 
-void CAntiAim::UpdateServerAnimations(CUserCmd* pCmd, CBaseEntity* pLocal, float flServerTime)
+void CAntiAim::UpdateServerAnimations(CBaseEntity* pLocal, float flServerTime)
 {
 	// get values to check for change/reset
 	static CBaseHandle hOldLocal = pLocal->GetRefEHandle();
@@ -129,7 +144,7 @@ void CAntiAim::UpdateServerAnimations(CUserCmd* pCmd, CBaseEntity* pLocal, float
 		std::array<CAnimationLayer, MAX_LAYER_RECORDS> arrNetworkedLayers;
 		std::copy(pLocal->GetAnimationOverlays(), pLocal->GetAnimationOverlays() + arrNetworkedLayers.size(), arrNetworkedLayers.data());
 		const QAngle angAbsViewOld = pLocal->GetAbsAngles();
-		const std::array<float, 24U> arrPosesOld = pLocal->GetPoseParameter();
+		const std::array<float, MAXSTUDIOPOSEPARAM> arrPosesOld = pLocal->GetPoseParameter();
 
 		pServerAnimState->Update(angSentView);
 
@@ -183,7 +198,7 @@ void CAntiAim::Yaw(CUserCmd* pCmd, CBaseEntity* pLocal, float flServerTime, bool
 
 		/*
 		 * menual change side
-		 * @note: to visualy seen that - make desync chams by saving matrix or draw direction arrows
+		 * @note: to visually seen that - make desync chams by saving matrix or draw direction arrows
 		 */
 		if (C::Get<int>(Vars.iAntiAimDesyncKey) > 0 && IPT::IsKeyReleased(C::Get<int>(Vars.iAntiAimDesyncKey)))
 			flSide = -flSide;

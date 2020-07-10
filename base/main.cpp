@@ -1,19 +1,18 @@
+// used: sleep_for
+#include <thread>
+
 // used: winapi, directx, fmt includes
 #include "common.h"
-// used: std::this_thread
-#include <thread>
-// used: sleep_for
-#include <chrono>
-// used: ms, s time literals
+// used: ms,s time literals
 using namespace std::chrono_literals;
 
 // used: global variables
 #include "global.h"
 // used: cheat variables
 #include "core/variables.h"
-// used: patterns, textures, eventlistener setup/destroy
+// used: eventlistener setup/destroy
 #include "utilities.h"
-// used: logging
+// used: result logging
 #include "utilities/logging.h"
 // used: exports setup
 #include "utilities/math.h"
@@ -23,12 +22,10 @@ using namespace std::chrono_literals;
 #include "utilities/draw.h"
 // used: netvar manager setup
 #include "core/netvar.h"
-// used: configurtions setup
+// used: configurations setup
 #include "core/config.h"
 // used: hooks setup/destroy
 #include "core/hooks.h"
-// used: materials setup/remove
-#include "features/visuals.h"
 
 DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 {

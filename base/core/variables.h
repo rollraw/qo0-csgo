@@ -74,8 +74,10 @@ enum class EVisualsViewModelChams : int
 struct Variables_t
 {
 	#pragma region variables_rage
+	// aimbot
 	C_ADD_VARIABLE(bool, bRage, false);
 
+	// antiaim
 	C_ADD_VARIABLE(bool, bAntiAim, false);
 	C_ADD_VARIABLE(int, iAntiAimPitch, 0);
 	C_ADD_VARIABLE(int, iAntiAimYaw, 0);
@@ -83,8 +85,10 @@ struct Variables_t
 	#pragma endregion
 
 	#pragma region variables_legit
+	// aimbot
 	C_ADD_VARIABLE(bool, bLegit, false);
 
+	// trigger
 	C_ADD_VARIABLE(bool, bTrigger, false);
 	C_ADD_VARIABLE(int, iTriggerKey, 0);
 	C_ADD_VARIABLE(int, iTriggerDelay, 0);
@@ -101,6 +105,7 @@ struct Variables_t
 	#pragma region variables_visuals
 	C_ADD_VARIABLE(bool, bEsp, false);
 
+	// main
 	C_ADD_VARIABLE(bool, bEspMain, false);
 	C_ADD_VARIABLE(bool, bEspMainEnemies, false);
 	C_ADD_VARIABLE(bool, bEspMainAllies, false);
@@ -108,32 +113,44 @@ struct Variables_t
 	C_ADD_VARIABLE(bool, bEspMainGrenades, false);
 	C_ADD_VARIABLE(bool, bEspMainBomb, false);
 
-	C_ADD_VARIABLE(int, iEspMainBox, 1);
+	// players
+	C_ADD_VARIABLE(int, iEspMainPlayerBox, (int)EVisualsBoxType::FULL);
 	C_ADD_VARIABLE(Color, colEspMainBoxEnemies, Color(160, 60, 60, 255));
 	C_ADD_VARIABLE(Color, colEspMainBoxEnemiesWall, Color(200, 185, 110, 255));
 	C_ADD_VARIABLE(Color, colEspMainBoxAllies, Color(0, 200, 170, 255));
 	C_ADD_VARIABLE(Color, colEspMainBoxAlliesWall, Color(170, 110, 200, 255));
 
-	C_ADD_VARIABLE(bool, bEspMainInfo, false);
+	C_ADD_VARIABLE(bool, bEspMainPlayerFarRadar, false);
+	C_ADD_VARIABLE(bool, bEspMainPlayerInfo, false);
 
-	// info
 	/* left */
-	C_ADD_VARIABLE(bool, bEspMainInfoHealth, true);
-	C_ADD_VARIABLE(bool, bEspMainInfoMoney, false);
+	C_ADD_VARIABLE(bool, bEspMainPlayerHealth, true);
+	C_ADD_VARIABLE(bool, bEspMainPlayerMoney, false);
 
 	/* top */
-	C_ADD_VARIABLE(bool, bEspMainInfoRank, false);
-	C_ADD_VARIABLE(bool, bEspMainInfoName, true);
-	C_ADD_VARIABLE(bool, bEspMainInfoFlash, false);
+	C_ADD_VARIABLE(bool, bEspMainPlayerRank, false);
+	C_ADD_VARIABLE(bool, bEspMainPlayerName, true);
+	C_ADD_VARIABLE(bool, bEspMainPlayerFlash, false);
 
 	/* right */
-	C_ADD_VARIABLE_VECTOR(bool, INFO_FLAG_MAX, vecEspMainInfoFlags, true);
+	C_ADD_VARIABLE_VECTOR(bool, INFO_FLAG_MAX, vecEspMainPlayerFlags, true);
 
 	/* bottom */
-	C_ADD_VARIABLE(bool, bEspMainInfoWeapons, true);
-	C_ADD_VARIABLE(bool, bEspMainInfoAmmo, true);
-	C_ADD_VARIABLE(bool, bEspMainInfoDistance, false);
+	C_ADD_VARIABLE(bool, bEspMainPlayerWeapons, true);
+	C_ADD_VARIABLE(bool, bEspMainPlayerAmmo, true);
+	C_ADD_VARIABLE(bool, bEspMainPlayerDistance, false);
 
+	// weapons
+	C_ADD_VARIABLE(int, iEspMainWeaponBox, (int)EVisualsBoxType::CORNERS);
+	C_ADD_VARIABLE(Color, colEspMainBoxWeapons, Color(255, 255, 255, 220));
+
+	C_ADD_VARIABLE(bool, bEspMainWeaponInfo, false);
+
+	C_ADD_VARIABLE(bool, bEspMainWeaponIcon, true);
+	C_ADD_VARIABLE(bool, bEspMainWeaponAmmo, true);
+	C_ADD_VARIABLE(bool, bEspMainWeaponDistance, false);
+
+	// glow
 	C_ADD_VARIABLE(bool, bEspGlow, false);
 	C_ADD_VARIABLE(bool, bEspGlowEnemies, false);
 	C_ADD_VARIABLE(bool, bEspGlowAllies, false);
@@ -152,13 +169,14 @@ struct Variables_t
 	C_ADD_VARIABLE(Color, colEspGlowBomb, Color(140, 220, 80, 128));
 	C_ADD_VARIABLE(Color, colEspGlowBombPlanted, Color(200, 210, 80, 128));
 
+	// chams
 	C_ADD_VARIABLE(bool, bEspChams, false);
 	C_ADD_VARIABLE(bool, bEspChamsEnemies, false);
 	C_ADD_VARIABLE(bool, bEspChamsAllies, false);
 	C_ADD_VARIABLE(bool, bEspChamsViewModel, false);
 
 	C_ADD_VARIABLE(bool, bEspChamsXQZ, false);
-	C_ADD_VARIABLE(int, iEspChamsPlayers, 0);
+	C_ADD_VARIABLE(int, iEspChamsPlayer, 0);
 	C_ADD_VARIABLE(int, iEspChamsViewModel, 0);
 	C_ADD_VARIABLE(Color, colEspChamsEnemies, Color(180, 65, 65, 255));
 	C_ADD_VARIABLE(Color, colEspChamsEnemiesWall, Color(180, 180, 40, 255));
@@ -167,6 +185,7 @@ struct Variables_t
 	C_ADD_VARIABLE(Color, colEspChamsViewModel, Color(80, 255, 45, 255));
 	C_ADD_VARIABLE(Color, colEspChamsViewModelAdditional, Color(0, 0, 255, 255));
 
+	// world
 	C_ADD_VARIABLE(bool, bWorld, false);
 	C_ADD_VARIABLE(bool, bWorldNightMode, false);
 	C_ADD_VARIABLE(int, iWorldMaxFlash, 100);
@@ -174,8 +193,8 @@ struct Variables_t
 	C_ADD_VARIABLE(float, flWorldThirdPersonOffset, 150.f);
 	C_ADD_VARIABLE_VECTOR(bool, REMOVAL_MAX, vecWorldRemovals, false);
 
+	// on-screen
 	C_ADD_VARIABLE(bool, bScreen, false);
-	C_ADD_VARIABLE(bool, bEspMainFarRadar, false);
 	C_ADD_VARIABLE(float, flScreenCameraFOV, 0.f);
 	C_ADD_VARIABLE(float, flScreenViewModelFOV, 0.f);
 	C_ADD_VARIABLE(bool, bScreenHitMarker, false);
@@ -189,6 +208,7 @@ struct Variables_t
 	#pragma endregion
 
 	#pragma region variables_misc
+	// movement
 	C_ADD_VARIABLE(bool, bMiscBunnyHop, false);
 	C_ADD_VARIABLE(int, iMiscBunnyHopChance, 100);
 	C_ADD_VARIABLE(bool, bMiscAutoStrafe, false);
@@ -198,7 +218,9 @@ struct Variables_t
 	C_ADD_VARIABLE(bool, bMiscAutoPistol, false);
 	C_ADD_VARIABLE(bool, bMiscNoCrouchCooldown, false);
 
+	// exploits
 	C_ADD_VARIABLE(bool, bMiscPingSpike, false);
+	C_ADD_VARIABLE(float, flMiscLatencyFactor, 0.4f);
 	C_ADD_VARIABLE(bool, bMiscRevealRanks, false);
 	C_ADD_VARIABLE(bool, bMiscUnlockInventory, false);
 	C_ADD_VARIABLE(bool, bMiscAntiUntrusted, true);

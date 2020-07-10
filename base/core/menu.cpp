@@ -116,7 +116,7 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 
 		ImGui::SetNextWindowPos(ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y * 0.5f), ImGuiCond_Once, ImVec2(0.5f, 0.5f));
 		ImGui::SetNextWindowSize(ImVec2(500, 320), ImGuiCond_Always);
-		ImGui::Begin(XorStr("qo0 base"), &bMainOpened, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse);
+		ImGui::Begin(XorStr("qo0 base"), &bMainOpened, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse);
 		{
 			ImVec2 vecPos = ImGui::GetCursorScreenPos();
 			float flWindowWidth = ImGui::GetWindowWidth();
@@ -352,23 +352,36 @@ void T::Visuals()
 
 				if (C::Get<bool>(Vars.bEspMainEnemies) || C::Get<bool>(Vars.bEspMainAllies))
 				{
-					ImGui::Checkbox(XorStr("far radar"), &C::Get<bool>(Vars.bEspMainFarRadar));
-					ImGui::Combo(XorStr("box"), &C::Get<int>(Vars.iEspMainBox), XorStr("none\0full\0corners\0\0"));
 					ImGui::Separator();
+					ImGui::Combo(XorStr("player box"), &C::Get<int>(Vars.iEspMainPlayerBox), XorStr("none\0full\0corners\0\0"));
+					ImGui::Checkbox(XorStr("far radar"), &C::Get<bool>(Vars.bEspMainPlayerFarRadar));
 
-					// @todo: very later after some changes in visual's rendering system move it to single modal window or popup and add preview
-					ImGui::Checkbox(XorStr("info"), &C::Get<bool>(Vars.bEspMainInfo));
-					if (C::Get<bool>(Vars.bEspMainInfo))
+					ImGui::Checkbox(XorStr("players info"), &C::Get<bool>(Vars.bEspMainPlayerInfo));
+					if (C::Get<bool>(Vars.bEspMainPlayerInfo))
 					{
-						ImGui::Checkbox(XorStr("health"), &C::Get<bool>(Vars.bEspMainInfoHealth));
-						ImGui::Checkbox(XorStr("money"), &C::Get<bool>(Vars.bEspMainInfoMoney));
-						//ImGui::Checkbox(XorStr("rank"), &C::Get<bool>(Vars.bEspMainInfoRank));
-						ImGui::Checkbox(XorStr("name"), &C::Get<bool>(Vars.bEspMainInfoName));
-						ImGui::Checkbox(XorStr("flash"), &C::Get<bool>(Vars.bEspMainInfoFlash));
-						ImGui::MultiCombo(XorStr("flags"), arrVisualsFlags, C::Get<std::vector<bool>>(Vars.vecEspMainInfoFlags), IM_ARRAYSIZE(arrVisualsFlags));
-						ImGui::Checkbox(XorStr("weapons"), &C::Get<bool>(Vars.bEspMainInfoWeapons));
-						ImGui::Checkbox(XorStr("ammo"), &C::Get<bool>(Vars.bEspMainInfoAmmo));
-						ImGui::Checkbox(XorStr("distance"), &C::Get<bool>(Vars.bEspMainInfoDistance));
+						ImGui::Checkbox(XorStr("health##player"), &C::Get<bool>(Vars.bEspMainPlayerHealth));
+						ImGui::Checkbox(XorStr("money##player"), &C::Get<bool>(Vars.bEspMainPlayerMoney));
+						//ImGui::Checkbox(XorStr("rank##player"), &C::Get<bool>(Vars.bEspMainPlayerRank));
+						ImGui::Checkbox(XorStr("name##player"), &C::Get<bool>(Vars.bEspMainPlayerName));
+						ImGui::Checkbox(XorStr("flash##player"), &C::Get<bool>(Vars.bEspMainPlayerFlash));
+						ImGui::MultiCombo(XorStr("flags##player"), arrVisualsFlags, C::Get<std::vector<bool>>(Vars.vecEspMainPlayerFlags), IM_ARRAYSIZE(arrVisualsFlags));
+						ImGui::Checkbox(XorStr("weapons##player"), &C::Get<bool>(Vars.bEspMainPlayerWeapons));
+						ImGui::Checkbox(XorStr("ammo##player"), &C::Get<bool>(Vars.bEspMainPlayerAmmo));
+						ImGui::Checkbox(XorStr("distance##player"), &C::Get<bool>(Vars.bEspMainPlayerDistance));
+					}
+				}
+
+				if (C::Get<bool>(Vars.bEspMainWeapons))
+				{
+					ImGui::Separator();
+					ImGui::Combo(XorStr("weapon box"), &C::Get<int>(Vars.iEspMainWeaponBox), XorStr("none\0full\0corners\0\0"));
+
+					ImGui::Checkbox(XorStr("weapons info"), &C::Get<bool>(Vars.bEspMainWeaponInfo));
+					if (C::Get<bool>(Vars.bEspMainWeaponInfo))
+					{
+						ImGui::Checkbox(XorStr("icon##weapon"), &C::Get<bool>(Vars.bEspMainWeaponIcon));
+						ImGui::Checkbox(XorStr("ammo##weapon"), &C::Get<bool>(Vars.bEspMainWeaponAmmo));
+						ImGui::Checkbox(XorStr("distance##weapon"), &C::Get<bool>(Vars.bEspMainWeaponDistance));
 					}
 				}
 
@@ -392,7 +405,7 @@ void T::Visuals()
 
 				if (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies))
 				{
-					ImGui::Combo(XorStr("players style##chams"), &C::Get<int>(Vars.iEspChamsPlayers), XorStr("covered\0flat\0wireframe\0reflective\0\0"));
+					ImGui::Combo(XorStr("players style##chams"), &C::Get<int>(Vars.iEspChamsPlayer), XorStr("covered\0flat\0wireframe\0reflective\0\0"));
 					ImGui::Checkbox(XorStr("xqz"), &C::Get<bool>(Vars.bEspChamsXQZ));
 				}
 
@@ -504,8 +517,10 @@ void T::Miscellaneous()
 				ImGui::TextUnformatted(XorStr("exploits"));
 				ImGui::EndMenuBar();
 			}
+
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
 			ImGui::Checkbox(XorStr("ping spike"), &C::Get<bool>(Vars.bMiscPingSpike));
+			ImGui::SliderFloat(XorStr("latency factor"), &C::Get<float>(Vars.flMiscLatencyFactor), 0.1f, 1.0f, "%.1f second");
 			ImGui::Checkbox(XorStr("reveal ranks"), &C::Get<bool>(Vars.bMiscRevealRanks));
 			ImGui::Checkbox(XorStr("unlock inventory"), &C::Get<bool>(Vars.bMiscUnlockInventory));
 			ImGui::Checkbox(XorStr("anti-untrusted"), &C::Get<bool>(Vars.bMiscAntiUntrusted));

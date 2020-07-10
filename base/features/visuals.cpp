@@ -170,14 +170,14 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 				(!pLocal->IsEnemy(pEntity) && C::Get<bool>(Vars.bEspMainAllies))))
 			{
 				// set entity spotted in-game radar
-				if (C::Get<bool>(Vars.bEspMainFarRadar))
+				if (C::Get<bool>(Vars.bEspMainPlayerFarRadar))
 					*pEntity->IsSpotted() = true;
 
 				// setup player context
 				Context_t ctx = { };
 
 				// get player bounding box
-				if (!GetBoundingBox(pEntity, ctx.box))
+				if (!GetBoundingBox(pEntity, &ctx.box))
 					break;
 
 				/*
@@ -238,7 +238,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 		default:
 		{
 			// check for esp state and skip weapon in hands
-			if (!C::Get<bool>(Vars.bEsp) || !C::Get<bool>(Vars.bEspMain) || !C::Get<bool>(Vars.bEspMainWeapons) || nIndex == EClassIndex::CBaseWeaponWorldModel)
+			if (!C::Get<bool>(Vars.bEsp) || !C::Get<bool>(Vars.bEspMain) || !C::Get<bool>(Vars.bEspMainWeapons) || !C::Get<bool>(Vars.bEspMainWeaponInfo) || nIndex == EClassIndex::CBaseWeaponWorldModel)
 				break;
 
 			if (pEntity->IsDormant())
@@ -270,7 +270,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 				Context_t ctx = { };
 
 				// get weapon bounding box
-				if (!GetBoundingBox(pEntity, ctx.box))
+				if (!GetBoundingBox(pEntity, &ctx.box))
 					break;
 
 				DroppedWeapons(pDrawList, pWeapon, nDefinitionIndex, ctx, Color(255, 255, 255, 200), Color(80, 180, 200, 200), Color(40, 40, 40, 50), Color(0, 0, 0, 150));
@@ -382,7 +382,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 			static IMaterial* pMaterial = nullptr;
 
 			// set players material
-			switch (C::Get<int>(Vars.iEspChamsPlayers))
+			switch (C::Get<int>(Vars.iEspChamsPlayer))
 			{
 			case (int)EVisualsPlayersChams::FLAT:
 				pMaterial = arrMaterials.at(0).second;
@@ -412,7 +412,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 				pMaterial->SetMaterialVarFlag(MATERIAL_VAR_IGNOREZ, true);
 
 				// set xqz wireframe
-				pMaterial->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, C::Get<int>(Vars.iEspChamsPlayers) == (int)EVisualsPlayersChams::WIREFRAME ? true : false);
+				pMaterial->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, C::Get<int>(Vars.iEspChamsPlayer) == (int)EVisualsPlayersChams::WIREFRAME ? true : false);
 
 				// set xqz color
 				I::StudioRender->SetColorModulation(colHidden.Base());
@@ -434,7 +434,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 			pMaterial->SetMaterialVarFlag(MATERIAL_VAR_IGNOREZ, false);
 
 			// set wireframe
-			pMaterial->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, C::Get<int>(Vars.iEspChamsPlayers) == (int)EVisualsPlayersChams::WIREFRAME ? true : false);
+			pMaterial->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, C::Get<int>(Vars.iEspChamsPlayer) == (int)EVisualsPlayersChams::WIREFRAME ? true : false);
 
 			// set color
 			I::StudioRender->SetColorModulation(colVisible.Base());
@@ -527,7 +527,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 		IMaterialVar* pBaseTexture = pMaterial->FindVar(XorStr("$basetexture"), &bBaseTextureFound);
 
 		// do not override base texture for glow
-		if (C::Get<int>(Vars.iEspChamsPlayers) == (int)EVisualsViewModelChams::GLOW && bBaseTextureFound)
+		if (C::Get<int>(Vars.iEspChamsPlayer) == (int)EVisualsViewModelChams::GLOW && bBaseTextureFound)
 			pBaseTexture->SetString("");
 
 		static bool bEnvMapFresnelFound = false;
@@ -679,7 +679,7 @@ Vector* CVisuals::GetPoints(CBaseEntity* pEntity)
 	return vecPoints;
 }
 
-bool CVisuals::GetBoundingBox(CBaseEntity* pEntity, Box_t& box)
+bool CVisuals::GetBoundingBox(CBaseEntity* pEntity, Box_t* pBox)
 {
 	// get basic points
 	Vector* vecPoints = GetPoints(pEntity);
@@ -715,21 +715,21 @@ bool CVisuals::GetBoundingBox(CBaseEntity* pEntity, Box_t& box)
 	float right = vecScreen[3].x;
 	float bottom = vecScreen[3].y;
 
-	for (int i = 0; i < 8; i++)
+	for (const auto& vecPoint : vecScreen)
 	{
-		left = std::min<float>(left, vecScreen[i].x);
-		top = std::min<float>(top, vecScreen[i].y);
-		right = std::max<float>(right, vecScreen[i].x);
-		bottom = std::max<float>(bottom, vecScreen[i].y);
+		left = std::min<float>(left, vecPoint.x);
+		top = std::min<float>(top, vecPoint.y);
+		right = std::max<float>(right, vecPoint.x);
+		bottom = std::max<float>(bottom, vecPoint.y);
 	}
 
 	// set calculated box
-	box.left = left;
-	box.top = top;
-	box.right = right;
-	box.bottom = bottom;
-	box.width = right - left;
-	box.height = bottom - top;
+	pBox->left = left;
+	pBox->top = top;
+	pBox->right = right;
+	pBox->bottom = bottom;
+	pBox->width = right - left;
+	pBox->height = bottom - top;
 	return true;
 }
 
@@ -999,20 +999,40 @@ void CVisuals::Grenade(ImDrawList* pDrawList, EClassIndex nIndex, CBaseEntity* p
 
 void CVisuals::DroppedWeapons(ImDrawList* pDrawList, CBaseCombatWeapon* pWeapon, short nItemDefinitionIndex, Context_t& ctx, Color colPrimary, Color colAmmo, Color colBackground, Color colOutline)
 {
+	const float flDistance = std::fabsf((pWeapon->GetRenderOrigin() - G::vecCamera).Length());
+
+	if (C::Get<int>(Vars.iEspMainWeaponBox) > (int)EVisualsBoxType::NONE)
+		Box(pDrawList, ctx.box, C::Get<int>(Vars.iEspMainWeaponBox), C::Get<Color>(Vars.colEspMainBoxWeapons), Color(0, 0, 0, 150));
+
 	// @note: for text weapon names
-	//const char* szHudName = pWeaponData->szHudName;
-	//wchar_t* wszLocalizeName = I::Localize->Find(szHudName);
+	// const char* szHudName = pWeaponData->szHudName;
+	// wchar_t* wszLocalizeName = I::Localize->Find(szHudName);
 
-	// get dropped weapon icon
-	const char* szIcon = U::GetWeaponIcon(nItemDefinitionIndex);
+	// weapon icon
+	if (C::Get<bool>(Vars.bEspMainWeaponIcon))
+	{
+		// get dropped weapon icon
+		const char* szIcon = U::GetWeaponIcon(nItemDefinitionIndex);
+		const ImVec2 vecNameSize = F::Icons->CalcTextSizeA(10.f, FLT_MAX, 0.f, szIcon);
 
-	// draw weapon icon
-	const ImVec2 vecNameSize = F::Icons->CalcTextSizeA(10.f, FLT_MAX, 0.f, szIcon);
-	ImGui::AddText(pDrawList, F::Icons, 10.f, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecNameSize.x * 0.5f, ctx.box.bottom), szIcon, colPrimary.GetU32(), true, colOutline.GetU32());
-	ctx.arrPadding.at(DIR_BOTTOM) += vecNameSize.y;
+		ImGui::AddText(pDrawList, F::Icons, 10.f, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecNameSize.x * 0.5f, ctx.box.bottom + 3), szIcon, colPrimary.GetU32(), true, colOutline.GetU32());
+		ctx.arrPadding.at(DIR_BOTTOM) += 3 + vecNameSize.y;
+	}
 
 	// ammo bar
-	AmmoBar(pDrawList, nullptr, pWeapon, ctx, colAmmo, colBackground, colOutline);
+	if (C::Get<bool>(Vars.bEspMainWeaponAmmo))
+		AmmoBar(pDrawList, nullptr, pWeapon, ctx, colAmmo, colBackground, colOutline);
+
+	// distance
+	if (C::Get<bool>(Vars.bEspMainWeaponDistance))
+	{
+		const int iDistance = M_INCH2METRE(flDistance);
+		std::string szDistance = std::to_string(iDistance).append(XorStr("M"));
+		const ImVec2 vecDistanceSize = F::SmallestPixel->CalcTextSizeA(12.f, FLT_MAX, 0.0f, szDistance.c_str());
+
+		ImGui::AddText(pDrawList, F::SmallestPixel, 12.f, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecDistanceSize.x * 0.5f, ctx.box.bottom + 2 + ctx.arrPadding.at(DIR_BOTTOM)), szDistance.c_str(), colPrimary.GetU32(), true, colOutline.GetU32());
+		ctx.arrPadding.at(DIR_BOTTOM) += vecDistanceSize.y;
+	}
 }
 
 void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx, Color colInfo, Color colFrame, Color colOutline)
@@ -1021,18 +1041,18 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	if (!I::Engine->GetPlayerInfo(pEntity->GetIndex(), &pInfo))
 		return;
 
-	if (C::Get<int>(Vars.iEspMainBox) > (int)EVisualsBoxType::NONE)
+	if (C::Get<int>(Vars.iEspMainPlayerBox) > (int)EVisualsBoxType::NONE)
 	{
 		// get box color based on visibility & enmity
 		Color colBox = pEntity->IsEnemy(pLocal) ?
 			pLocal->IsVisible(pEntity, pEntity->GetEyePosition(false)) ? C::Get<Color>(Vars.colEspMainBoxEnemies) : C::Get<Color>(Vars.colEspMainBoxEnemiesWall) :
 			pLocal->IsVisible(pEntity, pEntity->GetEyePosition(false)) ? C::Get<Color>(Vars.colEspMainBoxAllies) : C::Get<Color>(Vars.colEspMainBoxAlliesWall);
 
-		Box(pDrawList, ctx.box, colBox, Color(0, 0, 0, 150));
+		Box(pDrawList, ctx.box, C::Get<int>(Vars.iEspMainPlayerBox), colBox, Color(0, 0, 0, 150));
 	}
 
 	// info's master check
-	if (!C::Get<bool>(Vars.bEspMainInfo))
+	if (!C::Get<bool>(Vars.bEspMainPlayerInfo))
 		return;
 
 	// @note: distance font scale
@@ -1040,15 +1060,15 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	const float flFontSize = std::clamp<float>(90.f / (flDistance / 90.f), 10.f, 40.f);
 
 	#pragma region visuals_player_top
-	if (C::Get<bool>(Vars.bEspMainInfoFlash) && pEntity->GetFlashDuration() > 0.2f)
+	if (C::Get<bool>(Vars.bEspMainPlayerFlash) && pEntity->GetFlashDuration() > 0.2f)
 		FlashBar(pDrawList, pEntity, ctx, Color(255, 255, 255, 220), Color(40, 40, 40, 100), Color(0, 0, 0, 150));
 
-	if (C::Get<bool>(Vars.bEspMainInfoRank) && !pInfo.bFakePlayer)
+	if (C::Get<bool>(Vars.bEspMainPlayerRank) && !pInfo.bFakePlayer)
 	{
 		// @todo: make with images from vpk
 	}
 
-	if (C::Get<bool>(Vars.bEspMainInfoName))
+	if (C::Get<bool>(Vars.bEspMainPlayerName))
 	{
 		// get player name
 		std::string szName = pInfo.szName;
@@ -1078,11 +1098,11 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	if (CBaseCombatWeapon* pActiveWeapon = pEntity->GetWeapon(); pActiveWeapon != nullptr)
 	{
 		// ammo bar
-		if (C::Get<bool>(Vars.bEspMainInfoAmmo))
+		if (C::Get<bool>(Vars.bEspMainPlayerAmmo))
 			AmmoBar(pDrawList, pEntity, pActiveWeapon, ctx, Color(80, 180, 200), Color(40, 40, 40, 100), Color(0, 0, 0, 150));
 
 		// get all other weapons
-		if (C::Get<bool>(Vars.bEspMainInfoWeapons))
+		if (C::Get<bool>(Vars.bEspMainPlayerWeapons))
 		{
 			if (const auto hWeapons = pEntity->GetWeaponsHandle(); hWeapons != nullptr)
 			{
@@ -1117,7 +1137,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 		}
 	}
 
-	if (C::Get<bool>(Vars.bEspMainInfoDistance))
+	if (C::Get<bool>(Vars.bEspMainPlayerDistance))
 	{
 		const int iDistance = M_INCH2METRE(flDistance);
 		std::string szDistance = std::to_string(iDistance).append(XorStr("M"));
@@ -1128,7 +1148,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	#pragma endregion
 
 	#pragma region visuals_player_left
-	if (C::Get<bool>(Vars.bEspMainInfoHealth))
+	if (C::Get<bool>(Vars.bEspMainPlayerHealth))
 	{
 		// calculate hp-based color
 		const float flFactor = (float)pEntity->GetHealth() / (float)pEntity->GetMaxHealth();
@@ -1136,7 +1156,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 		HealthBar(pDrawList, flFactor, ctx, Color::FromHSB(flHue, 1.f, 1.f), Color(40, 40, 40, 100), Color(0, 0, 0, 150));
 	}
 
-	if (C::Get<bool>(Vars.bEspMainInfoMoney))
+	if (C::Get<bool>(Vars.bEspMainPlayerMoney))
 	{
 		std::string szMoney = std::to_string(pEntity->GetMoney()).insert(0U, XorStr("$"));
 		const ImVec2 vecMoneySize = F::SmallestPixel->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szMoney.c_str());
@@ -1146,7 +1166,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	#pragma endregion
 
 	#pragma region visuals_player_right
-	if (C::Get<std::vector<bool>>(Vars.vecEspMainInfoFlags).at(INFO_FLAG_HELMET) && pEntity->HasHelmet())
+	if (C::Get<std::vector<bool>>(Vars.vecEspMainPlayerFlags).at(INFO_FLAG_HELMET) && pEntity->HasHelmet())
 	{
 		constexpr const char* szHelmetIcon = u8"\uE20E";
 		const ImVec2 vecHelmetSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szHelmetIcon);
@@ -1154,7 +1174,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 		ctx.arrPadding.at(DIR_RIGHT) += vecHelmetSize.y;
 	}
 
-	if (C::Get<std::vector<bool>>(Vars.vecEspMainInfoFlags).at(INFO_FLAG_KEVLAR) && pEntity->GetArmor() > 0)
+	if (C::Get<std::vector<bool>>(Vars.vecEspMainPlayerFlags).at(INFO_FLAG_KEVLAR) && pEntity->GetArmor() > 0)
 	{
 		constexpr const char* szKevlarIcon = u8"\uE210";
 		const ImVec2 vecKevlarSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szKevlarIcon);
@@ -1162,7 +1182,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 		ctx.arrPadding.at(DIR_RIGHT) += vecKevlarSize.y;
 	}
 
-	if (C::Get<std::vector<bool>>(Vars.vecEspMainInfoFlags).at(INFO_FLAG_KIT) && pEntity->HasDefuser())
+	if (C::Get<std::vector<bool>>(Vars.vecEspMainPlayerFlags).at(INFO_FLAG_KIT) && pEntity->HasDefuser())
 	{
 		constexpr const char* szKitIcon = u8"\uE20F";
 		const ImVec2 vecKitSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szKitIcon);
@@ -1170,7 +1190,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 		ctx.arrPadding.at(DIR_RIGHT) += vecKitSize.y;
 	}
 
-	if (C::Get<std::vector<bool>>(Vars.vecEspMainInfoFlags).at(INFO_FLAG_ZOOM) && pEntity->IsScoped())
+	if (C::Get<std::vector<bool>>(Vars.vecEspMainPlayerFlags).at(INFO_FLAG_ZOOM) && pEntity->IsScoped())
 	{
 		constexpr const char* szTargetIcon = u8"\uE212";
 		const ImVec2 vecZoomSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szTargetIcon);
@@ -1180,9 +1200,11 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	#pragma endregion
 }
 
-void CVisuals::Box(ImDrawList* pDrawList, const Box_t& box, Color colPrimary, Color colOutline)
+void CVisuals::Box(ImDrawList* pDrawList, const Box_t& box, const int nBoxType, Color colPrimary, Color colOutline)
 {
-	if (C::Get<int>(Vars.iEspMainBox) == (int)EVisualsBoxType::FULL)
+	switch (nBoxType)
+	{
+	case (int)EVisualsBoxType::FULL:
 	{
 		/* box */
 		pDrawList->AddRect(ImVec2(box.left, box.top), ImVec2(box.right, box.bottom), colPrimary.GetU32());
@@ -1191,8 +1213,9 @@ void CVisuals::Box(ImDrawList* pDrawList, const Box_t& box, Color colPrimary, Co
 		pDrawList->AddRect(ImVec2(box.left - 1, box.top - 1), ImVec2(box.right + 1, box.bottom + 1), colOutline.GetU32());
 		// inner
 		pDrawList->AddRect(ImVec2(box.left + 1, box.top + 1), ImVec2(box.right - 1, box.bottom - 1), colOutline.GetU32());
-	}
-	else if (C::Get<int>(Vars.iEspMainBox) == (int)EVisualsBoxType::CORNERS)
+		break;
+	};
+	case (int)EVisualsBoxType::CORNERS:
 	{
 		// num of parts we divide the whole line
 		constexpr int nDivideParts = 5;
@@ -1224,6 +1247,10 @@ void CVisuals::Box(ImDrawList* pDrawList, const Box_t& box, Color colPrimary, Co
 			// box
 			pDrawList->AddLine(arrPoint.first, arrPoint.second, colPrimary.GetU32());
 		}
+		break;
+	};
+	default:
+		break;
 	}
 }
 

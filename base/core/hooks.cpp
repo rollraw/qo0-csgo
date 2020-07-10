@@ -167,15 +167,18 @@ long D3DAPI H::hkEndScene(IDirect3DDevice9* pDevice)
 	static auto oEndScene = DTR::EndScene.GetOriginal<decltype(&hkEndScene)>();
 	static void* pUsedAddress = nullptr;
 
-	// search for gameoverlay address
-	MEMORY_BASIC_INFORMATION memInfo;
-	VirtualQuery(_ReturnAddress(), &memInfo, sizeof(MEMORY_BASIC_INFORMATION));
+	if (pUsedAddress == nullptr)
+	{
+		// search for gameoverlay address
+		MEMORY_BASIC_INFORMATION memInfo;
+		VirtualQuery(_ReturnAddress(), &memInfo, sizeof(MEMORY_BASIC_INFORMATION));
 
-	TCHAR wModulePath[MAX_PATH];
-	GetModuleFileName((HMODULE)memInfo.AllocationBase, wModulePath, MAX_PATH);
+		char chModuleName[MAX_PATH];
+		GetModuleFileName((HMODULE)memInfo.AllocationBase, chModuleName, MAX_PATH);
 
-	if (strstr(wModulePath, XorStr("gameoverlay")) != nullptr)
-		pUsedAddress = _ReturnAddress();
+		if (strstr(chModuleName, GAMEOVERLAYRENDERER_DLL) != nullptr)
+			pUsedAddress = _ReturnAddress();
+	}
 
 	// check for called from gameoverlay and render here to bypass capturing programs
 	if (_ReturnAddress() == pUsedAddress)
@@ -591,15 +594,15 @@ int FASTCALL H::hkSendDatagram(INetChannel* pNetChannel, int edx, bf_write* pDat
 	if (!I::Engine->IsInGame() || !C::Get<bool>(Vars.bMiscPingSpike) || pDatagram != nullptr)
 		return oSendDatagram(pNetChannel, edx, pDatagram);
 
-	int oInReliableState = pNetChannel->iInReliableState;
-	int oInSequenceNr = pNetChannel->iInSequenceNr;
+	int iInReliableStateOld = pNetChannel->iInReliableState;
+	int iInSequenceNrOld = pNetChannel->iInSequenceNr;
 
-	CLagCompensation::Get().AddLatencyToNetChannel(pNetChannel, CLagCompensation::Get().flFakeLatencyAmount);
+	CLagCompensation::Get().AddLatencyToNetChannel(pNetChannel, C::Get<float>(Vars.flMiscLatencyFactor));
 
 	int iReturn = oSendDatagram(pNetChannel, edx, pDatagram);
 
-	pNetChannel->iInReliableState = oInReliableState;
-	pNetChannel->iInSequenceNr = oInSequenceNr;
+	pNetChannel->iInReliableState = iInReliableStateOld;
+	pNetChannel->iInSequenceNr = iInSequenceNrOld;
 
 	return iReturn;
 }
