@@ -799,7 +799,7 @@ void CVisuals::HitMarker(ImDrawList* pDrawList, float flServerTime, const ImVec2
 			// set fade out alpha
 			colDamage.arrColor.at(3) = std::min<float>(colDamage.aBase(), flAlpha) * 255.f;
 			// draw dealt damage
-			ImGui::AddText(pDrawList, F::SmallestPixel, 20.f, ImVec2(vecScreen.x, vecScreen.y - flRatio * iDistance), std::to_string(vecHitMarks.at(i).iDamage).c_str(), colDamage.GetU32(), true);
+			ImGui::AddText(pDrawList, F::SmallestPixel, 20.f, ImVec2(vecScreen.x, vecScreen.y - flRatio * iDistance), std::to_string(vecHitMarks.at(i).iDamage).c_str(), colDamage.GetU32(), IMGUI_TEXT_OUTLINE);
 		}
 	}
 
@@ -1015,7 +1015,7 @@ void CVisuals::DroppedWeapons(ImDrawList* pDrawList, CBaseCombatWeapon* pWeapon,
 		const char* szIcon = U::GetWeaponIcon(nItemDefinitionIndex);
 		const ImVec2 vecNameSize = F::Icons->CalcTextSizeA(10.f, FLT_MAX, 0.f, szIcon);
 
-		ImGui::AddText(pDrawList, F::Icons, 10.f, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecNameSize.x * 0.5f, ctx.box.bottom + 3), szIcon, colPrimary.GetU32(), true, colOutline.GetU32());
+		ImGui::AddText(pDrawList, F::Icons, 10.f, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecNameSize.x * 0.5f, ctx.box.bottom + 3), szIcon, colPrimary.GetU32(), IMGUI_TEXT_OUTLINE, colOutline.GetU32());
 		ctx.arrPadding.at(DIR_BOTTOM) += 3 + vecNameSize.y;
 	}
 
@@ -1030,7 +1030,7 @@ void CVisuals::DroppedWeapons(ImDrawList* pDrawList, CBaseCombatWeapon* pWeapon,
 		std::string szDistance = std::to_string(iDistance).append(XorStr("M"));
 		const ImVec2 vecDistanceSize = F::SmallestPixel->CalcTextSizeA(12.f, FLT_MAX, 0.0f, szDistance.c_str());
 
-		ImGui::AddText(pDrawList, F::SmallestPixel, 12.f, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecDistanceSize.x * 0.5f, ctx.box.bottom + 2 + ctx.arrPadding.at(DIR_BOTTOM)), szDistance.c_str(), colPrimary.GetU32(), true, colOutline.GetU32());
+		ImGui::AddText(pDrawList, F::SmallestPixel, 12.f, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecDistanceSize.x * 0.5f, ctx.box.bottom + 2 + ctx.arrPadding.at(DIR_BOTTOM)), szDistance.c_str(), colPrimary.GetU32(), IMGUI_TEXT_OUTLINE, colOutline.GetU32());
 		ctx.arrPadding.at(DIR_BOTTOM) += vecDistanceSize.y;
 	}
 }
@@ -1085,10 +1085,10 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 		if (pInfo.bFakePlayer)
 		{
 			vecBotSize = F::SmallestPixel->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szBot);
-			ImGui::AddText(pDrawList, F::SmallestPixel, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f + 1 + vecNameSize.x * 0.5f - vecBotSize.x * 0.5f, ctx.box.top - 2 - vecBotSize.y - ctx.arrPadding.at(DIR_TOP)), szBot, Color(140, 140, 140).GetU32(), true, colOutline.GetU32());
+			ImGui::AddText(pDrawList, F::SmallestPixel, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f + 1 + vecNameSize.x * 0.5f - vecBotSize.x * 0.5f, ctx.box.top - 2 - vecBotSize.y - ctx.arrPadding.at(DIR_TOP)), szBot, Color(140, 140, 140).GetU32(), IMGUI_TEXT_OUTLINE, colOutline.GetU32());
 		}
 
-		ImGui::AddText(pDrawList, F::SmallestPixel, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecNameSize.x * 0.5f - vecBotSize.x * 0.5f, ctx.box.top - 2 - vecNameSize.y - ctx.arrPadding.at(DIR_TOP)), szName.c_str(), colInfo.GetU32(), true, colOutline.GetU32());
+		ImGui::AddText(pDrawList, F::SmallestPixel, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecNameSize.x * 0.5f - vecBotSize.x * 0.5f, ctx.box.top - 2 - vecNameSize.y - ctx.arrPadding.at(DIR_TOP)), szName.c_str(), colInfo.GetU32(), IMGUI_TEXT_OUTLINE, colOutline.GetU32());
 		ctx.arrPadding.at(DIR_TOP) += vecNameSize.y;
 	}
 	#pragma endregion
@@ -1130,7 +1130,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 					// draw weapons list
 					const char* szIcon = U::GetWeaponIcon(nDefinitionIndex);
 					const ImVec2 vecIconSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szIcon);
-					ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecIconSize.x * 0.5f, ctx.box.bottom + 2 + ctx.arrPadding.at(DIR_BOTTOM)), szIcon, pCurrentWeapon == pActiveWeapon ? colInfo.GetU32() : Color(160, 160, 160).GetU32(), true, colOutline.GetU32());
+					ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecIconSize.x * 0.5f, ctx.box.bottom + 2 + ctx.arrPadding.at(DIR_BOTTOM)), szIcon, pCurrentWeapon == pActiveWeapon ? colInfo.GetU32() : Color(160, 160, 160).GetU32(), IMGUI_TEXT_OUTLINE, colOutline.GetU32());
 					ctx.arrPadding.at(DIR_BOTTOM) += vecIconSize.y;
 				}
 			}
@@ -1142,7 +1142,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 		const int iDistance = M_INCH2METRE(flDistance);
 		std::string szDistance = std::to_string(iDistance).append(XorStr("M"));
 		const ImVec2 vecDistanceSize = F::SmallestPixel->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szDistance.c_str());
-		ImGui::AddText(pDrawList, F::SmallestPixel, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecDistanceSize.x * 0.5f, ctx.box.bottom + 2 + ctx.arrPadding.at(DIR_BOTTOM)), szDistance.c_str(), colInfo.GetU32(), true, colOutline.GetU32());
+		ImGui::AddText(pDrawList, F::SmallestPixel, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecDistanceSize.x * 0.5f, ctx.box.bottom + 2 + ctx.arrPadding.at(DIR_BOTTOM)), szDistance.c_str(), colInfo.GetU32(), IMGUI_TEXT_OUTLINE, colOutline.GetU32());
 		ctx.arrPadding.at(DIR_BOTTOM) += vecDistanceSize.y;
 	}
 	#pragma endregion
@@ -1160,7 +1160,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	{
 		std::string szMoney = std::to_string(pEntity->GetMoney()).insert(0U, XorStr("$"));
 		const ImVec2 vecMoneySize = F::SmallestPixel->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szMoney.c_str());
-		ImGui::AddText(pDrawList, F::SmallestPixel, flFontSize, ImVec2(ctx.box.left - 2 - vecMoneySize.x - ctx.arrPadding.at(DIR_LEFT), ctx.box.top), szMoney.c_str(), Color(140, 195, 75).GetU32(), true, colOutline.GetU32());
+		ImGui::AddText(pDrawList, F::SmallestPixel, flFontSize, ImVec2(ctx.box.left - 2 - vecMoneySize.x - ctx.arrPadding.at(DIR_LEFT), ctx.box.top), szMoney.c_str(), Color(140, 195, 75).GetU32(), IMGUI_TEXT_OUTLINE, colOutline.GetU32());
 		ctx.arrPadding.at(DIR_LEFT) += vecMoneySize.y;
 	}
 	#pragma endregion
@@ -1170,7 +1170,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	{
 		constexpr const char* szHelmetIcon = u8"\uE20E";
 		const ImVec2 vecHelmetSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szHelmetIcon);
-		ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szHelmetIcon, colInfo.GetU32(), true, colOutline.GetU32());
+		ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szHelmetIcon, colInfo.GetU32(), IMGUI_TEXT_OUTLINE, colOutline.GetU32());
 		ctx.arrPadding.at(DIR_RIGHT) += vecHelmetSize.y;
 	}
 
@@ -1178,7 +1178,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	{
 		constexpr const char* szKevlarIcon = u8"\uE210";
 		const ImVec2 vecKevlarSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szKevlarIcon);
-		ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szKevlarIcon, colInfo.GetU32(), true, colOutline.GetU32());
+		ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szKevlarIcon, colInfo.GetU32(), IMGUI_TEXT_OUTLINE, colOutline.GetU32());
 		ctx.arrPadding.at(DIR_RIGHT) += vecKevlarSize.y;
 	}
 
@@ -1186,7 +1186,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	{
 		constexpr const char* szKitIcon = u8"\uE20F";
 		const ImVec2 vecKitSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szKitIcon);
-		ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szKitIcon, pEntity->IsDefusing() ? Color(80, 180, 200).GetU32() : colInfo.GetU32(), true, colOutline.GetU32());
+		ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szKitIcon, pEntity->IsDefusing() ? Color(80, 180, 200).GetU32() : colInfo.GetU32(), IMGUI_TEXT_OUTLINE, colOutline.GetU32());
 		ctx.arrPadding.at(DIR_RIGHT) += vecKitSize.y;
 	}
 
@@ -1194,7 +1194,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	{
 		constexpr const char* szTargetIcon = u8"\uE212";
 		const ImVec2 vecZoomSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szTargetIcon);
-		ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szTargetIcon, colInfo.GetU32(), true, colOutline.GetU32());
+		ImGui::AddText(pDrawList, F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szTargetIcon, colInfo.GetU32(), IMGUI_TEXT_OUTLINE, colOutline.GetU32());
 		ctx.arrPadding.at(DIR_RIGHT) += vecZoomSize.y;
 	}
 	#pragma endregion

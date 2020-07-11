@@ -9,17 +9,12 @@
 // used: vector
 #include "../sdk/datatypes/vector.h"
 
-enum EFontRenderFlag
+// custom imgui text rendering flags (up to 32)
+enum ETextRenderFlag : int
 {
-	FONT_DROPSHADOW = 0,
-	FONT_OUTLINE = 1,
-};
-
-enum EFontRenderFlags
-{
-	FONT_LEFT = 0,
-	FONT_RIGHT = 1,
-	FONT_CENTER = 2
+	IMGUI_TEXT_NONE =		0,
+	IMGUI_TEXT_DROPSHADOW = (1 << 0),
+	IMGUI_TEXT_OUTLINE =	(1 << 1)
 };
 
 /*
@@ -56,8 +51,8 @@ namespace ImGui
 	bool ColorEdit4(const char* szLabel, Color* v, ImGuiColorEditFlags flags);
 
 	// Extra
-	void AddText(ImDrawList* pDrawList, const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const char* szText, ImU32 colText, bool bOutline = false, ImU32 colOutline = 0x000000FF);
-	void AddText(ImDrawList* pDrawList, const ImVec2& vecPosition, const char* szText, ImU32 colText, bool bOutline = false, ImU32 colOutline = 0x000000FF);
+	void AddText(ImDrawList* pDrawList, const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const char* szText, ImU32 colText, int iFlags = IMGUI_TEXT_NONE, ImU32 colOutline = 0x000000FF);
+	void AddText(ImDrawList* pDrawList, const ImVec2& vecPosition, const char* szText, ImU32 colText, int iFlags = IMGUI_TEXT_NONE, ImU32 colOutline = 0x000000FF);
 }
 
 /*

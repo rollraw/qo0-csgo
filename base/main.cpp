@@ -129,8 +129,15 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 	catch (const std::runtime_error& ex)
 	{
 		// show error message (or replace to your exception handler)
-		MessageBox(nullptr, ex.what(), nullptr, MB_OK | MB_ICONERROR | MB_TOPMOST);
-		// exit from proccess (passed EXIT_SUCCESS to prevent game knowns unwanted errors)
+		MessageBox(nullptr, ex.what(), XorStr("qo0 base (runtime error)"), MB_OK | MB_ICONERROR | MB_TOPMOST);
+		// exit from process (passed EXIT_SUCCESS to prevent game knowns unwanted errors)
+		FreeLibraryAndExitThread((HMODULE)lpParameter, EXIT_SUCCESS);
+	}
+	catch (const std::out_of_range& ex)
+	{
+		// show error message (or replace to your exception handler)
+		MessageBox(nullptr, ex.what(), XorStr("qo0 base (out of range)"), MB_OK | MB_ICONERROR | MB_TOPMOST);
+		// exit from process (passed EXIT_SUCCESS to prevent game knowns unwanted errors)
 		FreeLibraryAndExitThread((HMODULE)lpParameter, EXIT_SUCCESS);
 	}
 

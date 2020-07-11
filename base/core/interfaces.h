@@ -18,7 +18,7 @@
 #include "../sdk/interfaces/igameeventmanager.h"
 #include "../sdk/interfaces/ivpanel.h"
 #include "../sdk/interfaces/igameui.h"
-#include "../sdk/interfaces/iglobalvarsbase.h"
+#include "../sdk/interfaces/iglobalvars.h"
 #include "../sdk/interfaces/iservergamedll.h"
 #include "../sdk/interfaces/iplayerinfomanager.h"
 #include "../sdk/interfaces/iinput.h"
@@ -98,7 +98,7 @@ namespace I
 	inline IGameTypes*				GameTypes;
 	inline IServerGameDLL*			Server;
 	inline IPlayerInfoManager*		PlayerInfoManager;
-	inline IGlobalVarsBase*			Globals;
+	inline IGlobalVars*				Globals;
 	inline ISteamClient*			SteamClient;
 	inline ISteamUser*				SteamUser;
 	inline ISteamGameCoordinator*	SteamGameCoordinator;

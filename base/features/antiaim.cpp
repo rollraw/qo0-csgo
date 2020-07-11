@@ -141,7 +141,7 @@ void CAntiAim::UpdateServerAnimations(CBaseEntity* pLocal, float flServerTime)
 	else
 	{
 		// backup values
-		std::array<CAnimationLayer, MAX_LAYER_RECORDS> arrNetworkedLayers;
+		std::array<CAnimationLayer, MAXLAYERRECORDS> arrNetworkedLayers;
 		std::copy(pLocal->GetAnimationOverlays(), pLocal->GetAnimationOverlays() + arrNetworkedLayers.size(), arrNetworkedLayers.data());
 		const QAngle angAbsViewOld = pLocal->GetAbsAngles();
 		const std::array<float, MAXSTUDIOPOSEPARAM> arrPosesOld = pLocal->GetPoseParameter();

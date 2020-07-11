@@ -515,7 +515,7 @@ public:
 
 	[[nodiscard]] inline CAnimationLayer* GetAnimationLayer(int nLayer)
 	{
-		if (nLayer >= 0 && nLayer < MAX_LAYER_RECORDS)
+		if (nLayer >= 0 && nLayer < MAXLAYERRECORDS)
 			return &GetAnimationOverlays()[nLayer];
 
 		return nullptr;

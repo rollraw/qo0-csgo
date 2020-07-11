@@ -85,7 +85,7 @@
     <ClInclude Include="sdk\interfaces\igameeventmanager.h" />
     <ClInclude Include="sdk\interfaces\igametypes.h" />
     <ClInclude Include="sdk\interfaces\igameui.h" />
-    <ClInclude Include="sdk\interfaces\iglobalvarsbase.h" />
+    <ClInclude Include="sdk\interfaces\iglobalvars.h" />
     <ClInclude Include="sdk\interfaces\iglowmanager.h" />
     <ClInclude Include="sdk\interfaces\iinput.h" />
     <ClInclude Include="sdk\interfaces\iinputsystem.h" />

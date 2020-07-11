@@ -174,9 +174,6 @@
     <ClInclude Include="sdk\interfaces\igameui.h">
       <Filter>include\sdk\interfaces</Filter>
     </ClInclude>
-    <ClInclude Include="sdk\interfaces\iglobalvarsbase.h">
-      <Filter>include\sdk\interfaces</Filter>
-    </ClInclude>
     <ClInclude Include="sdk\interfaces\iinput.h">
       <Filter>include\sdk\interfaces</Filter>
     </ClInclude>
@@ -416,6 +413,9 @@
     </ClInclude>
     <ClInclude Include="sdk\studio.h">
       <Filter>include\sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="sdk\interfaces\iglobalvars.h">
+      <Filter>include\sdk\interfaces</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

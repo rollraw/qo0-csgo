@@ -16,7 +16,7 @@ class CSaveRestoreData;
 class IServerGameDLL
 {
 public:
-	virtual bool			DLLInit(CreateInterfaceFn fnEngineFactory, CreateInterfaceFn fnPhysicsFactory, CreateInterfaceFn fnFileSystemFactory, IGlobalVarsBase* pGlobals) = 0; // initialize the game (one-time call when the DLL is first loaded). return false if there is an error during startup.
+	virtual bool			DLLInit(CreateInterfaceFn fnEngineFactory, CreateInterfaceFn fnPhysicsFactory, CreateInterfaceFn fnFileSystemFactory, IGlobalVars* pGlobals) = 0; // initialize the game (one-time call when the DLL is first loaded). return false if there is an error during startup.
 	virtual void			DLLShutdown() = 0; // called once during DLL shutdown
 	virtual bool			ReplayInit(CreateInterfaceFn fnReplayFactory) = 0; // setup replay interfaces on the server
 	virtual float			GetTickInterval() const = 0; // get the simulation interval (must be compiled with identical values into both client and game .dll for mod!). right now this is only requested at server startup time so it can't be changed on the fly, etc.

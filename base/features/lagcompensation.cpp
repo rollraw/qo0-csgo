@@ -43,7 +43,7 @@ void CLagCompensation::ClearIncomingSequences()
 
 void CLagCompensation::AddLatencyToNetChannel(INetChannel* pNetChannel, float flLatency)
 {
-	for (auto& sequence : vecSequences)
+	for (const auto& sequence : vecSequences)
 	{
 		if (I::Globals->flRealTime - sequence.flCurrentTime >= flLatency)
 		{

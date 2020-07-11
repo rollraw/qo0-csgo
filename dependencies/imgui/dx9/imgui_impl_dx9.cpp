@@ -127,18 +127,21 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data)
 
 	// Backup the DX9 state
 	// modified by qo0
-	/*
-	 * imgui dx stateblock creation
-	 * used D3DSBT_PIXELSTATE instead D3DSBT_ALL to fix game material render artifacts
-	 * don't create new state block cuz this more properly
-	 */
+	// used D3DSBT_PIXELSTATE instead D3DSBT_ALL to fix game material render artifacts
 	IDirect3DStateBlock9* d3d9_state_block = NULL;
-	if (g_pd3dDevice->CreateStateBlock(D3DSBT_PIXELSTATE, &d3d9_state_block) < 0)
+	if (g_pd3dDevice->CreateStateBlock(D3DSBT_PIXELSTATE, &d3d9_state_block) != D3D_OK)
 		return;
 
 	// @credits: T0b1
 	if (d3d9_state_block->Capture() != D3D_OK)
 		return;
+
+	// modified by qo0
+	// backup vertex states to compensate stateblock changes
+	IDirect3DVertexDeclaration9* vertex_declaration;
+	IDirect3DVertexShader9* vertex_shader;
+	g_pd3dDevice->GetVertexDeclaration(&vertex_declaration);
+	g_pd3dDevice->GetVertexShader(&vertex_shader);
 
 	// Backup the DX9 transform (DX9 documentation suggests that it is included in the StateBlock but it doesn't appear to)
 	D3DMATRIX last_world, last_view, last_projection;
@@ -220,6 +223,11 @@ void ImGui_ImplDX9_RenderDrawData(ImDrawData* draw_data)
 	g_pd3dDevice->SetTransform(D3DTS_WORLD, &last_world);
 	g_pd3dDevice->SetTransform(D3DTS_VIEW, &last_view);
 	g_pd3dDevice->SetTransform(D3DTS_PROJECTION, &last_projection);
+
+	// modified by qo0
+	// Restore the DX9 vertex states
+	g_pd3dDevice->SetVertexDeclaration(vertex_declaration);
+	g_pd3dDevice->SetVertexShader(vertex_shader);
 
 	// Restore the DX9 state
 	d3d9_state_block->Apply();

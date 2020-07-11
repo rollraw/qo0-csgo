@@ -103,9 +103,10 @@ namespace MEM
 	 * virtual function implementation
 	 * returns native function of specified class at given index
 	 */
-	inline constexpr void* GetVFunc(void* thisptr, std::size_t nIndex)
+	template <typename T = void*>
+	inline constexpr T GetVFunc(void* thisptr, std::size_t nIndex)
 	{
-		return (void*)((*(std::uintptr_t**)thisptr)[nIndex]);
+		return (T)((*(std::uintptr_t**)thisptr)[nIndex]);
 	}
 
 	/*

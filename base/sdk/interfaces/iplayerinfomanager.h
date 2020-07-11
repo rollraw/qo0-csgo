@@ -6,5 +6,5 @@ class IPlayerInfoManager
 private:
 	virtual void function0() = 0;
 public:
-	virtual IGlobalVarsBase* GetGlobalVars() = 0;
+	virtual IGlobalVars* GetGlobalVars() = 0;
 };

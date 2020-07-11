@@ -56,7 +56,7 @@ bool I::Setup()
 	if (SteamGameCoordinator == nullptr)
 		return false;
 
-	ClientMode = **(IClientModeShared***)((*(PDWORD*)Client)[10] + 0x5);
+	ClientMode = **(IClientModeShared***)(MEM::GetVFunc<std::uintptr_t>(Client, 10) + 0x5);
 	if (ClientMode == nullptr)
 		return false;
 

@@ -79,6 +79,7 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 		ImGui::BeginMainMenuBar();
 		{
 			ImGui::PushFont(F::Verdana);
+			ImGui::Dummy(ImVec2(1, 1));
 
 			if (strstr(GetCommandLine(), XorStr("-insecure")) != nullptr)
 				ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), XorStr("insecure"));
@@ -87,8 +88,8 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 				ImGui::TextColored(G::bSendPacket ? ImVec4(0.0f, 1.0f, 0.0f, 1.0f) : ImVec4(1.0f, 0.0f, 0.0f, 1.0f), XorStr("send packets"));
 
 			const char* const szName = XorStr("qo0 base | " __DATE__);
-			static ImVec2 vecNameSize = F::SmallestPixel->CalcTextSizeA(16.f, FLT_MAX, 0.0f, szName);
-			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - vecNameSize.x);
+			static ImVec2 vecNameSize = ImGui::CalcTextSize(szName);
+			ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - vecNameSize.x);
 			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), szName);
 
 			ImGui::PopFont();

@@ -13,7 +13,7 @@ class CAntiAim : public CSingleton<CAntiAim>
 public:
 	// Get
 	void Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket);
-	/* align local animations to server */
+	/* align local animation state to server */
 	void UpdateServerAnimations(CBaseEntity* pLocal, float flServerTime); // @credits: pazzo
 
 	// Values

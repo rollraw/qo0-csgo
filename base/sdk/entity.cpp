@@ -35,6 +35,9 @@ int CBaseEntity::GetMaxHealth()
 
 Vector CBaseEntity::GetBonePosition(int iBone)
 {
+	if (iBone <= BONE_INVALID || iBone >= MAXSTUDIOBONES)
+		throw std::out_of_range(XorStr("given invalid bone index for getboneposition"));
+
 	std::array<matrix3x4_t, MAXSTUDIOBONES> arrBonesToWorld;
 
 	if (this->SetupBones(arrBonesToWorld.data(), MAXSTUDIOBONES, BONE_USED_BY_ANYTHING, 0.f))
@@ -45,7 +48,7 @@ Vector CBaseEntity::GetBonePosition(int iBone)
 
 int CBaseEntity::GetBoneByHash(const FNV1A_t uBoneHash)
 {
-	if (const auto pModel = this->GetModel(); pModel != nullptr)
+	if (auto pModel = this->GetModel(); pModel != nullptr)
 	{
 		if (auto pStudioHdr = I::ModelInfo->GetStudioModel(pModel); pStudioHdr != nullptr)
 		{
@@ -67,7 +70,7 @@ Vector CBaseEntity::GetHitboxPosition(int iHitbox)
 
 	std::array<matrix3x4_t, MAXSTUDIOBONES> arrBonesToWorld;
 
-	if (const auto pModel = this->GetModel(); pModel != nullptr)
+	if (auto pModel = this->GetModel(); pModel != nullptr)
 	{
 		if (auto pStudioModel = I::ModelInfo->GetStudioModel(pModel); pStudioModel != nullptr)
 		{
@@ -95,7 +98,7 @@ Vector CBaseEntity::GetHitGroupPosition(int iHitGroup)
 {
 	std::array<matrix3x4_t, MAXSTUDIOBONES> arrBonesToWorld;
 
-	if (const auto pModel = this->GetModel(); pModel != nullptr)
+	if (auto pModel = this->GetModel(); pModel != nullptr)
 	{
 		if (auto pStudioModel = I::ModelInfo->GetStudioModel(pModel); pStudioModel != nullptr)
 		{

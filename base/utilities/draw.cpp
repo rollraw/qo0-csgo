@@ -273,26 +273,32 @@ bool ImGui::ColorEdit4(const char* szLabel, Color* v, ImGuiColorEditFlags flags)
 	return false;
 }
 
-void ImGui::AddText(ImDrawList* pDrawList, const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const char* szText, ImU32 colText, bool bOutline, ImU32 colOutline)
+void ImGui::AddText(ImDrawList* pDrawList, const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const char* szText, ImU32 colText, int iFlags, ImU32 colOutline)
 {
 	if (pFont->ContainerAtlas == nullptr)
 		return;
 
+	// set font texture
 	pDrawList->PushTextureID(pFont->ContainerAtlas->TexID);
 
-	if (bOutline)
-	{
-		pDrawList->AddText(pFont, flFontSize, ImVec2(vecPosition.x + 1.0f, vecPosition.y + 1.0f), colOutline, szText);
+	// check is only one flag selected
+	IM_ASSERT(ImIsPowerOfTwo(iFlags & (IMGUI_TEXT_DROPSHADOW | IMGUI_TEXT_OUTLINE)));
+
+	if (iFlags & IMGUI_TEXT_DROPSHADOW)
 		pDrawList->AddText(pFont, flFontSize, ImVec2(vecPosition.x + 1.0f, vecPosition.y - 1.0f), colOutline, szText);
+	else if (iFlags & IMGUI_TEXT_OUTLINE)
+	{
+		pDrawList->AddText(pFont, flFontSize, ImVec2(vecPosition.x + 1.0f, vecPosition.y - 1.0f), colOutline, szText);
+		pDrawList->AddText(pFont, flFontSize, ImVec2(vecPosition.x + 1.0f, vecPosition.y + 1.0f), colOutline, szText);
 	}
 
 	pDrawList->AddText(pFont, flFontSize, vecPosition, colText, szText);
 	pDrawList->PopTextureID();
 }
 
-void ImGui::AddText(ImDrawList* pDrawList, const ImVec2& vecPosition, const char* szText, ImU32 colText, bool bOutline, ImU32 colOutline)
+void ImGui::AddText(ImDrawList* pDrawList, const ImVec2& vecPosition, const char* szText, ImU32 colText, int iFlags, ImU32 colOutline)
 {
-	AddText(pDrawList, nullptr, 0.f, vecPosition, szText, colText, colOutline);
+	AddText(pDrawList, nullptr, 0.f, vecPosition, szText, colText, iFlags, colOutline);
 }
 #pragma endregion
 
