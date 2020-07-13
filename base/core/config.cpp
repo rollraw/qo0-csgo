@@ -68,6 +68,11 @@ bool C::Save(std::string_view szFileName)
 			entry[XorStr("value")] = variable.Get<bool>();
 			break;
 		}
+		case FNV1A::HashConst("std::string"):
+		{
+			entry[XorStr("value")] = variable.Get<std::string>();
+			break;
+		}
 		case FNV1A::HashConst("Color"):
 		{
 			auto colVariable = variable.Get<Color>();
@@ -86,14 +91,42 @@ bool C::Save(std::string_view szFileName)
 		}
 		case FNV1A::HashConst("std::vector<bool>"):
 		{
-			auto vecVariable = variable.Get<std::vector<bool>>();
+			auto vecBools = variable.Get<std::vector<bool>>();
 
 			// store vector values as sub-node
 			nlohmann::json sub;
 
 			// fill node with all vector values
-			for (auto& bValue : vecVariable)
+			for (auto& bValue : vecBools)
 				sub.push_back((bool)bValue);
+
+			entry[XorStr("value")] = sub.dump();
+			break;
+		}
+		case FNV1A::HashConst("std::vector<int>"):
+		{
+			auto vecInts = variable.Get<std::vector<int>>();
+
+			// store vector values as sub-node
+			nlohmann::json sub;
+
+			// fill node with all vector values
+			for (auto& iValue : vecInts)
+				sub.push_back(iValue);
+
+			entry[XorStr("value")] = sub.dump();
+			break;
+		}
+		case FNV1A::HashConst("std::vector<float>"):
+		{
+			auto vecFloats = variable.Get<std::vector<float>>();
+
+			// store vector values as sub-node
+			nlohmann::json sub;
+
+			// fill node with all vector values
+			for (auto& flValue : vecFloats)
+				sub.push_back(flValue);
 
 			entry[XorStr("value")] = sub.dump();
 			break;
@@ -180,6 +213,11 @@ bool C::Load(std::string_view szFileName)
 			entry.Set<int>(variable[XorStr("value")].get<int>());
 			break;
 		}
+		case FNV1A::HashConst("std::string"):
+		{
+			entry.Set<std::string>(variable[XorStr("value")].get<std::string>());
+			break;
+		}
 		case FNV1A::HashConst("Color"):
 		{
 			auto color = nlohmann::json::parse(variable[XorStr("value")].get<std::string>());
@@ -196,13 +234,41 @@ bool C::Load(std::string_view szFileName)
 		case FNV1A::HashConst("std::vector<bool>"):
 		{
 			auto vector = nlohmann::json::parse(variable[XorStr("value")].get<std::string>());
-			auto& vecVariable = entry.Get<std::vector<bool>>();
+			auto& vecBools = entry.Get<std::vector<bool>>();
 
 			for (std::size_t i = 0U; i < vector.size(); i++)
 			{
 				// check is item out of bounds
-				if (i < vecVariable.size())
-					vecVariable.at(i) = vector.at(i).get<bool>();
+				if (i < vecBools.size())
+					vecBools.at(i) = vector.at(i).get<bool>();
+			}
+
+			break;
+		}
+		case FNV1A::HashConst("std::vector<int>"):
+		{
+			auto vector = nlohmann::json::parse(variable[XorStr("value")].get<std::string>());
+			auto& vecInts = entry.Get<std::vector<int>>();
+
+			for (std::size_t i = 0U; i < vector.size(); i++)
+			{
+				// check is item out of bounds
+				if (i < vecInts.size())
+					vecInts.at(i) = vector.at(i).get<int>();
+			}
+
+			break;
+		}
+		case FNV1A::HashConst("std::vector<float>"):
+		{
+			auto vector = nlohmann::json::parse(variable[XorStr("value")].get<std::string>());
+			auto& vecFloats = entry.Get<std::vector<float>>();
+
+			for (std::size_t i = 0U; i < vector.size(); i++)
+			{
+				// check is item out of bounds
+				if (i < vecFloats.size())
+					vecFloats.at(i) = vector.at(i).get<float>();
 			}
 
 			break;

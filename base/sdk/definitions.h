@@ -585,6 +585,7 @@ enum class EClassIndex : int
 	CWeaponUMP45,
 	CWeaponUSP,
 	CWeaponXM1014,
+	CWeaponZoneRepulsor,
 	CWorld,
 	CWorldVguiText,
 	DustTrail,

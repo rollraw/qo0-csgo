@@ -15,6 +15,11 @@
 
 void CTriggerBot::Run(CUserCmd* pCmd, CBaseEntity* pLocal)
 {
+	static CConVar* weapon_recoil_scale = I::ConVar->FindVar(XorStr("weapon_recoil_scale"));
+
+	if (weapon_recoil_scale == nullptr)
+		return;
+
 	CBaseCombatWeapon* pWeapon = pLocal->GetWeapon();
 
 	if (pWeapon == nullptr)
@@ -36,7 +41,7 @@ void CTriggerBot::Run(CUserCmd* pCmd, CBaseEntity* pLocal)
 
 	// get view and add punch
 	QAngle angView = pCmd->angViewPoint;
-	angView += pLocal->GetPunch() * 2.0f;
+	angView += pLocal->GetPunch() * weapon_recoil_scale->GetFloat();
 
 	Trace_t trace = { };
 	Vector vecStart, vecEnd, vecForward;
@@ -67,15 +72,8 @@ void CTriggerBot::Run(CUserCmd* pCmd, CBaseEntity* pLocal)
 		I::EngineTrace->TraceRay(ray, MASK_SHOT, &filter, &trace);
 	}
 
-	// check is we have target
-	if (trace.pHitEntity == nullptr)
-	{
-		timer.Reset();
-		return;
-	}
-
-	// check is valid target
-	if (!trace.pHitEntity->IsAlive() || trace.pHitEntity->IsDormant() || !trace.pHitEntity->IsPlayer() || trace.pHitEntity->HasImmunity() || !pLocal->IsEnemy(trace.pHitEntity))
+	// check is trace player valid and enemy
+	if (trace.pHitEntity == nullptr || !trace.pHitEntity->IsAlive() || trace.pHitEntity->IsDormant() || !trace.pHitEntity->IsPlayer() || trace.pHitEntity->HasImmunity() || !pLocal->IsEnemy(trace.pHitEntity))
 	{
 		timer.Reset();
 		return;

@@ -255,6 +255,51 @@ bool ImGui::MultiCombo(const char* szLabel, const char** szDisplayName, std::vec
 	return bValueChanged;
 }
 
+bool ImGui::Combo(const char* szLabel, std::vector<int>& v, int nIndex, const char* szItemsSeparatedByZeros, int nHeightInItems)
+{
+	int iValue = v[nIndex];
+
+	bool bPressed = Combo(szLabel, &iValue, szItemsSeparatedByZeros, nHeightInItems);
+
+	if (v[nIndex] != iValue)
+		v[nIndex] = iValue;
+
+	return bPressed;
+}
+
+bool ImGui::Checkbox(const char* szLabel, std::vector<bool>& v, int nIndex)
+{
+	bool bValue = v[nIndex];
+	bool bPressed = Checkbox(szLabel, &bValue);
+
+	if (v[nIndex] != bValue)
+		v[nIndex] = bValue;
+
+	return bPressed;
+}
+
+bool ImGui::SliderFloat(const char* szLabel, std::vector<float>& v, int nIndex, float flMin, float flMax, const char* szFormat, float flPower)
+{
+	float flValue = v[nIndex];
+	bool bPressed = SliderFloat(szLabel, &flValue, flMin, flMax, szFormat, flPower);
+
+	if (v[nIndex] != flValue)
+		v[nIndex] = flValue;
+
+	return bPressed;
+}
+
+bool ImGui::SliderInt(const char* szLabel, std::vector<int>& v, int nIndex, int iMin, int iMax, const char* szFormat)
+{
+	int iValue = v[nIndex];
+	bool bPressed = SliderInt(szLabel, &iValue, iMin, iMax, szFormat);
+
+	if (v[nIndex] != iValue)
+		v[nIndex] = iValue;
+
+	return bPressed;
+}
+
 bool ImGui::ColorEdit3(const char* szLabel, Color* v, ImGuiColorEditFlags flags)
 {
 	return ColorEdit4(szLabel, v, flags);
