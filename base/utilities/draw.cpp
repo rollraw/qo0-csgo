@@ -327,7 +327,7 @@ void ImGui::AddText(ImDrawList* pDrawList, const ImFont* pFont, float flFontSize
 	pDrawList->PushTextureID(pFont->ContainerAtlas->TexID);
 
 	// check is only one flag selected
-	IM_ASSERT(ImIsPowerOfTwo(iFlags & (IMGUI_TEXT_DROPSHADOW | IMGUI_TEXT_OUTLINE)));
+	IM_ASSERT(ImIsPowerOfTwo(iFlags == IMGUI_TEXT_NONE || iFlags & (IMGUI_TEXT_DROPSHADOW | IMGUI_TEXT_OUTLINE)));
 
 	if (iFlags & IMGUI_TEXT_DROPSHADOW)
 		pDrawList->AddText(pFont, flFontSize, ImVec2(vecPosition.x + 1.0f, vecPosition.y - 1.0f), colOutline, szText);
