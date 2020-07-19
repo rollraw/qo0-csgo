@@ -1,13 +1,13 @@
 # qo0-base
-<a href="https://ci.appveyor.com/project/rollraw/qo0-base"><img alt="AppVeyor" src="https://img.shields.io/appveyor/build/rollraw/qo0-base?color=blueviolet&logo=appveyor&logoColor=white&logoWidth=10"></a>
-<a href="https://github.com/rollraw/qo0-base/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/rollraw/qo0-base?color=blueviolet"></a>
-<a href="https://github.com/rollraw/qo0-base/blob/master/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/rollraw/qo0-base?color=blueviolet"></a>
+
+[![AppVeyor](https://img.shields.io/appveyor/build/rollraw/qo0-base?color=blueviolet&logo=appveyor&logoColor=white&logoWidth=10)](https://ci.appveyor.com/project/rollraw/qo0-base)
+[![GitHub issues](https://img.shields.io/github/issues/rollraw/qo0-base?color=blueviolet)](https://github.com/rollraw/qo0-base/issues)
+[![GitHub license](https://img.shields.io/github/license/rollraw/qo0-base?color=blueviolet)](https://github.com/rollraw/qo0-base/blob/master/LICENSE)
 
 ### :space_invader: menu
 <img src="./resources/menu.png" alt="qo0-base" align="center">
 
-> menu key is <kbd>HOME</kbd>  
-panic key is <kbd>END</kbd>
+#
 
 ### :world_map: comments navigation
 1. `@note:`
@@ -25,12 +25,12 @@ class CSomeClass;
 class ISomeInterface;
 ```
 
-2. postfix structs with '_t'
+2. postfix structures with '_t'
 ```cpp
 struct SomeStruct_t;
 ```
 
-3. prefix enums with 'E'
+3. prefix enumerations with 'E'
 ```cpp
 enum ESomeEnum
 ```
@@ -79,26 +79,45 @@ SOME_ENUM_MEMBER = 0
 
 4. includes paths must be separated with one slash
 
-4.1. `additional:` *file names preferably be lowercase*
+4.1. **additional:** *file names preferably be lowercase*
 
 5. use number literal's (uppercase)
 ```cpp
 long lSomeLong = 0L;
 unsigned int uSomeOffset = 0x0; // hex
 unsigned int uSomeInt = 0U;
-unsigned long ulSomeULong = 0UL;
+unsigned long ulSomeLong = 0UL;
 ```
 
-6. use c-style casts
+6. use c++ style casts
 ```cpp
-int* pSomePointer = *(int**)pSomeAddress;
+void* pSomeHandle = const_cast<void*>(pSomeConstHandle);
+int iSomeInt = static_cast<int>(flSomeFloat);
+int* pSomePointer = *reinterpret_cast<int**>(pSomeAddress);
 ```
 
 #
 
-### :bookmark: preproccesor definitions
-1. `_DEBUG 1` - disable string encryption enables console logs (automatic switches with compilation configuration)
-2. `DEBUG_CONSOLE 1` - enables external console logging but deactivates file logging
+### :bookmark: preprocessor definitions
+1. `_DEBUG` - disable string encryption and activate external console logging (automatic switches with compilation configuration)
+2. `DEBUG_CONSOLE` - activate external console logging but deactivate file logging
+
+#
+
+### :wrench: prerequisites
+1. [directx sdk](https://www.microsoft.com/en-us/download/details.aspx?id=6812)
+2. [c++ redistributables](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads)
+
+#
+
+### :question: faq
+**how do i open the menu?**
+
+- menu key is <kbd>HOME</kbd>
+
+**how do i unload the cheat?**
+
+- panic key is <kbd>END</kbd>
 
 #
 
@@ -107,4 +126,4 @@ int* pSomePointer = *(int**)pSomeAddress;
 2. [json](https://github.com/nlohmann/json/)
 3. [freetype font rasterizer](https://www.freetype.org/)
 4. [{fmt} formatting](https://github.com/fmtlib/fmt/)
-5. [minhook](https://github.com/TsudaKageyu/minhook)
+5. [minhook](https://github.com/TsudaKageyu/minhook/)

@@ -14,7 +14,7 @@ public:
 	// Get
 	void Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket);
 	/* align local animation state to server */
-	void UpdateServerAnimations(CBaseEntity* pLocal, float flServerTime); // @credits: pazzo
+	void UpdateServerAnimations(CUserCmd* pCmd, CBaseEntity* pLocal); // @credits: pazzo
 
 	// Values
 	/* angles modified by antiaim and being sent */

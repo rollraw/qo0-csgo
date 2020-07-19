@@ -35,11 +35,6 @@ bool I::Setup()
 	MatchFramework =	Capture<IMatchFramework>(MATCHMAKING_DLL, XorStr("MATCHFRAMEWORK_"));
 	GameTypes =			Capture<IGameTypes>(MATCHMAKING_DLL, XorStr("VENGINE_GAMETYPES_VERSION"));
 	Server =			Capture<IServerGameDLL>(SERVER_DLL, XorStr("ServerGameDLL"));
-	PlayerInfoManager =	Capture<IPlayerInfoManager>(SERVER_DLL, XorStr("PlayerInfoManager"));
-
-	Globals = PlayerInfoManager->GetGlobalVars();
-	if (Globals == nullptr)
-		return false;
 
 	SteamClient = Engine->GetSteamAPIContext()->pSteamClient;
 	if (SteamClient == nullptr)
@@ -52,43 +47,43 @@ bool I::Setup()
 	const HSteamUser hSteamUser = ((std::add_pointer_t<HSteamUser(void)>)GetProcAddress(GetModuleHandle(STEAM_API_DLL), XorStr("SteamAPI_GetHSteamUser")))();
 	const HSteamPipe hSteamPipe = ((std::add_pointer_t<HSteamPipe(void)>)GetProcAddress(GetModuleHandle(STEAM_API_DLL), XorStr("SteamAPI_GetHSteamPipe")))();
 
-	SteamGameCoordinator = (ISteamGameCoordinator*)I::SteamClient->GetISteamGenericInterface(hSteamUser, hSteamPipe, XorStr("SteamGameCoordinator001"));
+	SteamGameCoordinator = static_cast<ISteamGameCoordinator*>(I::SteamClient->GetISteamGenericInterface(hSteamUser, hSteamPipe, XorStr("SteamGameCoordinator001")));
 	if (SteamGameCoordinator == nullptr)
 		return false;
 
-	ClientMode = **(IClientModeShared***)(MEM::GetVFunc<std::uintptr_t>(Client, 10) + 0x5);
+	ClientMode = **reinterpret_cast<IClientModeShared***>(MEM::GetVFunc<std::uintptr_t>(Client, 10) + 0x5); // get it from CHLClient::HudProcessInput
 	if (ClientMode == nullptr)
 		return false;
 
-	MemAlloc = *(IMemAlloc**)GetProcAddress(GetModuleHandle(TIER0_DLL), XorStr("g_pMemAlloc"));
+	Globals = **reinterpret_cast<IGlobalVarsBase***>(MEM::GetVFunc<std::uintptr_t>(Client, 11) + 0xA); // get it from CHLClient::HudUpdate @xref: "(time_int)", "(time_float)"
+	if (Globals == nullptr)
+		return false;
+
+	MemAlloc = *reinterpret_cast<IMemAlloc**>(GetProcAddress(GetModuleHandle(TIER0_DLL), XorStr("g_pMemAlloc")));
 	if (MemAlloc == nullptr)
 		return false;
 
-	DirectDevice = **(IDirect3DDevice9***)(MEM::FindPattern(SHADERPIDX9_DLL, XorStr("A1 ? ? ? ? 50 8B 08 FF 51 0C")) + 0x1); // @xref: "HandleLateCreation"
+	DirectDevice = **reinterpret_cast<IDirect3DDevice9***>(MEM::FindPattern(SHADERPIDX9_DLL, XorStr("A1 ? ? ? ? 50 8B 08 FF 51 0C")) + 0x1); // @xref: "HandleLateCreation"
 	if (DirectDevice == nullptr)
 		return false;
 
-	ViewRenderBeams = *(IViewRenderBeams**)(MEM::FindPattern(CLIENT_DLL, XorStr("B9 ? ? ? ? A1 ? ? ? ? FF 10 A1 ? ? ? ? B9")) + 0x1);
+	ViewRenderBeams = *reinterpret_cast<IViewRenderBeams**>(MEM::FindPattern(CLIENT_DLL, XorStr("B9 ? ? ? ? A1 ? ? ? ? FF 10 A1 ? ? ? ? B9")) + 0x1);
 	if (ViewRenderBeams == nullptr)
 		return false;
 
-	Input =	*(IInput**)(MEM::FindPattern(CLIENT_DLL, XorStr("B9 ? ? ? ? F3 0F 11 04 24 FF 50 10")) + 0x1); // @note: or address of some indexed input function in chlclient class (like IN_ActivateMouse, IN_DeactivateMouse, IN_Accumulate, IN_ClearStates) + 0x1 (jmp to m_pInput)
+	Input =	*reinterpret_cast<IInput**>(MEM::FindPattern(CLIENT_DLL, XorStr("B9 ? ? ? ? F3 0F 11 04 24 FF 50 10")) + 0x1); // @note: or address of some indexed input function in chlclient class (like IN_ActivateMouse, IN_DeactivateMouse, IN_Accumulate, IN_ClearStates) + 0x1 (jmp to m_pInput)
 	if (Input == nullptr)
 		return false;
 
-	ClientState = **(IBaseClientState***)(MEM::FindPattern(ENGINE_DLL, XorStr("A1 ? ? ? ? 8B 80 ? ? ? ? C3")) + 0x1);
+	ClientState = **reinterpret_cast<IBaseClientState***>(MEM::FindPattern(ENGINE_DLL, XorStr("A1 ? ? ? ? 8B 80 ? ? ? ? C3")) + 0x1);
 	if (ClientState == nullptr)
 		return false;
 
-	DemoPlayer = **(IDemoPlayer***)(MEM::FindPattern(ENGINE_DLL, XorStr("8B 0D ? ? ? ? 8B 01 8B 40 1C FF D0 84 C0 74 0A")) + 0x2);
-	if (DemoPlayer == nullptr)
-		return false;
-
-	WeaponSystem = *(IWeaponSystem**)(MEM::FindPattern(CLIENT_DLL, XorStr("8B 35 ? ? ? ? FF 10 0F B7 C0")) + 0x2);
+	WeaponSystem = *reinterpret_cast<IWeaponSystem**>(MEM::FindPattern(CLIENT_DLL, XorStr("8B 35 ? ? ? ? FF 10 0F B7 C0")) + 0x2);
 	if (WeaponSystem == nullptr)
 		return false;
 
-	GlowManager = *(IGlowObjectManager**)(MEM::FindPattern(CLIENT_DLL, XorStr("0F 11 05 ? ? ? ? 83 C8 01")) + 0x3);
+	GlowManager = *reinterpret_cast<IGlowObjectManager**>(MEM::FindPattern(CLIENT_DLL, XorStr("0F 11 05 ? ? ? ? 83 C8 01")) + 0x3);
 	if (GlowManager == nullptr)
 		return false;
 
@@ -108,10 +103,10 @@ T* I::Capture(const char* szModule, std::string_view szInterface)
 		if (oCreateInterface == nullptr)
 			throw std::runtime_error(XorStr("failed get createinterface address"));
 
-		const std::uintptr_t	uCreateInterfaceJmp = (std::uintptr_t)oCreateInterface + 0x4;
-		const std::int32_t		iJmpDisp = *(std::int32_t*)(uCreateInterfaceJmp + 0x1);
-		const std::uintptr_t	uCreateInterface = uCreateInterfaceJmp + 0x5 + iJmpDisp;
-		return **(CInterfaceRegister***)(uCreateInterface + 0x6);
+		const std::uintptr_t uCreateInterfaceJmp = reinterpret_cast<std::uintptr_t>(oCreateInterface) + 0x4;
+		const std::int32_t iJmpDisp = *reinterpret_cast<std::int32_t*>(uCreateInterfaceJmp + 0x1);
+		const std::uintptr_t uCreateInterface = uCreateInterfaceJmp + 0x5 + iJmpDisp;
+		return **reinterpret_cast<CInterfaceRegister***>(uCreateInterface + 0x6);
 	};
 
 	for (auto pRegister = GetRegisterList(); pRegister != nullptr; pRegister = pRegister->pNext)
@@ -124,13 +119,13 @@ T* I::Capture(const char* szModule, std::string_view szInterface)
 			!szInterface.compare(pRegister->szName))
 		{
 			// log interface address
-			L::Print(fmt::format(XorStr("captured {} interface -> {:#08X}"), pRegister->szName, (std::uintptr_t)((void*)pRegister->pCreateFn())));
+			L::Print(fmt::format(XorStr("captured {} interface -> {:#08X}"), pRegister->szName, reinterpret_cast<std::uintptr_t>((static_cast<void*>(pRegister->pCreateFn())))));
 			// capture our interface
-			return (T*)pRegister->pCreateFn();
+			return static_cast<T*>(pRegister->pCreateFn());
 		}
 	}
 
-	#if DEBUG_CONSOLE && _DEBUG
+	#ifdef DEBUG_CONSOLE
 	L::PushConsoleColor(FOREGROUND_INTENSE_RED);
 	L::Print(fmt::format(XorStr("[error] failed to find interface \"{}\" in \"{}\""), szInterface, szModule));
 	L::PopConsoleColor();

@@ -147,9 +147,6 @@
     <ClInclude Include="sdk\interfaces\iclientmodeshared.h">
       <Filter>include\sdk\interfaces</Filter>
     </ClInclude>
-    <ClInclude Include="sdk\interfaces\idemoplayer.h">
-      <Filter>include\sdk\interfaces</Filter>
-    </ClInclude>
     <ClInclude Include="sdk\interfaces\ieffects.h">
       <Filter>include\sdk\interfaces</Filter>
     </ClInclude>
@@ -235,9 +232,6 @@
       <Filter>include\sdk\interfaces</Filter>
     </ClInclude>
     <ClInclude Include="sdk\interfaces\ivrenderview.h">
-      <Filter>include\sdk\interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="sdk\interfaces\iplayerinfomanager.h">
       <Filter>include\sdk\interfaces</Filter>
     </ClInclude>
     <ClInclude Include="sdk\interfaces\iservergamedll.h">

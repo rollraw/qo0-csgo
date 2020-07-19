@@ -1,7 +1,7 @@
 #pragma once
 // @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/ienginevgui.h
 #define INVALID_PANEL 0xFFFFFFFF
-typedef unsigned int VPANEL;
+using VPANEL = unsigned int;
 
 enum EVGuiPanel
 {

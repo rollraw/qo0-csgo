@@ -40,18 +40,17 @@ struct matrix3x4_t
 	}
 
 	// create matrix where the X axis = forward, the Y axis = left, the Z axis = up
-	void Init(const Vector& xAxis, const Vector& yAxis, const Vector& zAxis, const Vector& vecOrigin)
+	void Init(const Vector& vecX, const Vector& vecY, const Vector& vecZ, const Vector& vecOrigin)
 	{
-		flData[0][0] = xAxis.x; flData[0][1] = yAxis.x; flData[0][2] = zAxis.x; flData[0][3] = vecOrigin.x;
-		flData[1][0] = xAxis.y; flData[1][1] = yAxis.y; flData[1][2] = zAxis.y; flData[1][3] = vecOrigin.y;
-		flData[2][0] = xAxis.z; flData[2][1] = yAxis.z; flData[2][2] = zAxis.z; flData[2][3] = vecOrigin.z;
+		this->at(0) = vecX;
+		this->at(1) = vecY;
+		this->at(2) = vecZ;
+		this->at(3) = vecOrigin;
 	}
 
-	void SetOrigin(const Vector& p)
+	void SetOrigin(const Vector& vecOrigin)
 	{
-		flData[0][3] = p.x;
-		flData[1][3] = p.y;
-		flData[2][3] = p.z;
+		this->at(3) = vecOrigin;
 	}
 
 	constexpr void Invalidate()
@@ -63,12 +62,30 @@ struct matrix3x4_t
 		}
 	}
 
-	float*			operator[](int i) { return flData[i]; }
-	const float*	operator[](int i) const { return flData[i]; }
+	float* operator[](int i)
+	{
+		return flData[i];
+	}
 
-	Vector			at(int i) const { return Vector{ flData[0][i], flData[1][i], flData[2][i] }; }
-	float*			base() { return &flData[0][0]; }
-	const float*	base() const { return &flData[0][0]; }
+	const float* operator[](int i) const
+	{
+		return flData[i];
+	}
+
+	Vector at(int i) const
+	{
+		return Vector{ flData[0][i], flData[1][i], flData[2][i] };
+	}
+
+	float* Base()
+	{
+		return &flData[0][0];
+	}
+
+	const float* Base() const
+	{
+		return &flData[0][0];
+	}
 
 	float flData[3][4] = { };
 };
@@ -76,9 +93,9 @@ struct matrix3x4_t
 __declspec(align(16)) class matrix3x4a_t : public matrix3x4_t
 {
 public:
-	matrix3x4a_t& operator=(const matrix3x4_t & matSource)
+	matrix3x4a_t& operator=(const matrix3x4_t& matSource)
 	{
-		memcpy(this->base(), matSource.base(), sizeof(float) * 3U * 4U);
+		memcpy(this->Base(), matSource.Base(), sizeof(float) * 3U * 4U);
 		return *this;
 	};
 };

@@ -23,6 +23,7 @@ public:
 	virtual float			GetFloat(const char* szKeyName = nullptr, float flDefault = 0.f) = 0;
 	virtual const char*		GetString(const char* szKeyName = nullptr, const char* szDefault = "") = 0;
 	virtual const wchar_t*	GetWString(const char* szKeyName = nullptr, const wchar_t* szDefault = L"") = 0;
+	virtual const void*		GetPtr(const char* szKeyName = nullptr) const = 0;
 
 	virtual void			SetBool(const char* szKeyName, bool bValue) = 0;
 	virtual void			SetInt(const char* szKeyName, int iValue) = 0;
@@ -30,6 +31,9 @@ public:
 	virtual void			SetFloat(const char* szKeyName, float flValue) = 0;
 	virtual void			SetString(const char* szKeyName, const char* szValue) = 0;
 	virtual void			SetWString(const char* szKeyName, const wchar_t* szValue) = 0;
+	virtual void			SetPtr(const char* szKeyName, const void* pValue) = 0;
+
+	virtual bool			ForEventData(void* pEvent) const = 0;
 };
 
 class IGameEventListener2
@@ -45,6 +49,7 @@ public:
 	int	nDebugID;
 };
 
+class CSVCMsg_GameEvent;
 class IGameEventManager2
 {
 public:
@@ -60,5 +65,7 @@ public:
 	virtual bool		FireEventClientSide(IGameEvent* pEvent) = 0;
 	virtual IGameEvent* DuplicateEvent(IGameEvent* pEvent) = 0;
 	virtual void		FreeEvent(IGameEvent* pEvent) = 0;
+	virtual bool		SerializeEvent(IGameEvent* pEvent, CSVCMsg_GameEvent* pEventMsg) = 0;
+	virtual IGameEvent* UnserializeEvent(const CSVCMsg_GameEvent& eventMsg) = 0;
 	virtual CKeyValues* GetEventDataTypes(IGameEvent* pEvent) = 0;
 };

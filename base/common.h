@@ -24,9 +24,9 @@
  1	prefix classes with 'C' and interfaces classes 'I'
  *		e.g. CSomeClass
  *		e.g. ISomeInterface
- 2	postfix structs with '_t'
+ 2	postfix structures with '_t'
  *		e.g. SomeStruct_t
- 3	prefix enums with 'E'
+ 3	prefix enumerations with 'E'
  *		e.g. enum ESomeEnum
  4	thirdparty (sdk, dependencies) macroses should be uppercase
  *		e.g. #define SOMEMACROS
@@ -68,26 +68,22 @@
  *	long lSomeLong = 0L;
  *	unsigned int uSomeOffset = 0x0; // hex
  *	unsigned int uSomeInt = 0U;
- *	unsigned long ulSomeULong = 0UL;
+ *	unsigned long ulSomeLong = 0UL;
  *
- - preproccesor definitions:
- 1	_DEBUG 1 - disable string encryption enables console logs -> automatic switches with compilation configuration
- 2	DEBUG_CONSOLE 1 - enable external console logging but deactivates file logging
+ - preprocessor definitions:
+ 1	_DEBUG - disable string encryption and activate external console logging -> automatic switches with compilation configuration
+ 2	DEBUG_CONSOLE - activate external console logging but deactivate file logging
  *
  - disabled warnings (release):
- 1	4172 - returning address of local variable or temporary
- 2	4227 - anachronism used: qualifiers on reference are ignored
- 3	4244 - 'argument' : conversion from 'type1' to 'type2', possible loss of data
- 4	4307 - 'operator' : integral constant overflow
- 5	4996 - the compiler encountered a deprecated declaration
+ 1	4244 - 'argument' : conversion from 'type1' to 'type2', possible loss of data
+ 2	4307 - 'operator' : integral constant overflow
  *
  - additional dependencies:
  1	d3d9.lib - directx rendering
  2	d3dx9.lib - directx rendering
  3	freetype.lib - font rasterizer // @credits: https://www.freetype.org/
  *
- * @note: add "/d1 reportAllClassLayout" in compiler options to get all func tables indexes
- * @todo: use additional, smth like 'detail' namespace to get raw values from parent namespaces
+ * @note: add "/d1 reportAllClassLayout" in compiler options to get all virtual tables indexes
  */
 
 /* winapi */

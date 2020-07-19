@@ -75,7 +75,6 @@
     <ClInclude Include="sdk\interfaces\icliententitylist.h" />
     <ClInclude Include="sdk\interfaces\iclientmodeshared.h" />
     <ClInclude Include="sdk\interfaces\iconvar.h" />
-    <ClInclude Include="sdk\interfaces\idemoplayer.h" />
     <ClInclude Include="sdk\interfaces\ieffects.h" />
     <ClInclude Include="sdk\interfaces\iengineclient.h" />
     <ClInclude Include="sdk\interfaces\ienginesound.h" />
@@ -98,7 +97,6 @@
     <ClInclude Include="sdk\interfaces\inetchannel.h" />
     <ClInclude Include="sdk\interfaces\inetworkstring.h" />
     <ClInclude Include="sdk\interfaces\iphysicssurfaceprops.h" />
-    <ClInclude Include="sdk\interfaces\iplayerinfomanager.h" />
     <ClInclude Include="sdk\interfaces\iprediction.h" />
     <ClInclude Include="sdk\interfaces\irefcount.h" />
     <ClInclude Include="sdk\interfaces\iservergamedll.h" />
@@ -226,9 +224,9 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>false</SDLCheck>
+      <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
@@ -248,8 +246,9 @@
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <CompileAs>Default</CompileAs>
       <UseFullPaths>true</UseFullPaths>
-      <DisableSpecificWarnings>4172;4227;4244;4307;4996</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4307</DisableSpecificWarnings>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -276,9 +275,9 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>TurnOffAllWarnings</WarningLevel>
-      <Optimization>Full</Optimization>
-      <SDLCheck>false</SDLCheck>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG_CONSOLE;_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
       <PrecompiledHeaderOutputFile>
@@ -287,23 +286,25 @@
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <XMLDocumentationFileName>$(IntDir)</XMLDocumentationFileName>
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <FunctionLevelLinking>
+      </FunctionLevelLinking>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <SupportJustMyCode>false</SupportJustMyCode>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <CompileAs>Default</CompileAs>
       <DisableSpecificWarnings>
       </DisableSpecificWarnings>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <BufferSecurityCheck>
       </BufferSecurityCheck>
-      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <RuntimeTypeInfo>
+      </RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -319,7 +320,7 @@
       <ImageHasSafeExceptionHandlers>true</ImageHasSafeExceptionHandlers>
       <AdditionalOptions>
       </AdditionalOptions>
-      <AdditionalDependencies>d3d9.lib;d3dx9.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d9.lib;d3dx9.lib;freetype_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <OutputFile>$(OutDir)$(TargetName).bsc</OutputFile>

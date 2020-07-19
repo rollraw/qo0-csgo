@@ -58,8 +58,6 @@ struct AudioState_t
 	bool			bIsUnderwater;
 };
 
-typedef struct InputContextHandle__* InputContextHandle_t;
-
 struct Model_t;
 struct SteamAPIContext_t;
 struct ClientTextMessage_t;

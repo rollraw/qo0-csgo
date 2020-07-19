@@ -49,18 +49,18 @@ public:
 		int iAllocationRequested = iAllocationCount + iNum;
 		int iNewAllocationCount = UtlMemory_CalcNewAllocationCount(iAllocationCount, iGrowSize, iAllocationRequested, sizeof(T));
 
-		if ((int)(N)iNewAllocationCount < iAllocationRequested)
+		if (static_cast<int>(static_cast<N>(iNewAllocationCount)) < iAllocationRequested)
 		{
-			if ((int)(N)iNewAllocationCount == 0 && (int)(N)(iNewAllocationCount - 1) >= iAllocationRequested)
+			if (static_cast<int>(static_cast<N>(iNewAllocationCount)) == 0 && static_cast<int>(static_cast<N>(iNewAllocationCount - 1)) >= iAllocationRequested)
 				--iNewAllocationCount;
 			else
 			{
-				if ((int)(N)iAllocationRequested != iAllocationRequested)
+				if (static_cast<int>(static_cast<N>(iAllocationRequested)) != iAllocationRequested)
 				{
 					return;
 				}
 
-				while ((int)(N)iNewAllocationCount < iAllocationRequested)
+				while (static_cast<int>(static_cast<N>(iNewAllocationCount)) < iAllocationRequested)
 					iNewAllocationCount = (iNewAllocationCount + iAllocationRequested) / 2;
 			}
 		}
@@ -69,16 +69,15 @@ public:
 
 		if (pMemory != nullptr)
 		{
-			// fuck msvc
-			//pMemory = (T*)I::MemAlloc->Realloc(pMemory, iAllocationCount * sizeof(T));
+			//pMemory = reinterpret_cast<T*>(I::MemAlloc->Realloc(pMemory, iAllocationCount * sizeof(T)));
 
-			auto pData = new std::byte[iAllocationCount * sizeof(T)];
+			std::byte* pData = new std::byte[iAllocationCount * sizeof(T)];
 			memcpy(pData, pMemory, iOldAllocationCount * sizeof(T));
-			pMemory = (T*)pData;
+			pMemory = reinterpret_cast<T*>(pData);
 		}
 		else
-			//pMemory = (T*)I::MemAlloc->Alloc(iAllocationCount * sizeof(T));
-			pMemory = (T*)new std::byte[iAllocationCount * sizeof(T)];
+			//pMemory = reinterpret_cast<T*>(I::MemAlloc->Alloc(iAllocationCount * sizeof(T)));
+			pMemory = reinterpret_cast<T*>(new std::byte[iAllocationCount * sizeof(T)]);
 	}
 
 	bool IsExternallyAllocated() const

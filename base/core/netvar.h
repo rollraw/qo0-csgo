@@ -20,7 +20,7 @@
 	{																										\
 		constexpr FNV1A_t uHash = FNV1A::HashConst(szNetVar);												\
 		static std::uintptr_t uOffset = CNetvarManager::Get().mapProps[uHash].uOffset;						\
-		return *(std::add_pointer_t<Type>)((std::uintptr_t)this + uOffset + uAdditional);					\
+		return *(std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset + uAdditional);	\
 	}
 
 /* add function to get netvar variable */
@@ -32,7 +32,7 @@
 	{																										\
 		constexpr FNV1A_t uHash = FNV1A::HashConst(szNetVar);												\
 		static std::uintptr_t uOffset = CNetvarManager::Get().mapProps[uHash].uOffset;						\
-		return (std::add_pointer_t<Type>)((std::uintptr_t)this + uOffset + uAdditional);					\
+		return (std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset + uAdditional);	\
 	}
 
 /* add function to get netvar variable pointer */
@@ -44,7 +44,7 @@
 	{																										\
 		constexpr FNV1A_t uHash = FNV1A::HashConst(szDataField);											\
 		static std::uintptr_t uOffset = CNetvarManager::Get().FindInDataMap(pMap, uHash);					\
-		return *(std::add_pointer_t<Type>)((std::uintptr_t)this + uOffset);									\
+		return *(std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset);				\
 	}
 
 /* add function to get datamap variable pointer */
@@ -53,15 +53,27 @@
 	{																										\
 		constexpr FNV1A_t uHash = FNV1A::HashConst(szDataField);											\
 		static std::uintptr_t uOffset = CNetvarManager::Get().FindInDataMap(pMap, uHash);					\
-		return (std::add_pointer_t<Type>)((std::uintptr_t)this + uOffset);									\
+		return (std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset);				\
+	}
+
+/* add function to get variable by offset */
+#define N_ADD_OFFSET( Type, szFunctionName, uOffset )														\
+	[[nodiscard]] std::add_lvalue_reference_t<Type> szFunctionName()										\
+	{																										\
+		return *(std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset);				\
+	}
+
+/* add function to get variable pointer by offset */
+#define N_ADD_POFFSET( Type, szFunctionName, uOffset )														\
+	[[nodiscard]] std::add_pointer_t<Type> szFunctionName()													\
+	{																										\
+		return (std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset);				\
 	}
 #pragma endregion
 
 class CRecvPropHook
 {
 public:
-	CRecvPropHook() = default;
-
 	explicit CRecvPropHook(RecvProp_t* pRecvProp, const RecvVarProxyFn pNewProxyFn)
 		: pRecvProp(pRecvProp), pOriginalFn(pRecvProp->oProxyFn)
 	{
@@ -82,20 +94,22 @@ public:
 		this->pOriginalFn = pRecvProp->oProxyFn;
 	}
 
-	const void SetProxy(const RecvVarProxyFn pNewProxyFn)
+	void SetProxy(const RecvVarProxyFn pNewProxyFn) const
 	{
 		this->pRecvProp->oProxyFn = pNewProxyFn;
 	}
 
-	const RecvVarProxyFn GetOriginal()
+	RecvVarProxyFn GetOriginal() const
 	{
 		return this->pOriginalFn;
 	}
 
 private:
 	// Values
-	RecvProp_t* pRecvProp; // in future that is being modified and replace the original prop
-	RecvVarProxyFn pOriginalFn; // save current proxy function to get available restore it later
+	/* in future that is being modified and replace the original prop */
+	RecvProp_t* pRecvProp;
+	/* original proxy function to get available restore it later */
+	RecvVarProxyFn pOriginalFn;
 };
 
 class CNetvarManager : public CSingleton<CNetvarManager>

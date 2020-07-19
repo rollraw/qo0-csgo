@@ -34,7 +34,7 @@ struct VariableObject_t
 	template<typename T>
 	T& Get()
 	{
-		return *(T*)(std::any_cast<T>(&pValue));
+		return *static_cast<T*>(std::any_cast<T>(&pValue));
 	}
 
 	/* emplace casted variable value */

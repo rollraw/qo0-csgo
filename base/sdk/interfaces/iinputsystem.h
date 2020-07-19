@@ -2,7 +2,7 @@
 
 // @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/inputsystem/ButtonCode.h
 #pragma region inputsystem_enumerations
-enum EButtonCode : unsigned int
+enum EButtonCode : int
 {
 	BUTTON_CODE_INVALID = -1,
 	BUTTON_CODE_NONE = 0,

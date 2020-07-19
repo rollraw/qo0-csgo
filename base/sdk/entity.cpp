@@ -15,7 +15,7 @@ int CBaseEntity::GetSequenceActivity(int iSequence)
 		return -1;
 
 	using GetSequenceActivityFn = int(__fastcall*)(void*, void*, int);
-	static auto oGetSequenceActivity = (GetSequenceActivityFn)(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 53 8B 5D 08 56 8B F1 83"))); // @xref: "Need to handle the activity %d\n"
+	static auto oGetSequenceActivity = reinterpret_cast<GetSequenceActivityFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 53 8B 5D 08 56 8B F1 83"))); // @xref: "Need to handle the activity %d\n"
 	return oGetSequenceActivity(this, pStudioHdr, iSequence);
 }
 
@@ -33,7 +33,7 @@ int CBaseEntity::GetMaxHealth()
 	return 100;
 }
 
-Vector CBaseEntity::GetBonePosition(int iBone)
+std::optional<Vector> CBaseEntity::GetBonePosition(int iBone)
 {
 	if (iBone <= BONE_INVALID || iBone >= MAXSTUDIOBONES)
 		throw std::out_of_range(XorStr("given invalid bone index for getboneposition"));
@@ -43,7 +43,7 @@ Vector CBaseEntity::GetBonePosition(int iBone)
 	if (this->SetupBones(arrBonesToWorld.data(), MAXSTUDIOBONES, BONE_USED_BY_ANYTHING, 0.f))
 		return arrBonesToWorld.at(iBone).at(3);
 
-	return Vector{ };
+	return std::nullopt;
 }
 
 int CBaseEntity::GetBoneByHash(const FNV1A_t uBoneHash)
@@ -63,7 +63,7 @@ int CBaseEntity::GetBoneByHash(const FNV1A_t uBoneHash)
 	return BONE_INVALID;
 }
 
-Vector CBaseEntity::GetHitboxPosition(int iHitbox)
+std::optional<Vector> CBaseEntity::GetHitboxPosition(int iHitbox)
 {
 	if (iHitbox <= HITBOX_INVALID || iHitbox >= HITBOX_MAX)
 		throw std::out_of_range(XorStr("given invalid hitbox index for gethitboxposition"));
@@ -91,10 +91,10 @@ Vector CBaseEntity::GetHitboxPosition(int iHitbox)
 		}
 	}
 
-	return Vector{ };
+	return std::nullopt;
 }
 
-Vector CBaseEntity::GetHitGroupPosition(int iHitGroup)
+std::optional<Vector> CBaseEntity::GetHitGroupPosition(int iHitGroup)
 {
 	std::array<matrix3x4_t, MAXSTUDIOBONES> arrBonesToWorld;
 
@@ -132,7 +132,7 @@ Vector CBaseEntity::GetHitGroupPosition(int iHitGroup)
 		}
 	}
 
-	return Vector{ };
+	return std::nullopt;
 }
 
 void CBaseEntity::ModifyEyePosition(CBasePlayerAnimState* pAnimState, Vector* vecPosition)
@@ -150,19 +150,19 @@ void CBaseEntity::ModifyEyePosition(CBasePlayerAnimState* pAnimState, Vector* ve
 	if (!pAnimState->bHitGroundAnimation && pAnimState->flDuckAmount == 0.f && pGroundEntity != nullptr)
 		return;
 
-	Vector vecBonePos = pBaseEntity->GetBonePosition(pBaseEntity->GetBoneByHash(FNV1A::HashConst("head_0")));
-	vecBonePos.z += 1.7f;
+	Vector vecBone = pBaseEntity->GetBonePosition(pBaseEntity->GetBoneByHash(FNV1A::HashConst("head_0"))).value();
+	vecBone.z += 1.7f;
 
-	if (vecPosition->z > vecBonePos.z)
+	if (vecPosition->z > vecBone.z)
 	{
 		float flFactor = 0.0f;
-		float flDelta = vecPosition->z - vecBonePos.z;
+		float flDelta = vecPosition->z - vecBone.z;
 		float flOffset = (flDelta - 4.0f) / 6.0f;
 
 		if (flOffset >= 0.f)
 			flFactor = std::min<float>(flOffset, 1.0f);
 
-		vecPosition->z += ((vecBonePos.z - vecPosition->z) * (((flFactor * flFactor) * 3.0f) - (((flFactor * flFactor) * 2.0f) * flFactor)));
+		vecPosition->z += ((vecBone.z - vecPosition->z) * (((flFactor * flFactor) * 3.0f) - (((flFactor * flFactor) * 2.0f) * flFactor)));
 	}
 }
 
@@ -171,10 +171,10 @@ int CBaseEntity::PostThink()
 	// @ida postthink: 56 8B 35 ? ? ? ? 57 8B F9 8B CE 8B 06 FF 90 ? ? ? ? 8B 07
 
 	using PostThinkVPhysicsFn = bool(__thiscall*)(CBaseEntity*);
-	static auto oPostThinkVPhysics = (PostThinkVPhysicsFn)(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 81 EC ? ? ? ? 53 8B D9 56 57 83 BB")));
+	static auto oPostThinkVPhysics = reinterpret_cast<PostThinkVPhysicsFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 81 EC ? ? ? ? 53 8B D9 56 57 83 BB")));
 
 	using SimulatePlayerSimulatedEntitiesFn = void(__thiscall*)(CBaseEntity*);
-	static auto oSimulatePlayerSimulatedEntities = (SimulatePlayerSimulatedEntitiesFn)(MEM::FindPattern(CLIENT_DLL, XorStr("56 8B F1 57 8B BE ? ? ? ? 83 EF 01 78 72")));
+	static auto oSimulatePlayerSimulatedEntities = reinterpret_cast<SimulatePlayerSimulatedEntitiesFn>(MEM::FindPattern(CLIENT_DLL, XorStr("56 8B F1 57 8B BE ? ? ? ? 83 EF 01 78 72")));
 
 	// begin lock
 	MEM::CallVFunc<void>(I::MDLCache, 33);
@@ -253,7 +253,7 @@ bool CBaseEntity::CanShoot(CWeaponCSBase* pBaseWeapon)
 	if (this->GetNextAttack() > flServerTime)
 		return false;
 
-	short nDefinitionIndex = *pBaseWeapon->GetItemDefinitionIndex();
+	short nDefinitionIndex = pBaseWeapon->GetItemDefinitionIndex();
 
 	// check is weapon with burst mode
 	if ((nDefinitionIndex == WEAPON_FAMAS || nDefinitionIndex == WEAPON_GLOCK) &&

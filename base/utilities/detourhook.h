@@ -43,7 +43,7 @@ public:
 		}
 		else
 		{
-			throw std::runtime_error(fmt::format(XorStr("failed to create hook function, status: {:d}\nbase function -> {:#08X}"), (int)status, (std::uintptr_t)pBaseFn));
+			throw std::runtime_error(fmt::format(XorStr("failed to create hook function, status: {:d}\nbase function -> {:#08X}"), static_cast<int>(status), reinterpret_cast<std::uintptr_t>(pBaseFn)));
 			return false;
 		}
 
@@ -68,7 +68,7 @@ public:
 			bIsHooked = true;
 		else
 		{
-			throw std::runtime_error(fmt::format(XorStr("failed to enable hook function, status: {:d}\nbase function -> {:#08X} address"), (int)status, (std::uintptr_t)pBaseFn));
+			throw std::runtime_error(fmt::format(XorStr("failed to enable hook function, status: {:d}\nbase function -> {:#08X} address"), static_cast<int>(status), reinterpret_cast<std::uintptr_t>(pBaseFn)));
 			return false;
 		}
 
@@ -88,7 +88,7 @@ public:
 			return true;
 		else
 		{
-			throw std::runtime_error(fmt::format(XorStr("failed to remove hook, status: {:d}\n base function -> {:#08X} address"), (int)status, (std::uintptr_t)pBaseFn));
+			throw std::runtime_error(fmt::format(XorStr("failed to remove hook, status: {:d}\n base function -> {:#08X} address"), static_cast<int>(status), reinterpret_cast<std::uintptr_t>(pBaseFn)));
 			return false;
 		}
 
@@ -109,7 +109,7 @@ public:
 			bIsHooked = false;
 		else
 		{
-			throw std::runtime_error(fmt::format(XorStr("failed to restore hook, status: {:d}\n base function -> {:#08X} address"), (int)status, (std::uintptr_t)pBaseFn));
+			throw std::runtime_error(fmt::format(XorStr("failed to restore hook, status: {:d}\n base function -> {:#08X} address"), static_cast<int>(status), reinterpret_cast<std::uintptr_t>(pBaseFn)));
 			return false;
 		}
 
@@ -120,7 +120,7 @@ public:
 	template <typename Fn>
 	Fn GetOriginal()
 	{
-		return (Fn)pOriginalFn;
+		return static_cast<Fn>(pOriginalFn);
 	}
 
 	/* get hook state */

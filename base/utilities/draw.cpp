@@ -522,10 +522,10 @@ bool D::WorldToScreen(const Vector& vecOrigin, Vector2D& vecScreen)
 	if (uViewMatrixPtr == 0U)
 	{
 		uViewMatrixPtr = (MEM::FindPattern(CLIENT_DLL, XorStr("0F 10 05 ? ? ? ? 8D 85 ? ? ? ? B9")));
-		uViewMatrixPtr = *(std::uintptr_t*)(uViewMatrixPtr + 0x3) + 0xB0;
+		uViewMatrixPtr = *reinterpret_cast<std::uintptr_t*>(uViewMatrixPtr + 0x3) + 0xB0;
 	}
 
-	const ViewMatrix_t& matWorldToScreen = *(ViewMatrix_t*)uViewMatrixPtr;
+	const ViewMatrix_t& matWorldToScreen = *reinterpret_cast<ViewMatrix_t*>(uViewMatrixPtr);
 	const float flWidth = matWorldToScreen[3][0] * vecOrigin.x + matWorldToScreen[3][1] * vecOrigin.y + matWorldToScreen[3][2] * vecOrigin.z + matWorldToScreen[3][3];
 
 	if (flWidth > 0.01f)

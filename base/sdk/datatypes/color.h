@@ -23,11 +23,6 @@ public:
 		Set(r, g, b, a);
 	}
 
-	Color(std::uint32_t uColor32)
-	{
-		SetRaw(uColor32);
-	}
-
 	void Set(std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a)
 	{
 		arrColor.at(0) = r;
@@ -38,10 +33,10 @@ public:
 
 	void Set(float r, float g, float b, float a)
 	{
-		arrColor.at(0) = (std::uint8_t)(r * 255.f);
-		arrColor.at(1) = (std::uint8_t)(g * 255.f);
-		arrColor.at(2) = (std::uint8_t)(b * 255.f);
-		arrColor.at(3) = (std::uint8_t)(a * 255.f);
+		arrColor.at(0) = static_cast<std::uint8_t>(r * 255.f);
+		arrColor.at(1) = static_cast<std::uint8_t>(g * 255.f);
+		arrColor.at(2) = static_cast<std::uint8_t>(b * 255.f);
+		arrColor.at(3) = static_cast<std::uint8_t>(a * 255.f);
 	}
 
 	void Get(std::uint8_t& r, std::uint8_t& g, std::uint8_t& b, std::uint8_t& a) const
@@ -52,16 +47,6 @@ public:
 		a = arrColor.at(3);
 	}
 
-	void SetRaw(std::uint32_t uColor32)
-	{
-		*((std::uint32_t*)this) = uColor32;
-	}
-
-	int GetRaw() const
-	{
-		return *((std::uint32_t*)this);
-	}
-
 	/* convert color to directx rgba */
 	ImU32 GetU32()
 	{
@@ -70,7 +55,7 @@ public:
 
 	bool operator==(const Color& colSecond) const
 	{
-		return (*((std::uint32_t*)this) == *((std::uint32_t*)&colSecond));
+		return *const_cast<Color*>(this) == *const_cast<Color*>(&colSecond);
 	}
 
 	bool operator!=(const Color& colSecond) const
@@ -80,7 +65,7 @@ public:
 
 	Color& operator=(const Color& colFrom)
 	{
-		SetRaw(colFrom.GetRaw());
+		Set(colFrom.r(), colFrom.g(), colFrom.b(), colFrom.a());
 		return *this;
 	}
 
@@ -94,33 +79,33 @@ public:
 	inline float bBase() const { return arrColor.at(2) / 255.f; }
 	inline float aBase() const { return arrColor.at(3) / 255.f; }
 
-	float* Base()
+	std::array<float, 3U> Base()
 	{
-		float flColor[3];
-		flColor[0] = arrColor.at(0) / 255.f;
-		flColor[1] = arrColor.at(1) / 255.f;
-		flColor[2] = arrColor.at(2) / 255.f;
-		return &flColor[0];
+		std::array<float, 3U> arrBaseColor = { };
+		arrBaseColor.at(0) = arrColor.at(0) / 255.f;
+		arrBaseColor.at(1) = arrColor.at(1) / 255.f;
+		arrBaseColor.at(2) = arrColor.at(2) / 255.f;
+		return arrBaseColor;
 	}
 
 	static Color FromBase3(float rgb[3])
 	{
-		return Color((std::uint8_t)(rgb[0] * 255.f), (std::uint8_t)(rgb[1] * 255.f), (std::uint8_t)(rgb[2] * 255.f));
+		return Color(static_cast<std::uint8_t>(rgb[0] * 255.f), static_cast<std::uint8_t>(rgb[1] * 255.f), static_cast<std::uint8_t>(rgb[2] * 255.f));
 	}
 
-	float* BaseAlpha()
+	std::array<float, 4U> BaseAlpha()
 	{
-		float flColor[4];
-		flColor[0] = arrColor.at(0) / 255.f;
-		flColor[1] = arrColor.at(1) / 255.f;
-		flColor[2] = arrColor.at(2) / 255.f;
-		flColor[3] = arrColor.at(3) / 255.f;
-		return &flColor[0];
+		std::array<float, 4U> arrBaseColor = { };
+		arrBaseColor.at(0) = arrColor.at(0) / 255.f;
+		arrBaseColor.at(1) = arrColor.at(1) / 255.f;
+		arrBaseColor.at(2) = arrColor.at(2) / 255.f;
+		arrBaseColor.at(3) = arrColor.at(3) / 255.f;
+		return arrBaseColor;
 	}
 
 	static Color FromBase4(float rgba[4])
 	{
-		return Color((std::uint8_t)(rgba[0] * 255.f), (std::uint8_t)(rgba[1] * 255.f), (std::uint8_t)(rgba[2] * 255.f), (std::uint8_t)(rgba[3] * 255.f));
+		return Color(static_cast<std::uint8_t>(rgba[0] * 255.f), static_cast<std::uint8_t>(rgba[1] * 255.f), static_cast<std::uint8_t>(rgba[2] * 255.f), static_cast<std::uint8_t>(rgba[3] * 255.f));
 	}
 
 	float Hue() const
@@ -183,8 +168,8 @@ public:
 	{
 		float r = 0.0f, g = 0.0f, b = 0.0f;
 		const float h = std::fmodf(flHue, 1.0f) / (60.0f / 360.0f);
-		const int i = (int)h;
-		const float f = h - (float)i;
+		const int i = static_cast<int>(h);
+		const float f = h - static_cast<float>(i);
 		const float p = flBrightness * (1.0f - flSaturation);
 		const float q = flBrightness * (1.0f - flSaturation * f);
 		const float t = flBrightness * (1.0f - flSaturation * (1.0f - f));
@@ -212,7 +197,7 @@ public:
 			break;
 		}
 
-		return Color((std::uint8_t)(r * 255.f), (std::uint8_t)(g * 255.f), (std::uint8_t)(b * 255.f));
+		return Color(static_cast<std::uint8_t>(r * 255.f), static_cast<std::uint8_t>(g * 255.f), static_cast<std::uint8_t>(b * 255.f));
 	}
 
 	std::array<std::uint8_t, 4U> arrColor;

@@ -139,14 +139,16 @@ int CPrediction::GetTickbase(CUserCmd* pCmd, CBaseEntity* pLocal)
 	static int iTick = 0;
 	static CUserCmd* pLastCmd = nullptr;
 
-	if (pCmd == nullptr)
-		return iTick;
+	if (pCmd != nullptr)
+	{
+		// if command was not predicted - increment tickbase
+		if (pLastCmd == nullptr || pLastCmd->bHasBeenPredicted)
+			iTick = pLocal->GetTickBase();
+		else
+			iTick++;
 
-	// if command was not predicted increment tickbase
-	if (pLastCmd == nullptr || pLastCmd->bHasBeenPredicted)
-		iTick = pLocal->GetTickBase();
-	else
-		++iTick;
+		pLastCmd = pCmd;
+	}
 
-	pLastCmd = pCmd;
+	return iTick;
 }

@@ -94,20 +94,20 @@ enum ESoundFlags : int
 #define MAX_SNDLVL_VALUE	((1 << MAX_SNDLVL_BITS) - 1)
 
 /* soundlevel */
-#define SNDLEVEL_TO_COMPATIBILITY_MODE( x )		((ESoundLevel)(int)( (x) + 256 ))
-#define SNDLEVEL_FROM_COMPATIBILITY_MODE( x )	((ESoundLevel)(int)( (x) - 256 ))
-#define SNDLEVEL_IS_COMPATIBILITY_MODE( x )		( (x) >= 256 )
+#define SNDLEVEL_TO_COMPATIBILITY_MODE( x )		static_cast<ESoundLevel>(static_cast<int>(x + 256))
+#define SNDLEVEL_FROM_COMPATIBILITY_MODE( x )	static_cast<ESoundLevel>(static_cast<int>(x - 256))
+#define SNDLEVEL_IS_COMPATIBILITY_MODE( x )		( x ) >= 256
 
 /* convertation */
-#define ATTN_TO_SNDLVL( a ) (ESoundLevel)(int)((a) ? (50 + 20 / ((float)a)) : 0 )
-#define SNDLVL_TO_ATTN( a ) ((a > 50) ? (20.0f / (float)(a - 50)) : 4.0 )
+#define ATTN_TO_SNDLVL( a ) static_cast<ESoundLevel>(static_cast<int>( a ) ? (50 + 20 / (static_cast<float>( a ))) : 0)
+#define SNDLVL_TO_ATTN( a ) ((a > 50) ? (20.0f / static_cast<float>(a - 50)) : 4.0)
 
 /* sound */
 #define SND_FLAG_BITS_ENCODE 11
 
+#define MAX_SOUND_DELAY_MSEC_ENCODE_BITS	13
 #define MAX_SOUND_INDEX_BITS				14
 #define	MAX_SOUNDS							(1 << MAX_SOUND_INDEX_BITS)
-#define MAX_SOUND_DELAY_MSEC_ENCODE_BITS	(13)
 #define MAX_SOUND_DELAY_MSEC				(1 << (MAX_SOUND_DELAY_MSEC_ENCODE_BITS - 1))    // 4096 msec or about 4 seconds
 
 /* source */

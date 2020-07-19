@@ -72,6 +72,8 @@ namespace U
 	void SendClanTag(const char* szClanTag, const char* szIdentifier);
 	/* load specified model before you will be in-game */
 	bool PrecacheModel(const char* szModelName);
+	/* allocate client dll data for the object */
+	IClientNetworkable* CreateDLLEntity(int iEntity, EClassIndex nClassID, int nSerial);
 	/* returns icon of given index for custom font */
 	const char* GetWeaponIcon(short nItemDefinitionIndex);
 

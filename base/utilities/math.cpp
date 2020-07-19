@@ -5,23 +5,23 @@
 
 bool M::Setup()
 {
-	RandomSeed = (RandomSeedFn)GetProcAddress(GetModuleHandle(VSTDLIB_DLL), XorStr("RandomSeed"));
+	RandomSeed = reinterpret_cast<RandomSeedFn>(GetProcAddress(GetModuleHandle(VSTDLIB_DLL), XorStr("RandomSeed")));
 	if (RandomSeed == nullptr)
 		return false;
 
-	RandomFloat = (RandomFloatFn)GetProcAddress(GetModuleHandle(VSTDLIB_DLL), XorStr("RandomFloat"));
+	RandomFloat = reinterpret_cast<RandomFloatFn>(GetProcAddress(GetModuleHandle(VSTDLIB_DLL), XorStr("RandomFloat")));
 	if (RandomFloat == nullptr)
 		return false;
 
-	RandomFloatExp = (RandomFloatExpFn)GetProcAddress(GetModuleHandle(VSTDLIB_DLL), XorStr("RandomFloatExp"));
+	RandomFloatExp = reinterpret_cast<RandomFloatExpFn>(GetProcAddress(GetModuleHandle(VSTDLIB_DLL), XorStr("RandomFloatExp")));
 	if (RandomFloatExp == nullptr)
 		return false;
 
-	RandomInt = (RandomIntFn)GetProcAddress(GetModuleHandle(VSTDLIB_DLL), XorStr("RandomInt"));
+	RandomInt = reinterpret_cast<RandomIntFn>(GetProcAddress(GetModuleHandle(VSTDLIB_DLL), XorStr("RandomInt")));
 	if (RandomInt == nullptr)
 		return false;
 
-	RandomGaussianFloat = (RandomGaussianFloatFn)GetProcAddress(GetModuleHandle(VSTDLIB_DLL), XorStr("RandomGaussianFloat"));
+	RandomGaussianFloat = reinterpret_cast<RandomGaussianFloatFn>(GetProcAddress(GetModuleHandle(VSTDLIB_DLL), XorStr("RandomGaussianFloat")));
 	if (RandomGaussianFloat == nullptr)
 		return false;
 
@@ -32,36 +32,36 @@ void M::VectorAngles(const Vector& vecForward, QAngle& angView)
 {
 	float flPitch, flYaw;
 
-	if (vecForward[PITCH] == 0.f && vecForward[YAW] == 0.f)
+	if (vecForward.x == 0.f && vecForward.y == 0.f)
 	{
-		flPitch = (vecForward[ROLL] > 0.f) ? 270.f : 90.f;
+		flPitch = (vecForward.z > 0.f) ? 270.f : 90.f;
 		flYaw = 0.f;
 	}
 	else
 	{
-		flPitch = std::atan2f(-vecForward[ROLL], vecForward.Length2D()) * 180.f / M_PI;
+		flPitch = std::atan2f(-vecForward.z, vecForward.Length2D()) * 180.f / M_PI;
 
 		if (flPitch < 0.f)
 			flPitch += 360.f;
 
-		flYaw = std::atan2f(vecForward[YAW], vecForward[PITCH]) * 180.f / M_PI;
+		flYaw = std::atan2f(vecForward.y, vecForward.x) * 180.f / M_PI;
 
 		if (flYaw < 0.f)
 			flYaw += 360.f;
 	}
 
-	angView[PITCH] = flPitch;
-	angView[YAW] = flYaw;
-	angView[ROLL] = 0.f;
+	angView.x = flPitch;
+	angView.y = flYaw;
+	angView.z = 0.f;
 }
 
 void M::AngleVectors(const QAngle& angView, Vector* pForward, Vector* pRight, Vector* pUp)
 {
 	float sp, sy, sr, cp, cy, cr;
 
-	DirectX::XMScalarSinCos(&sp, &cp, M_DEG2RAD(angView[PITCH]));
-	DirectX::XMScalarSinCos(&sy, &cy, M_DEG2RAD(angView[YAW]));
-	DirectX::XMScalarSinCos(&sr, &cr, M_DEG2RAD(angView[ROLL]));
+	DirectX::XMScalarSinCos(&sp, &cp, M_DEG2RAD(angView.x));
+	DirectX::XMScalarSinCos(&sy, &cy, M_DEG2RAD(angView.y));
+	DirectX::XMScalarSinCos(&sr, &cr, M_DEG2RAD(angView.z));
 
 	if (pForward != nullptr)
 	{
@@ -85,33 +85,13 @@ void M::AngleVectors(const QAngle& angView, Vector* pForward, Vector* pRight, Ve
 	}
 }
 
-void M::MatrixGetColumn(const matrix3x4_t& matrix, int nColumn, Vector& vecOut)
-{
-	vecOut.x = matrix[0][nColumn];
-	vecOut.y = matrix[1][nColumn];
-	vecOut.z = matrix[2][nColumn];
-}
-
-void M::MatrixSetColumn(const Vector& vecColumn, int nColumn, matrix3x4_t& matrix)
-{
-	matrix[0][nColumn] = vecColumn.x;
-	matrix[1][nColumn] = vecColumn.y;
-	matrix[2][nColumn] = vecColumn.z;
-}
-
-void M::MatrixSetOrigin(matrix3x4_t& matrix, const Vector& vecOrigin, const Vector& vecNewOrigin)
-{
-	Vector vecMatrixOrigin(matrix[0][3], matrix[1][3], matrix[2][3]);
-	M::MatrixSetColumn(vecNewOrigin + (vecMatrixOrigin - vecOrigin), 3, matrix);
-}
-
 void M::AngleMatrix(const QAngle& angView, matrix3x4_t& matrix)
 {
 	float sp, sy, sr, cp, cy, cr;
 
-	DirectX::XMScalarSinCos(&sp, &cp, M_DEG2RAD(angView[PITCH]));
-	DirectX::XMScalarSinCos(&sy, &cy, M_DEG2RAD(angView[YAW]));
-	DirectX::XMScalarSinCos(&sr, &cr, M_DEG2RAD(angView[ROLL]));
+	DirectX::XMScalarSinCos(&sp, &cp, M_DEG2RAD(angView.x));
+	DirectX::XMScalarSinCos(&sy, &cy, M_DEG2RAD(angView.y));
+	DirectX::XMScalarSinCos(&sr, &cr, M_DEG2RAD(angView.z));
 
 	matrix[0][0] = cp * cy;
 	matrix[1][0] = cp * sy;
@@ -175,15 +155,4 @@ Vector M::ExtrapolateTick(Vector p0, Vector v0)
 {
 	// position formula: p0 + v0t
 	return p0 + (v0 * I::Globals->flIntervalPerTick);
-}
-
-float M::FloatNormalize(float flValue)
-{
-	while (flValue > 180.f)
-		flValue -= 360.f;
-
-	while (flValue < -180.f)
-		flValue += 360.f;
-
-	return flValue;
 }

@@ -49,13 +49,13 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 	// render scope lines
 	if (auto pWeapon = pLocal->GetWeapon(); pWeapon != nullptr && C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SCOPE))
 	{
-		CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(*pWeapon->GetItemDefinitionIndex());
+		CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(pWeapon->GetItemDefinitionIndex());
 
 		// is sniper and scoped
 		if (pWeaponData != nullptr && pWeaponData->nWeaponType == WEAPONTYPE_SNIPER && pLocal->IsScoped())
 		{
 			float flWidth = pWeapon->GetInaccuracy() * 300.f;
-			int iAlpha = std::min<int>(255, 255.f * pWeapon->GetInaccuracy());
+			int iAlpha = std::min<int>(255, static_cast<int>(255.f * pWeapon->GetInaccuracy()));
 
 			pDrawList->AddLine(ImVec2(0.f, vecScreenSize.y * 0.5f), ImVec2(vecScreenSize.x, vecScreenSize.y * 0.5f), IM_COL32(0, 0, 0, 200));
 			pDrawList->AddLine(ImVec2(vecScreenSize.x * 0.5f, 0.f), ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y), IM_COL32(0, 0, 0, 200));
@@ -129,7 +129,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 				break;
 
 			// cast to planted bomb entity
-			CPlantedC4* pBomb = (CPlantedC4*)pEntity;
+			CPlantedC4* pBomb = reinterpret_cast<CPlantedC4*>(pEntity);
 
 			if (!pBomb->IsPlanted())
 				break;
@@ -207,7 +207,7 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 		}
 		case EClassIndex::CEnvTonemapController:
 		{
-			NightMode((CEnvTonemapController*)pEntity);
+			NightMode(reinterpret_cast<CEnvTonemapController*>(pEntity));
 			break;
 		}
 		case EClassIndex::CBaseCSGrenadeProjectile:
@@ -248,12 +248,12 @@ void CVisuals::Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize)
 			if (strstr(pClientClass->szNetworkName, XorStr("CWeapon")) != nullptr || nIndex == EClassIndex::CDEagle || nIndex == EClassIndex::CAK47)
 			{
 				// cast entity to weapon
-				CBaseCombatWeapon* pWeapon = (CBaseCombatWeapon*)pEntity;
+				CBaseCombatWeapon* pWeapon = reinterpret_cast<CBaseCombatWeapon*>(pEntity);
 
 				if (pWeapon == nullptr)
 					break;
 
-				const short nDefinitionIndex = *pWeapon->GetItemDefinitionIndex();
+				const short nDefinitionIndex = pWeapon->GetItemDefinitionIndex();
 				CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(nDefinitionIndex);
 
 				if (pWeaponData == nullptr || !pWeaponData->IsGun())
@@ -309,8 +309,13 @@ void CVisuals::Event(IGameEvent* pEvent, const FNV1A_t uNameHash)
 				if (C::Get<bool>(Vars.bScreenHitMarkerSound))
 					I::Surface->PlaySoundSurface(XorStr("buttons\\arena_switch_press_02.wav"));
 
+				const auto vecPosition = pEntity->GetHitGroupPosition(pEvent->GetInt(XorStr("hitgroup")));
+
+				if (!vecPosition.has_value())
+					return;
+
 				// add hit info
-				vecHitMarks.emplace_back(HitMarkerObject_t{ pEntity->GetHitGroupPosition(pEvent->GetInt(XorStr("hitgroup"))), pEvent->GetInt(XorStr("dmg_health")), flServerTime + C::Get<float>(Vars.flScreenHitMarkerTime) });
+				vecHitMarks.emplace_back(HitMarkerObject_t{ vecPosition.value(), pEvent->GetInt(XorStr("dmg_health")), flServerTime + C::Get<float>(Vars.flScreenHitMarkerTime) });
 			}
 		}
 	}
@@ -415,7 +420,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 				pMaterial->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, C::Get<int>(Vars.iEspChamsPlayer) == (int)EVisualsPlayersChams::WIREFRAME ? true : false);
 
 				// set xqz color
-				I::StudioRender->SetColorModulation(colHidden.Base());
+				I::StudioRender->SetColorModulation(colHidden.Base().data());
 
 				// set xqz alpha
 				I::StudioRender->SetAlphaModulation(colHidden.aBase());
@@ -437,12 +442,12 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 			pMaterial->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, C::Get<int>(Vars.iEspChamsPlayer) == (int)EVisualsPlayersChams::WIREFRAME ? true : false);
 
 			// set color
-			I::StudioRender->SetColorModulation(colVisible.Base());
+			I::StudioRender->SetColorModulation(colVisible.Base().data());
 
 			// set alpha
 			I::StudioRender->SetAlphaModulation((pEntity == pLocal && pLocal->IsScoped() && I::Input->bCameraInThirdPerson) ? 0.3f : colVisible.aBase());
 
-			// override cuztomized material
+			// override customized material
 			I::StudioRender->ForcedMaterialOverride(pMaterial);
 
 			// then draw original with our material
@@ -557,12 +562,12 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 		// set "$ignorez" flag to 0 and disable it
 		pMaterial->SetMaterialVarFlag(MATERIAL_VAR_IGNOREZ, false);
 
-		I::StudioRender->SetColorModulation(colViewModel.Base());
+		I::StudioRender->SetColorModulation(colViewModel.Base().data());
 
 		// set alpha
 		I::StudioRender->SetAlphaModulation(colViewModel.aBase());
 
-		// override cuztomized material
+		// override customized material
 		I::StudioRender->ForcedMaterialOverride(pMaterial);
 
 		// then draw original with our material
@@ -620,8 +625,8 @@ void CVisuals::Glow(CBaseEntity* pLocal)
 				(((pEntity == pLocal && I::Input->bCameraInThirdPerson) || !pLocal->IsEnemy(pEntity)) && C::Get<bool>(Vars.bEspGlowAllies)))
 			{
 				hGlowObject.Set(pLocal->IsEnemy(pEntity) ?
-					pLocal->IsVisible(pEntity, pEntity->GetBonePosition(BONE_HEAD)) ? C::Get<Color>(Vars.colEspGlowEnemies) : C::Get<Color>(Vars.colEspGlowEnemiesWall) :
-					pLocal->IsVisible(pEntity, pEntity->GetBonePosition(BONE_HEAD)) ? C::Get<Color>(Vars.colEspGlowAllies) : C::Get<Color>(Vars.colEspGlowAlliesWall));
+					pLocal->IsVisible(pEntity, pEntity->GetBonePosition(BONE_HEAD).value_or(pEntity->GetEyePosition(false))) ? C::Get<Color>(Vars.colEspGlowEnemies) : C::Get<Color>(Vars.colEspGlowEnemiesWall) :
+					pLocal->IsVisible(pEntity, pEntity->GetBonePosition(BONE_HEAD).value_or(pEntity->GetEyePosition(false))) ? C::Get<Color>(Vars.colEspGlowAllies) : C::Get<Color>(Vars.colEspGlowAlliesWall));
 			}
 			break;
 		}
@@ -641,18 +646,20 @@ void CVisuals::Glow(CBaseEntity* pLocal)
 	}
 }
 
-Vector* CVisuals::GetPoints(CBaseEntity* pEntity)
+bool CVisuals::GetBoundingBox(CBaseEntity* pEntity, Box_t* pBox)
 {
 	const ICollideable* pCollideable = pEntity->GetCollideable();
 
 	if (pCollideable == nullptr)
-		return nullptr;
+		return false;
 
 	// get mins/maxs
 	const Vector vecMin = pCollideable->OBBMins();
 	const Vector vecMax = pCollideable->OBBMaxs();
 
 	/*
+	 * build AABB points
+	 *
 	 * points navigation:
 	 * [N] [back/front][left/right][bottom/top]
 	 *	0 - blb
@@ -664,37 +671,29 @@ Vector* CVisuals::GetPoints(CBaseEntity* pEntity)
 	 *	6 - blt
 	 *	7 - flt
 	 */
-	Vector vecPoints[] =
+	std::array<Vector, 8U> arrPoints =
 	{
-		{ vecMin.x, vecMin.y, vecMin.z },
-		{ vecMin.x, vecMax.y, vecMin.z },
-		{ vecMax.x, vecMax.y, vecMin.z },
-		{ vecMax.x, vecMin.y, vecMin.z },
-		{ vecMax.x, vecMax.y, vecMax.z },
-		{ vecMin.x, vecMax.y, vecMax.z },
-		{ vecMin.x, vecMin.y, vecMax.z },
-		{ vecMax.x, vecMin.y, vecMax.z }
+		Vector(vecMin.x, vecMin.y, vecMin.z),
+		Vector(vecMin.x, vecMax.y, vecMin.z),
+		Vector(vecMax.x, vecMax.y, vecMin.z),
+		Vector(vecMax.x, vecMin.y, vecMin.z),
+		Vector(vecMax.x, vecMax.y, vecMax.z),
+		Vector(vecMin.x, vecMax.y, vecMax.z),
+		Vector(vecMin.x, vecMin.y, vecMax.z),
+		Vector(vecMax.x, vecMin.y, vecMax.z)
 	};
 
-	return vecPoints;
-}
-
-bool CVisuals::GetBoundingBox(CBaseEntity* pEntity, Box_t* pBox)
-{
-	// get basic points
-	Vector* vecPoints = GetPoints(pEntity);
-
-	if (vecPoints == nullptr)
+	if (arrPoints.data() == nullptr)
 		return false;
 
 	// get transformation matrix
 	const matrix3x4_t& matTransformed = pEntity->GetCoordinateFrame();
 
 	// get screen points position
-	Vector2D vecScreen[8] = { };
+	Vector2D arrScreen[8] = { };
 	for (int i = 0; i < 8; i++)
 	{
-		if (!D::WorldToScreen(M::VectorTransform(vecPoints[i], matTransformed), vecScreen[i]))
+		if (!D::WorldToScreen(M::VectorTransform(arrPoints[i], matTransformed), arrScreen[i]))
 			return false;
 	}
 
@@ -710,12 +709,12 @@ bool CVisuals::GetBoundingBox(CBaseEntity* pEntity, Box_t* pBox)
 	 *	6 - brt
 	 *	7 - flt
 	 */
-	float left = vecScreen[3].x;
-	float top = vecScreen[3].y;
-	float right = vecScreen[3].x;
-	float bottom = vecScreen[3].y;
+	float left = arrScreen[3].x;
+	float top = arrScreen[3].y;
+	float right = arrScreen[3].x;
+	float bottom = arrScreen[3].y;
 
-	for (const auto& vecPoint : vecScreen)
+	for (const auto& vecPoint : arrScreen)
 	{
 		left = std::min<float>(left, vecPoint.x);
 		top = std::min<float>(top, vecPoint.y);
@@ -762,7 +761,7 @@ IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view sz
 	}})#"), fmt::arg(XorStr("shader"), szShader), fmt::arg(XorStr("texture"), szBaseTexture), fmt::arg(XorStr("envmap"), szEnvMap), fmt::arg(XorStr("ignorez"), bIgnorez ? 1 : 0), fmt::arg(XorStr("wireframe"), bWireframe ? 1 : 0), fmt::arg(XorStr("proxies"), szProxies));
 
 	// load to memory
-	CKeyValues* pKeyValues = (CKeyValues*)CKeyValues::operator new(sizeof(CKeyValues));
+	CKeyValues* pKeyValues = static_cast<CKeyValues*>(CKeyValues::operator new(sizeof(CKeyValues)));
 	pKeyValues->Init(szShader.data());
 	pKeyValues->LoadFromBuffer(szName.data(), szMaterial.c_str());
 
@@ -797,7 +796,7 @@ void CVisuals::HitMarker(ImDrawList* pDrawList, float flServerTime, const ImVec2
 		if (D::WorldToScreen(vecHitMarks.at(i).vecPosition, vecScreen))
 		{
 			// set fade out alpha
-			colDamage.arrColor.at(3) = std::min<float>(colDamage.aBase(), flAlpha) * 255.f;
+			colDamage.arrColor.at(3) = static_cast<std::uint8_t>(std::min<float>(colDamage.aBase(), flAlpha) * 255.f);
 			// draw dealt damage
 			ImGui::AddText(pDrawList, F::SmallestPixel, 20.f, ImVec2(vecScreen.x, vecScreen.y - flRatio * iDistance), std::to_string(vecHitMarks.at(i).iDamage).c_str(), colDamage.GetU32(), IMGUI_TEXT_OUTLINE);
 		}
@@ -809,7 +808,7 @@ void CVisuals::HitMarker(ImDrawList* pDrawList, float flServerTime, const ImVec2
 		for (auto& iSide : arrSides)
 		{
 			// set fade out alpha
-			colLines.arrColor.at(3) = std::min<float>(colLines.aBase(), flAlpha) * 255.f;
+			colLines.arrColor.at(3) = static_cast<std::uint8_t>(std::min<float>(colLines.aBase(), flAlpha) * 255.f);
 			// draw mark cross
 			pDrawList->AddLine(ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * iSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * iSide[1]), ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * iSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * iSide[1]), colLines.GetU32());
 		}
@@ -895,7 +894,7 @@ void CVisuals::PlantedBomb(ImDrawList* pDrawList, CPlantedC4* pBomb, float flSer
 	pDrawList->AddRectFilled(ImVec2(ctx.box.left, ctx.box.bottom + 2), ImVec2(ctx.box.left + ctx.box.width * flFactor, ctx.box.bottom + 4), Color::FromHSB(flHue, 1.f, 1.f).GetU32());
 	// outline
 	pDrawList->AddRect(ImVec2(ctx.box.left - 1, ctx.box.bottom + 1), ImVec2(ctx.box.right + 1, ctx.box.bottom + 5), colOutline.GetU32());
-	ctx.arrPadding.at(DIR_BOTTOM) += 5;
+	ctx.arrPadding.at(DIR_BOTTOM) += 5.0f;
 
 	// check for defuser to update defusing time
 	if (pDefuser != nullptr)
@@ -945,7 +944,7 @@ void CVisuals::Grenade(ImDrawList* pDrawList, EClassIndex nIndex, CBaseEntity* p
 		case EClassIndex::CSmokeGrenadeProjectile:
 		{
 			// cast to smoke grenade
-			CSmokeGrenade* pSmoke = (CSmokeGrenade*)pGrenade;
+			CSmokeGrenade* pSmoke = reinterpret_cast<CSmokeGrenade*>(pGrenade);
 			flFactor = ((TICKS_TO_TIME(pSmoke->GetEffectTickBegin()) + pSmoke->GetMaxTime()) - flServerTime) / pSmoke->GetMaxTime();
 			colGrenade = Color(230, 130, 0);
 			szName = XorStr("SMOKE");
@@ -955,7 +954,7 @@ void CVisuals::Grenade(ImDrawList* pDrawList, EClassIndex nIndex, CBaseEntity* p
 		case EClassIndex::CInferno:
 		{
 			// cast to inferno grenade
-			CInferno* pInferno = (CInferno*)pGrenade;
+			CInferno* pInferno = reinterpret_cast<CInferno*>(pGrenade);
 			flFactor = ((TICKS_TO_TIME(pInferno->GetEffectTickBegin()) + pInferno->GetMaxTime()) - flServerTime) / pInferno->GetMaxTime();
 			colGrenade = Color(255, 100, 100);
 
@@ -1016,7 +1015,7 @@ void CVisuals::DroppedWeapons(ImDrawList* pDrawList, CBaseCombatWeapon* pWeapon,
 		const ImVec2 vecNameSize = F::Icons->CalcTextSizeA(10.f, FLT_MAX, 0.f, szIcon);
 
 		ImGui::AddText(pDrawList, F::Icons, 10.f, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecNameSize.x * 0.5f, ctx.box.bottom + 3), szIcon, colPrimary.GetU32(), IMGUI_TEXT_OUTLINE, colOutline.GetU32());
-		ctx.arrPadding.at(DIR_BOTTOM) += 3 + vecNameSize.y;
+		ctx.arrPadding.at(DIR_BOTTOM) += 3.0f + vecNameSize.y;
 	}
 
 	// ammo bar
@@ -1026,7 +1025,7 @@ void CVisuals::DroppedWeapons(ImDrawList* pDrawList, CBaseCombatWeapon* pWeapon,
 	// distance
 	if (C::Get<bool>(Vars.bEspMainWeaponDistance))
 	{
-		const int iDistance = M_INCH2METRE(flDistance);
+		const int iDistance = static_cast<int>(M_INCH2METRE(flDistance));
 		std::string szDistance = std::to_string(iDistance).append(XorStr("M"));
 		const ImVec2 vecDistanceSize = F::SmallestPixel->CalcTextSizeA(12.f, FLT_MAX, 0.0f, szDistance.c_str());
 
@@ -1115,7 +1114,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 					if (pCurrentWeapon == nullptr)
 						continue;
 
-					const short nDefinitionIndex = *pCurrentWeapon->GetItemDefinitionIndex();
+					const short nDefinitionIndex = pCurrentWeapon->GetItemDefinitionIndex();
 
 					// do not draw some useless dangerzone weapons (lmao i just dont add icons)
 					if (nDefinitionIndex == WEAPON_SHIELD || nDefinitionIndex == WEAPON_BREACHCHARGE || nDefinitionIndex == WEAPON_BUMPMINE)
@@ -1139,7 +1138,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 
 	if (C::Get<bool>(Vars.bEspMainPlayerDistance))
 	{
-		const int iDistance = M_INCH2METRE(flDistance);
+		const int iDistance = static_cast<int>(M_INCH2METRE(flDistance));
 		std::string szDistance = std::to_string(iDistance).append(XorStr("M"));
 		const ImVec2 vecDistanceSize = F::SmallestPixel->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szDistance.c_str());
 		ImGui::AddText(pDrawList, F::SmallestPixel, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecDistanceSize.x * 0.5f, ctx.box.bottom + 2 + ctx.arrPadding.at(DIR_BOTTOM)), szDistance.c_str(), colInfo.GetU32(), IMGUI_TEXT_OUTLINE, colOutline.GetU32());
@@ -1151,7 +1150,7 @@ void CVisuals::Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* p
 	if (C::Get<bool>(Vars.bEspMainPlayerHealth))
 	{
 		// calculate hp-based color
-		const float flFactor = (float)pEntity->GetHealth() / (float)pEntity->GetMaxHealth();
+		const float flFactor = static_cast<float>(pEntity->GetHealth()) / static_cast<float>(pEntity->GetMaxHealth());
 		const float flHue = (flFactor * 120.f) / 360.f;
 		HealthBar(pDrawList, flFactor, ctx, Color::FromHSB(flHue, 1.f, 1.f), Color(40, 40, 40, 100), Color(0, 0, 0, 150));
 	}
@@ -1262,12 +1261,12 @@ void CVisuals::HealthBar(ImDrawList* pDrawList, float flFactor, Context_t& ctx, 
 	pDrawList->AddRectFilled(ImVec2(ctx.box.left - 5 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom - (ctx.box.height * flFactor)), ImVec2(ctx.box.left - 3 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom), colPrimary.GetU32());
 	// outline
 	pDrawList->AddRect(ImVec2(ctx.box.left - 6 - ctx.arrPadding.at(DIR_LEFT), ctx.box.top - 1), ImVec2(ctx.box.left - 2 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom + 1), colOutline.GetU32());
-	ctx.arrPadding.at(DIR_LEFT) += 6;
+	ctx.arrPadding.at(DIR_LEFT) += 6.0f;
 }
 
 void CVisuals::AmmoBar(ImDrawList* pDrawList, CBaseEntity* pEntity, CBaseCombatWeapon* pWeapon, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline)
 {
-	CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(*pWeapon->GetItemDefinitionIndex());
+	CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(pWeapon->GetItemDefinitionIndex());
 
 	if (pWeaponData == nullptr)
 		return;
@@ -1300,7 +1299,7 @@ void CVisuals::AmmoBar(ImDrawList* pDrawList, CBaseEntity* pEntity, CBaseCombatW
 		flFactor = pLayer->flCycle;
 	else
 		// if not reloading
-		flFactor = (float)iAmmo / (float)iMaxAmmo;
+		flFactor = static_cast<float>(iAmmo) / static_cast<float>(iMaxAmmo);
 
 	// background
 	pDrawList->AddRectFilled(ImVec2(ctx.box.left, ctx.box.bottom + 3 + ctx.arrPadding.at(DIR_BOTTOM)), ImVec2(ctx.box.right, ctx.box.bottom + 5 + ctx.arrPadding.at(DIR_BOTTOM)), colBackground.GetU32());
@@ -1308,7 +1307,7 @@ void CVisuals::AmmoBar(ImDrawList* pDrawList, CBaseEntity* pEntity, CBaseCombatW
 	pDrawList->AddRectFilled(ImVec2(ctx.box.left, ctx.box.bottom + 3 + ctx.arrPadding.at(DIR_BOTTOM)), ImVec2(ctx.box.left + ctx.box.width * flFactor, ctx.box.bottom + 5 + ctx.arrPadding.at(DIR_BOTTOM)), colPrimary.GetU32());
 	// outline
 	pDrawList->AddRect(ImVec2(ctx.box.left - 1, ctx.box.bottom + 2 + ctx.arrPadding.at(DIR_BOTTOM)), ImVec2(ctx.box.right + 1, ctx.box.bottom + 6 + ctx.arrPadding.at(DIR_BOTTOM)), colOutline.GetU32());
-	ctx.arrPadding.at(DIR_BOTTOM) += 6;
+	ctx.arrPadding.at(DIR_BOTTOM) += 6.0f;
 }
 
 void CVisuals::FlashBar(ImDrawList* pDrawList, CBaseEntity* pEntity, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline)
@@ -1322,5 +1321,5 @@ void CVisuals::FlashBar(ImDrawList* pDrawList, CBaseEntity* pEntity, Context_t& 
 	pDrawList->AddRectFilled(ImVec2(ctx.box.left, ctx.box.top - 3 - ctx.arrPadding.at(DIR_TOP)), ImVec2(ctx.box.left + ctx.box.width * flFactor, ctx.box.top - 5 - ctx.arrPadding.at(DIR_TOP)), colPrimary.GetU32());
 	// outline
 	pDrawList->AddRect(ImVec2(ctx.box.left - 1, ctx.box.top - 3 - ctx.arrPadding.at(DIR_TOP)), ImVec2(ctx.box.right + 1, ctx.box.top - 5 - ctx.arrPadding.at(DIR_TOP)), colOutline.GetU32()); // hmm, why offset here like for bar or bg?
-	ctx.arrPadding.at(DIR_TOP) += 6;
+	ctx.arrPadding.at(DIR_TOP) += 6.0f;
 }

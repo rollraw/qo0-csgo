@@ -48,7 +48,7 @@ enum ESoundLevel;
 class IMoveHelper
 {
 public:
-	virtual	char const*			GetName(void* hEntity) const = 0;
+	virtual	const char*			GetName(void* hEntity) const = 0;
 	virtual void				SetHost(CBaseEntity* pHost) = 0;
 	virtual void				ResetTouchList() = 0;
 	virtual bool				AddToTouched(const CGameTrace& trace, const Vector& vecImpactVelocity) = 0;

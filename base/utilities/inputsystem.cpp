@@ -97,4 +97,6 @@ bool IPT::Process(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		arrKeyState.at(nKey) = EKeyState::RELEASED;
 	else
 		arrKeyState.at(nKey) = state;
+
+	return true;
 }

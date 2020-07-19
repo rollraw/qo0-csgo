@@ -32,7 +32,7 @@ void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 	if (pWeapon == nullptr)
 		return;
 
-	short nDefinitionIndex = *pWeapon->GetItemDefinitionIndex();
+	short nDefinitionIndex = pWeapon->GetItemDefinitionIndex();
 	CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(nDefinitionIndex);
 
 	if (pWeaponData == nullptr)
@@ -41,7 +41,7 @@ void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 	float flServerTime = TICKS_TO_TIME(CPrediction::Get().GetTickbase(pCmd, pLocal));
 
 	// weapon shoot check
-	if (pWeaponData->IsGun() && pLocal->CanShoot((CWeaponCSBase*)pWeapon) && (pCmd->iButtons & IN_ATTACK || (nDefinitionIndex == WEAPON_REVOLVER && pCmd->iButtons & IN_SECOND_ATTACK)))
+	if (pWeaponData->IsGun() && pLocal->CanShoot(static_cast<CWeaponCSBase*>(pWeapon)) && (pCmd->iButtons & IN_ATTACK || (nDefinitionIndex == WEAPON_REVOLVER && pCmd->iButtons & IN_SECOND_ATTACK)))
 		return;
 	// knife attack check
 	else if (pWeaponData->nWeaponType == WEAPONTYPE_KNIFE)
@@ -53,7 +53,7 @@ void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 			return;
 	}
 	// grenade throw check
-	else if (auto pGrenade = (CBaseCSGrenade*)pWeapon; pGrenade != nullptr && pWeaponData->nWeaponType == WEAPONTYPE_GRENADE)
+	else if (auto pGrenade = static_cast<CBaseCSGrenade*>(pWeapon); pGrenade != nullptr && pWeaponData->nWeaponType == WEAPONTYPE_GRENADE)
 	{
 		// check is being thrown a grenade
 		if (!pGrenade->IsPinPulled() || pCmd->iButtons & (IN_ATTACK | IN_SECOND_ATTACK))
@@ -63,11 +63,8 @@ void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 		}
 	}
 
-	// save angles to modify later
+	// save angles to modify it later
 	angSentView = pCmd->angViewPoint;
-
-	// get next lby update
-	UpdateServerAnimations(pLocal, flServerTime);
 
 	/* edge antiaim, fakewalk, other hvhboi$tuff do here */
 
@@ -102,7 +99,7 @@ void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 	pCmd->angViewPoint = angSentView;
 }
 
-void CAntiAim::UpdateServerAnimations(CBaseEntity* pLocal, float flServerTime)
+void CAntiAim::UpdateServerAnimations(CUserCmd* pCmd, CBaseEntity* pLocal)
 {
 	// get values to check for change/reset
 	static CBaseHandle hOldLocal = pLocal->GetRefEHandle();
@@ -119,15 +116,20 @@ void CAntiAim::UpdateServerAnimations(CBaseEntity* pLocal, float flServerTime)
 	// check is need to reset (on respawn)
 	if (bReset)
 	{
-		pServerAnimState->Reset();
+		if (pServerAnimState != nullptr)
+			pServerAnimState->Reset();
+
 		flOldSpawnTime = pLocal->GetSpawnTime();
 	}
+
+	// get accurate server time
+	float flServerTime = TICKS_TO_TIME(CPrediction::Get().GetTickbase(pCmd, pLocal));
 
 	// need to allocate or create new due to player change
 	if (bAllocate || bChange)
 	{
 		// create temporary animstate
-		CBasePlayerAnimState* pAnimState = (CBasePlayerAnimState*)I::MemAlloc->Alloc(sizeof(CBasePlayerAnimState));
+		CBasePlayerAnimState* pAnimState = static_cast<CBasePlayerAnimState*>(I::MemAlloc->Alloc(sizeof(CBasePlayerAnimState)));
 
 		if (pAnimState != nullptr)
 			pAnimState->Create(pLocal);
@@ -146,7 +148,7 @@ void CAntiAim::UpdateServerAnimations(CBaseEntity* pLocal, float flServerTime)
 		const QAngle angAbsViewOld = pLocal->GetAbsAngles();
 		const std::array<float, MAXSTUDIOPOSEPARAM> arrPosesOld = pLocal->GetPoseParameter();
 
-		pServerAnimState->Update(angSentView);
+		pServerAnimState->Update(pCmd->angViewPoint);
 
 		// restore values
 		std::copy(arrNetworkedLayers.begin(), arrNetworkedLayers.end(), pLocal->GetAnimationOverlays());
@@ -157,7 +159,7 @@ void CAntiAim::UpdateServerAnimations(CBaseEntity* pLocal, float flServerTime)
 		if (pServerAnimState->flVelocityLenght2D > 0.1f)
 			flNextLowerBodyUpdate = flServerTime + 0.22f;
 		// check is standing, update every 1.1s
-		else if (std::fabsf(pServerAnimState->flGoalFeetYaw - pServerAnimState->flEyeYaw) > 35.f && flServerTime > flNextLowerBodyUpdate)
+		else if (std::fabsf(std::remainderf(pServerAnimState->flGoalFeetYaw - pServerAnimState->flEyeYaw, 360.f)) > 35.f && flServerTime > flNextLowerBodyUpdate)
 			flNextLowerBodyUpdate = flServerTime + 1.1f;
 	}
 }
@@ -197,7 +199,7 @@ void CAntiAim::Yaw(CUserCmd* pCmd, CBaseEntity* pLocal, float flServerTime, bool
 		static float flSide = 1.0f;
 
 		/*
-		 * menual change side
+		 * manually change the side
 		 * @note: to visually seen that - make desync chams by saving matrix or draw direction arrows
 		 */
 		if (C::Get<int>(Vars.iAntiAimDesyncKey) > 0 && IPT::IsKeyReleased(C::Get<int>(Vars.iAntiAimDesyncKey)))
@@ -216,10 +218,10 @@ void CAntiAim::Yaw(CUserCmd* pCmd, CBaseEntity* pLocal, float flServerTime, bool
 
 		if (bSendPacket)
 			// real
-			angSentView.y -= flMaxDesyncDelta * flSide;
+			angSentView.y += (flMaxDesyncDelta + 30) * flSide;
 		else
 			// fake
-			angSentView.y += flMaxDesyncDelta * flSide;
+			angSentView.y -= (flMaxDesyncDelta + 30) * flSide;
 
 		break;
 	}

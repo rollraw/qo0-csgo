@@ -138,14 +138,14 @@ void CMiscellaneous::AutoPistol(CUserCmd* pCmd, CBaseEntity* pLocal)
 	if (pWeapon == nullptr)
 		return;
 
-	short nDefinitionIndex = *pWeapon->GetItemDefinitionIndex();
+	short nDefinitionIndex = pWeapon->GetItemDefinitionIndex();
 	const CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(nDefinitionIndex);
 
 	// check for pistol and attack
 	if (pWeaponData == nullptr || pWeaponData->bFullAuto || pWeaponData->nWeaponType != WEAPONTYPE_PISTOL || !(pCmd->iButtons & IN_ATTACK))
 		return;
 
-	if (pLocal->CanShoot((CWeaponCSBase*)pWeapon))
+	if (pLocal->CanShoot(static_cast<CWeaponCSBase*>(pWeapon)))
 		pCmd->iButtons |= IN_ATTACK;
 	else
 		pCmd->iButtons &= ~IN_ATTACK;
@@ -156,7 +156,7 @@ void CMiscellaneous::FakeLag(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPac
 	if (!pLocal->IsAlive())
 		return;
 
-	INetChannel* pNetChannel = (INetChannel*)I::ClientState->pNetChannel;
+	INetChannel* pNetChannel = reinterpret_cast<INetChannel*>(I::ClientState->pNetChannel);
 
 	if (pNetChannel == nullptr)
 		return;

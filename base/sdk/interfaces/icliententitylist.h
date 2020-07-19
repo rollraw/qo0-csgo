@@ -32,16 +32,16 @@ public:
 	virtual void				SetMaxEntities(int iMax) = 0;
 	virtual int					GetMaxEntities() = 0;
 
-	template <class T>
+	template <class T = IClientEntity>
 	inline T* Get(const int nIndex)
 	{
-		return (T*)(GetClientEntity(nIndex));
+		return static_cast<T*>(GetClientEntity(nIndex));
 	}
 
-	template <class T>
+	template <class T = IClientEntity>
 	inline T* Get(const CBaseHandle hEntity)
 	{
-		return (T*)(GetClientEntityFromHandle(hEntity));
+		return static_cast<T*>(GetClientEntityFromHandle(hEntity));
 	}
 
 	void AddListenerEntity(IClientEntityListener* pListener)

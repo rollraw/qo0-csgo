@@ -8,10 +8,6 @@
 // used: mask, content, surf flags
 #include "../bspflags.h"
 
-#pragma region enginetrace_definitions
-
-#pragma endregion
-
 #pragma region enginetrace_enumerations
 enum EDispSurfFlags
 {
@@ -79,27 +75,7 @@ class CBaseEntity;
 class CGameTrace : public CBaseTrace
 {
 public:
-	CGameTrace() { }
-
-	CGameTrace& operator=(const CGameTrace& other)
-	{
-		vecStart = other.vecStart;
-		vecEnd = other.vecEnd;
-		plane = other.plane;
-		flFraction = other.flFraction;
-		iContents = other.iContents;
-		fDispFlags = other.fDispFlags;
-		bAllSolid = other.bAllSolid;
-		bStartSolid = other.bStartSolid;
-		flFractionLeftSolid = other.flFractionLeftSolid;
-		surface = other.surface;
-		iHitGroup = other.iHitGroup;
-		sPhysicsBone = other.sPhysicsBone;
-		uWorldSurfaceIndex = other.uWorldSurfaceIndex;
-		pHitEntity = other.pHitEntity;
-		iHitbox = other.iHitbox;
-		return *this;
-	}
+	CGameTrace() : pHitEntity(nullptr) { }
 
 	float				flFractionLeftSolid;	// time we left a solid, only valid if we started in solid
 	csurface_t			surface;				// surface hit (impact surface)
@@ -120,7 +96,24 @@ public:
 	}
 
 private:
-	CGameTrace(const CGameTrace& vOther);
+	CGameTrace(const CGameTrace& other)
+	{
+		this->vecStart = other.vecStart;
+		this->vecEnd = other.vecEnd;
+		this->plane = other.plane;
+		this->flFraction = other.flFraction;
+		this->iContents = other.iContents;
+		this->fDispFlags = other.fDispFlags;
+		this->bAllSolid = other.bAllSolid;
+		this->bStartSolid = other.bStartSolid;
+		this->flFractionLeftSolid = other.flFractionLeftSolid;
+		this->surface = other.surface;
+		this->iHitGroup = other.iHitGroup;
+		this->sPhysicsBone = other.sPhysicsBone;
+		this->uWorldSurfaceIndex = other.uWorldSurfaceIndex;
+		this->pHitEntity = other.pHitEntity;
+		this->iHitbox = other.iHitbox;
+	}
 };
 
 using Trace_t = CGameTrace;
@@ -128,14 +121,6 @@ using Trace_t = CGameTrace;
 struct Ray_t
 {
 	Ray_t() : matWorldAxisTransform(nullptr) { }
-
-	VectorAligned		vecStart;
-	VectorAligned		vecDelta;
-	VectorAligned		vecStartOffset;
-	VectorAligned		vecExtents;
-	const matrix3x4_t*	matWorldAxisTransform;
-	bool				bIsRay;
-	bool				bIsSwept;
 
 	void Init(const Vector& vecStart, const Vector& vecEnd)
 	{
@@ -147,6 +132,14 @@ struct Ray_t
 		this->vecStartOffset.Init();
 		this->vecStart = vecStart;
 	}
+
+	VectorAligned		vecStart;
+	VectorAligned		vecDelta;
+	VectorAligned		vecStartOffset;
+	VectorAligned		vecExtents;
+	const matrix3x4_t*	matWorldAxisTransform;
+	bool				bIsRay;
+	bool				bIsSwept;
 };
 
 class IHandleEntity;
@@ -160,17 +153,10 @@ public:
 class CTraceFilter : public ITraceFilter
 {
 public:
-	virtual bool ShouldHitEntity(IHandleEntity* pEntityHandle, int fContentsMask)
-	{
-		return !(pEntityHandle == pSkip);
-	}
-
-	virtual ETraceType GetTraceType() const
+	ETraceType GetTraceType() const override
 	{
 		return TRACE_EVERYTHING;
 	}
-
-	void* pSkip;
 };
 
 class CTraceFilterSkipEntity : public ITraceFilter
@@ -179,12 +165,12 @@ public:
 	CTraceFilterSkipEntity(IHandleEntity* pEntityHandle) :
 		pSkip(pEntityHandle) { }
 
-	virtual bool ShouldHitEntity(IHandleEntity* pEntityHandle, int fContentsMask)
+	bool ShouldHitEntity(IHandleEntity* pEntityHandle, int fContentsMask) override
 	{
 		return !(pEntityHandle == pSkip);
 	}
 
-	virtual ETraceType GetTraceType() const
+	ETraceType GetTraceType() const override
 	{
 		return TRACE_EVERYTHING;
 	}
@@ -198,12 +184,12 @@ public:
     CTraceFilterSkipTwoEntities(void* pFirstEntity, void* pSecondEntity) :
 		pSkip1(pFirstEntity), pSkip2(pSecondEntity) { }
 
-	virtual bool ShouldHitEntity(IHandleEntity* pEntityHandle, int fContentsMask)
+	bool ShouldHitEntity(IHandleEntity* pEntityHandle, int fContentsMask) override
     {
         return !(pEntityHandle == pSkip1 || pEntityHandle == pSkip2);
     }
 
-    virtual ETraceType GetTraceType() const
+    ETraceType GetTraceType() const override
     {
         return TRACE_EVERYTHING;
     }
@@ -215,28 +201,21 @@ public:
 class CTraceFilterEntitiesOnly : public ITraceFilter
 {
 public:
-	virtual bool ShouldHitEntity(IHandleEntity* pEntityHandle, int fContentsMask)
-	{
-		return !(pEntityHandle == pSkip);
-	}
-
-	virtual ETraceType GetTraceType() const
+	ETraceType GetTraceType() const override
 	{
 		return TRACE_ENTITIES_ONLY;
 	}
-
-	void* pSkip;
 };
 
 class CTraceFilterWorldOnly : public ITraceFilter
 {
 public:
-	virtual bool ShouldHitEntity(IHandleEntity* pEntityHandle, int fContentsMask)
+	bool ShouldHitEntity(IHandleEntity* pEntityHandle, int fContentsMask) override
 	{
 		return false;
 	}
 
-	virtual ETraceType GetTraceType() const
+	ETraceType GetTraceType() const override
 	{
 		return TRACE_WORLD_ONLY;
 	}
@@ -245,12 +224,12 @@ public:
 class CTraceFilterWorldAndPropsOnly : public ITraceFilter
 {
 public:
-	virtual bool ShouldHitEntity(IHandleEntity* pEntityHandle, int fContentsMask)
+	bool ShouldHitEntity(IHandleEntity* pEntityHandle, int fContentsMask) override
 	{
 		return false;
 	}
 
-	virtual ETraceType GetTraceType() const
+	ETraceType GetTraceType() const override
 	{
 		return TRACE_EVERYTHING;
 	}

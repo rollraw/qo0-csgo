@@ -18,8 +18,6 @@ enum ESendPropType
 struct RecvProp_t;
 struct DataVariant_t
 {
-	ESendPropType iType;
-
 	union
 	{
 		float	Float;
@@ -29,6 +27,8 @@ struct DataVariant_t
 		float	Vector[3];
 		int64_t Int64;
 	};
+
+	ESendPropType iType;
 };
 
 class CRecvProxyData

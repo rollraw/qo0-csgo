@@ -7,14 +7,13 @@ bool L::Attach(const char* szConsoleTitle)
 		return false;
 
 	// attach console to current process
-	if (AttachConsole(GetCurrentProcessId()) != 0)
-		return false;
+	AttachConsole(ATTACH_PARENT_PROCESS);
 
 	/*
 	 * redirect cout stdin - to read / stdout - to write in console window
-	 * cuz we doesnt need read anything from console we use only output stream
+	 * cuz we doesn't need read anything from console we use only write stream
 	 */
-	if (freopen_s(&pStream, XorStr("CONOUT$"), XorStr("w"), stdout) != 0) // write
+	if (freopen_s(&pStream, XorStr("CONOUT$"), XorStr("w"), stdout) != 0)
 		return false;
 
 	// set console window title
@@ -26,8 +25,8 @@ bool L::Attach(const char* szConsoleTitle)
 
 void L::Detach()
 {
-	// close console stream
-	fclose(pStream); // write
+	// close write console stream
+	fclose(pStream);
 
 	// free allocated memory
 	FreeConsole();
@@ -40,16 +39,10 @@ void L::Detach()
 
 void L::Print(std::string_view szText)
 {
-	// get current time
-	tm time = { };
-	const std::chrono::system_clock::time_point systemNow = std::chrono::system_clock::now();
-	const std::time_t timeNow = std::chrono::system_clock::to_time_t(systemNow);
-	localtime_s(&time, &timeNow);
-
 	// format time
-	std::string szTime = fmt::format(XorStr("[{:%d-%m-%Y %X}] "), time);
+	std::string szTime = fmt::format(XorStr("[{:%d-%m-%Y %X}] "), fmt::localtime(std::time(nullptr)));
 
-	#if DEBUG_CONSOLE
+	#ifdef DEBUG_CONSOLE
 	// print to console
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_INTENSE_GREEN);
 	fmt::print(szTime);

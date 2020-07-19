@@ -1,6 +1,6 @@
 #pragma once
 
-class IGlobalVars
+class IGlobalVarsBase
 {
 public:
 	float			flRealTime;					//0x00
@@ -20,6 +20,11 @@ public:
 	bool		    bRemoteClient;				//0x35
 	int				iTimestampNetworkingBase;	//0x36
 	int				iTimestampRandomizeWindow;	//0x3A
+}; // Size: 0x3E
+
+class IGlobalVars : public IGlobalVarsBase
+{
+public:
 	string_t		szMapName;					//0x3E
 	string_t		szMapGroupName;				//0x42
 	int				iMapVersion;				//0x46
@@ -32,4 +37,4 @@ public:
 	int				nMaxEntities;				//0x56
 	int				nServerCount;				//0x5A
 	void*			pEdicts;					//0x5E
-}; //Size: 0x62
+}; // Size: 0x62

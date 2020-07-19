@@ -7,7 +7,6 @@
 #include "../sdk/interfaces/isurface.h"
 #include "../sdk/interfaces/iclientmodeshared.h"
 #include "../sdk/interfaces/iconvar.h"
-#include "../sdk/interfaces/idemoplayer.h"
 #include "../sdk/interfaces/ieffects.h"
 #include "../sdk/interfaces/inetchannel.h"
 #include "../sdk/interfaces/iengineclient.h"
@@ -20,7 +19,6 @@
 #include "../sdk/interfaces/igameui.h"
 #include "../sdk/interfaces/iglobalvars.h"
 #include "../sdk/interfaces/iservergamedll.h"
-#include "../sdk/interfaces/iplayerinfomanager.h"
 #include "../sdk/interfaces/iinput.h"
 #include "../sdk/interfaces/iinputsystem.h"
 #include "../sdk/interfaces/ilocalize.h"
@@ -97,18 +95,16 @@ namespace I
 	inline IMatchFramework*			MatchFramework;
 	inline IGameTypes*				GameTypes;
 	inline IServerGameDLL*			Server;
-	inline IPlayerInfoManager*		PlayerInfoManager;
-	inline IGlobalVars*				Globals;
 	inline ISteamClient*			SteamClient;
 	inline ISteamUser*				SteamUser;
 	inline ISteamGameCoordinator*	SteamGameCoordinator;
 	inline IClientModeShared*		ClientMode;
+	inline IGlobalVarsBase*			Globals;
 	inline IMemAlloc*				MemAlloc;
 	inline IDirect3DDevice9*		DirectDevice;
 	inline IViewRenderBeams*		ViewRenderBeams;
 	inline IInput*					Input;
 	inline IBaseClientState*		ClientState;
-	inline IDemoPlayer*				DemoPlayer;
 	inline IWeaponSystem*			WeaponSystem;
 	inline IGlowObjectManager*		GlowManager;
 }

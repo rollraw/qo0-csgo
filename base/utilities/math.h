@@ -11,11 +11,11 @@
 // used: matrix
 #include "../sdk/datatypes/matrix.h"
 
-extern "C" typedef int(__cdecl* RandomSeedFn)(int iSeed);
-extern "C" typedef float(__cdecl* RandomFloatFn)(float flMinVal, float flMaxVal);
-extern "C" typedef float(__cdecl* RandomFloatExpFn)(float flMinVal, float flMaxVal, float flExponent);
-extern "C" typedef int(__cdecl* RandomIntFn)(int iMinVal, int iMaxVal);
-extern "C" typedef float(__cdecl* RandomGaussianFloatFn)(float flMean, float flStdDev);
+extern "C" using RandomSeedFn = int(__cdecl*)(int iSeed);
+extern "C" using RandomFloatFn = float(__cdecl*)(float flMinVal, float flMaxVal);
+extern "C" using RandomFloatExpFn = float(__cdecl*)(float flMinVal, float flMaxVal, float flExponent);
+extern "C" using RandomIntFn = int(__cdecl*)(int iMinVal, int iMaxVal);
+extern "C" using RandomGaussianFloatFn = float(__cdecl*)(float flMean, float flStdDev);
 
 #define M_HPI			DirectX::XM_PIDIV2	// half pi
 #define M_QPI			DirectX::XM_PIDIV4	// quarter pi
@@ -43,12 +43,6 @@ namespace M
 	void	VectorAngles(const Vector& vecForward, QAngle& angView);
 	/* convert angles to x, y, z vectors */
 	void	AngleVectors(const QAngle& angView, Vector* pForward, Vector* pRight = nullptr, Vector* pUp = nullptr);
-	/* set vector position by matrix column */
-	void	MatrixGetColumn(const matrix3x4_t& matrix, int nColumn, Vector& vecOut);
-	/* set matrix column position by vector */
-	void	MatrixSetColumn(const Vector& vecColumn, int nColumn, matrix3x4_t& matrix);
-	/* set matrix origin with matrix columns position */
-	void	MatrixSetOrigin(matrix3x4_t& matIn, const Vector& vecOrigin, const Vector& vecNewOrigin);
 	/* convert angles to matrix */
 	void	AngleMatrix(const QAngle& angles, matrix3x4_t& matrix);
 	/* convert angle to screen pixels by sensivity, pitch and yaw */
@@ -62,8 +56,6 @@ namespace M
 	Vector	VectorTransform(const Vector& vecIn, const matrix3x4_t& matrix);
 	/* calculate next tick position */
 	Vector	ExtrapolateTick(Vector p0, Vector v0);
-	/* normalize individual float */
-	float	FloatNormalize(float flValue);
 
 	// Exports
 	inline RandomSeedFn				RandomSeed;

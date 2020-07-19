@@ -15,8 +15,8 @@ class CPrediction : public CSingleton<CPrediction>
 public:
 	CPrediction()
 	{
-		iPredictionRandomSeed = *(int**)(MEM::FindPattern(CLIENT_DLL, XorStr("8B 0D ? ? ? ? BA ? ? ? ? E8 ? ? ? ? 83 C4 04")) + 0x2); // @xref: "SelectWeightedSequence"
-		pSetPredictionEntity = *(CBaseEntity**)(MEM::FindPattern(CLIENT_DLL, XorStr("89 35 ? ? ? ? F3 0F 10 48 20")) + 0x2);
+		iPredictionRandomSeed = *reinterpret_cast<int**>(MEM::FindPattern(CLIENT_DLL, XorStr("8B 0D ? ? ? ? BA ? ? ? ? E8 ? ? ? ? 83 C4 04")) + 0x2); // @xref: "SelectWeightedSequence"
+		pSetPredictionEntity = *reinterpret_cast<CBaseEntity**>(MEM::FindPattern(CLIENT_DLL, XorStr("89 35 ? ? ? ? F3 0F 10 48 20")) + 0x2);
 	}
 
 	// Get

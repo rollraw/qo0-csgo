@@ -2,13 +2,6 @@
 // used: isfinite, fmodf, remainderf
 #include <cmath>
 
-enum
-{
-	PITCH = 0,
-	YAW,
-	ROLL
-};
-
 class QAngle
 {
 public:
@@ -30,16 +23,6 @@ public:
 	constexpr void Init(float x = 0.f, float y = 0.f, float z = 0.f)
 	{
 		this->x = x; this->y = y; this->z = z;
-	}
-
-	constexpr float operator[](std::size_t nIndex) const
-	{
-		return ((float*)this)[nIndex];
-	}
-
-	constexpr float& operator[](std::size_t nIndex)
-	{
-		return ((float*)this)[nIndex];
 	}
 
 	bool operator==(const QAngle& angBase) const
@@ -172,16 +155,16 @@ public:
 
 	void Clamp()
 	{
-		std::clamp(this->x, -89.f, 89.f);
-		std::clamp(this->y, -180.f, 180.f);
-		std::clamp(this->z, -50.f, 50.f);
+		this->x = std::clamp(this->x, -89.f, 89.f);
+		this->y = std::clamp(this->y, -180.f, 180.f);
+		this->z = std::clamp(this->z, -50.f, 50.f);
 	}
 
 	QAngle Normalize()
 	{
 		this->x = std::isfinite(this->x) ? std::remainderf(this->x, 360.f) : 0.f;
 		this->y = std::isfinite(this->y) ? std::remainderf(this->y, 360.f) : 0.f;
-		std::clamp(this->z, -50.f, 50.f);
+		this->z = std::clamp(this->z, -50.f, 50.f);
 		return *this;
 	}
 

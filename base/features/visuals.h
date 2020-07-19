@@ -59,12 +59,10 @@ private:
 		// dormant alpha
 		float iAlpha = 0;
 		// summary of all directions paddings
-		std::array<int, DIR_MAX> arrPadding = { 0, 0, 0, 0 };
+		std::array<float, DIR_MAX> arrPadding = { 0, 0, 0, 0 };
 	};
 
 	// Extra
-	/* get collideable box points */
-	Vector* GetPoints(CBaseEntity* pEntity);
 	/* get bounding box points of given entity */
 	bool GetBoundingBox(CBaseEntity* pEntity, Box_t* pBox);
 	/* create .vmt materials with customized parameters for chams */

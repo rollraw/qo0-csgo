@@ -112,11 +112,10 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 		I::InputSystem->GetCursorPosition(&x, &y);
 
 		// set imgui mouse position
-		io.MousePos.x = (float)x;
-		io.MousePos.y = (float)y;
+		io.MousePos = ImVec2(static_cast<float>(x), static_cast<float>(y));
 
 		ImGui::SetNextWindowPos(ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y * 0.5f), ImGuiCond_Once, ImVec2(0.5f, 0.5f));
-		ImGui::SetNextWindowSize(ImVec2(500, 320), ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(500, 327), ImGuiCond_Always);
 		ImGui::Begin(XorStr("qo0 base"), &bMainOpened, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse);
 		{
 			ImVec2 vecPos = ImGui::GetCursorScreenPos();
@@ -554,7 +553,7 @@ void T::Miscellaneous()
 						return C::vecFileNames.at(nIndex).c_str();
 					}, C::vecFileNames.size(), 5);
 
-				szCurrentConfig = C::vecFileNames.at(iSelectedConfig);
+				szCurrentConfig = !C::vecFileNames.empty() ? C::vecFileNames.at(iSelectedConfig) : "";
 				ImGui::PopItemWidth();
 			}
 			ImGui::NextColumn();
@@ -627,7 +626,7 @@ void T::Miscellaneous()
 
 			ImGui::Spacing();
 			ImGui::PushItemWidth(-1);
-			// @todo: resets hue if 255, 255, 255
+
 			ImGui::ListBox(XorStr("##colors.select"), &iSelectedColor, szColorNames, IM_ARRAYSIZE(szColorNames), 4);
 			ImGui::ColorEdit4(XorStr("##colors.picker"), &C::Get<Color>(arrColors[iSelectedColor].second), ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf);
 			ImGui::PopItemWidth();

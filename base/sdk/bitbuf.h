@@ -35,14 +35,14 @@ public:
 
 	int ReadByte()
 	{
-		char dValue = *(char*)(uBaseAddress + uCurrentOffset);
+		char dValue = *reinterpret_cast<char*>(uBaseAddress + uCurrentOffset);
 		++uCurrentOffset;
 		return dValue;
 	}
 
 	bool ReadBool()
 	{
-		bool bValue = *(bool*)(uBaseAddress + uCurrentOffset);
+		bool bValue = *reinterpret_cast<bool*>(uBaseAddress + uCurrentOffset);
 		++uCurrentOffset;
 		return bValue;
 	}
@@ -50,9 +50,9 @@ public:
 	const char* ReadString()
 	{
 		char szBuffer[256];
-		char chLength = *(char*)(uBaseAddress + uCurrentOffset);
+		char chLength = *reinterpret_cast<char*>(uBaseAddress + uCurrentOffset);
 		++uCurrentOffset;
-		memcpy(szBuffer, (void*)(uBaseAddress + uCurrentOffset), chLength > 255 ? 255 : chLength);
+		memcpy(szBuffer, reinterpret_cast<void*>(uBaseAddress + uCurrentOffset), chLength > 255 ? 255 : chLength);
 		szBuffer[chLength > 255 ? 255 : chLength] = '\0';
 		uCurrentOffset += chLength + 1;
 		return szBuffer;

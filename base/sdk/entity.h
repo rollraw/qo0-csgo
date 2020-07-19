@@ -3,6 +3,8 @@
 #include <array>
 // used: std::vector
 #include <vector>
+// used: std::optional
+#include <optional>
 
 // used: animation state
 #include "animations.h"
@@ -341,14 +343,14 @@ public:
 	void SetAbsOrigin(Vector vecOrigin)
 	{
 		using SetAbsOriginFn = void(__thiscall*)(void*, const Vector&);
-		static auto oSetAbsOrigin = (SetAbsOriginFn)MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 51 53 56 57 8B F1 E8"));
+		static auto oSetAbsOrigin = reinterpret_cast<SetAbsOriginFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 51 53 56 57 8B F1 E8")));
 		oSetAbsOrigin(this, vecOrigin);
 	}
 
 	void SetAbsAngles(QAngle angView)
 	{
 		using SetAbsAngleFn = void(__thiscall*)(void*, const QAngle&);
-		static auto oSetAbsAngles = (SetAbsAngleFn)MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 83 EC 64 53 56 57 8B F1 E8"));
+		static auto oSetAbsAngles = reinterpret_cast<SetAbsAngleFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 83 EC 64 53 56 57 8B F1 E8")));
 		oSetAbsAngles(this, angView);
 	}
 
@@ -376,6 +378,7 @@ public:
 	N_ADD_VARIABLE(int, GetTickBase, "CBasePlayer->m_nTickBase");
 	N_ADD_PVARIABLE(int, GetNextThinkTick, "CBasePlayer->m_nNextThinkTick");
 	N_ADD_VARIABLE(Vector, GetVelocity, "CBasePlayer->m_vecVelocity[0]");
+	N_ADD_PVARIABLE_OFFSET(CUserCmd*, GetCurrentCommand, "CBasePlayer->m_hConstraintEntity", -0xC); // @pattern = 89 BE ? ? ? ? E8 ? ? ? ? 85 FF + 0x2
 	N_ADD_PVARIABLE_OFFSET(QAngle, GetThirdPersonAngles, "CBasePlayer->deadflag", 0x4);
 	N_ADD_VARIABLE(CBaseHandle, GetGroundEntityHandle, "CBasePlayer->m_hGroundEntity");
 	N_ADD_VARIABLE(int, GetHealth, "CBasePlayer->m_iHealth");
@@ -395,32 +398,10 @@ public:
 	N_ADD_PDATAFIELD(int, GetImpulse, this->GetPredictionDescMap(), "m_nImpulse");
 	N_ADD_DATAFIELD(float, GetSurfaceFriction, this->GetPredictionDescMap(), "m_surfaceFriction");
 
-	CUserCmd** GetCurrentCommand()
-	{
-		// @pattern = 89 BE ? ? ? ? E8 ? ? ? ? 85 FF + 0x2
-		static std::uintptr_t m_pCurrentCommand = CNetvarManager::Get().mapProps[FNV1A::HashConst("CBasePlayer->m_hConstraintEntity")].uOffset - 0xC;
-		return (CUserCmd**)((std::uintptr_t)this + m_pCurrentCommand);
-	}
-
-	CUserCmd& GetLastCommand()
-	{
-		return *(CUserCmd*)((std::uintptr_t)this + 0x3288);
-	}
-
-	[[nodiscard]] int GetButtonDisabled()
-	{
-		return *(int*)((std::uintptr_t)this + 0x3330);
-	}
-
-	[[nodiscard]] int GetButtonForced()
-	{
-		return *(int*)((std::uintptr_t)this + 0x3334);
-	}
-
-	[[nodiscard]] int& GetTakeDamage()
-	{
-		return *(int*)((std::uintptr_t)this + 0x280);
-	}
+	N_ADD_OFFSET(int, GetTakeDamage, 0x280); // @ida: 80 BE ? ? ? ? ? 75 46 8B 86 + 0x2
+	N_ADD_OFFSET(CUserCmd, GetLastCommand, 0x3288);
+	N_ADD_OFFSET(int, GetButtonDisabled, 0x3330);
+	N_ADD_OFFSET(int, GetButtonForced, 0x3334);
 
 	inline bool IsAlive()
 	{
@@ -474,11 +455,7 @@ public:
 	N_ADD_DATAFIELD(const matrix3x4_t, GetCoordinateFrame, this->GetDataDescMap(), "m_rgflCoordinateFrame");
 	N_ADD_DATAFIELD(int, GetMoveType, this->GetPredictionDescMap(), "m_MoveType");
 
-	float GetSpawnTime()
-	{
-		// @ida: 89 86 ? ? ? ? E8 ? ? ? ? 80 + 0x2
-		return *(float*)((std::uintptr_t)this + 0xA370);
-	}
+	N_ADD_OFFSET(float, GetSpawnTime, 0xA370); // @ida: 89 86 ? ? ? ? E8 ? ? ? ? 80 + 0x2
 	#pragma endregion
 
 	#pragma region DT_BaseCombatCharacter
@@ -495,10 +472,13 @@ public:
 	N_ADD_VARIABLE(bool, IsClientSideAnimation, "CBaseAnimating->m_bClientSideAnimation");
 	N_ADD_VARIABLE(float, GetCycle, "CBaseAnimating->m_flCycle");
 
+	N_ADD_OFFSET(int, GetAnimationOverlaysCount, 0x298C);
+	N_ADD_OFFSET(int, IsUsedNewAnimState, 0x3AC8); // @test: try to get it dynamically with "m_flLastExoJumpTime" + 0x8
+
 	[[nodiscard]] std::array<float, MAXSTUDIOPOSEPARAM>& GetPoseParameter()
 	{
 		static std::uintptr_t m_flPoseParameter = CNetvarManager::Get().mapProps[FNV1A::HashConst("CBaseAnimating->m_flPoseParameter")].uOffset;
-		return *(std::array<float, MAXSTUDIOPOSEPARAM>*)((std::uintptr_t)this + m_flPoseParameter);
+		return *reinterpret_cast<std::array<float, MAXSTUDIOPOSEPARAM>*>(reinterpret_cast<std::uintptr_t>(this) + m_flPoseParameter);
 	}
 
 	inline void SetPoseAngles(float flYaw, float flPitch)
@@ -511,7 +491,7 @@ public:
 	[[nodiscard]] CAnimationLayer* GetAnimationOverlays()
 	{
 		// @ida = 8B 89 ? ? ? ? 8D 0C D1 + 0x2
-		return *(CAnimationLayer**)((std::uintptr_t)this + 0x2980);
+		return *reinterpret_cast<CAnimationLayer**>(reinterpret_cast<std::uintptr_t>(this) + 0x2980);
 	}
 
 	[[nodiscard]] inline CAnimationLayer* GetAnimationLayer(int nLayer)
@@ -522,15 +502,10 @@ public:
 		return nullptr;
 	}
 
-	[[nodiscard]] int GetAnimationOverlaysCount()
-	{
-		return *(int*)((std::uintptr_t)this + 0x298C);
-	}
-
 	[[nodiscard]] CBasePlayerAnimState* GetAnimationState()
 	{
 		// @ida: 8B 8E ? ? ? ? F3 0F 10 48 ? E8 ? ? ? ? C7 + 0x2
-		return *(CBasePlayerAnimState**)((std::uintptr_t)this + 0x3914);
+		return *reinterpret_cast<CBasePlayerAnimState**>(reinterpret_cast<std::uintptr_t>(this) + 0x3914);
 	}
 	#pragma endregion
 
@@ -538,9 +513,27 @@ public:
 	// pattern @xref: "ankle_L"
 	// index @xref: "SetupBones: invalid bone array size (%d - needs %d)\n"
 
+	int IsMaxHealth()
+	{
+		// @ida: FF 90 ? ? ? ? 85 C0 0F 8F ? ? ? ? 80 + 0x2
+		return MEM::CallVFunc<int>(this, 122);
+	}
+
 	void Think()
 	{
 		MEM::CallVFunc<void>(this, 138);
+	}
+
+	const char* GetClassname()
+	{
+		// @ida: 8B 01 FF 90 ? ? ? ? 90 + 0x4
+		return MEM::CallVFunc<const char*>(this, 142);
+	}
+
+	unsigned int PhysicsSolidMaskForEntity()
+	{
+		// @xref: "func_breakable", "func_breakable_surf"
+		return MEM::CallVFunc<unsigned int>(this, 151);
 	}
 
 	bool IsPlayer()
@@ -558,7 +551,7 @@ public:
 
 		// correct this like it do weapon_shootpos
 		// @ida weapon_shootpos: 55 8B EC 56 8B 75 08 57 8B F9 56 8B 07 FF 90
-		if (*(int*)((std::uintptr_t)this + 0x3AC8) && bShouldCorrect)
+		if (IsUsedNewAnimState() && bShouldCorrect)
 		{
 			CBasePlayerAnimState* pAnimState = this->GetAnimationState();
 
@@ -601,23 +594,23 @@ public:
 	{
 		// @xref: from sub with "CLIENT:  %s(%s) thinking for %.02f ms!!!\n"
 		using PhysicsRunThinkFn = bool(__thiscall*)(void*, int);
-		static auto oPhysicsRunThink = (PhysicsRunThinkFn)MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 EC 10 53 56 57 8B F9 8B 87"));
+		static auto oPhysicsRunThink = reinterpret_cast<PhysicsRunThinkFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 EC 10 53 56 57 8B F9 8B 87")));
 		return oPhysicsRunThink(this, nThinkMethod);
 	}
 
-	int					GetSequenceActivity(int iSequence);
-	CBaseCombatWeapon*	GetWeapon();
-	int					GetMaxHealth();
-	Vector				GetBonePosition(int iBone);
-	int					GetBoneByHash(const FNV1A_t uBoneHash);
-	Vector				GetHitboxPosition(int iHitbox);
-	Vector				GetHitGroupPosition(int iHitGroup);
-	void				ModifyEyePosition(CBasePlayerAnimState* pAnimState, Vector* vecPosition);
-	int					PostThink();
-	bool				IsEnemy(CBaseEntity* pEntity);
-	bool				IsTargetingLocal(CBaseEntity* pLocal);
-	bool				CanShoot(CWeaponCSBase* pBaseWeapon);
-	bool				IsVisible(CBaseEntity* pEntity, const Vector& vecSpot, bool bSmokeCheck = false);
+	int						GetSequenceActivity(int iSequence);
+	CBaseCombatWeapon*		GetWeapon();
+	int						GetMaxHealth();
+	std::optional<Vector>	GetBonePosition(int iBone);
+	int						GetBoneByHash(const FNV1A_t uBoneHash);
+	std::optional<Vector>	GetHitboxPosition(int iHitbox);
+	std::optional<Vector>	GetHitGroupPosition(int iHitGroup);
+	void					ModifyEyePosition(CBasePlayerAnimState* pAnimState, Vector* vecPosition);
+	int						PostThink();
+	bool					IsEnemy(CBaseEntity* pEntity);
+	bool					IsTargetingLocal(CBaseEntity* pLocal);
+	bool					CanShoot(CWeaponCSBase* pBaseWeapon);
+	bool					IsVisible(CBaseEntity* pEntity, const Vector& vecSpot, bool bSmokeCheck = false);
 };
 
 class CCSWeaponData
@@ -704,7 +697,7 @@ public:
 	#pragma endregion
 
 	#pragma region DT_BaseAttributableItem
-	N_ADD_PVARIABLE(short, GetItemDefinitionIndex, "CBaseAttributableItem->m_iItemDefinitionIndex");
+	N_ADD_VARIABLE(short, GetItemDefinitionIndex, "CBaseAttributableItem->m_iItemDefinitionIndex");
 	N_ADD_VARIABLE(int, GetItemIDHigh, "CBaseAttributableItem->m_iItemIDHigh");
 	N_ADD_VARIABLE(int, GetItemIDLow, "CBaseAttributableItem->m_iItemIDLow");
 	N_ADD_VARIABLE(int, GetAccountID, "CBaseAttributableItem->m_iAccountID");
@@ -827,7 +820,7 @@ public:
 	N_ADD_VARIABLE(int, GetEffectTickBegin, "CSmokeGrenadeProjectile->m_nSmokeEffectTickBegin");
 	#pragma endregion
 
-	inline int GetMaxTime()
+	inline float GetMaxTime()
 	{
 		return 18.f;
 	}
@@ -840,7 +833,7 @@ public:
 	N_ADD_VARIABLE(int, GetEffectTickBegin, "CInferno->m_nFireEffectTickBegin");
 	#pragma endregion
 
-	inline int GetMaxTime()
+	inline float GetMaxTime()
 	{
 		return 7.f;
 	}
@@ -859,14 +852,14 @@ public:
 	inline float GetTimer(float flServerTime)
 	{
 		static std::uintptr_t m_flC4Blow = CNetvarManager::Get().mapProps[FNV1A::HashConst("CPlantedC4->m_flC4Blow")].uOffset;
-		const float flTimer = *(float*)((std::uintptr_t)this + m_flC4Blow) - flServerTime;
+		const float flTimer = *reinterpret_cast<float*>(reinterpret_cast<std::uintptr_t>(this) + m_flC4Blow) - flServerTime;
 		return std::max<float>(0.f, flTimer);
 	}
 
 	inline float GetDefuseTimer(float flServerTime)
 	{
 		static std::uintptr_t m_flDefuseCountDown = CNetvarManager::Get().mapProps[FNV1A::HashConst("CPlantedC4->m_flDefuseCountDown")].uOffset;
-		return *(float*)((std::uintptr_t)this + m_flDefuseCountDown) - flServerTime;
+		return *reinterpret_cast<float*>(reinterpret_cast<std::uintptr_t>(this) + m_flDefuseCountDown) - flServerTime;
 	}
 	#pragma endregion
 };
@@ -908,7 +901,7 @@ public:
 	#pragma endregion
 };
 
-class CBreakableSurface
+class CBreakableSurface : public CBaseEntity, public IBreakableWithPropData
 {
 public:
 	#pragma region DT_BreakableSurface

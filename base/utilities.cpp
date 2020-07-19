@@ -11,11 +11,12 @@
 template <class C>
 C* U::FindHudElement(const char* szName)
 {
-	// @xref: https://www.unknowncheats.me/forum/counterstrike-global-offensive/342743-finding-sigging-chud-pointer-chud-findelement.html
+	// @note: https://www.unknowncheats.me/forum/counterstrike-global-offensive/342743-finding-sigging-chud-pointer-chud-findelement.html
+
+	static auto pHud = *reinterpret_cast<void**>(MEM::FindPattern(CLIENT_DLL, XorStr("B9 ? ? ? ? 68 ? ? ? ? E8 ? ? ? ? 89")) + 0x1); // @xref: "CHudWeaponSelection"
 
 	using FindHudElementFn = std::uintptr_t(__thiscall*)(void*, const char*);
-	static auto oFindHudElement = (FindHudElementFn)MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 53 8B 5D 08 56 57 8B F9 33 F6 39 77 28")); // @xref: "[%d] Could not find Hud Element: %s\n"
-	static auto pHud = *(void**)(MEM::FindPattern(CLIENT_DLL, XorStr("B9 ? ? ? ? 68 ? ? ? ? E8 ? ? ? ? 89")) + 0x1);
+	static auto oFindHudElement = reinterpret_cast<FindHudElementFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 53 8B 5D 08 56 57 8B F9 33 F6 39 77 28"))); // @xref: "[%d] Could not find Hud Element: %s\n"
 	return (C*)oFindHudElement(pHud, szName);
 }
 #pragma endregion
@@ -37,19 +38,16 @@ void U::TraceLine(const Vector& vecAbsStart, const Vector& vecAbsEnd, unsigned i
 void U::ForceFullUpdate()
 {
 	using ClearHudWeaponIconFn = int(__thiscall*)(void*, int);
-	static auto oClearHudWeaponIcon = (ClearHudWeaponIconFn)(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 51 53 56 8B 75 08 8B D9 57 6B"))); // @xref: "WeaponIcon--itemcount"
+	static auto oClearHudWeaponIcon = reinterpret_cast<ClearHudWeaponIconFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 51 53 56 8B 75 08 8B D9 57 6B"))); // @xref: "WeaponIcon--itemcount"
 
 	if (oClearHudWeaponIcon != nullptr)
 	{
-		if (const auto dwHudWeaponSelection = FindHudElement<std::uintptr_t*>(XorStr("CCSGO_HudWeaponSelection")); dwHudWeaponSelection != nullptr)
+		// get hud weapons
+		if (auto pHudWeapons = FindHudElement<std::uintptr_t>(XorStr("CCSGO_HudWeaponSelection")) - 0x28; pHudWeapons != nullptr)
 		{
-			// get hud weapons
-			if (const auto pHudWeapons = (void*)((std::uintptr_t)dwHudWeaponSelection - 0xA0); pHudWeapons != nullptr && *(int*)((std::uintptr_t)pHudWeapons + 0x80) > 0)
-			{
-				// go through all weapons
-				for (int i = 0; i < *(int*)((std::uintptr_t)pHudWeapons + 0x80); i++)
-					i = oClearHudWeaponIcon(pHudWeapons, i);
-			}
+			// go through all weapons
+			for (int i = 0; i < *(pHudWeapons + 0x20); i++)
+				i = oClearHudWeaponIcon(pHudWeapons, i);
 		}
 	}
 
@@ -59,14 +57,14 @@ void U::ForceFullUpdate()
 bool U::LineGoesThroughSmoke(Vector vecStartPos, Vector vecEndPos)
 {
 	using LineGoesThroughSmokeFn = bool(__thiscall*)(Vector, Vector, std::int16_t);
-	static auto oLineGoesThroughSmoke = (LineGoesThroughSmokeFn)(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 EC 08 8B 15 ? ? ? ? 0F 57 C0"))); // @xref: "effects/overlaysmoke"
+	static auto oLineGoesThroughSmoke = reinterpret_cast<LineGoesThroughSmokeFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 EC 08 8B 15 ? ? ? ? 0F 57 C0"))); // @xref: "effects/overlaysmoke"
 	return oLineGoesThroughSmoke(vecStartPos, vecEndPos, 1);
 }
 
 void U::SetLocalPlayerReady()
 {
 	using SetLocalPlayerReadyFn = void(__stdcall*)(const char*);
-	static auto oSetLocalPlayerReady = (SetLocalPlayerReadyFn)(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 8B 4D 08 BA ? ? ? ? E8 ? ? ? ? 85 C0 75 12"))); // @xref: "deffered"
+	static auto oSetLocalPlayerReady = reinterpret_cast<SetLocalPlayerReadyFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 8B 4D 08 BA ? ? ? ? E8 ? ? ? ? 85 C0 75 12"))); // @xref: "deffered"
 
 	if (oSetLocalPlayerReady != nullptr)
 		oSetLocalPlayerReady("");
@@ -84,7 +82,7 @@ void U::SendName(const char* szName)
 void U::SendClanTag(const char* szClanTag, const char* szIdentifier)
 {
 	using SendClanTagFn = void(__fastcall*)(const char*, const char*);
-	static auto oSendClanTag = (SendClanTagFn)(MEM::FindPattern(ENGINE_DLL, XorStr("53 56 57 8B DA 8B F9 FF 15"))); // @xref: "ClanTagChanged"
+	static auto oSendClanTag = reinterpret_cast<SendClanTagFn>(MEM::FindPattern(ENGINE_DLL, XorStr("53 56 57 8B DA 8B F9 FF 15"))); // @xref: "ClanTagChanged"
 
 	if (oSendClanTag != nullptr)
 		oSendClanTag(szClanTag, szIdentifier);
@@ -100,6 +98,21 @@ bool U::PrecacheModel(const char* szModelName)
 	}
 
 	return true;
+}
+
+IClientNetworkable* U::CreateDLLEntity(int iEntity, EClassIndex nClassID, int nSerial)
+{
+	CBaseClient* pClient = I::Client->GetAllClasses();
+
+	while (pClient != nullptr)
+	{
+		if (pClient->nClassID == nClassID)
+			return pClient->pCreateFn(iEntity, nSerial);
+
+		pClient = pClient->pNext;
+	}
+
+	return nullptr;
 }
 
 const char* U::GetWeaponIcon(short nItemDefinitionIndex)

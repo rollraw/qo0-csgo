@@ -382,6 +382,6 @@ public:
 	{
 		// m_bLoadingComplete
 		static auto uIsGameStarted = (MEM::FindPattern(MATERIALSYSTEM_DLL, XorStr("80 B9 ? ? ? ? ? 74 0F")) + 0x2);
-		return (bool*)((std::uintptr_t)this + uIsGameStarted);
+		return reinterpret_cast<bool*>(reinterpret_cast<std::uintptr_t>(this) + uIsGameStarted);
 	}
 };

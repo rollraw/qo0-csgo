@@ -5,20 +5,6 @@
 // used: client, engine interfaces
 #include "../core/interfaces.h"
 
-IClientNetworkable* CL_CreateDLLEntity(int iEntity, EClassIndex classIndex, int nSerial)
-{
-	CBaseClient* pClient = I::Client->GetAllClasses();
-
-	while (pClient)
-	{
-		if (pClient->nClassID == classIndex)
-			return pClient->pCreateFn(iEntity, nSerial);
-		pClient = pClient->pNext;
-	}
-
-	return false;
-}
-
 void CSkinChanger::Run()
 {
 	CBaseEntity* pLocal = U::GetLocalPlayer();

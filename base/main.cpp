@@ -38,7 +38,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 		while (GetModuleHandle(SERVERBROWSER_DLL) == nullptr)
 			std::this_thread::sleep_for(200ms);
 
-		#if DEBUG_CONSOLE
+		#ifdef DEBUG_CONSOLE
 		// console logging
 		if (!L::Attach(XorStr("qo0's base developer-mode")))
 			throw std::runtime_error(XorStr("failed to attach console"));
@@ -57,7 +57,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 		L::Print(XorStr("interfaces captured"));
 
 		// version check to know when u need to fix something
-		#if DEBUG_CONSOLE
+		#ifdef DEBUG_CONSOLE
 		if (strcmp(I::Engine->GetProductVersionString(), XorStr("1.37.5.9")) != 0)
 		{
 			L::PushConsoleColor(FOREGROUND_RED | FOREGROUND_YELLOW);
@@ -87,9 +87,11 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 
 		L::Print(XorStr("inputsystem setup complete"));
 
+		#if 0
 		// start tracking entities
 		U::EntityListener.Setup();
 		L::Print(XorStr("entity listener initialized"));
+		#endif
 
 		// start tracking specified events from vector
 		// @note: all events list: https://wiki.alliedmods.net/Counter-Strike:_Global_Offensive_Events
@@ -150,7 +152,7 @@ DWORD WINAPI OnDllDetach(LPVOID lpParameter)
 	while (!IPT::IsKeyReleased(C::Get<int>(Vars.iPanicKey)))
 		std::this_thread::sleep_for(500ms);
 
-	#if DEBUG_CONSOLE
+	#ifdef DEBUG_CONSOLE
 	// detach console
 	L::Detach();
 	#else
@@ -159,8 +161,10 @@ DWORD WINAPI OnDllDetach(LPVOID lpParameter)
 		L::ofsFile.close();
 	#endif
 
+	#if 0
 	// destroy entity listener
 	U::EntityListener.Destroy();
+	#endif
 
 	// destroy events listener
 	U::EventListener.Destroy();
@@ -205,11 +209,11 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 		DisableThreadLibraryCalls(hModule);
 
 		// create main thread
-		if (auto hThread = CreateThread(nullptr, 0U, OnDllAttach, hModule, 0UL, nullptr))
+		if (auto hThread = CreateThread(nullptr, 0U, OnDllAttach, hModule, 0UL, nullptr); hThread != nullptr)
 			CloseHandle(hThread);
 
 		// create detach thread
-		if (auto hThread = CreateThread(nullptr, 0U, OnDllDetach, hModule, 0UL, nullptr))
+		if (auto hThread = CreateThread(nullptr, 0U, OnDllDetach, hModule, 0UL, nullptr); hThread != nullptr)
 			CloseHandle(hThread);
 
 		return TRUE;

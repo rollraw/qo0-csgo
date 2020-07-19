@@ -84,9 +84,23 @@ private:
  */
 namespace MEM
 {
+	// Get
 	/* ida style byte pattern comparison */
-	// @todo: make new more modern, faster and simplify findpattern
 	std::uintptr_t	FindPattern(const char* szModuleName, const char* szPattern);
+	/* ida style byte pattern comparison with native given address */
+	std::uintptr_t	FindPattern(std::uint8_t* uRegionStart, std::uintptr_t uRegionSize, const char* szPattern);
+	/* returns pointer to given vtable name @credits: hinnie */
+	std::uintptr_t* GetVTablePointer(std::string_view szModuleName, std::string_view szTableName);
+	/* checks is we have given section in given address */
+	bool			GetSectionInfo(std::uintptr_t uBaseAddress, const std::string& szSectionName, std::uintptr_t& uSectionStart, std::uintptr_t& uSectionSize);
+	/* returns xrefs addresses for given address */
+	std::vector<std::uintptr_t> GetXrefs(std::uintptr_t uAddress, std::uintptr_t uStart, std::size_t uSize);
+
+	// Convert
+	std::vector<int> PatternToBytes(const char* szPattern);
+	std::string		BytesToPattern(std::uint8_t* arrBytes, std::size_t uSize);
+
+	// Check
 	/* can we read/readwrite given memory region */
 	bool			IsValidCodePtr(std::uintptr_t uAddress);
 
@@ -106,7 +120,7 @@ namespace MEM
 	template <typename T = void*>
 	inline constexpr T GetVFunc(void* thisptr, std::size_t nIndex)
 	{
-		return (T)((*(std::uintptr_t**)thisptr)[nIndex]);
+		return (*static_cast<T**>(thisptr))[nIndex];
 	}
 
 	/*
@@ -118,6 +132,6 @@ namespace MEM
 	inline constexpr T CallVFunc(void* thisptr, std::size_t nIndex, args_t... argList)
 	{
 		using VirtualFn = T(__thiscall*)(void*, decltype(argList)...);
-		return (*(VirtualFn**)thisptr)[nIndex](thisptr, argList...);
+		return (*static_cast<VirtualFn**>(thisptr))[nIndex](thisptr, argList...);
 	}
 }

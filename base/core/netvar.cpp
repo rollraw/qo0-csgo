@@ -12,16 +12,10 @@ bool CNetvarManager::Setup(std::string_view szDumpFileName)
 	iStoredProps = 0;
 	iStoredTables = 0;
 
-	// get current time
-	tm time{};
-	const std::chrono::system_clock::time_point systemNow = std::chrono::system_clock::now();
-	const std::time_t timeNow = std::chrono::system_clock::to_time_t(systemNow);
-	localtime_s(&time, &timeNow);
-
 	// format time
-	std::string szTime = fmt::format(XorStr("[{:%d-%m-%Y %X}] "), time);
+	std::string szTime = fmt::format(XorStr("[{:%d-%m-%Y %X}] "), fmt::localtime(std::time(nullptr)));
 
-	#if _DEBUG
+	#ifdef _DEBUG
 	// open our dump file to write in (here is not exception handle because dump is not critical)
 	fsDumpFile.open(C::GetWorkingPath().append(szDumpFileName), std::ios::out | std::ios::trunc);
 
@@ -38,7 +32,7 @@ bool CNetvarManager::Setup(std::string_view szDumpFileName)
 		StoreProps(pClass->szNetworkName, pClass->pRecvTable, 0U, 0);
 	}
 
-	#if _DEBUG
+	#ifdef _DEBUG
 	// close dump file
 	fsDumpFile.close();
 	#endif
@@ -48,8 +42,8 @@ bool CNetvarManager::Setup(std::string_view szDumpFileName)
 
 void CNetvarManager::StoreProps(const char* szClassName, RecvTable_t* pRecvTable, const std::uintptr_t uOffset, int nDumpTabs)
 {
-	#if _DEBUG
-	std::string szTable;
+	#ifdef _DEBUG
+	std::string szTable = { };
 
 	for (int i = 0; i < nDumpTabs; i++)
 		szTable.append(XorStr("\t"));
@@ -79,16 +73,16 @@ void CNetvarManager::StoreProps(const char* szClassName, RecvTable_t* pRecvTable
 			// type is data table
 			pCurrentProp->iRecvType == ESendPropType::DPT_DATATABLE)
 			// recursively get props in all child tables
-			StoreProps(szClassName, pChildTable, (std::uintptr_t)pCurrentProp->iOffset + uOffset, nDumpTabs + 1);
+			StoreProps(szClassName, pChildTable, static_cast<std::uintptr_t>(pCurrentProp->iOffset) + uOffset, nDumpTabs + 1);
 
 		// make own netvar pushing format
 		const FNV1A_t uHash = FNV1A::Hash(fmt::format(XorStr("{}->{}"), szClassName, pCurrentProp->szVarName).c_str());
-		const std::uintptr_t uTotalOffset = (std::uintptr_t)pCurrentProp->iOffset + uOffset;
+		const std::uintptr_t uTotalOffset = static_cast<std::uintptr_t>(pCurrentProp->iOffset) + uOffset;
 
 		// check if we not already grabbed property pointer and offset
 		if (!mapProps[uHash].uOffset)
 		{
-			#if _DEBUG
+			#ifdef _DEBUG
 			if (fsDumpFile.good())
 				fsDumpFile << szTable << XorStr("\t") << GetPropertyType(pCurrentProp->iRecvType, pCurrentProp->iElements, pCurrentProp->nStringBufferSize) << " " << pCurrentProp->szVarName << XorStr(" = 0x") << std::uppercase << std::hex << uTotalOffset << ";\n";
 			#endif

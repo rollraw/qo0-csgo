@@ -60,16 +60,6 @@ public:
 		this->x = this->y = this->z = std::numeric_limits<float>::infinity();
 	}
 
-	constexpr float operator[](std::size_t nIndex) const
-	{
-		return ((float*)this)[nIndex];
-	}
-
-	constexpr float& operator[](std::size_t nIndex)
-	{
-		return ((float*)this)[nIndex];
-	}
-
 	bool operator==(const Vector& vecBase) const
 	{
 		return this->IsEqual(vecBase);
@@ -267,16 +257,6 @@ public:
 	Vector CrossProduct(const Vector& vecCross) const
 	{
 		return Vector(this->y * vecCross.z - this->z * vecCross.y, this->z * vecCross.x - this->x * vecCross.z, this->x * vecCross.y - this->y * vecCross.x);
-	}
-
-	constexpr float* Base()
-	{
-		return (float*)this;
-	}
-
-	constexpr float const* Base() const
-	{
-		return (float const*)this;
 	}
 
 public:

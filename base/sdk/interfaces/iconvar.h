@@ -65,8 +65,8 @@ public:
 	virtual void			InstallGlobalChangeCallback(FnChangeCallback_t callback) = 0;
 	virtual void			RemoveGlobalChangeCallback(FnChangeCallback_t callback) = 0;
 	virtual void			CallGlobalChangeCallbacks(CConVar* pVar, const char* szOldString, float flOldValue) = 0;
-	virtual void			InstallConsoleDisplayFunc(void*/*IConsoleDisplayFunc**/ pDisplayFunc) = 0;
-	virtual void			RemoveConsoleDisplayFunc(void*/*IConsoleDisplayFunc**/ pDisplayFunc) = 0;
+	virtual void			InstallConsoleDisplayFunc(void* pDisplayFunc) = 0;
+	virtual void			RemoveConsoleDisplayFunc(void* pDisplayFunc) = 0;
 	virtual void			ConsoleColorPrintf(const Color& color, const char* pFormat, ...) const = 0;
 	virtual void			ConsolePrintf(const char* pFormat, ...) const = 0;
 	virtual void			ConsoleDPrintf(const char* pFormat, ...) const = 0;

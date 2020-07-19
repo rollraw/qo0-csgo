@@ -17,13 +17,13 @@ public:
 
 	float GetFloat() // idx @ 11
 	{
-		std::uint32_t uXored = *(std::uint32_t*)&pParent->flValue ^ (std::uint32_t)this;
-		return *(float*)&uXored;
+		std::uint32_t uXored = *reinterpret_cast<std::uint32_t*>(&pParent->flValue) ^ reinterpret_cast<std::uint32_t>(this);
+		return *reinterpret_cast<float*>(&uXored);
 	}
 
 	int GetInt() // idx @ 12
 	{
-		return (int)(pParent->iValue ^ (int)this);
+		return static_cast<int>(pParent->iValue ^ reinterpret_cast<int>(this));
 	}
 
 	bool GetBool() // idx @ 13

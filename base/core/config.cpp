@@ -29,6 +29,8 @@ bool C::Setup(std::string_view szDefaultFileName)
 
 	// refresh configs list
 	Refresh();
+
+	return true;
 }
 
 bool C::Save(std::string_view szFileName)
@@ -98,7 +100,7 @@ bool C::Save(std::string_view szFileName)
 
 			// fill node with all vector values
 			for (auto& bValue : vecBools)
-				sub.push_back((bool)bValue);
+				sub.push_back(static_cast<bool>(bValue));
 
 			entry[XorStr("value")] = sub.dump();
 			break;

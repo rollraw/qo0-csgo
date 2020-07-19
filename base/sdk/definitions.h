@@ -182,8 +182,8 @@ enum ECollisionGroup : int
 // @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/shared/shareddefs.h
 #pragma region valve_shareddefs
 #define TICK_INTERVAL			( I::Globals->flIntervalPerTick )
-#define TIME_TO_TICKS( t )		( (int)( 0.5f + (float)( t ) / TICK_INTERVAL ) )
-#define TICKS_TO_TIME( t )		( TICK_INTERVAL * (float)( t ) )
+#define TIME_TO_TICKS( t )		( static_cast<int>( 0.5f + static_cast<float>( t ) / TICK_INTERVAL ) )
+#define TICKS_TO_TIME( t )		( TICK_INTERVAL * static_cast<float>( t ) )
 #define ROUND_TO_TICKS( t )		( TICK_INTERVAL * TIME_TO_TICKS( t ) )
 #define TICK_NEVER_THINK		( -1 )
 
@@ -713,6 +713,20 @@ enum EShaderStencilOp : int
 	SHADER_STENCILOP_DECREMENT_WRAP,
 };
 
+// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/string_t.h
+struct string_t
+{
+public:
+	bool operator!() const { return (szValue == nullptr); }
+	bool operator==(const string_t& rhs) const { return (szValue == rhs.szValue); }
+	bool operator!=(const string_t& rhs) const { return (szValue != rhs.szValue); }
+	bool operator<(const string_t& rhs) const { return (reinterpret_cast<void*>(const_cast<char*>(szValue)) < reinterpret_cast<void*>(const_cast<char*>(rhs.szValue))); }
+
+	const char* c_str() const { return (szValue) ? szValue : ""; }
+protected:
+	const char* szValue;
+};
+
 // @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/shared/props_shared.h
 #pragma region valve_sharedprops
 enum EPropertyDataInteractions : int
@@ -753,20 +767,6 @@ public:
 	virtual bool	IsAsleep() = 0;
 };
 
-// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/string_t.h
-struct string_t
-{
-public:
-	bool operator!() const						{ return (szValue == nullptr); }
-	bool operator==(const string_t& rhs) const	{ return (szValue == rhs.szValue); }
-	bool operator!=(const string_t& rhs) const	{ return (szValue != rhs.szValue); }
-	bool operator<(const string_t& rhs) const	{ return ((void*)szValue < (void*)rhs.szValue); }
-
-	const char* c_str() const					{ return (szValue) ? szValue : ""; }
-protected:
-	const char* szValue;
-};
-
 class IBreakableWithPropData
 {
 public:
@@ -787,7 +787,7 @@ public:
 
 	// Physics damage tables
 	virtual void		SetPhysicsDamageTable(string_t iszTableName) = 0;
-	virtual string_t	GetPhysicsDamageTable(void) = 0;
+	virtual string_t	GetPhysicsDamageTable() = 0;
 
 	// Breakable chunks
 	virtual void		SetBreakableModel(string_t iszModel) = 0;
@@ -813,7 +813,7 @@ public:
 
 	// Multiplayer breakable spawn behavior
 	virtual void		SetMultiplayerBreakMode(EMultiplayerBreak mode) = 0;
-	virtual EMultiplayerBreak GetMultiplayerBreakMode(void) const = 0;
+	virtual EMultiplayerBreak GetMultiplayerBreakMode() const = 0;
 
 	// Used for debugging
 	virtual void		SetBasePropData(string_t iszBase) = 0;

@@ -248,18 +248,18 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 		return oCreateMove(thisptr, edx, flInputSampleTime, pCmd);
 
 	// netchannel pointer
-	INetChannel* pNetChannel = (INetChannel*)I::ClientState->pNetChannel;
+	INetChannel* pNetChannel = reinterpret_cast<INetChannel*>(I::ClientState->pNetChannel);
 
 	// get stack frame without asm inlines
 	// safe and will not break if you omitting frame pointer
-	const volatile auto vlBaseAddress = *(std::uintptr_t*)((std::uintptr_t)_AddressOfReturnAddress() - sizeof(std::uintptr_t));
+	const volatile auto vlBaseAddress = *reinterpret_cast<std::uintptr_t*>(reinterpret_cast<std::uintptr_t>(_AddressOfReturnAddress()) - sizeof(std::uintptr_t));
 
 	/*
 	 * get sendpacket pointer from stack frame
 	 * if use global sendpacket value then sendpacket applies only on next tick
 	 * im not recommend use globals anywhere
 	 */
-	bool& bSendPacket = *(bool*)(vlBaseAddress - 0x1C);
+	bool& bSendPacket = *reinterpret_cast<bool*>(vlBaseAddress - 0x1C);
 
 	// save previous view angles for movement correction
 	QAngle angOldViewPoint = pCmd->angViewPoint;
@@ -285,6 +285,9 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 
 		if (C::Get<bool>(Vars.bMiscFakeLag) || C::Get<bool>(Vars.bAntiAim))
 			CMiscellaneous::Get().FakeLag(pCmd, pLocal, bSendPacket);
+
+		if (C::Get<bool>(Vars.bAntiAim))
+			CAntiAim::Get().UpdateServerAnimations(pCmd, pLocal);
 
 		if (C::Get<bool>(Vars.bAntiAim))
 			CAntiAim::Get().Run(pCmd, pLocal, bSendPacket);
@@ -434,7 +437,7 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 		// remove smoke overlay
 		static std::uintptr_t uSmokeCount = (MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 EC 08 8B 15 ? ? ? ? 0F 57 C0")) + 0x8); // @xref: "effects/overlaysmoke"
 		if (C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SMOKE))
-			*(int*)(*(std::uintptr_t*)uSmokeCount) = 0;
+			*reinterpret_cast<int*>(*reinterpret_cast<std::uintptr_t*>(uSmokeCount)) = 0;
 
 		// remove visual punch
 		if (pLocal->IsAlive() && C::Get<bool>(Vars.bWorld))
@@ -520,10 +523,10 @@ int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, const Vector& vecMins,
 	static std::uintptr_t uInsertIntoTree = (MEM::FindPattern(CLIENT_DLL, XorStr("56 52 FF 50 18")) + 0x5); // @xref: "<unknown renderable>"
 
 	// check for esp state and call from CClientLeafSystem::InsertIntoTree
-	if (C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams) && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies)) && (std::uintptr_t)_ReturnAddress() == uInsertIntoTree)
+	if (C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams) && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies)) && reinterpret_cast<std::uintptr_t>(_ReturnAddress()) == uInsertIntoTree)
 	{
 		// get current renderable info from stack https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L1470
-		if (const auto pInfo = *(RenderableInfo_t**)((std::uintptr_t)_AddressOfReturnAddress() + 0x14); pInfo != nullptr)
+		if (const auto pInfo = *reinterpret_cast<RenderableInfo_t**>(reinterpret_cast<std::uintptr_t>(_AddressOfReturnAddress()) + 0x14); pInfo != nullptr)
 		{
 			if (const auto pRenderable = pInfo->pRenderable; pRenderable != nullptr)
 			{
@@ -559,7 +562,7 @@ bool FASTCALL H::hkIsConnected(IEngineClient* thisptr, int edx)
 	static std::uintptr_t uLoadoutAllowedReturn = (MEM::FindPattern(CLIENT_DLL, XorStr("75 04 B0 01 5F")) - 0x2);
 
 	// @credits: gavreel
-	if ((std::uintptr_t)_ReturnAddress() == uLoadoutAllowedReturn && C::Get<bool>(Vars.bMiscUnlockInventory))
+	if (reinterpret_cast<std::uintptr_t>(_ReturnAddress()) == uLoadoutAllowedReturn && C::Get<bool>(Vars.bMiscUnlockInventory))
 		return false;
 
 	return oIsConnected(thisptr, edx);
@@ -627,7 +630,7 @@ void FASTCALL H::hkOverrideView(IClientModeShared* thisptr, int edx, CViewSetup*
 	if (pWeapon == nullptr)
 		return oOverrideView(thisptr, edx, pSetup);
 
-	if (CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(*pWeapon->GetItemDefinitionIndex());
+	if (CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(pWeapon->GetItemDefinitionIndex());
 		pWeaponData != nullptr && C::Get<bool>(Vars.bScreen) && std::fpclassify(C::Get<float>(Vars.flScreenCameraFOV)) != FP_ZERO &&
 		// check is we not scoped
 		(pWeaponData->nWeaponType == WEAPONTYPE_SNIPER ? !pLocal->IsScoped() : true))
@@ -701,7 +704,7 @@ int FASTCALL H::hkSendMessage(ISteamGameCoordinator* thisptr, int edx, std::uint
 	if (iStatus != EGCResultOK)
 		return iStatus;
 
-	#if _DEBUG
+	#ifdef DEBUG_CONSOLE
 	L::PushConsoleColor(FOREGROUND_INTENSE_GREEN | FOREGROUND_RED);
 	L::Print(fmt::format(XorStr("[<-] Message sent to GC {:d}!"), uMessageType));
 	L::PopConsoleColor();
@@ -720,7 +723,7 @@ int FASTCALL H::hkRetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::
 
 	std::uint32_t uMessageType = *puMsgType & 0x7FFFFFFF;
 
-	#if _DEBUG
+	#ifdef DEBUG_CONSOLE
 	L::PushConsoleColor(FOREGROUND_INTENSE_GREEN | FOREGROUND_RED);
 	L::Print(fmt::format(XorStr("[->] Message received from GC {:d}!"), uMessageType));
 	L::PopConsoleColor();
@@ -751,7 +754,7 @@ bool FASTCALL H::hkSvCheatsGetBool(CConVar* thisptr, int edx)
 	static auto oSvCheatsGetBool = DTR::SvCheatsGetBool.GetOriginal<decltype(&hkSvCheatsGetBool)>();
 	static std::uintptr_t uCAM_ThinkReturn = (MEM::FindPattern(CLIENT_DLL, XorStr("85 C0 75 30 38 86"))); // @xref: "Pitch: %6.1f   Yaw: %6.1f   Dist: %6.1f %16s"
 
-	if ((std::uintptr_t)_ReturnAddress() == uCAM_ThinkReturn && C::Get<bool>(Vars.bWorld) && C::Get<int>(Vars.iWorldThirdPersonKey) > 0)
+	if (reinterpret_cast<std::uintptr_t>(_ReturnAddress()) == uCAM_ThinkReturn && C::Get<bool>(Vars.bWorld) && C::Get<int>(Vars.iWorldThirdPersonKey) > 0)
 		return true;
 
 	return oSvCheatsGetBool(thisptr, edx);
@@ -815,7 +818,7 @@ void P::SmokeEffectTickBegin(const CRecvProxyData* pData, void* pStruct, void* p
 
 	if (C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SMOKE))
 	{
-		if (auto pEntity = (CBaseEntity*)pStruct; pEntity != nullptr)
+		if (auto pEntity = static_cast<CBaseEntity*>(pStruct); pEntity != nullptr)
 			pEntity->GetOrigin() = Vector(MAX_COORD_FLOAT, MAX_COORD_FLOAT, MAX_COORD_FLOAT);
 	}
 

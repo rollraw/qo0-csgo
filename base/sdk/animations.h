@@ -6,11 +6,8 @@
 // used: findpattern
 #include "../utilities/memory.h"
 
-/*
- * max animation layers
- * @test: max count of overlays always returns 13 but in sdk it still 15?
- */
-#define MAXLAYERRECORDS 15
+/* max animation layers */
+#define MAXLAYERRECORDS 13
 
 enum ESequenceActivity : int
 {
@@ -89,7 +86,7 @@ public:
 	void Create(CBaseEntity* pEntity)
 	{
 		using CreateAnimationStateFn = void(__thiscall*)(void*, CBaseEntity*);
-		static auto oCreateAnimationState = (CreateAnimationStateFn)(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 56 8B F1 B9 ? ? ? ? C7 46"))); // @xref: "ggprogressive_player_levelup"
+		static auto oCreateAnimationState = reinterpret_cast<CreateAnimationStateFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 56 8B F1 B9 ? ? ? ? C7 46"))); // @xref: "ggprogressive_player_levelup"
 
 		if (oCreateAnimationState == nullptr)
 			return;
@@ -100,18 +97,18 @@ public:
 	void Update(QAngle angView)
 	{
 		using UpdateAnimationStateFn = void(_vectorcall*)(void*, void*, float, float, float, void*);
-		static auto oUpdateAnimationState = (UpdateAnimationStateFn)(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 83 EC 18 56 57 8B F9 F3 0F 11 54 24"))); // @xref: "%s_aim"
+		static auto oUpdateAnimationState = reinterpret_cast<UpdateAnimationStateFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 83 EC 18 56 57 8B F9 F3 0F 11 54 24"))); // @xref: "%s_aim"
 
 		if (oUpdateAnimationState == nullptr)
 			return;
 
-		oUpdateAnimationState(this, nullptr, 0.0f, angView[YAW], angView[PITCH], nullptr);
+		oUpdateAnimationState(this, nullptr, 0.0f, angView.y, angView.x, nullptr);
 	}
 
 	void Reset()
 	{
 		using ResetAnimationStateFn = void(__thiscall*)(void*);
-		static auto oResetAnimationState = (ResetAnimationStateFn)(MEM::FindPattern(CLIENT_DLL, XorStr("56 6A 01 68 ? ? ? ? 8B F1"))); // @xref: "player_spawn"
+		static auto oResetAnimationState = reinterpret_cast<ResetAnimationStateFn>(MEM::FindPattern(CLIENT_DLL, XorStr("56 6A 01 68 ? ? ? ? 8B F1"))); // @xref: "player_spawn"
 
 		if (oResetAnimationState == nullptr)
 			return;

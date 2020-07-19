@@ -5,12 +5,12 @@ class IPlayerLocal
 public:
 	int GetXUIDLow()
 	{
-		return *(int*)((std::uintptr_t)this + 0x8);
+		return *reinterpret_cast<int*>(reinterpret_cast<std::uintptr_t>(this) + 0x8);
 	}
 
 	int GetXUIDHigh()
 	{
-		return *(int*)((std::uintptr_t)this + 0xC);
+		return *reinterpret_cast<int*>(reinterpret_cast<std::uintptr_t>(this) + 0xC);
 	}
 
 	const char* GetName()
