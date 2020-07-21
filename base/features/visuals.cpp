@@ -746,14 +746,16 @@ IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view sz
 
 	std::string szMaterial = fmt::format(XorStr(R"#("{shader}"
 	{{
-		"$basetexture"	"{texture}"
-		"$envmap"		"{envmap}"
-		"$model"		"1"
-		"$ignorez"		"{ignorez}"
-		"$selfillum"	"1"
-		"$halflambert"	"1"
-		"$wireframe"	"{wireframe}"
-		"$nofog"		"1"
+		"$basetexture"		"{texture}"
+		"$envmap"			"{envmap}"
+		"$model"			"1"
+		"$ignorez"			"{ignorez}"
+		"$selfillum"		"1"
+		"$halflambert"		"1"
+		"$wireframe"		"{wireframe}"
+		"$nofog"			"1"
+		"$envmapfresnel"	"0"
+		"$translucent"		"0"
 		"proxies"
 		{{
 			{proxies}

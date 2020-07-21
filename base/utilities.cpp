@@ -56,7 +56,7 @@ void U::ForceFullUpdate()
 
 bool U::LineGoesThroughSmoke(Vector vecStartPos, Vector vecEndPos)
 {
-	using LineGoesThroughSmokeFn = bool(__thiscall*)(Vector, Vector, std::int16_t);
+	using LineGoesThroughSmokeFn = bool(__cdecl*)(Vector, Vector, std::int16_t);
 	static auto oLineGoesThroughSmoke = reinterpret_cast<LineGoesThroughSmokeFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 EC 08 8B 15 ? ? ? ? 0F 57 C0"))); // @xref: "effects/overlaysmoke"
 	return oLineGoesThroughSmoke(vecStartPos, vecEndPos, 1);
 }
