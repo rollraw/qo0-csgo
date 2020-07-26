@@ -141,7 +141,7 @@ struct Variables_t
 	C_ADD_VARIABLE(bool, bEspMainPlayerDistance, false);
 
 	// weapons
-	C_ADD_VARIABLE(int, iEspMainWeaponBox, (int)EVisualsBoxType::CORNERS);
+	C_ADD_VARIABLE(int, iEspMainWeaponBox, (int)EVisualsBoxType::NONE);
 	C_ADD_VARIABLE(Color, colEspMainBoxWeapons, Color(255, 255, 255, 220));
 
 	C_ADD_VARIABLE(bool, bEspMainWeaponInfo, false);

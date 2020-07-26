@@ -81,6 +81,10 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 			ImGui::PushFont(F::Verdana);
 			ImGui::Dummy(ImVec2(1, 1));
 
+			#ifdef _DEBUG
+			ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), XorStr("debug"));
+			#endif
+
 			if (strstr(GetCommandLine(), XorStr("-insecure")) != nullptr)
 				ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), XorStr("insecure"));
 
@@ -99,7 +103,7 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 		ImGui::PopStyleColor(2);
 	}
 
-	CVisuals::Get().Run(pDrawList, vecScreenSize);
+	D::RenderDrawData(pDrawList);
 	#pragma endregion
 
 	#pragma region main_window
@@ -532,7 +536,7 @@ void T::Miscellaneous()
 	ImGui::NextColumn();
 	{
 		// current selected configuration name
-		static std::string szCurrentConfig;
+		static std::string szCurrentConfig = { };
 
 		static float flConfigChildSize = 0.f;
 		ImGui::BeginChild(XorStr("misc.config"), ImVec2(0, flConfigChildSize), true, ImGuiWindowFlags_MenuBar);

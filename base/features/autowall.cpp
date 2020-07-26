@@ -78,8 +78,7 @@ void CAutoWall::ClipTraceToPlayers(const Vector& vecAbsStart, const Vector& vecA
 	Trace_t trace = { };
 	float flSmallestFraction = pTrace->flFraction;
 
-	Ray_t ray = { };
-	ray.Init(vecAbsStart, vecAbsEnd);
+	Ray_t ray(vecAbsStart, vecAbsEnd);
 
 	for (int i = 1; i < I::Globals->nMaxClients; i++)
 	{
@@ -231,13 +230,19 @@ bool CAutoWall::TraceToExit(Trace_t& enterTrace, Trace_t& exitTrace, Vector vecP
 		{
 			// setup our end position by deducting the direction by the extra added distance
 			const Vector vecEnd = vecStart - (vecDirection * 4.0f);
-			// cast a ray from our start pos to the end pos
-			U::TraceLine(vecStart, vecEnd, MASK_SHOT_HULL | CONTENTS_HITBOX, nullptr, &exitTrace);
+
+			// trace ray to world
+			Ray_t rayWorld(vecStart, vecEnd);
+			I::EngineTrace->TraceRay(rayWorld, MASK_SHOT_HULL | CONTENTS_HITBOX, nullptr, &exitTrace);
 
 			// check if a hitbox is in-front of our enemy and if they are behind of a solid wall
 			if (exitTrace.bStartSolid && exitTrace.surface.uFlags & SURF_HITBOX)
 			{
-				U::TraceLine(vecStart, vecPosition, MASK_SHOT_HULL, exitTrace.pHitEntity, &exitTrace);
+				// trace ray to entity
+				Ray_t ray(vecStart, vecPosition);
+				CTraceFilter filter(exitTrace.pHitEntity);
+
+				I::EngineTrace->TraceRay(ray, MASK_SHOT_HULL, &filter, &exitTrace);
 
 				if (exitTrace.DidHit() && !exitTrace.bStartSolid)
 				{
@@ -382,7 +387,7 @@ bool CAutoWall::SimulateFireBullet(CBaseEntity* pLocal, CBaseCombatWeapon* pWeap
 	data.flCurrentDamage = static_cast<float>(pWeaponData->iDamage);
 
 	float flTraceLenght = 0.0f;
-	CTraceFilterSkipEntity filter(pLocal);
+	CTraceFilter filter(pLocal);
 
 	while (data.iPenetrateCount > 0 && data.flCurrentDamage >= 1.0f)
 	{
@@ -391,7 +396,9 @@ bool CAutoWall::SimulateFireBullet(CBaseEntity* pLocal, CBaseCombatWeapon* pWeap
 
 		// end position of bullet
 		const Vector vecEnd = data.vecPosition + data.vecDirection * flMaxRange;
-		U::TraceLine(data.vecPosition, vecEnd, MASK_SHOT_HULL | CONTENTS_HITBOX, pLocal, &data.enterTrace);
+
+		Ray_t ray(data.vecPosition, vecEnd);
+		I::EngineTrace->TraceRay(ray, MASK_SHOT_HULL | CONTENTS_HITBOX, &filter, &data.enterTrace);
 
 		// check for player hitboxes extending outside their collision bounds
 		ClipTraceToPlayers(data.vecPosition, vecEnd + data.vecDirection * 40.0f, MASK_SHOT_HULL | CONTENTS_HITBOX, &filter, &data.enterTrace);
@@ -410,8 +417,6 @@ bool CAutoWall::SimulateFireBullet(CBaseEntity* pLocal, CBaseCombatWeapon* pWeap
 		// check is actually can shoot through
 		if (flTraceLenght > 3000.0f || flEnterPenetrationModifier < 0.1f)
 			break;
-
-		// I::DebugOverlay->AddLineOverlay(data.vecPosition, data.enterTrace.vecEnd, 180, 0, 0, false, 1.5f); // @test: [bug] traces are ok but hitgroup returns 0 for random entity sometimes 19.07.20
 
 		// check is can do damage
 		if (data.enterTrace.iHitGroup != HITGROUP_GENERIC && data.enterTrace.iHitGroup != HITGROUP_GEAR && pLocal->IsEnemy(data.enterTrace.pHitEntity))

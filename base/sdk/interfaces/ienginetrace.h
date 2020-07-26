@@ -1,5 +1,6 @@
 #pragma once
-// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/engine/IEngineTrace.h
+// used: std::function
+#include <functional>
 
 // used: matrix3x4_t
 #include "../datatypes/matrix.h"
@@ -7,6 +8,8 @@
 #include "../datatypes/utlvector.h"
 // used: mask, content, surf flags
 #include "../bspflags.h"
+
+// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/engine/IEngineTrace.h
 
 #pragma region enginetrace_enumerations
 enum EDispSurfFlags
@@ -120,17 +123,10 @@ using Trace_t = CGameTrace;
 
 struct Ray_t
 {
-	Ray_t() : matWorldAxisTransform(nullptr) { }
-
-	void Init(const Vector& vecStart, const Vector& vecEnd)
+	Ray_t(const Vector& vecStart, const Vector& vecEnd) :
+		vecStart(vecStart), vecDelta(vecEnd - vecStart), matWorldAxisTransform(nullptr), bIsRay(true)
 	{
-		this->vecDelta = vecEnd - vecStart;
 		this->bIsSwept = (this->vecDelta.LengthSqr() != 0.f);
-		this->vecExtents.Init();
-		this->matWorldAxisTransform = nullptr;
-		this->bIsRay = true;
-		this->vecStartOffset.Init();
-		this->vecStart = vecStart;
 	}
 
 	VectorAligned		vecStart;
@@ -152,87 +148,38 @@ public:
 
 class CTraceFilter : public ITraceFilter
 {
+	using FilterCallbackFn = std::function<bool(IHandleEntity*, int)>;
+
 public:
-	ETraceType GetTraceType() const override
+	// @todo: sig ctracefiltersimple constructor and use it
+
+	CTraceFilter(const IHandleEntity* pSkipEntity, ETraceType iTraceType = TRACE_EVERYTHING)
+		: pSkip(pSkipEntity), checkCallback(nullptr), iTraceType(iTraceType) { }
+
+	CTraceFilter(FilterCallbackFn checkCallback, ETraceType iTraceType = TRACE_EVERYTHING)
+		: pSkip(nullptr), checkCallback(checkCallback), iTraceType(iTraceType) { }
+
+	bool ShouldHitEntity(IHandleEntity* pHandleEntity, int fContentsMask) override
 	{
-		return TRACE_EVERYTHING;
-	}
-};
+		// if given user defined callback - check it
+		if (checkCallback != nullptr)
+			return checkCallback(pHandleEntity, fContentsMask);
 
-class CTraceFilterSkipEntity : public ITraceFilter
-{
-public:
-	CTraceFilterSkipEntity(IHandleEntity* pEntityHandle) :
-		pSkip(pEntityHandle) { }
+		assert(pSkip);
 
-	bool ShouldHitEntity(IHandleEntity* pEntityHandle, int fContentsMask) override
-	{
-		return !(pEntityHandle == pSkip);
-	}
-
-	ETraceType GetTraceType() const override
-	{
-		return TRACE_EVERYTHING;
-	}
-
-	void* pSkip;
-};
-
-class CTraceFilterSkipTwoEntities : public ITraceFilter
-{
-public:
-    CTraceFilterSkipTwoEntities(void* pFirstEntity, void* pSecondEntity) :
-		pSkip1(pFirstEntity), pSkip2(pSecondEntity) { }
-
-	bool ShouldHitEntity(IHandleEntity* pEntityHandle, int fContentsMask) override
-    {
-        return !(pEntityHandle == pSkip1 || pEntityHandle == pSkip2);
-    }
-
-    ETraceType GetTraceType() const override
-    {
-        return TRACE_EVERYTHING;
-    }
-
-	void* pSkip1;
-	void* pSkip2;
-};
-
-class CTraceFilterEntitiesOnly : public ITraceFilter
-{
-public:
-	ETraceType GetTraceType() const override
-	{
-		return TRACE_ENTITIES_ONLY;
-	}
-};
-
-class CTraceFilterWorldOnly : public ITraceFilter
-{
-public:
-	bool ShouldHitEntity(IHandleEntity* pEntityHandle, int fContentsMask) override
-	{
-		return false;
+		// else skip given entity
+		return !(pHandleEntity == pSkip);
 	}
 
 	ETraceType GetTraceType() const override
 	{
-		return TRACE_WORLD_ONLY;
-	}
-};
-
-class CTraceFilterWorldAndPropsOnly : public ITraceFilter
-{
-public:
-	bool ShouldHitEntity(IHandleEntity* pEntityHandle, int fContentsMask) override
-	{
-		return false;
+		return iTraceType;
 	}
 
-	ETraceType GetTraceType() const override
-	{
-		return TRACE_EVERYTHING;
-	}
+private:
+	const IHandleEntity* pSkip = nullptr;
+	FilterCallbackFn checkCallback = nullptr;
+	ETraceType iTraceType = TRACE_EVERYTHING;
 };
 
 class ITraceListData
@@ -247,13 +194,15 @@ public:
 class IEntityEnumerator
 {
 public:
-	// This gets called with each handle
+	// this gets called with each handle
 	virtual bool EnumEntity(IHandleEntity* pHandleEntity) = 0;
 };
 
 struct virtualmeshlist_t;
+struct AABB_t;
 class ICollideable;
 class CPhysCollide;
+class CBrushQuery;
 class IEngineTrace
 {
 public:
@@ -281,4 +230,10 @@ public:
 	virtual ITraceListData* AllocTraceListData() = 0;
 	virtual void FreeTraceListData(ITraceListData* pListData) = 0;
 	virtual int GetSetDebugTraceCounter(int iValue, EDebugTraceCounterBehavior behavior) = 0;
+	virtual int GetMeshesFromDisplacementsInAABB(const Vector& vecMins, const Vector& vecMaxs, virtualmeshlist_t* pOutputMeshes, int nMaxOutputMeshes) = 0;
+	virtual void GetBrushesInCollideable(ICollideable* pCollideable, CBrushQuery& BrushQuery) = 0;
+	virtual bool IsFullyOccluded(int nOcclusionKey, const AABB_t& aabb1, const AABB_t& aabb2, const Vector& vecShadow) = 0;
+	virtual void SuspendOcclusionTests() = 0;
+	virtual void ResumeOcclusionTests() = 0;
+	virtual void FlushOcclusionQueries() = 0;
 };

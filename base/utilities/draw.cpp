@@ -317,34 +317,6 @@ bool ImGui::ColorEdit4(const char* szLabel, Color* v, ImGuiColorEditFlags flags)
 
 	return false;
 }
-
-void ImGui::AddText(ImDrawList* pDrawList, const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const char* szText, ImU32 colText, int iFlags, ImU32 colOutline)
-{
-	if (pFont->ContainerAtlas == nullptr)
-		return;
-
-	// set font texture
-	pDrawList->PushTextureID(pFont->ContainerAtlas->TexID);
-
-	// check is only one flag selected
-	IM_ASSERT(ImIsPowerOfTwo(iFlags == IMGUI_TEXT_NONE || iFlags & (IMGUI_TEXT_DROPSHADOW | IMGUI_TEXT_OUTLINE)));
-
-	if (iFlags & IMGUI_TEXT_DROPSHADOW)
-		pDrawList->AddText(pFont, flFontSize, ImVec2(vecPosition.x + 1.0f, vecPosition.y - 1.0f), colOutline, szText);
-	else if (iFlags & IMGUI_TEXT_OUTLINE)
-	{
-		pDrawList->AddText(pFont, flFontSize, ImVec2(vecPosition.x + 1.0f, vecPosition.y - 1.0f), colOutline, szText);
-		pDrawList->AddText(pFont, flFontSize, ImVec2(vecPosition.x + 1.0f, vecPosition.y + 1.0f), colOutline, szText);
-	}
-
-	pDrawList->AddText(pFont, flFontSize, vecPosition, colText, szText);
-	pDrawList->PopTextureID();
-}
-
-void ImGui::AddText(ImDrawList* pDrawList, const ImVec2& vecPosition, const char* szText, ImU32 colText, int iFlags, ImU32 colOutline)
-{
-	AddText(pDrawList, nullptr, 0.f, vecPosition, szText, colText, iFlags, colOutline);
-}
 #pragma endregion
 
 #pragma region draw_get
@@ -511,38 +483,164 @@ void D::Destroy()
 	// destroy imgui context
 	ImGui::DestroyContext();
 }
+
+void D::RenderDrawData(ImDrawList* pDrawList)
+{
+	std::unique_lock<std::shared_mutex> lock(drawMutex);
+
+	if (vecSafeDrawData.empty())
+		return;
+
+	for (const auto& data : vecSafeDrawData)
+	{
+		switch (data.nType)
+		{
+		case EDrawType::LINE:
+		{
+			pDrawList->AddLine(data.vecMin, data.vecMax, data.colFirst, data.flThickness);
+			break;
+		}
+		case EDrawType::RECT:
+		{
+			if (data.iFlags & IMGUI_RECT_FILLED)
+				pDrawList->AddRectFilled(data.vecMin, data.vecMax, data.colFirst, data.flRounding, data.roundingCorners);
+			else
+				pDrawList->AddRect(data.vecMin, data.vecMax, data.colFirst, data.flRounding, data.roundingCorners, data.flThickness);
+
+			if (data.iFlags & IMGUI_RECT_BORDER)
+				pDrawList->AddRect(data.vecMin + ImVec2(1.0f, 1.0f), data.vecMax - ImVec2(1.0f, 1.0f), data.colSecond, data.flRounding, data.roundingCorners, 1.0f);
+
+			if (data.iFlags & IMGUI_RECT_OUTLINE)
+				pDrawList->AddRect(data.vecMin - ImVec2(1.0f, 1.0f), data.vecMax + ImVec2(1.0f, 1.0f), data.colSecond, data.flRounding, data.roundingCorners, 1.0f);
+
+			break;
+		}
+		case EDrawType::RECT_MULTICOLOR:
+		{
+			pDrawList->AddRectFilledMultiColor(data.vecMin, data.vecMax, data.colFirst, data.colSecond, data.colThird, data.colFourth);
+			break;
+		}
+		case EDrawType::TEXT:
+		{
+			// set font texture
+			pDrawList->PushTextureID(data.pFont->ContainerAtlas->TexID);
+
+			if (data.iFlags & IMGUI_TEXT_DROPSHADOW)
+				pDrawList->AddText(data.pFont, data.flFontSize, ImVec2(data.vecMin) + ImVec2(1.0f, -1.0f), data.colSecond, data.szText.data());
+			else if (data.iFlags & IMGUI_TEXT_OUTLINE)
+			{
+				pDrawList->AddText(data.pFont, data.flFontSize, ImVec2(data.vecMin) + ImVec2(1.0f, -1.0f), data.colSecond, data.szText.data());
+				pDrawList->AddText(data.pFont, data.flFontSize, ImVec2(data.vecMin) + ImVec2(1.0f, 1.0f), data.colSecond, data.szText.data());
+			}
+
+			pDrawList->AddText(data.pFont, data.flFontSize, data.vecMin, data.colFirst, data.szText.data());
+			pDrawList->PopTextureID();
+			break;
+		}
+		default:
+			break;
+		}
+	}
+}
+
+void D::ClearDrawData()
+{
+	if (!vecDrawData.empty())
+		vecDrawData.clear();
+}
+
+void D::SwapDrawData()
+{
+	std::unique_lock<std::shared_mutex> lock(drawMutex);
+	vecDrawData.swap(vecSafeDrawData);
+}
+#pragma endregion
+
+#pragma region draw_render
+void D::AddLine(const ImVec2& vecStart, const ImVec2& vecEnd, Color colLine, float flThickness)
+{
+	DrawObject_t draw = { };
+	draw.nType = EDrawType::LINE;
+	draw.vecMin = vecStart;
+	draw.vecMax = vecEnd;
+	draw.colFirst = colLine.GetU32();
+	draw.flThickness = flThickness;
+	vecDrawData.emplace_back(draw);
+}
+
+void D::AddRect(const ImVec2& vecMin, const ImVec2& vecMax, Color colRect, int iFlags, Color colOutline, float flRounding, ImDrawCornerFlags roundingCorners, float flThickness)
+{
+	DrawObject_t draw = { };
+	draw.nType = EDrawType::RECT;
+	draw.vecMin = vecMin;
+	draw.vecMax = vecMax;
+	draw.colFirst = colRect.GetU32();
+	draw.iFlags = iFlags;
+	draw.colSecond = colOutline.GetU32();
+	draw.flRounding = flRounding;
+	draw.roundingCorners = roundingCorners;
+	draw.flThickness = flThickness;
+	vecDrawData.emplace_back(draw);
+}
+
+void D::AddRectMultiColor(const ImVec2& vecMin, const ImVec2& vecMax, Color colUpperLeft, Color colUpperRight, Color colBottomLeft, Color colBottomRight)
+{
+	DrawObject_t draw = { };
+	draw.nType = EDrawType::RECT_MULTICOLOR;
+	draw.vecMin = vecMin;
+	draw.vecMax = vecMax;
+	draw.colFirst = colUpperLeft.GetU32();
+	draw.colSecond = colUpperRight.GetU32();
+	draw.colThird = colBottomLeft.GetU32();
+	draw.colFourth = colBottomRight.GetU32();
+	vecDrawData.emplace_back(draw);
+}
+
+void D::AddText(const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const std::string& szText, Color colText, int iFlags, Color colOutline)
+{
+	if (pFont->ContainerAtlas == nullptr)
+		return;
+
+	// check is only one flag selected
+	IM_ASSERT(ImIsPowerOfTwo(iFlags == IMGUI_TEXT_NONE || iFlags & (IMGUI_TEXT_DROPSHADOW | IMGUI_TEXT_OUTLINE)));
+
+	DrawObject_t draw = { };
+	draw.nType = EDrawType::TEXT;
+	draw.pFont = pFont;
+	draw.flFontSize = flFontSize;
+	draw.vecMin = vecPosition;
+	draw.szText = szText;
+	draw.colFirst = colText.GetU32();
+	draw.iFlags = iFlags;
+	draw.colSecond = colOutline.GetU32();
+	vecDrawData.emplace_back(draw);
+}
+
+void D::AddText(const ImVec2& vecPosition, const std::string& szText, Color colText, int iFlags, Color colOutline)
+{
+	AddText(nullptr, 0.f, vecPosition, szText, colText, iFlags, colOutline);
+}
 #pragma endregion
 
 #pragma region draw_extra
 bool D::WorldToScreen(const Vector& vecOrigin, Vector2D& vecScreen)
 {
-	static std::uintptr_t uViewMatrixPtr = 0U;
-
-	// get crender::viewmatrix once
-	if (uViewMatrixPtr == 0U)
-	{
-		uViewMatrixPtr = (MEM::FindPattern(CLIENT_DLL, XorStr("0F 10 05 ? ? ? ? 8D 85 ? ? ? ? B9")));
-		uViewMatrixPtr = *reinterpret_cast<std::uintptr_t*>(uViewMatrixPtr + 0x3) + 0xB0;
-	}
-
-	const ViewMatrix_t& matWorldToScreen = *reinterpret_cast<ViewMatrix_t*>(uViewMatrixPtr);
+	const ViewMatrix_t& matWorldToScreen = I::Engine->WorldToScreenMatrix();
 	const float flWidth = matWorldToScreen[3][0] * vecOrigin.x + matWorldToScreen[3][1] * vecOrigin.y + matWorldToScreen[3][2] * vecOrigin.z + matWorldToScreen[3][3];
 
-	if (flWidth > 0.01f)
-	{
-		// compute the scene coordinates of a point in 3d
-		const float flInverse = 1.f / flWidth;
-		vecScreen.x = (matWorldToScreen[0][0] * vecOrigin.x + matWorldToScreen[0][1] * vecOrigin.y + matWorldToScreen[0][2] * vecOrigin.z + matWorldToScreen[0][3]) * flInverse;
-		vecScreen.y = (matWorldToScreen[1][0] * vecOrigin.x + matWorldToScreen[1][1] * vecOrigin.y + matWorldToScreen[1][2] * vecOrigin.z + matWorldToScreen[1][3]) * flInverse;
+	if (flWidth < 0.001f)
+		return false;
 
-		// screen transform
-		// get the screen position in pixels of given point
-		const ImVec2 vecDisplaySize = ImGui::GetIO().DisplaySize;
-		vecScreen.x = (vecDisplaySize.x * 0.5f) + (vecScreen.x * vecDisplaySize.x) * 0.5f;
-		vecScreen.y = (vecDisplaySize.y * 0.5f) - (vecScreen.y * vecDisplaySize.y) * 0.5f;
-		return true;
-	}
+	// compute the scene coordinates of a point in 3d
+	const float flInverse = 1.0f / flWidth;
+	vecScreen.x = (matWorldToScreen[0][0] * vecOrigin.x + matWorldToScreen[0][1] * vecOrigin.y + matWorldToScreen[0][2] * vecOrigin.z + matWorldToScreen[0][3]) * flInverse;
+	vecScreen.y = (matWorldToScreen[1][0] * vecOrigin.x + matWorldToScreen[1][1] * vecOrigin.y + matWorldToScreen[1][2] * vecOrigin.z + matWorldToScreen[1][3]) * flInverse;
 
-	return false;
+	// screen transform
+	// get the screen position in pixels of given point
+	const ImVec2 vecDisplaySize = ImGui::GetIO().DisplaySize;
+	vecScreen.x = (vecDisplaySize.x * 0.5f) + (vecScreen.x * vecDisplaySize.x) * 0.5f;
+	vecScreen.y = (vecDisplaySize.y * 0.5f) - (vecScreen.y * vecDisplaySize.y) * 0.5f;
+	return true;
 }
 #pragma endregion

@@ -598,6 +598,7 @@ public:
 		return oPhysicsRunThink(this, nThinkMethod);
 	}
 
+	static CBaseEntity*		GetLocalPlayer();
 	int						GetSequenceActivity(int iSequence);
 	CBaseCombatWeapon*		GetWeapon();
 	int						GetMaxHealth();

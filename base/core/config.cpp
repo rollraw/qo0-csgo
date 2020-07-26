@@ -155,7 +155,7 @@ bool C::Save(std::string_view szFileName)
 	}
 	catch (std::ofstream::failure& ex)
 	{
-		throw std::runtime_error(fmt::format(XorStr("failed to save configuration: {}"), ex.what()));
+		L::Print(fmt::format(XorStr("failed to save configuration: {}"), ex.what()));
 		return false;
 	}
 
@@ -183,7 +183,7 @@ bool C::Load(std::string_view szFileName)
 	}
 	catch (std::ifstream::failure& ex)
 	{
-		throw std::runtime_error(fmt::format(XorStr("failed to load configuration: {}"), ex.what()));
+		L::Print(fmt::format(XorStr("failed to load configuration: {}"), ex.what()));
 		return false;
 	}
 

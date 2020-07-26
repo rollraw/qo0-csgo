@@ -56,10 +56,6 @@ namespace U
 	C* FindHudElement(const char* szName);
 
 	// Game
-	/* returns localplayer pointer */
-	CBaseEntity* GetLocalPlayer();
-	/* trace ray implementation, modifies given trace */
-	void TraceLine(const Vector& vecAbsStart, const Vector& vecAbsEnd, unsigned int fMask, IHandleEntity* pSkip, Trace_t* pTrace);
 	/* updates hud, clears delta tick */
 	void ForceFullUpdate();
 	/* return true if ray goes through smoke */

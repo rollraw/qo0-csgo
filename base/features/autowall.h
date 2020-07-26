@@ -1,12 +1,10 @@
 #pragma once
-// used: traceline
+// used: interfaces classes
 #include "../utilities.h"
 // used: convar
 #include "../sdk/convar.h"
 // used: surfacedata
 #include "../sdk/interfaces/iphysicssurfaceprops.h"
-// used: tracefilter class, trace structure
-#include "../sdk/interfaces/ienginetrace.h"
 // used: baseentity, cliententity, baseweapon, weapondata classes
 #include "../sdk/entity.h"
 

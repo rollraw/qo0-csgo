@@ -68,9 +68,8 @@ void CTriggerBot::Run(CUserCmd* pCmd, CBaseEntity* pLocal)
 	else
 	{
 		// otherwise ray new trace
-		Ray_t ray = { };
-		ray.Init(vecStart, vecEnd);
-		CTraceFilterSkipEntity filter(pLocal);
+		Ray_t ray(vecStart, vecEnd);
+		CTraceFilter filter(pLocal);
 		I::EngineTrace->TraceRay(ray, MASK_SHOT, &filter, &trace);
 	}
 

@@ -5,7 +5,7 @@
 [![GitHub license](https://img.shields.io/github/license/rollraw/qo0-base?color=blueviolet)](https://github.com/rollraw/qo0-base/blob/master/LICENSE)
 
 ### :space_invader: menu
-<img src="./resources/menu.png" alt="qo0-base" align="center">
+![Menu](https://i.imgur.com/yoEf96z.png)
 
 #
 
@@ -79,7 +79,7 @@ SOME_ENUM_MEMBER = 0
 
 4. includes paths must be separated with one slash
 
-4.1. **additional:** *file names preferably be lowercase*
+4.1. **additional:** _file names preferably be lowercase_
 
 5. use number literal's (uppercase)
 ```cpp
@@ -112,11 +112,9 @@ int* pSomePointer = *reinterpret_cast<int**>(pSomeAddress);
 
 ### :question: faq
 **how do i open the menu?**
-
 - menu key is <kbd>HOME</kbd>
 
 **how do i unload the cheat?**
-
 - panic key is <kbd>END</kbd>
 
 #

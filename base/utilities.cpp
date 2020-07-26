@@ -22,19 +22,6 @@ C* U::FindHudElement(const char* szName)
 #pragma endregion
 
 #pragma region utilities_game
-CBaseEntity* U::GetLocalPlayer()
-{
-	return I::ClientEntityList->Get<CBaseEntity>(I::Engine->GetLocalPlayer());
-}
-
-void U::TraceLine(const Vector& vecAbsStart, const Vector& vecAbsEnd, unsigned int fMask, IHandleEntity* pSkip, Trace_t* pTrace)
-{
-	Ray_t ray = { };
-	ray.Init(vecAbsStart, vecAbsEnd);
-	CTraceFilterSkipEntity filter(pSkip);
-	I::EngineTrace->TraceRay(ray, fMask, &filter, pTrace);
-}
-
 void U::ForceFullUpdate()
 {
 	using ClearHudWeaponIconFn = int(__thiscall*)(void*, int);
@@ -102,14 +89,10 @@ bool U::PrecacheModel(const char* szModelName)
 
 IClientNetworkable* U::CreateDLLEntity(int iEntity, EClassIndex nClassID, int nSerial)
 {
-	CBaseClient* pClient = I::Client->GetAllClasses();
-
-	while (pClient != nullptr)
+	for (auto pClass = I::Client->GetAllClasses(); pClass != nullptr; pClass = pClass->pNext)
 	{
-		if (pClient->nClassID == nClassID)
-			return pClient->pCreateFn(iEntity, nSerial);
-
-		pClient = pClient->pNext;
+		if (pClass->nClassID == nClassID)
+			return pClass->pCreateFn(iEntity, nSerial);
 	}
 
 	return nullptr;

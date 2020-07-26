@@ -87,9 +87,7 @@
  */
 
 /* winapi */
-#define NOMINMAX
 #include <windows.h>
-#undef NOMINMAX
 
 /* directx includes */
 #include <d3d9.h>

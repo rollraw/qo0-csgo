@@ -276,12 +276,12 @@ public:
 	float x, y, z, w;
 };
 
-class VectorAligned : public Vector
+class __declspec(align(16)) VectorAligned : public Vector
 {
 public:
 	VectorAligned() = default;
 
-	VectorAligned(const Vector& v)
+	explicit VectorAligned(const Vector& v)
 	{
 		this->x = v.x; this->y = v.y; this->z = v.z;
 	}

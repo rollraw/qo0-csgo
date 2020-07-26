@@ -2,12 +2,17 @@
 
 // used: vector/angle calculations
 #include "../utilities/math.h"
-// used: get localplayer, traceline, linegoesthroughsmoke
+// used: linegoesthroughsmoke
 #include "../utilities.h"
 // used: cliententitylist, modelinfo, engine, globals, mdlcache
 #include "../core/interfaces.h"
 
 #pragma region entity_baseentity
+CBaseEntity* CBaseEntity::GetLocalPlayer()
+{
+	return I::ClientEntityList->Get<CBaseEntity>(I::Engine->GetLocalPlayer());
+}
+
 int CBaseEntity::GetSequenceActivity(int iSequence)
 {
 	studiohdr_t* pStudioHdr = I::ModelInfo->GetStudioModel(this->GetModel());
@@ -232,8 +237,11 @@ bool CBaseEntity::IsTargetingLocal(CBaseEntity* pLocal)
 	Vector vecStart = this->GetEyePosition();
 	Vector vecEnd = vecStart + vecForward;
 
+	Ray_t ray(vecStart, vecEnd);
+	CTraceFilter filter(this);
+
 	Trace_t trace = { };
-	U::TraceLine(vecStart, vecEnd, MASK_SHOT, this, &trace);
+	I::EngineTrace->TraceRay(ray, MASK_SHOT, &filter, &trace);
 
 	if (trace.pHitEntity == pLocal)
 		return true;
@@ -276,11 +284,10 @@ bool CBaseEntity::IsVisible(CBaseEntity* pEntity, const Vector& vecEnd, bool bSm
 {
 	const Vector vecStart = this->GetEyePosition(false);
 
-	Ray_t ray = { };
-	ray.Init(vecStart, vecEnd);
+	Ray_t ray(vecStart, vecEnd);
+	CTraceFilter filter(this);
 
 	Trace_t trace = { };
-	CTraceFilterSkipTwoEntities filter(this, pEntity);
 	I::EngineTrace->TraceRay(ray, MASK_SHOT, &filter, &trace);
 
 	// trace check

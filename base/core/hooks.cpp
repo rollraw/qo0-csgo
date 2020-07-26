@@ -12,7 +12,7 @@
 #include "../utilities/logging.h"
 // used: initialize state
 #include "../utilities/draw.h"
-// used: get localplayer, find pattern, set localplayer ready
+// used: set localplayer ready
 #include "../utilities.h"
 // used: render windows
 #include "menu.h"
@@ -227,7 +227,7 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	 * @note: dont forget check global localplayer for nullptr when using not in createmove
 	 * also not recommended use so far
 	 */
-	CBaseEntity* pLocal = G::pLocal = U::GetLocalPlayer();
+	CBaseEntity* pLocal = G::pLocal = CBaseEntity::GetLocalPlayer();
 	
 	// is called from CInput::ExtraMouseSample
 	if (pCmd->iCommandNumber == 0)
@@ -309,6 +309,15 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 		pCmd->angViewPoint.Clamp();
 	}
 
+	// clear data from previous call
+	D::ClearDrawData();
+
+	// store data to render
+	CVisuals::Get().Store();
+
+	// swap given data to safe container
+	D::SwapDrawData();
+
 	if (C::Get<bool>(Vars.bMiscPingSpike))
 		CLagCompensation::Get().UpdateIncomingSequences(pNetChannel);
 	else
@@ -379,7 +388,7 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 	if (I::Engine->IsTakingScreenshot())
 		return oFrameStageNotify(thisptr, edx, stage);
 
-	CBaseEntity* pLocal = U::GetLocalPlayer();
+	CBaseEntity* pLocal = CBaseEntity::GetLocalPlayer();
 
 	if (pLocal == nullptr)
 		return oFrameStageNotify(thisptr, edx, stage);
@@ -499,7 +508,7 @@ void FASTCALL H::hkDrawModel(IStudioRender* thisptr, int edx, DrawModelResults_t
 	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
 		return oDrawModel(thisptr, edx, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
 
-	CBaseEntity* pLocal = U::GetLocalPlayer();
+	CBaseEntity* pLocal = CBaseEntity::GetLocalPlayer();
 	bool bClearOverride = false;
 
 	if (pLocal != nullptr && C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams))
@@ -620,7 +629,7 @@ void FASTCALL H::hkOverrideView(IClientModeShared* thisptr, int edx, CViewSetup*
 	// get camera origin
 	G::vecCamera = pSetup->vecOrigin;
 
-	CBaseEntity* pLocal = U::GetLocalPlayer();
+	CBaseEntity* pLocal = CBaseEntity::GetLocalPlayer();
 
 	if (pLocal == nullptr || !pLocal->IsAlive())
 		return oOverrideView(thisptr, edx, pSetup);
@@ -657,7 +666,7 @@ float FASTCALL H::hkGetViewModelFOV(IClientModeShared* thisptr, int edx)
 	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
 		return oGetViewModelFOV(thisptr, edx);
 
-	if (auto pLocal = U::GetLocalPlayer();
+	if (auto pLocal = CBaseEntity::GetLocalPlayer();
 		pLocal != nullptr && pLocal->IsAlive() &&
 		C::Get<bool>(Vars.bScreen) && std::fpclassify(C::Get<float>(Vars.flScreenViewModelFOV)) != FP_ZERO)
 		return oGetViewModelFOV(thisptr, edx) + C::Get<float>(Vars.flScreenViewModelFOV);
@@ -672,7 +681,7 @@ int FASTCALL H::hkDoPostScreenEffects(IClientModeShared* thisptr, int edx, CView
 	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
 		return oDoPostScreenEffects(thisptr, edx, pSetup);
 
-	CBaseEntity* pLocal = U::GetLocalPlayer();
+	CBaseEntity* pLocal = CBaseEntity::GetLocalPlayer();
 
 	if (pLocal != nullptr && I::GlowManager != nullptr && C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspGlow))
 		CVisuals::Get().Glow(pLocal);

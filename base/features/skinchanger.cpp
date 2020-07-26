@@ -1,13 +1,13 @@
 #include "skinchanger.h"
 
-// used: get localplayer
+// used: create entity
 #include "../utilities.h"
 // used: client, engine interfaces
 #include "../core/interfaces.h"
 
 void CSkinChanger::Run()
 {
-	CBaseEntity* pLocal = U::GetLocalPlayer();
+	CBaseEntity* pLocal = CBaseEntity::GetLocalPlayer();
 
 	if (pLocal == nullptr || !pLocal->IsAlive())
 		return;

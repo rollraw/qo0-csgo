@@ -32,8 +32,8 @@ class CVisuals : public CSingleton<CVisuals>
 {
 public:
 	// Get
-	/* sort entities and render */
-	void Run(ImDrawList* pDrawList, const ImVec2 vecScreenSize);
+	/* sort entities and save data to draw */
+	void Store();
 	/* get info for hitmarker or e.g. bullettracer */
 	void Event(IGameEvent* pEvent, const FNV1A_t uNameHash);
 	// Other
@@ -69,33 +69,33 @@ private:
 	IMaterial* CreateMaterial(std::string_view szName, std::string_view szShader, std::string_view szBaseTexture = XorStr("vgui/white"), std::string_view szEnvMap = "", bool bIgnorez = false, bool bWireframe = false, std::string_view szProxies = "");
 
 	// On-Screen
-	void HitMarker(ImDrawList* pDrawList, float flServerTime, const ImVec2 vecScreenSize, Color colLines, Color colDamage);
+	void HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color colLines, Color colDamage);
 
 	// World
 	/* changes the exposure to make the world looks like at night or fullbright */
 	void NightMode(CEnvTonemapController* pController); // @credits: sapphyrus
 	/* draw frame with title at bomb position */
-	void Bomb(ImDrawList* pDrawList, Vector2D vecScreen, Context_t& ctx, Color colFrame);
+	void Bomb(const Vector2D& vecScreen, Context_t& ctx, Color colFrame);
 	/* draw frame with title, timer and defuse bars at planted bomb position */
-	void PlantedBomb(ImDrawList* pDrawList, CPlantedC4* pBomb, float flServerTime, Vector2D vecScreen, Context_t& ctx, Color colFrame, Color colDefuse, Color colFailDefuse, Color colBackground, Color colOutline);
+	void PlantedBomb(CPlantedC4* pBomb, float flServerTime, const Vector2D& vecScreen, Context_t& ctx, Color colFrame, Color colDefuse, Color colFailDefuse, Color colBackground, Color colOutline);
 	/* draw frame with name and timer bar at grenade position */
-	void Grenade(ImDrawList* pDrawList, EClassIndex nIndex, CBaseEntity* pGrenade, float flServerTime, Vector2D vecScreen, Context_t& ctx, Color colFrame, Color colBackground, Color colOutline);
+	void Grenade(CBaseEntity* pGrenade, EClassIndex nIndex, float flServerTime, Vector2D vecScreen, Context_t& ctx, Color colFrame, Color colBackground, Color colOutline);
 	/* draw weapon icon, ammo bar, distance at dropped weapons positions */
-	void DroppedWeapons(ImDrawList* pDrawList, CBaseCombatWeapon* pWeapon, short nItemDefinitionIndex, Context_t& ctx, Color colPrimary, Color colAmmo, Color colBackground, Color colOutline);
+	void DroppedWeapons(CBaseCombatWeapon* pWeapon, short nItemDefinitionIndex, Context_t& ctx, Color colPrimary, Color colAmmo, Color colBackground, Color colOutline);
 
 	// Player
 	/* draw box, bars, text info's, etc for player */
-	void Player(ImDrawList* pDrawList, CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx, Color colInfo, Color colFrame, Color colOutline);
+	void Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx, Color colInfo, Color colFrame, Color colOutline);
 
 	// Entities
 	/* draw entity bounding box */
-	void Box(ImDrawList* pDrawList, const Box_t& box, const int nBoxType, Color colPrimary, Color colOutline);
+	void Box(const Box_t& box, const int nBoxType, Color colPrimary, Color colOutline);
 	/* draw vertical line with health-based height */
-	void HealthBar(ImDrawList* pDrawList, float flFactor, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline);
+	void HealthBar(Context_t& ctx, float flFactor, Color colPrimary, Color colBackground, Color colOutline);
 	/* draw horizontal line with ammo-based width */
-	void AmmoBar(ImDrawList* pDrawList, CBaseEntity* pEntity, CBaseCombatWeapon* pWeapon, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline);
+	void AmmoBar(CBaseEntity* pEntity, CBaseCombatWeapon* pWeapon, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline);
 	/* draw horizontal line with flashed duration-based width */
-	void FlashBar(ImDrawList* pDrawList, CBaseEntity* pEntity, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline);
+	void FlashBar(CBaseEntity* pEntity, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline);
 
 	// Values
 	std::deque<HitMarkerObject_t> vecHitMarks;
