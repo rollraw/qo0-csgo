@@ -114,7 +114,7 @@ struct Variables_t
 	C_ADD_VARIABLE(bool, bEspMainBomb, false);
 
 	// players
-	C_ADD_VARIABLE(int, iEspMainPlayerBox, (int)EVisualsBoxType::FULL);
+	C_ADD_VARIABLE(int, iEspMainPlayerBox, static_cast<int>(EVisualsBoxType::FULL));
 	C_ADD_VARIABLE(Color, colEspMainBoxEnemies, Color(160, 60, 60, 255));
 	C_ADD_VARIABLE(Color, colEspMainBoxEnemiesWall, Color(200, 185, 110, 255));
 	C_ADD_VARIABLE(Color, colEspMainBoxAllies, Color(0, 200, 170, 255));
@@ -141,7 +141,7 @@ struct Variables_t
 	C_ADD_VARIABLE(bool, bEspMainPlayerDistance, false);
 
 	// weapons
-	C_ADD_VARIABLE(int, iEspMainWeaponBox, (int)EVisualsBoxType::NONE);
+	C_ADD_VARIABLE(int, iEspMainWeaponBox, static_cast<int>(EVisualsBoxType::NONE));
 	C_ADD_VARIABLE(Color, colEspMainBoxWeapons, Color(255, 255, 255, 220));
 
 	C_ADD_VARIABLE(bool, bEspMainWeaponInfo, false);
@@ -176,8 +176,9 @@ struct Variables_t
 	C_ADD_VARIABLE(bool, bEspChamsViewModel, false);
 
 	C_ADD_VARIABLE(bool, bEspChamsXQZ, false);
-	C_ADD_VARIABLE(int, iEspChamsPlayer, 0);
-	C_ADD_VARIABLE(int, iEspChamsViewModel, 0);
+	C_ADD_VARIABLE(bool, bEspChamsDisableOcclusion, false);
+	C_ADD_VARIABLE(int, iEspChamsPlayer, static_cast<int>(EVisualsPlayersChams::COVERED));
+	C_ADD_VARIABLE(int, iEspChamsViewModel, static_cast<int>(EVisualsViewModelChams::WIREFRAME));
 	C_ADD_VARIABLE(Color, colEspChamsEnemies, Color(180, 65, 65, 255));
 	C_ADD_VARIABLE(Color, colEspChamsEnemiesWall, Color(180, 180, 40, 255));
 	C_ADD_VARIABLE(Color, colEspChamsAllies, Color(70, 40, 190, 255));

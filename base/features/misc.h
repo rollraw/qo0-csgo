@@ -23,7 +23,7 @@ public:
 	/* automatic shoot when pressed attack key */
 	void AutoPistol(CUserCmd* pCmd, CBaseEntity* pLocal);
 	/* dont send packets for a certain number of ticks */
-	void FakeLag(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket);
+	void FakeLag(CBaseEntity* pLocal, bool& bSendPacket);
 private:
 	// Movement
 	/* automatic jump when steps on the ground */

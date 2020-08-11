@@ -151,7 +151,7 @@ void CMiscellaneous::AutoPistol(CUserCmd* pCmd, CBaseEntity* pLocal)
 		pCmd->iButtons &= ~IN_ATTACK;
 }
 
-void CMiscellaneous::FakeLag(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
+void CMiscellaneous::FakeLag(CBaseEntity* pLocal, bool& bSendPacket)
 {
 	if (!pLocal->IsAlive())
 		return;

@@ -350,10 +350,10 @@ bool CAutoWall::HandleBulletPenetration(CBaseEntity* pLocal, CCSWeaponData* pWea
 	const float flTraceDistance = (exitTrace.vecEnd - data.enterTrace.vecEnd).LengthSqr();
 
 	// penetration modifier
-	const float flModifier = std::max<float>(0.0f, 1.0f / flPenetrationModifier);
+	const float flModifier = std::max(0.0f, 1.0f / flPenetrationModifier);
 
 	// this calculates how much damage we've lost depending on thickness of the wall, our penetration, damage, and the modifiers set earlier
-	const float flLostDamage = (data.flCurrentDamage * flDamageLostModifier + std::max<float>(0.0f, 3.75f / pWeaponData->flPenetration) * (flModifier * 3.0f)) + ((flModifier * flTraceDistance) / 24.0f);
+	const float flLostDamage = (data.flCurrentDamage * flDamageLostModifier + std::max(0.0f, 3.75f / pWeaponData->flPenetration) * (flModifier * 3.0f)) + ((flModifier * flTraceDistance) / 24.0f);
 
 	// did we loose too much damage?
 	if (flLostDamage > data.flCurrentDamage)

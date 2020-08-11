@@ -20,20 +20,11 @@ public:
 class Vector
 {
 public:
-	Vector()
-	{
-		Init();
-	}
+	constexpr Vector(float x = 0.f, float y = 0.f, float z = 0.f) :
+		x(x), y(y), z(z) { }
 
-	Vector(float x, float y, float z)
-	{
-		Init(x, y, z);
-	}
-
-	Vector(const float* arrVector)
-	{
-		Init(arrVector[0], arrVector[1], arrVector[2]);
-	}
+	constexpr Vector(const float* arrVector) :
+		x(arrVector[0]), y(arrVector[1]), z(arrVector[2]) { }
 
 	Vector(const Vector& vecBase)
 	{
@@ -43,11 +34,6 @@ public:
 	Vector(const Vector2D& vecBase2D)
 	{
 		this->x = vecBase2D.x; this->y = vecBase2D.y; this->z = 0.0f;
-	}
-
-	constexpr void Init(float x = 0.f, float y = 0.f, float z = 0.f)
-	{
-		this->x = x; this->y = y; this->z = z;
 	}
 
 	bool IsValid() const

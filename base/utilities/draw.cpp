@@ -205,10 +205,10 @@ bool ImGui::MultiCombo(const char* szLabel, const char** szDisplayName, std::vec
 {
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* pWindow = g.CurrentWindow;
+
 	if (pWindow->SkipItems)
 		return false;
 
-	ImGuiIO& io = g.IO;
 	const ImGuiStyle& style = g.Style;
 
 	std::string szBuffer = { };
@@ -530,7 +530,7 @@ void D::RenderDrawData(ImDrawList* pDrawList)
 			else if (data.iFlags & IMGUI_TEXT_OUTLINE)
 			{
 				pDrawList->AddText(data.pFont, data.flFontSize, ImVec2(data.vecMin) + ImVec2(1.0f, -1.0f), data.colSecond, data.szText.data());
-				pDrawList->AddText(data.pFont, data.flFontSize, ImVec2(data.vecMin) + ImVec2(1.0f, 1.0f), data.colSecond, data.szText.data());
+				pDrawList->AddText(data.pFont, data.flFontSize, ImVec2(data.vecMin) + ImVec2(-1.0f, 1.0f), data.colSecond, data.szText.data());
 			}
 
 			pDrawList->AddText(data.pFont, data.flFontSize, data.vecMin, data.colFirst, data.szText.data());
@@ -593,6 +593,20 @@ void D::AddRectMultiColor(const ImVec2& vecMin, const ImVec2& vecMax, Color colU
 	draw.colSecond = colUpperRight.GetU32();
 	draw.colThird = colBottomLeft.GetU32();
 	draw.colFourth = colBottomRight.GetU32();
+	vecDrawData.emplace_back(draw);
+}
+
+void D::AddCircle(const ImVec2& vecCenter, float flRadius, Color colCircle, int nSegments, int iFlags, float flThinkness, Color colOutline)
+{
+	DrawObject_t draw = { };
+	draw.nType = EDrawType::CIRCLE;
+	draw.vecMin = vecCenter;
+	draw.flRadius = flRadius;
+	draw.nSegments = nSegments;
+	draw.colFirst = colCircle.GetU32();
+	draw.iFlags = iFlags;
+	draw.flThickness = flThinkness;
+	draw.colSecond = colOutline.GetU32();
 	vecDrawData.emplace_back(draw);
 }
 

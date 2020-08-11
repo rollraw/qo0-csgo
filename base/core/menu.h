@@ -49,7 +49,7 @@ namespace T
 	/* current selected sub-tab in visuals tab */
 	inline int			iEspTab = 0;
 	/* user-defined configuration filename in miscellaneous tab */
-	inline std::string	szConfigFile = "";
+	inline std::string	szConfigFile = { };
 	/* current selected configuration in miscellaneous tab */
 	inline int			iSelectedConfig = 0;
 	/* current selected color setting in miscellaneous tab */

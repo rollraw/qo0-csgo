@@ -165,7 +165,7 @@ void CBaseEntity::ModifyEyePosition(CBasePlayerAnimState* pAnimState, Vector* ve
 		float flOffset = (flDelta - 4.0f) / 6.0f;
 
 		if (flOffset >= 0.f)
-			flFactor = std::min<float>(flOffset, 1.0f);
+			flFactor = std::min(flOffset, 1.0f);
 
 		vecPosition->z += ((vecBone.z - vecPosition->z) * (((flFactor * flFactor) * 3.0f) - (((flFactor * flFactor) * 2.0f) * flFactor)));
 	}

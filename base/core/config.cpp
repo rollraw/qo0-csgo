@@ -99,7 +99,7 @@ bool C::Save(std::string_view szFileName)
 			nlohmann::json sub;
 
 			// fill node with all vector values
-			for (auto& bValue : vecBools)
+			for (const auto& bValue : vecBools)
 				sub.push_back(static_cast<bool>(bValue));
 
 			entry[XorStr("value")] = sub.dump();
@@ -225,10 +225,10 @@ bool C::Load(std::string_view szFileName)
 			auto color = nlohmann::json::parse(variable[XorStr("value")].get<std::string>());
 
 			entry.Set<Color>(Color(
-				color.at(0).get<int>(),
-				color.at(1).get<int>(),
-				color.at(2).get<int>(),
-				color.at(3).get<int>()
+				color.at(0).get<std::uint8_t>(),
+				color.at(1).get<std::uint8_t>(),
+				color.at(2).get<std::uint8_t>(),
+				color.at(3).get<std::uint8_t>()
 			));
 
 			break;

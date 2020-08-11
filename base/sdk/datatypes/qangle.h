@@ -5,25 +5,11 @@
 class QAngle
 {
 public:
-	QAngle()
-	{
-		Init();
-	}
+	constexpr QAngle(float x = 0.f, float y = 0.f, float z = 0.f) :
+		x(x), y(y), z(z) { }
 
-	QAngle(float x, float y, float z)
-	{
-		Init(x, y, z);
-	}
-
-	QAngle(const float* arrAngles)
-	{
-		Init(arrAngles[0], arrAngles[1], arrAngles[2]);
-	}
-
-	constexpr void Init(float x = 0.f, float y = 0.f, float z = 0.f)
-	{
-		this->x = x; this->y = y; this->z = z;
-	}
+	constexpr QAngle(const float* arrAngles) :
+		x(arrAngles[0]), y(arrAngles[1]), z(arrAngles[2]) { }
 
 	bool operator==(const QAngle& angBase) const
 	{

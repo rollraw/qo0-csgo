@@ -8,11 +8,9 @@
 std::uintptr_t MEM::FindPattern(const char* szModuleName, const char* szPattern)
 {
 	const HMODULE hModule = GetModuleHandle(szModuleName);
+
 	if (hModule == nullptr)
-	{
 		throw std::runtime_error(fmt::format(XorStr("failed to get handle for: {}"), szModuleName));
-		return 0U;
-	}
 
 	auto uModuleAdress = reinterpret_cast<std::uint8_t*>(hModule);
 	auto pDosHeader = reinterpret_cast<PIMAGE_DOS_HEADER>(hModule);
@@ -62,9 +60,9 @@ std::vector<std::uintptr_t> MEM::GetXrefs(std::uintptr_t uAddress, std::uintptr_
 
 	// convert the address over to an ida pattern string
 	const std::string szPattern = BytesToPattern((std::uint8_t*)&uAddress, 4U);
-
 	// get the end of the section (in our case the end of the .rdata section)
 	const std::uintptr_t uEnd = uStart + uSize;
+
 	while (uStart && uStart < uEnd)
 	{
 		std::uintptr_t uXrefAddress = FindPattern((std::uint8_t*)uStart, uSize, szPattern.c_str());
@@ -84,11 +82,11 @@ std::vector<std::uintptr_t> MEM::GetXrefs(std::uintptr_t uAddress, std::uintptr_
 
 bool MEM::GetSectionInfo(std::uintptr_t uBaseAddress, const std::string& szSectionName, std::uintptr_t& uSectionStart, std::uintptr_t& uSectionSize)
 {
-	const auto pDosHeader = (PIMAGE_DOS_HEADER)uBaseAddress;
+	const auto pDosHeader = reinterpret_cast<PIMAGE_DOS_HEADER>(uBaseAddress);
 	if (pDosHeader->e_magic != IMAGE_DOS_SIGNATURE)
 		return false;
 
-	const auto pNtHeaders = (PIMAGE_NT_HEADERS32)(uBaseAddress + pDosHeader->e_lfanew);
+	const auto pNtHeaders = reinterpret_cast<PIMAGE_NT_HEADERS32>(uBaseAddress + pDosHeader->e_lfanew);
 	if (pNtHeaders->Signature != IMAGE_NT_SIGNATURE)
 		return false;
 
@@ -179,7 +177,7 @@ bool MEM::IsValidCodePtr(std::uintptr_t uAddress)
 
 	MEMORY_BASIC_INFORMATION memInfo = { };
 
-	if (VirtualQuery((LPCVOID)uAddress, &memInfo, sizeof(memInfo)) == 0U)
+	if (VirtualQuery(reinterpret_cast<LPCVOID>(uAddress), &memInfo, sizeof(memInfo)) == 0U)
 		return false;
 
 	if (!(memInfo.Protect & PAGE_EXECUTE_READWRITE || memInfo.Protect & PAGE_EXECUTE_READ))
@@ -190,7 +188,7 @@ bool MEM::IsValidCodePtr(std::uintptr_t uAddress)
 
 std::vector<int> MEM::PatternToBytes(const char* szPattern)
 {
-	std::vector<int> vecBytes{ };
+	std::vector<int> vecBytes = { };
 	char* chStart = const_cast<char*>(szPattern);
 	char* chEnd = chStart + strlen(szPattern);
 
@@ -219,10 +217,10 @@ std::vector<int> MEM::PatternToBytes(const char* szPattern)
 
 std::string MEM::BytesToPattern(std::uint8_t* arrBytes, std::size_t uSize)
 {
-	std::stringstream ssPattern;
+	std::stringstream ssPattern = { };
 	ssPattern << std::hex << std::setfill('0');
 
-	for (std::size_t i = 0; i < uSize; i++)
+	for (std::size_t i = 0U; i < uSize; i++)
 	{
 		const int iCurrentByte = arrBytes[i];
 		if (iCurrentByte != 255)

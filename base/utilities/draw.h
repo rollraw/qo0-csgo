@@ -22,6 +22,7 @@ enum class EDrawType : int
 	LINE,
 	RECT,
 	RECT_MULTICOLOR,
+	CIRCLE,
 	TEXT
 };
 
@@ -32,6 +33,14 @@ enum ERectRenderFlags : int
 	IMGUI_RECT_OUTLINE =	(1 << 0),
 	IMGUI_RECT_BORDER =		(1 << 1),
 	IMGUI_RECT_FILLED =		(1 << 2)
+};
+
+// circle rendering flags
+enum ECircleRenderFlags : int
+{
+	IMGUI_CIRCLE_NONE = 0,
+	IMGUI_CIRCLE_OUTLINE = (1 << 0),
+	IMGUI_CIRCLE_FILLED = (1 << 1)
 };
 
 // text rendering flags
@@ -67,6 +76,8 @@ struct DrawObject_t
 	int iFlags = 0;
 
 	/* primitive factors */
+	float flRadius = 0.0f;
+	int nSegments = 0;
 	float flRounding = 0.0f;
 	ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_None;
 	float flThickness = 0.0f;
@@ -132,6 +143,7 @@ namespace D
 	void AddLine(const ImVec2& vecStart, const ImVec2& vecEnd, Color colLine, float flThickness = 1.0f);
 	void AddRect(const ImVec2& vecMin, const ImVec2& vecMax, Color colRect, int iFlags = IMGUI_RECT_NONE, Color colOutline = Color(0, 0, 0, 255), float flRounding = 0.f, ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_All, float flThickness = 1.0f);
 	void AddRectMultiColor(const ImVec2& vecMin, const ImVec2& vecMax, Color colUpperLeft, Color colUpperRight, Color colBottomLeft, Color colBottomRight);
+	void AddCircle(const ImVec2& vecCenter, float flRadius, Color colCircle, int nSegments = 12, int iFlags = IMGUI_CIRCLE_NONE, float flThinkness = 1.0f, Color colOutline = Color(0, 0, 0, 255));
 	void AddText(const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const std::string& szText, Color colText, int iFlags = IMGUI_TEXT_NONE, Color colOutline = Color(0, 0, 0, 255));
 	void AddText(const ImVec2& vecPosition, const std::string& szText, Color colText, int iFlags = IMGUI_TEXT_NONE, Color colOutline = Color(0, 0, 0, 255));
 

@@ -233,8 +233,8 @@ void CAntiAim::Yaw(CUserCmd* pCmd, CBaseEntity* pLocal, float flServerTime, bool
 float CAntiAim::GetMaxDesyncDelta(CBasePlayerAnimState* pAnimState)
 {
 	float flDuckAmount = pAnimState->flDuckAmount;
-	float flRunningSpeed = std::clamp<float>(pAnimState->flRunningSpeed, 0.0f, 1.0f);
-	float flDuckingSpeed = std::clamp<float>(pAnimState->flDuckingSpeed, 0.0f, 1.0f);
+	float flRunningSpeed = std::clamp(pAnimState->flRunningSpeed, 0.0f, 1.0f);
+	float flDuckingSpeed = std::clamp(pAnimState->flDuckingSpeed, 0.0f, 1.0f);
 	float flYawModifier = (((pAnimState->flWalkToRunTransition * -0.3f) - 0.2f) * flRunningSpeed) + 1.0f;
 
 	if (flDuckAmount > 0.0f)

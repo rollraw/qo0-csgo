@@ -49,17 +49,17 @@ void CVisuals::Store()
 		if (pWeaponData != nullptr && pWeaponData->nWeaponType == WEAPONTYPE_SNIPER && pLocal->IsScoped())
 		{
 			float flWidth = pWeapon->GetInaccuracy() * 300.f;
-			int iAlpha = std::min<int>(255, static_cast<int>(255.f * pWeapon->GetInaccuracy()));
+			std::uint8_t uAlpha = std::min(255, static_cast<int>(255.f * pWeapon->GetInaccuracy()));
 
 			D::AddLine(ImVec2(0.f, vecScreenSize.y * 0.5f), ImVec2(vecScreenSize.x, vecScreenSize.y * 0.5f), Color(0, 0, 0, 200));
 			D::AddLine(ImVec2(vecScreenSize.x * 0.5f, 0.f), ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y), Color(0, 0, 0, 200));
 
 			// horizontal
-			D::AddRectMultiColor(ImVec2(0.f, vecScreenSize.y * 0.5f), ImVec2(vecScreenSize.x, vecScreenSize.y * 0.5f + flWidth), Color(0, 0, 0, iAlpha), Color(0, 0, 0, iAlpha), Color(0, 0, 0, 0), Color(0, 0, 0, 0));
-			D::AddRectMultiColor(ImVec2(0.f, vecScreenSize.y * 0.5f - flWidth), ImVec2(vecScreenSize.x, vecScreenSize.y * 0.5f), Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, iAlpha), Color(0, 0, 0, iAlpha));
+			D::AddRectMultiColor(ImVec2(0.f, vecScreenSize.y * 0.5f), ImVec2(vecScreenSize.x, vecScreenSize.y * 0.5f + flWidth), Color(0, 0, 0, uAlpha), Color(0, 0, 0, uAlpha), Color(0, 0, 0, 0), Color(0, 0, 0, 0));
+			D::AddRectMultiColor(ImVec2(0.f, vecScreenSize.y * 0.5f - flWidth), ImVec2(vecScreenSize.x, vecScreenSize.y * 0.5f), Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, uAlpha), Color(0, 0, 0, uAlpha));
 			// vertical
-			D::AddRectMultiColor(ImVec2(vecScreenSize.x * 0.5f, 0.f), ImVec2(vecScreenSize.x * 0.5f + flWidth, vecScreenSize.y), Color(0, 0, 0, iAlpha), Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, iAlpha));
-			D::AddRectMultiColor(ImVec2(vecScreenSize.x * 0.5f - flWidth, 0.f), ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y), Color(0, 0, 0, 0), Color(0, 0, 0, iAlpha), Color(0, 0, 0, iAlpha), Color(0, 0, 0, 0));
+			D::AddRectMultiColor(ImVec2(vecScreenSize.x * 0.5f, 0.f), ImVec2(vecScreenSize.x * 0.5f + flWidth, vecScreenSize.y), Color(0, 0, 0, uAlpha), Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, uAlpha));
+			D::AddRectMultiColor(ImVec2(vecScreenSize.x * 0.5f - flWidth, 0.f), ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y), Color(0, 0, 0, 0), Color(0, 0, 0, uAlpha), Color(0, 0, 0, uAlpha), Color(0, 0, 0, 0));
 		}
 	}
 
@@ -70,13 +70,30 @@ void CVisuals::Store()
 			HitMarker(vecScreenSize, flServerTime, C::Get<Color>(Vars.colScreenHitMarker), C::Get<Color>(Vars.colScreenHitMarkerDamage));
 	}
 
+	std::vector<std::pair<CBaseEntity*, float>> vecOrder = { };
+
 	for (int i = 1; i < I::ClientEntityList->GetMaxEntities(); i++)
 	{
 		CBaseEntity* pEntity = I::ClientEntityList->Get<CBaseEntity>(i);
 
-		if (pEntity == nullptr)
+		if (pEntity == nullptr || pEntity->IsDormant())
 			continue;
 
+		const Vector vecOrigin = pEntity->GetOrigin();
+
+		// save entities and calculated distance for sort
+		vecOrder.emplace_back(std::make_pair(pEntity, (pLocal->GetOrigin() - vecOrigin).Length2D()));
+	}
+
+	// sort entities by distance to make closest entity drawn last to make it easy readable and look nicer
+	std::sort(vecOrder.begin(), vecOrder.end(), [](const std::pair<CBaseEntity*, float>& a, const std::pair<CBaseEntity*, float>& b)
+		{
+			return a.second > b.second;
+		});
+
+	for (const auto& arrEntity : vecOrder)
+	{
+		CBaseEntity* pEntity = arrEntity.first;
 		CBaseClient* pClientClass = pEntity->GetClientClass();
 
 		if (pClientClass == nullptr)
@@ -89,9 +106,6 @@ void CVisuals::Store()
 		case EClassIndex::CC4:
 		{
 			if (!C::Get<bool>(Vars.bEsp) || !C::Get<bool>(Vars.bEspMain) || !C::Get<bool>(Vars.bEspMainBomb))
-				break;
-
-			if (pEntity->IsDormant())
 				break;
 
 			// get bomb owner
@@ -119,9 +133,6 @@ void CVisuals::Store()
 			if (!C::Get<bool>(Vars.bEsp) || !C::Get<bool>(Vars.bEspMain) || !C::Get<bool>(Vars.bEspMainBomb))
 				break;
 
-			if (pEntity->IsDormant())
-				break;
-
 			// cast to planted bomb entity
 			CPlantedC4* pBomb = reinterpret_cast<CPlantedC4*>(pEntity);
 
@@ -146,7 +157,7 @@ void CVisuals::Store()
 			if (!C::Get<bool>(Vars.bEsp) || !C::Get<bool>(Vars.bEspMain))
 				break;
 
-			if (!pEntity->IsAlive() || pEntity->IsDormant())
+			if (!pEntity->IsAlive())
 				break;
 
 			if (!pLocal->IsAlive())
@@ -213,9 +224,6 @@ void CVisuals::Store()
 			if (!C::Get<bool>(Vars.bEsp) || !C::Get<bool>(Vars.bEspMain) || !C::Get<bool>(Vars.bEspMainGrenades))
 				break;
 
-			if (pEntity->IsDormant())
-				break;
-
 			const Vector vecOrigin = pEntity->GetOrigin();
 			Vector2D vecScreen = { };
 
@@ -233,9 +241,6 @@ void CVisuals::Store()
 		{
 			// check for esp state and skip weapon in hands
 			if (!C::Get<bool>(Vars.bEsp) || !C::Get<bool>(Vars.bEspMain) || !C::Get<bool>(Vars.bEspMainWeapons) || nIndex == EClassIndex::CBaseWeaponWorldModel)
-				break;
-
-			if (pEntity->IsDormant())
 				break;
 
 			// world weapons check
@@ -682,8 +687,8 @@ bool CVisuals::GetBoundingBox(CBaseEntity* pEntity, Box_t* pBox)
 
 	float flLeft = std::numeric_limits<float>::max();
 	float flTop = std::numeric_limits<float>::max();
-	float flRight = std::numeric_limits<float>::min();
-	float flBottom = std::numeric_limits<float>::min();
+	float flRight = -std::numeric_limits<float>::max();
+	float flBottom = -std::numeric_limits<float>::max();
 
 	// get screen points position
 	std::array<Vector2D, 8U> arrScreen = { };
@@ -704,10 +709,10 @@ bool CVisuals::GetBoundingBox(CBaseEntity* pEntity, Box_t* pBox)
 		 *	6 - brt
 		 *	7 - flt
 		 */
-		flLeft = std::min<float>(flLeft, arrScreen.at(i).x);
-		flTop = std::min<float>(flTop, arrScreen.at(i).y);
-		flRight = std::max<float>(flRight, arrScreen.at(i).x);
-		flBottom = std::max<float>(flBottom, arrScreen.at(i).y);
+		flLeft = std::min(flLeft, arrScreen.at(i).x);
+		flTop = std::min(flTop, arrScreen.at(i).y);
+		flRight = std::max(flRight, arrScreen.at(i).x);
+		flBottom = std::max(flBottom, arrScreen.at(i).y);
 	}
 
 	// set calculated box
@@ -786,7 +791,7 @@ void CVisuals::HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color 
 		if (D::WorldToScreen(vecHitMarks.at(i).vecPosition, vecScreen))
 		{
 			// set fade out alpha
-			colDamage.arrColor.at(3) = static_cast<std::uint8_t>(std::min<float>(colDamage.aBase(), flAlpha) * 255.f);
+			colDamage.arrColor.at(3) = static_cast<std::uint8_t>(std::min(colDamage.aBase(), flAlpha) * 255.f);
 			// draw dealt damage
 			D::AddText(F::SmallestPixel, 20.f, ImVec2(vecScreen.x, vecScreen.y - flRatio * iDistance), std::to_string(vecHitMarks.at(i).iDamage), colDamage, IMGUI_TEXT_OUTLINE);
 		}
@@ -798,7 +803,7 @@ void CVisuals::HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color 
 		for (auto& iSide : arrSides)
 		{
 			// set fade out alpha
-			colLines.arrColor.at(3) = static_cast<std::uint8_t>(std::min<float>(colLines.aBase(), flAlpha) * 255.f);
+			colLines.arrColor.at(3) = static_cast<std::uint8_t>(std::min(colLines.aBase(), flAlpha) * 255.f);
 			// draw mark cross
 			D::AddLine(ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * iSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * iSide[1]), ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * iSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * iSide[1]), colLines);
 		}
@@ -830,7 +835,7 @@ void CVisuals::Bomb(const Vector2D& vecScreen, Context_t& ctx, Color colFrame)
 	const char* szName = XorStr("C4");
 	const ImVec2 vecNameSize = F::Verdana->CalcTextSizeA(14.f, FLT_MAX, 0.f, szName);
 
-	static ImVec2 vecSize = ImVec2(vecIconSize.x + vecNameSize.x + 10.f, vecNameSize.y + 6.f);
+	static ImVec2 vecSize(vecIconSize.x + vecNameSize.x + 10.f, vecNameSize.y + 6.f);
 
 	// set custom box
 	ctx.box = { vecScreen.x - vecSize.x * 0.5f, vecScreen.y - vecSize.y * 0.5f, vecScreen.x + vecSize.x * 0.5f, vecScreen.y + vecSize.y * 0.5f, vecSize.x, vecSize.y };
@@ -851,7 +856,7 @@ void CVisuals::PlantedBomb(CPlantedC4* pBomb, float flServerTime, const Vector2D
 	const char* szName = XorStr("PLANTED C4");
 	static ImVec2 vecNameSize = F::Verdana->CalcTextSizeA(14.f, FLT_MAX, 0.f, szName);
 
-	static ImVec2 vecSize = ImVec2(vecIconSize.x + vecNameSize.x + 10.f, vecNameSize.y + 6.f);
+	static ImVec2 vecSize(vecIconSize.x + vecNameSize.x + 10.f, vecNameSize.y + 6.f);
 
 	// set custom box
 	ctx.box = { vecScreen.x - vecSize.x * 0.5f, vecScreen.y - vecSize.y * 0.5f, vecScreen.x + vecSize.x * 0.5f, vecScreen.y + vecSize.y * 0.5f, vecSize.x, vecSize.y };
@@ -907,7 +912,7 @@ void CVisuals::Grenade(CBaseEntity* pGrenade, EClassIndex nIndex, float flServer
 	// setup temporary values
 	const char* szName = XorStr("NONE");
 	float flFactor = 0.f;
-	Color colGrenade = Color(255, 255, 255);
+	Color colGrenade(255, 255, 255);
 
 	// get grenade model name
 	if (std::string_view szModelName = I::ModelInfo->GetModelName(pGrenade->GetModel()); !szModelName.empty())
@@ -918,15 +923,17 @@ void CVisuals::Grenade(CBaseEntity* pGrenade, EClassIndex nIndex, float flServer
 		case EClassIndex::CBaseCSGrenadeProjectile:
 		{
 			// separate greandes by model name
-			if (szModelName.find(XorStr("fraggrenade")) != std::string::npos)
+			if (szModelName.find(XorStr("fraggrenade")) != std::string_view::npos)
 				szName = XorStr("HIGH-EXPLOSIVE");
-			else if (szModelName.find(XorStr("flashbang")) != std::string::npos)
+			else if (szModelName.find(XorStr("flashbang")) != std::string_view::npos)
 				szName = XorStr("FLASH");
 			break;
 		}
 		case EClassIndex::CDecoyProjectile:
+		{
 			szName = XorStr("DECOY");
 			break;
+		}
 		case EClassIndex::CSmokeGrenadeProjectile:
 		{
 			// cast to smoke grenade
@@ -944,10 +951,10 @@ void CVisuals::Grenade(CBaseEntity* pGrenade, EClassIndex nIndex, float flServer
 			flFactor = ((TICKS_TO_TIME(pInferno->GetEffectTickBegin()) + pInferno->GetMaxTime()) - flServerTime) / pInferno->GetMaxTime();
 			colGrenade = Color(255, 100, 100);
 
-			// separate greandes by model name
-			if (szModelName.find(XorStr("molotov")) != std::string::npos)
+			// separate grenades by model name
+			if (szModelName.find(XorStr("molotov")) != std::string_view::npos)
 				szName = XorStr("MOLOTOV");
-			else if (szModelName.find(XorStr("incendiary")) != std::string::npos)
+			else if (szModelName.find(XorStr("incendiary")) != std::string_view::npos)
 				szName = XorStr("INCENDIARY");
 			else
 				szName = XorStr("FIRE");
@@ -959,14 +966,14 @@ void CVisuals::Grenade(CBaseEntity* pGrenade, EClassIndex nIndex, float flServer
 	}
 
 	const ImVec2 vecNameSize = F::Verdana->CalcTextSizeA(14.f, FLT_MAX, 0.0f, szName);
-	const ImVec2 vecSize = ImVec2(vecNameSize.x + 10.f, vecNameSize.y + 6.f);
+	const ImVec2 vecSize(vecNameSize.x + 10.f, vecNameSize.y + 6.f);
 
 	// set custom box
 	ctx.box = { vecScreen.x - vecSize.x * 0.5f, vecScreen.y - vecSize.y * 0.5f, vecScreen.x + vecSize.x * 0.5f, vecScreen.y + vecSize.y * 0.5f, vecSize.x, vecSize.y };
 
 	/* info */
 	// frame
-	D::AddRect(ImVec2(ctx.box.left - 1, ctx.box.top), ImVec2(ctx.box.right + 1, ctx.box.bottom), colFrame, IMGUI_RECT_FILLED, colOutline, 5.0f, (nIndex == EClassIndex::CBaseCSGrenadeProjectile) ? ImDrawCornerFlags_All : ImDrawCornerFlags_Top);
+	D::AddRect(ImVec2(ctx.box.left - 1, ctx.box.top), ImVec2(ctx.box.right + 1, ctx.box.bottom), colFrame, IMGUI_RECT_FILLED, colOutline, 5.0f, (nIndex == EClassIndex::CBaseCSGrenadeProjectile || flFactor <= 0.f) ? ImDrawCornerFlags_All : ImDrawCornerFlags_Top);
 	// text
 	D::AddText(F::Verdana, 14.f, ImVec2(ctx.box.left + 5, ctx.box.top + 3), szName, Color(255, 255, 255));
 
@@ -1044,7 +1051,7 @@ void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx,
 
 	// @note: distance font scale
 	const float flDistance = std::fabsf((pEntity->GetRenderOrigin() - G::vecCamera).Length());
-	const float flFontSize = std::clamp<float>(90.f / (flDistance / 90.f), 10.f, 40.f);
+	const float flFontSize = std::clamp(90.f / (flDistance / 90.f), 10.f, 40.f);
 
 	#pragma region visuals_player_top
 	if (C::Get<bool>(Vars.bEspMainPlayerFlash) && pEntity->GetFlashDuration() > 0.2f)
@@ -1148,7 +1155,7 @@ void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx,
 		std::string szMoney = std::to_string(pEntity->GetMoney()).insert(0U, XorStr("$"));
 		const ImVec2 vecMoneySize = F::SmallestPixel->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szMoney.c_str());
 		D::AddText(F::SmallestPixel, flFontSize, ImVec2(ctx.box.left - 2 - vecMoneySize.x - ctx.arrPadding.at(DIR_LEFT), ctx.box.top), szMoney, Color(140, 195, 75), IMGUI_TEXT_OUTLINE, colOutline);
-		ctx.arrPadding.at(DIR_LEFT) += vecMoneySize.y;
+		ctx.arrPadding.at(DIR_LEFT) += vecMoneySize.x;
 	}
 	#pragma endregion
 

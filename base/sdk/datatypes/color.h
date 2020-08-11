@@ -117,7 +117,7 @@ public:
 		const float g = arrColor[1] / 255.f;
 		const float b = arrColor[2] / 255.f;
 
-		const float flMax = std::max<float>(r, std::max<float>(g, b)), flMin = std::min<float>(r, std::min<float>(g, b));
+		const float flMax = std::max(r, std::max(g, b)), flMin = std::min(r, std::min(g, b));
 
 		if (flMax == flMin)
 			return 0.f;
@@ -146,7 +146,7 @@ public:
 		const float g = arrColor.at(1) / 255.f;
 		const float b = arrColor.at(2) / 255.f;
 
-		const float flMax = std::max<float>(r, std::max<float>(g, b)), flMin = std::min<float>(r, std::min<float>(g, b));
+		const float flMax = std::max(r, std::max(g, b)), flMin = std::min(r, std::min(g, b));
 		const float flDelta = flMax - flMin;
 
 		if (flMax == 0.f)
@@ -161,7 +161,7 @@ public:
 		const float g = arrColor.at(1) / 255.f;
 		const float b = arrColor.at(2) / 255.f;
 
-		return std::max<float>(r, std::max<float>(g, b));
+		return std::max(r, std::max(g, b));
 	}
 
 	static Color FromHSB(float flHue, float flSaturation, float flBrightness)

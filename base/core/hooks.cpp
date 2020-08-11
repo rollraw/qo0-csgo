@@ -72,8 +72,8 @@ bool H::Setup()
 	if (!DTR::IsConnected.Create(MEM::GetVFunc(I::Engine, VTABLE::ISCONNECTED), &hkIsConnected))
 		return false;
 
-	//if (!DTR::ListLeavesInBox.Create(MEM::GetVFunc(I::Engine->GetBSPTreeQuery(), VTABLE::LISTLEAVESINBOX), &hkListLeavesInBox))
-	//	return false;
+	if (!DTR::ListLeavesInBox.Create(MEM::GetVFunc(I::Engine->GetBSPTreeQuery(), VTABLE::LISTLEAVESINBOX), &hkListLeavesInBox))
+		return false;
 
 	if (!DTR::PaintTraverse.Create(MEM::GetVFunc(I::Panel, VTABLE::PAINTTRAVERSE), &hkPaintTraverse))
 		return false;
@@ -120,7 +120,7 @@ void H::Restore()
 	DTR::GetViewModelFOV.~CDetourHook();
 	DTR::DoPostScreenEffects.~CDetourHook();
 	DTR::IsConnected.~CDetourHook();
-	//DTR::ListLeavesInBox.~CDetourHook();
+	DTR::ListLeavesInBox.~CDetourHook();
 	DTR::PaintTraverse.~CDetourHook();
 	DTR::DrawModel.~CDetourHook();
 	DTR::RunCommand.~CDetourHook();
@@ -284,7 +284,7 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 			CRageBot::Get().Run(pCmd, pLocal, bSendPacket);
 
 		if (C::Get<bool>(Vars.bMiscFakeLag) || C::Get<bool>(Vars.bAntiAim))
-			CMiscellaneous::Get().FakeLag(pCmd, pLocal, bSendPacket);
+			CMiscellaneous::Get().FakeLag(pLocal, bSendPacket);
 
 		if (C::Get<bool>(Vars.bAntiAim))
 			CAntiAim::Get().UpdateServerAnimations(pCmd, pLocal);
@@ -524,7 +524,8 @@ int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, const Vector& vecMins,
 {
 	static auto oListLeavesInBox = DTR::ListLeavesInBox.GetOriginal<decltype(&hkListLeavesInBox)>();
 
-	// @todo: sometimes models doesnt drawn on certain maps (not only me: https://www.unknowncheats.me/forum/counterstrike-global-offensive/330483-disable-model-occulusion-3.html)
+	// @todo: sometimes models doesn't drawn on certain maps (not only me: https://www.unknowncheats.me/forum/counterstrike-global-offensive/330483-disable-model-occulusion-3.html)
+	// @test: try to fix z order 11.08.20
 
 	// @credits: soufiw
 	// occlusion getting updated on player movement/angle change,
@@ -532,7 +533,7 @@ int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, const Vector& vecMins,
 	static std::uintptr_t uInsertIntoTree = (MEM::FindPattern(CLIENT_DLL, XorStr("56 52 FF 50 18")) + 0x5); // @xref: "<unknown renderable>"
 
 	// check for esp state and call from CClientLeafSystem::InsertIntoTree
-	if (C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams) && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies)) && reinterpret_cast<std::uintptr_t>(_ReturnAddress()) == uInsertIntoTree)
+	if (C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams) && C::Get<bool>(Vars.bEspChamsDisableOcclusion) && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies)) && reinterpret_cast<std::uintptr_t>(_ReturnAddress()) == uInsertIntoTree)
 	{
 		// get current renderable info from stack https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L1470
 		if (const auto pInfo = *reinterpret_cast<RenderableInfo_t**>(reinterpret_cast<std::uintptr_t>(_AddressOfReturnAddress()) + 0x14); pInfo != nullptr)
@@ -549,8 +550,8 @@ int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, const Vector& vecMins,
 					pInfo->uFlags2 |= RENDER_FLAGS_BOUNDS_ALWAYS_RECOMPUTE;
 
 					// extend world space bounds to maximum https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L707
-					static const Vector vecMapMin = Vector(MIN_COORD_FLOAT, MIN_COORD_FLOAT, MIN_COORD_FLOAT);
-					static const Vector vecMapMax = Vector(MAX_COORD_FLOAT, MAX_COORD_FLOAT, MAX_COORD_FLOAT);
+					constexpr Vector vecMapMin(MIN_COORD_FLOAT, MIN_COORD_FLOAT, MIN_COORD_FLOAT);
+					constexpr Vector vecMapMax(MAX_COORD_FLOAT, MAX_COORD_FLOAT, MAX_COORD_FLOAT);
 					return oListLeavesInBox(thisptr, edx, vecMapMin, vecMapMax, puList, nListMax);
 				}
 			}
@@ -603,13 +604,18 @@ int FASTCALL H::hkSendDatagram(INetChannel* pNetChannel, int edx, bf_write* pDat
 {
 	static auto oSendDatagram = DTR::SendDatagram.GetOriginal<decltype(&hkSendDatagram)>();
 
-	if (!I::Engine->IsInGame() || !C::Get<bool>(Vars.bMiscPingSpike) || pDatagram != nullptr)
+	INetChannelInfo* pNetChannelInfo = I::Engine->GetNetChannelInfo();
+	static CConVar* sv_maxunlag = I::ConVar->FindVar(XorStr("sv_maxunlag"));
+
+	if (!I::Engine->IsInGame() || !C::Get<bool>(Vars.bMiscPingSpike) || pDatagram != nullptr || pNetChannelInfo == nullptr || sv_maxunlag == nullptr)
 		return oSendDatagram(pNetChannel, edx, pDatagram);
 
 	int iInReliableStateOld = pNetChannel->iInReliableState;
 	int iInSequenceNrOld = pNetChannel->iInSequenceNr;
 
-	CLagCompensation::Get().AddLatencyToNetChannel(pNetChannel, C::Get<float>(Vars.flMiscLatencyFactor));
+	// calculate max available fake latency with our real ping to keep it w/o real lags or delays
+	float flMaxLatency = std::max(0.f, std::clamp(C::Get<float>(Vars.flMiscLatencyFactor), 0.f, sv_maxunlag->GetFloat()) - pNetChannelInfo->GetLatency(FLOW_OUTGOING));
+	CLagCompensation::Get().AddLatencyToNetChannel(pNetChannel, flMaxLatency);
 
 	int iReturn = oSendDatagram(pNetChannel, edx, pDatagram);
 

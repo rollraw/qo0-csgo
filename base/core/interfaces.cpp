@@ -118,10 +118,13 @@ T* I::Capture(const char* szModule, std::string_view szInterface)
 			// or given full interface with hardcoded digits
 			!szInterface.compare(pRegister->szName))
 		{
-			// log interface address
-			L::Print(fmt::format(XorStr("captured {} interface -> {:#08X}"), pRegister->szName, reinterpret_cast<std::uintptr_t>((static_cast<void*>(pRegister->pCreateFn())))));
 			// capture our interface
-			return static_cast<T*>(pRegister->pCreateFn());
+			auto pInterface = pRegister->pCreateFn();
+
+			// log interface address
+			L::Print(fmt::format(XorStr("captured {} interface -> {:#08X}"), pRegister->szName, reinterpret_cast<std::uintptr_t>(pInterface)));
+
+			return static_cast<T*>(pInterface);
 		}
 	}
 

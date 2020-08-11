@@ -379,7 +379,7 @@ public:
 	N_ADD_PVARIABLE(int, GetNextThinkTick, "CBasePlayer->m_nNextThinkTick");
 	N_ADD_VARIABLE(Vector, GetVelocity, "CBasePlayer->m_vecVelocity[0]");
 	N_ADD_PVARIABLE_OFFSET(CUserCmd*, GetCurrentCommand, "CBasePlayer->m_hConstraintEntity", -0xC); // @pattern = 89 BE ? ? ? ? E8 ? ? ? ? 85 FF + 0x2
-	N_ADD_PVARIABLE_OFFSET(QAngle, GetThirdPersonAngles, "CBasePlayer->deadflag", 0x4);
+	N_ADD_PVARIABLE_OFFSET(QAngle, GetViewAngles, "CBasePlayer->deadflag", 0x4);
 	N_ADD_VARIABLE(CBaseHandle, GetGroundEntityHandle, "CBasePlayer->m_hGroundEntity");
 	N_ADD_VARIABLE(int, GetHealth, "CBasePlayer->m_iHealth");
 	N_ADD_VARIABLE(int, GetLifeState, "CBasePlayer->m_lifeState");
@@ -854,7 +854,7 @@ public:
 	{
 		static std::uintptr_t m_flC4Blow = CNetvarManager::Get().mapProps[FNV1A::HashConst("CPlantedC4->m_flC4Blow")].uOffset;
 		const float flTimer = *reinterpret_cast<float*>(reinterpret_cast<std::uintptr_t>(this) + m_flC4Blow) - flServerTime;
-		return std::max<float>(0.f, flTimer);
+		return std::max(0.f, flTimer);
 	}
 
 	inline float GetDefuseTimer(float flServerTime)

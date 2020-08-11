@@ -36,16 +36,11 @@ public:
 
 		MH_STATUS status = MH_CreateHook(pBaseFn, pReplaceFn, &pOriginalFn);
 
-		if (status == MH_OK)
-		{
-			if (!this->Replace())
-				return false;
-		}
-		else
-		{
+		if (status != MH_OK)
 			throw std::runtime_error(fmt::format(XorStr("failed to create hook function, status: {:d}\nbase function -> {:#08X}"), static_cast<int>(status), reinterpret_cast<std::uintptr_t>(pBaseFn)));
+
+		if (!this->Replace())
 			return false;
-		}
 
 		return true;
 	}
@@ -63,15 +58,11 @@ public:
 
 		MH_STATUS status = MH_EnableHook(pBaseFn);
 
-		if (status == MH_OK)
-			// switch hook state
-			bIsHooked = true;
-		else
-		{
+		if (status != MH_OK)
 			throw std::runtime_error(fmt::format(XorStr("failed to enable hook function, status: {:d}\nbase function -> {:#08X} address"), static_cast<int>(status), reinterpret_cast<std::uintptr_t>(pBaseFn)));
-			return false;
-		}
-
+		
+		// switch hook state
+		bIsHooked = true;
 		return true;
 	}
 
@@ -86,13 +77,8 @@ public:
 
 		if (status == MH_OK)
 			return true;
-		else
-		{
-			throw std::runtime_error(fmt::format(XorStr("failed to remove hook, status: {:d}\n base function -> {:#08X} address"), static_cast<int>(status), reinterpret_cast<std::uintptr_t>(pBaseFn)));
-			return false;
-		}
 
-		return false;
+		throw std::runtime_error(fmt::format(XorStr("failed to remove hook, status: {:d}\n base function -> {:#08X} address"), static_cast<int>(status), reinterpret_cast<std::uintptr_t>(pBaseFn)));
 	}
 
 	/* replace swaped modified function back to original */
@@ -105,15 +91,13 @@ public:
 		MH_STATUS status = MH_DisableHook(pBaseFn);
 
 		if (status == MH_OK)
+		{
 			// switch hook state
 			bIsHooked = false;
-		else
-		{
-			throw std::runtime_error(fmt::format(XorStr("failed to restore hook, status: {:d}\n base function -> {:#08X} address"), static_cast<int>(status), reinterpret_cast<std::uintptr_t>(pBaseFn)));
-			return false;
+			return true;
 		}
 
-		return true;
+		throw std::runtime_error(fmt::format(XorStr("failed to restore hook, status: {:d}\n base function -> {:#08X} address"), static_cast<int>(status), reinterpret_cast<std::uintptr_t>(pBaseFn)));
 	}
 
 	/* get original function pointer (not a call!) */
