@@ -13,7 +13,7 @@
 
 void CLegitBot::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 {
-	if (pLocal == nullptr || !pLocal->IsAlive())
+	if (!pLocal->IsAlive())
 		return;
 
 	CBaseCombatWeapon* pWeapon = pLocal->GetWeapon();

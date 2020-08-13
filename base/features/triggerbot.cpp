@@ -15,6 +15,9 @@
 
 void CTriggerBot::Run(CUserCmd* pCmd, CBaseEntity* pLocal)
 {
+	if (!pLocal->IsAlive())
+		return;
+
 	static CConVar* weapon_recoil_scale = I::ConVar->FindVar(XorStr("weapon_recoil_scale"));
 
 	if (weapon_recoil_scale == nullptr)
@@ -76,7 +79,7 @@ void CTriggerBot::Run(CUserCmd* pCmd, CBaseEntity* pLocal)
 	CBaseEntity* pEntity = trace.pHitEntity;
 
 	// check is trace player valid and enemy
-	if (pEntity == nullptr || pEntity == pLocal || !pEntity->IsAlive() || pEntity->IsDormant() || pEntity->GetClientClass()->nClassID != EClassIndex::CCSPlayer || pEntity->HasImmunity() || !pLocal->IsEnemy(pEntity))
+	if (pEntity == nullptr || !pEntity->IsAlive() || pEntity->IsDormant() || !pEntity->IsPlayer() || pEntity->HasImmunity() || !pLocal->IsEnemy(pEntity))
 	{
 		timer.Reset();
 		return;

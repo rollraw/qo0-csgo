@@ -412,6 +412,7 @@ void T::Visuals()
 					ImGui::Combo(XorStr("players style##chams"), &C::Get<int>(Vars.iEspChamsPlayer), XorStr("covered\0flat\0wireframe\0reflective\0\0"));
 					ImGui::Checkbox(XorStr("xqz"), &C::Get<bool>(Vars.bEspChamsXQZ));
 					ImGui::Checkbox(XorStr("disable occlusion"), &C::Get<bool>(Vars.bEspChamsDisableOcclusion));
+					if (ImGui::IsItemHovered())
 						ImGui::SetTooltip(XorStr("may cause \"invisible\" players models sometimes"));
 				}
 

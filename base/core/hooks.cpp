@@ -300,7 +300,7 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	}
 	CPrediction::Get().End(pCmd, pLocal);
 
-	CMiscellaneous::Get().MovementCorrection(pCmd, angOldViewPoint);
+	CMiscellaneous::Get().MovementCorrection(pCmd, pLocal, angOldViewPoint);
 
 	// clamp & normalize view angles
 	if (C::Get<bool>(Vars.bMiscAntiUntrusted))
@@ -313,7 +313,7 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	D::ClearDrawData();
 
 	// store data to render
-	CVisuals::Get().Store();
+	CVisuals::Get().Store(pLocal);
 
 	// swap given data to safe container
 	D::SwapDrawData();

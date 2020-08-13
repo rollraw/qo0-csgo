@@ -20,13 +20,8 @@
 #include "../utilities.h"
 
 // @note: avoid store imcolor, store either u32 of imvec4
-void CVisuals::Store()
+void CVisuals::Store(CBaseEntity* pLocal)
 {
-	CBaseEntity* pLocal = CBaseEntity::GetLocalPlayer();
-
-	if (pLocal == nullptr)
-		return;
-
 	float flServerTime = TICKS_TO_TIME(pLocal->GetTickBase());
 
 	// disable post-proccesing

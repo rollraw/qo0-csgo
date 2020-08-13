@@ -5,7 +5,7 @@
 
 void CRageBot::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 {
-	if (pLocal == nullptr || !pLocal->IsAlive())
+	if (!pLocal->IsAlive())
 		return;
 
 	/* get valid entities, target sort, get best point, hitscan and aim (hf c:) */

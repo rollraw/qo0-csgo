@@ -8,7 +8,7 @@ struct surfacephysicsparams_t
 	float flDensity;
 	float flThickness;
 	float flDampening;
-};
+}; // Size: 0x14
 
 struct surfaceaudioparams_t
 {
@@ -21,7 +21,7 @@ struct surfaceaudioparams_t
 	float flHighPitchOcclusion;       // a value betweeen 0 and 100 where 0 is not occluded at all and 100 is silent (except for any additional reflected sound)
 	float flMidPitchOcclusion;
 	float flLowPitchOcclusion;
-};
+}; // Size: 0x24
 
 struct surfacesoundnames_t
 {
@@ -37,23 +37,23 @@ struct surfacesoundnames_t
 	std::uint16_t uRolling;
 	std::uint16_t uBreakSound;
 	std::uint16_t uStrainSound;
-};
+}; // Size: 0x18
 
 struct surfacesoundhandles_t
 {
-	short sWalkStepLeft;
-	short sWalkStepRight;
-	short sRunStepLeft;
-	short sRunStepRight;
-	short sImpactSoft;
-	short sImpactHard;
-	short sScrapeSmooth;
-	short sScrapeRough;
-	short sBulletImpact;
-	short sRolling;
-	short sBreakSound;
-	short sStrainSound;
-};
+	std::uint16_t uWalkStepLeft;
+	std::uint16_t uWalkStepRight;
+	std::uint16_t uRunStepLeft;
+	std::uint16_t uRunStepRight;
+	std::uint16_t uImpactSoft;
+	std::uint16_t uImpactHard;
+	std::uint16_t uScrapeSmooth;
+	std::uint16_t uScrapeRough;
+	std::uint16_t uBulletImpact;
+	std::uint16_t uRolling;
+	std::uint16_t uBreakSound;
+	std::uint16_t uStrainSound;
+}; // Size: 0x18
 
 struct surfacegameprops_t
 {
@@ -64,7 +64,7 @@ struct surfacegameprops_t
 	MaterialHandle_t	hMaterial;
 	std::byte			dClimbable;
 	std::byte			pad0[0x4];
-};
+}; // Size: 0x17
 
 struct surfacedata_t
 {
@@ -73,7 +73,7 @@ struct surfacedata_t
 	surfacesoundnames_t		sounds;
 	surfacegameprops_t		game;
 	surfacesoundhandles_t	soundhandles;
-};
+}; // Size: 0x7F
 
 class IPhysicsSurfaceProps
 {

@@ -14,10 +14,9 @@ class CMiscellaneous : public CSingleton<CMiscellaneous>
 public:
 	// Get
 	void Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket);
-	/* get warmup state */
 	void Event(IGameEvent* pEvent, const FNV1A_t uNameHash);
-	/* correct movement when antiaiming */
-	void MovementCorrection(CUserCmd* pCmd, QAngle& angOldViewPoint);
+	/* correct movement while anti-aiming */
+	void MovementCorrection(CUserCmd* pCmd, CBaseEntity* pLocal, QAngle& angOldViewPoint);
 
 	// Extra
 	/* automatic shoot when pressed attack key */

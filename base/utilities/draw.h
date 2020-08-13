@@ -143,7 +143,7 @@ namespace D
 	void AddLine(const ImVec2& vecStart, const ImVec2& vecEnd, Color colLine, float flThickness = 1.0f);
 	void AddRect(const ImVec2& vecMin, const ImVec2& vecMax, Color colRect, int iFlags = IMGUI_RECT_NONE, Color colOutline = Color(0, 0, 0, 255), float flRounding = 0.f, ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_All, float flThickness = 1.0f);
 	void AddRectMultiColor(const ImVec2& vecMin, const ImVec2& vecMax, Color colUpperLeft, Color colUpperRight, Color colBottomLeft, Color colBottomRight);
-	void AddCircle(const ImVec2& vecCenter, float flRadius, Color colCircle, int nSegments = 12, int iFlags = IMGUI_CIRCLE_NONE, float flThinkness = 1.0f, Color colOutline = Color(0, 0, 0, 255));
+	void AddCircle(const ImVec2& vecCenter, float flRadius, Color colCircle, int nSegments = 12, int iFlags = IMGUI_CIRCLE_NONE, Color colOutline = Color(0, 0, 0, 255), float flThinkness = 1.0f);
 	void AddText(const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const std::string& szText, Color colText, int iFlags = IMGUI_TEXT_NONE, Color colOutline = Color(0, 0, 0, 255));
 	void AddText(const ImVec2& vecPosition, const std::string& szText, Color colText, int iFlags = IMGUI_TEXT_NONE, Color colOutline = Color(0, 0, 0, 255));
 

@@ -596,7 +596,7 @@ void D::AddRectMultiColor(const ImVec2& vecMin, const ImVec2& vecMax, Color colU
 	vecDrawData.emplace_back(draw);
 }
 
-void D::AddCircle(const ImVec2& vecCenter, float flRadius, Color colCircle, int nSegments, int iFlags, float flThinkness, Color colOutline)
+void D::AddCircle(const ImVec2& vecCenter, float flRadius, Color colCircle, int nSegments, int iFlags, Color colOutline, float flThinkness)
 {
 	DrawObject_t draw = { };
 	draw.nType = EDrawType::CIRCLE;
@@ -605,8 +605,8 @@ void D::AddCircle(const ImVec2& vecCenter, float flRadius, Color colCircle, int 
 	draw.nSegments = nSegments;
 	draw.colFirst = colCircle.GetU32();
 	draw.iFlags = iFlags;
-	draw.flThickness = flThinkness;
 	draw.colSecond = colOutline.GetU32();
+	draw.flThickness = flThinkness;
 	vecDrawData.emplace_back(draw);
 }
 

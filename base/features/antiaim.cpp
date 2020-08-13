@@ -16,7 +16,7 @@
 void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 {
 	// check is not frozen and alive
-	if (pLocal->GetFlags() & FL_FROZEN || !pLocal->IsAlive())
+	if (!pLocal->IsAlive() || pLocal->GetFlags() & FL_FROZEN)
 		return;
 
 	// is not on a ladder or use noclip (to skip that needs more proper movefix)

@@ -36,8 +36,11 @@ void CMiscellaneous::Event(IGameEvent* pEvent, const FNV1A_t uNameHash)
 		return;
 }
 
-void CMiscellaneous::MovementCorrection(CUserCmd* pCmd, QAngle& angOldViewPoint)
+void CMiscellaneous::MovementCorrection(CUserCmd* pCmd, CBaseEntity* pLocal, QAngle& angOldViewPoint)
 {
+	if (!pLocal->IsAlive())
+		return;
+
 	Vector vecForward, vecRight, vecUp, vecForwardOld, vecRightOld, vecUpOld;
 	M::AngleVectors(angOldViewPoint, &vecForward, &vecRight, &vecUp);
 	M::AngleVectors(pCmd->angViewPoint, &vecForwardOld, &vecRightOld, &vecUpOld);
@@ -74,6 +77,56 @@ void CMiscellaneous::MovementCorrection(CUserCmd* pCmd, QAngle& angOldViewPoint)
 	pCmd->flForwardMove = std::clamp(x, -450.f, 450.f);
 	pCmd->flSideMove = std::clamp(y, -450.f, 450.f);
 	pCmd->flUpMove = std::clamp(z, -450.f, 450.f);
+}
+
+void CMiscellaneous::AutoPistol(CUserCmd* pCmd, CBaseEntity* pLocal)
+{
+	if (!pLocal->IsAlive())
+		return;
+
+	CBaseCombatWeapon* pWeapon = pLocal->GetWeapon();
+
+	if (pWeapon == nullptr)
+		return;
+
+	short nDefinitionIndex = pWeapon->GetItemDefinitionIndex();
+	const CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(nDefinitionIndex);
+
+	// check for pistol and attack
+	if (pWeaponData == nullptr || pWeaponData->bFullAuto || pWeaponData->nWeaponType != WEAPONTYPE_PISTOL || !(pCmd->iButtons & IN_ATTACK))
+		return;
+
+	if (pLocal->CanShoot(static_cast<CWeaponCSBase*>(pWeapon)))
+		pCmd->iButtons |= IN_ATTACK;
+	else
+		pCmd->iButtons &= ~IN_ATTACK;
+}
+
+void CMiscellaneous::FakeLag(CBaseEntity* pLocal, bool& bSendPacket)
+{
+	if (!pLocal->IsAlive())
+		return;
+
+	INetChannel* pNetChannel = reinterpret_cast<INetChannel*>(I::ClientState->pNetChannel);
+
+	if (pNetChannel == nullptr)
+		return;
+
+	static CConVar* sv_maxusrcmdprocessticks = I::ConVar->FindVar(XorStr("sv_maxusrcmdprocessticks"));
+
+	if (sv_maxusrcmdprocessticks == nullptr)
+		return;
+
+	/*
+	 * @note: get max available ticks to choke
+	 * 2 ticks reserved for server info else player can be stacked
+	 * while antiaiming and fakelag is disabled choke only 1 tick
+	 */
+	const int iMaxCmdProcessTicks = C::Get<bool>(Vars.bMiscFakeLag) ? sv_maxusrcmdprocessticks->GetInt() - 2 :
+		C::Get<bool>(Vars.bAntiAim) ? 1 : 0;
+
+	// choke
+	bSendPacket = I::ClientState->nChokedCommands >= iMaxCmdProcessTicks;
 }
 
 void CMiscellaneous::BunnyHop(CUserCmd* pCmd, CBaseEntity* pLocal)
@@ -129,51 +182,4 @@ void CMiscellaneous::AutoStrafe(CUserCmd* pCmd, CBaseEntity* pLocal)
 		return;
 
 	pCmd->flSideMove = pCmd->sMouseDeltaX < 0.f ? -450.f : 450.f;
-}
-
-void CMiscellaneous::AutoPistol(CUserCmd* pCmd, CBaseEntity* pLocal)
-{
-	CBaseCombatWeapon* pWeapon = pLocal->GetWeapon();
-
-	if (pWeapon == nullptr)
-		return;
-
-	short nDefinitionIndex = pWeapon->GetItemDefinitionIndex();
-	const CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(nDefinitionIndex);
-
-	// check for pistol and attack
-	if (pWeaponData == nullptr || pWeaponData->bFullAuto || pWeaponData->nWeaponType != WEAPONTYPE_PISTOL || !(pCmd->iButtons & IN_ATTACK))
-		return;
-
-	if (pLocal->CanShoot(static_cast<CWeaponCSBase*>(pWeapon)))
-		pCmd->iButtons |= IN_ATTACK;
-	else
-		pCmd->iButtons &= ~IN_ATTACK;
-}
-
-void CMiscellaneous::FakeLag(CBaseEntity* pLocal, bool& bSendPacket)
-{
-	if (!pLocal->IsAlive())
-		return;
-
-	INetChannel* pNetChannel = reinterpret_cast<INetChannel*>(I::ClientState->pNetChannel);
-
-	if (pNetChannel == nullptr)
-		return;
-
-	static CConVar* sv_maxusrcmdprocessticks = I::ConVar->FindVar(XorStr("sv_maxusrcmdprocessticks"));
-
-	if (sv_maxusrcmdprocessticks == nullptr)
-		return;
-
-	/*
-	 * @note: get max available ticks to choke
-	 * 2 ticks reserved for server info else player can be stacked
-	 * while antiaiming and fakelag is disabled choke only 1 tick
-	 */
-	const int iMaxCmdProcessTicks = C::Get<bool>(Vars.bMiscFakeLag) ? sv_maxusrcmdprocessticks->GetInt() - 2 :
-		C::Get<bool>(Vars.bAntiAim) ? 1 : 0;
-
-	// choke
-	bSendPacket = I::ClientState->nChokedCommands >= iMaxCmdProcessTicks;
 }

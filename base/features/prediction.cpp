@@ -10,7 +10,7 @@ void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 {
 	// @xref: "CPrediction::ProcessMovement"
 
-	if (pLocal == nullptr || !pLocal->IsAlive() || I::MoveHelper == nullptr)
+	if (!pLocal->IsAlive() || I::MoveHelper == nullptr)
 		return;
 
 	// start command
@@ -110,7 +110,7 @@ void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 
 void CPrediction::End(CUserCmd* pCmd, CBaseEntity* pLocal)
 {
-	if (pLocal == nullptr || !pLocal->IsAlive() || I::MoveHelper == nullptr)
+	if (!pLocal->IsAlive() || I::MoveHelper == nullptr)
 		return;
 
 	// reset host player
