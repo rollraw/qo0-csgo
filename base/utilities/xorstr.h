@@ -27,6 +27,11 @@
 #define XorStr( s ) XorStr_( s ).crypt_get()
 #endif
 
+// @note: if your cpu doesn't support avx instructions using it may cause crash, define that to fix it
+#if 1
+#define JM_XORSTR_DISABLE_AVX_INTRINSICS
+#endif
+
 namespace jm
 {
 	namespace detail
