@@ -1,4 +1,6 @@
 #pragma once
+// used: clamp
+#include <algorithm>
 // used: isfinite, fmodf, remainderf
 #include <cmath>
 
@@ -21,11 +23,7 @@ public:
 		return !this->IsEqual(angBase);
 	}
 
-	constexpr QAngle& operator=(const QAngle& angBase)
-	{
-		this->x = angBase.x; this->y = angBase.y; this->z = angBase.z;
-		return *this;
-	}
+	constexpr QAngle& operator=(const QAngle& angBase) = default;
 
 	constexpr QAngle& operator+=(const QAngle& angBase)
 	{

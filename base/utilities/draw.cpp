@@ -177,7 +177,7 @@ bool ImGui::HotKey(const char* szLabel, int* v)
 				}
 			}
 		}
-		
+
 		if (IsKeyPressed(io.KeyMap[ImGuiKey_Escape]))
 		{
 			*v = 0;
@@ -189,7 +189,7 @@ bool ImGui::HotKey(const char* szLabel, int* v)
 
 	char chBuffer[64] = { };
 	sprintf_s(chBuffer, sizeof(chBuffer), XorStr("[ %s ]"), *v != 0 && g.ActiveId != nIndex ? arrKeyNames.at(*v) : g.ActiveId == nIndex ? XorStr("press") : XorStr("none"));
-	
+
 	// modified by qo0
 	PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
 	pWindow->DrawList->AddText(ImVec2(frame_bb.Max.x - CalcTextSize(chBuffer).x, total_bb.Min.y + style.FramePadding.y), GetColorU32(g.ActiveId == nIndex ? ImGuiCol_Text : ImGuiCol_TextDisabled), chBuffer);
@@ -497,27 +497,51 @@ void D::RenderDrawData(ImDrawList* pDrawList)
 		{
 		case EDrawType::LINE:
 		{
-			pDrawList->AddLine(data.vecMin, data.vecMax, data.colFirst, data.flThickness);
+			pDrawList->AddLine(data.vecFirst, data.vecSecond, data.colFirst, data.flThickness);
 			break;
 		}
 		case EDrawType::RECT:
 		{
 			if (data.iFlags & IMGUI_RECT_FILLED)
-				pDrawList->AddRectFilled(data.vecMin, data.vecMax, data.colFirst, data.flRounding, data.roundingCorners);
+				pDrawList->AddRectFilled(data.vecFirst, data.vecSecond, data.colFirst, data.flRounding, data.roundingCorners);
 			else
-				pDrawList->AddRect(data.vecMin, data.vecMax, data.colFirst, data.flRounding, data.roundingCorners, data.flThickness);
+				pDrawList->AddRect(data.vecFirst, data.vecSecond, data.colFirst, data.flRounding, data.roundingCorners, data.flThickness);
 
 			if (data.iFlags & IMGUI_RECT_BORDER)
-				pDrawList->AddRect(data.vecMin + ImVec2(1.0f, 1.0f), data.vecMax - ImVec2(1.0f, 1.0f), data.colSecond, data.flRounding, data.roundingCorners, 1.0f);
+				pDrawList->AddRect(data.vecFirst + ImVec2(1.0f, 1.0f), data.vecSecond - ImVec2(1.0f, 1.0f), data.colSecond, data.flRounding, data.roundingCorners, 1.0f);
 
 			if (data.iFlags & IMGUI_RECT_OUTLINE)
-				pDrawList->AddRect(data.vecMin - ImVec2(1.0f, 1.0f), data.vecMax + ImVec2(1.0f, 1.0f), data.colSecond, data.flRounding, data.roundingCorners, 1.0f);
+				pDrawList->AddRect(data.vecFirst - ImVec2(1.0f, 1.0f), data.vecSecond + ImVec2(1.0f, 1.0f), data.colSecond, data.flRounding, data.roundingCorners, 1.0f);
 
 			break;
 		}
 		case EDrawType::RECT_MULTICOLOR:
 		{
-			pDrawList->AddRectFilledMultiColor(data.vecMin, data.vecMax, data.colFirst, data.colSecond, data.colThird, data.colFourth);
+			pDrawList->AddRectFilledMultiColor(data.vecFirst, data.vecSecond, data.colFirst, data.colSecond, data.colThird, data.colFourth);
+			break;
+		}
+		case EDrawType::CIRCLE:
+		{
+			if (data.iFlags & IMGUI_CIRCLE_FILLED)
+				pDrawList->AddCircleFilled(data.vecFirst, data.flRadius, data.colFirst, data.nSegments);
+			else
+				pDrawList->AddCircle(data.vecFirst, data.flRadius, data.colFirst, data.nSegments, data.flThickness);
+
+			if (data.iFlags & IMGUI_CIRCLE_OUTLINE)
+				pDrawList->AddCircle(data.vecFirst, data.flRadius + 1.0f, data.colSecond, data.nSegments, 1.0f);
+
+			break;
+		}
+		case EDrawType::TRIANGLE:
+		{
+			if (data.iFlags & IMGUI_TRIANGLE_FILLED)
+				pDrawList->AddTriangleFilled(data.vecFirst, data.vecSecond, data.vecThird, data.colFirst);
+			else
+				pDrawList->AddTriangle(data.vecFirst, data.vecSecond, data.vecThird, data.colFirst, data.flThickness);
+
+			if (data.iFlags & IMGUI_TRIANGLE_OUTLINE)
+				pDrawList->AddTriangle(data.vecFirst, data.vecSecond, data.vecThird, data.colSecond, 2.0f);
+
 			break;
 		}
 		case EDrawType::TEXT:
@@ -526,14 +550,14 @@ void D::RenderDrawData(ImDrawList* pDrawList)
 			pDrawList->PushTextureID(data.pFont->ContainerAtlas->TexID);
 
 			if (data.iFlags & IMGUI_TEXT_DROPSHADOW)
-				pDrawList->AddText(data.pFont, data.flFontSize, ImVec2(data.vecMin) + ImVec2(1.0f, -1.0f), data.colSecond, data.szText.data());
+				pDrawList->AddText(data.pFont, data.flFontSize, ImVec2(data.vecFirst) + ImVec2(1.0f, -1.0f), data.colSecond, data.szText.data());
 			else if (data.iFlags & IMGUI_TEXT_OUTLINE)
 			{
-				pDrawList->AddText(data.pFont, data.flFontSize, ImVec2(data.vecMin) + ImVec2(1.0f, -1.0f), data.colSecond, data.szText.data());
-				pDrawList->AddText(data.pFont, data.flFontSize, ImVec2(data.vecMin) + ImVec2(-1.0f, 1.0f), data.colSecond, data.szText.data());
+				pDrawList->AddText(data.pFont, data.flFontSize, ImVec2(data.vecFirst) + ImVec2(1.0f, -1.0f), data.colSecond, data.szText.data());
+				pDrawList->AddText(data.pFont, data.flFontSize, ImVec2(data.vecFirst) + ImVec2(-1.0f, 1.0f), data.colSecond, data.szText.data());
 			}
 
-			pDrawList->AddText(data.pFont, data.flFontSize, data.vecMin, data.colFirst, data.szText.data());
+			pDrawList->AddText(data.pFont, data.flFontSize, data.vecFirst, data.colFirst, data.szText.data());
 			pDrawList->PopTextureID();
 			break;
 		}
@@ -561,8 +585,8 @@ void D::AddLine(const ImVec2& vecStart, const ImVec2& vecEnd, Color colLine, flo
 {
 	DrawObject_t draw = { };
 	draw.nType = EDrawType::LINE;
-	draw.vecMin = vecStart;
-	draw.vecMax = vecEnd;
+	draw.vecFirst = vecStart;
+	draw.vecSecond = vecEnd;
 	draw.colFirst = colLine.GetU32();
 	draw.flThickness = flThickness;
 	vecDrawData.emplace_back(draw);
@@ -572,8 +596,8 @@ void D::AddRect(const ImVec2& vecMin, const ImVec2& vecMax, Color colRect, int i
 {
 	DrawObject_t draw = { };
 	draw.nType = EDrawType::RECT;
-	draw.vecMin = vecMin;
-	draw.vecMax = vecMax;
+	draw.vecFirst = vecMin;
+	draw.vecSecond = vecMax;
 	draw.colFirst = colRect.GetU32();
 	draw.iFlags = iFlags;
 	draw.colSecond = colOutline.GetU32();
@@ -587,8 +611,8 @@ void D::AddRectMultiColor(const ImVec2& vecMin, const ImVec2& vecMax, Color colU
 {
 	DrawObject_t draw = { };
 	draw.nType = EDrawType::RECT_MULTICOLOR;
-	draw.vecMin = vecMin;
-	draw.vecMax = vecMax;
+	draw.vecFirst = vecMin;
+	draw.vecSecond = vecMax;
 	draw.colFirst = colUpperLeft.GetU32();
 	draw.colSecond = colUpperRight.GetU32();
 	draw.colThird = colBottomLeft.GetU32();
@@ -596,17 +620,31 @@ void D::AddRectMultiColor(const ImVec2& vecMin, const ImVec2& vecMax, Color colU
 	vecDrawData.emplace_back(draw);
 }
 
-void D::AddCircle(const ImVec2& vecCenter, float flRadius, Color colCircle, int nSegments, int iFlags, Color colOutline, float flThinkness)
+void D::AddCircle(const ImVec2& vecCenter, float flRadius, Color colCircle, int nSegments, int iFlags, Color colOutline, float flThickness)
 {
 	DrawObject_t draw = { };
 	draw.nType = EDrawType::CIRCLE;
-	draw.vecMin = vecCenter;
+	draw.vecFirst = vecCenter;
 	draw.flRadius = flRadius;
 	draw.nSegments = nSegments;
 	draw.colFirst = colCircle.GetU32();
 	draw.iFlags = iFlags;
 	draw.colSecond = colOutline.GetU32();
-	draw.flThickness = flThinkness;
+	draw.flThickness = flThickness;
+	vecDrawData.emplace_back(draw);
+}
+
+void D::AddTriangle(const ImVec2& vecFirst, const ImVec2& vecSecond, const ImVec2& vecThird, Color colTriangle, int iFlags, Color colOutline, float flThickness)
+{
+	DrawObject_t draw = { };
+	draw.nType = EDrawType::TRIANGLE;
+	draw.vecFirst = vecFirst;
+	draw.vecSecond = vecSecond;
+	draw.vecThird = vecThird;
+	draw.colFirst = colTriangle.GetU32();
+	draw.iFlags = iFlags;
+	draw.colSecond = colOutline.GetU32();
+	draw.flThickness = flThickness;
 	vecDrawData.emplace_back(draw);
 }
 
@@ -622,7 +660,7 @@ void D::AddText(const ImFont* pFont, float flFontSize, const ImVec2& vecPosition
 	draw.nType = EDrawType::TEXT;
 	draw.pFont = pFont;
 	draw.flFontSize = flFontSize;
-	draw.vecMin = vecPosition;
+	draw.vecFirst = vecPosition;
 	draw.szText = szText;
 	draw.colFirst = colText.GetU32();
 	draw.iFlags = iFlags;

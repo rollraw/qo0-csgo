@@ -23,6 +23,7 @@ enum class EDrawType : int
 	RECT,
 	RECT_MULTICOLOR,
 	CIRCLE,
+	TRIANGLE,
 	TEXT
 };
 
@@ -38,16 +39,24 @@ enum ERectRenderFlags : int
 // circle rendering flags
 enum ECircleRenderFlags : int
 {
-	IMGUI_CIRCLE_NONE = 0,
-	IMGUI_CIRCLE_OUTLINE = (1 << 0),
-	IMGUI_CIRCLE_FILLED = (1 << 1)
+	IMGUI_CIRCLE_NONE =		0,
+	IMGUI_CIRCLE_OUTLINE =	(1 << 0),
+	IMGUI_CIRCLE_FILLED =	(1 << 1)
+};
+
+// triangle rendering flags
+enum ETriangleRenderFlags : int
+{
+	IMGUI_TRIANGLE_NONE =	0,
+	IMGUI_TRIANGLE_OUTLINE = (1 << 0),
+	IMGUI_TRIANGLE_FILLED =	(1 << 1)
 };
 
 // text rendering flags
 enum ETextRenderFlags : int
 {
 	IMGUI_TEXT_NONE =		0,
-	IMGUI_TEXT_DROPSHADOW = (1 << 0),
+	IMGUI_TEXT_DROPSHADOW =	(1 << 0),
 	IMGUI_TEXT_OUTLINE =	(1 << 1)
 };
 #pragma endregion
@@ -62,14 +71,15 @@ struct DrawObject_t
 	const ImFont* pFont = nullptr;
 
 	/* position */
-	ImVec2 vecMin = { };
-	ImVec2 vecMax = { };
+	ImVec2 vecFirst = { };
+	ImVec2 vecSecond = { };
+	ImVec2 vecThird = { };
 
 	/* colors */
-	ImU32 colFirst = 0;
-	ImU32 colSecond = 0;
-	ImU32 colThird = 0;
-	ImU32 colFourth = 0;
+	ImU32 colFirst = 0U;
+	ImU32 colSecond = 0U;
+	ImU32 colThird = 0U;
+	ImU32 colFourth = 0U;
 
 	/* string */
 	std::string szText = { };
@@ -143,10 +153,10 @@ namespace D
 	void AddLine(const ImVec2& vecStart, const ImVec2& vecEnd, Color colLine, float flThickness = 1.0f);
 	void AddRect(const ImVec2& vecMin, const ImVec2& vecMax, Color colRect, int iFlags = IMGUI_RECT_NONE, Color colOutline = Color(0, 0, 0, 255), float flRounding = 0.f, ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_All, float flThickness = 1.0f);
 	void AddRectMultiColor(const ImVec2& vecMin, const ImVec2& vecMax, Color colUpperLeft, Color colUpperRight, Color colBottomLeft, Color colBottomRight);
-	void AddCircle(const ImVec2& vecCenter, float flRadius, Color colCircle, int nSegments = 12, int iFlags = IMGUI_CIRCLE_NONE, Color colOutline = Color(0, 0, 0, 255), float flThinkness = 1.0f);
+	void AddCircle(const ImVec2& vecCenter, float flRadius, Color colCircle, int nSegments = 12, int iFlags = IMGUI_CIRCLE_NONE, Color colOutline = Color(0, 0, 0, 255), float flThickness = 1.0f);
+	void AddTriangle(const ImVec2& vecFirst, const ImVec2& vecSecond, const ImVec2& vecThird, Color colTriangle, int iFlags = IMGUI_TRIANGLE_NONE, Color colOutline = Color(0, 0, 0, 255), float flThickness = 1.0f);
 	void AddText(const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const std::string& szText, Color colText, int iFlags = IMGUI_TEXT_NONE, Color colOutline = Color(0, 0, 0, 255));
 	void AddText(const ImVec2& vecPosition, const std::string& szText, Color colText, int iFlags = IMGUI_TEXT_NONE, Color colOutline = Color(0, 0, 0, 255));
-
 
 	// Extra
 	/* converts 3d game world space to screen space */

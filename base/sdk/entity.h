@@ -682,6 +682,16 @@ public:
 	}
 };
 
+class IRefCounted;
+class CEconItemView
+{
+public:
+	N_ADD_OFFSET(CUtlVector<IRefCounted*>, GetCustomMaterials, 0x14);
+	// @ida: "8B 7C 24 34 81 C7 ? ? ? ?" + 0x2
+	// @xref: "Original material not found! Name: %s"
+	N_ADD_OFFSET(CUtlVector<IRefCounted*>, GetVisualsDataProcessors, 0x230);
+};
+
 class CBaseCombatWeapon : public IClientEntity
 {
 public:
@@ -710,6 +720,7 @@ public:
 	N_ADD_VARIABLE(int, GetFallbackSeed, "CBaseAttributableItem->m_nFallbackSeed");
 	N_ADD_VARIABLE(float, GetFallbackWear, "CBaseAttributableItem->m_flFallbackWear");
 	N_ADD_VARIABLE(int, GetFallbackStatTrak, "CBaseAttributableItem->m_nFallbackStatTrak");
+	N_ADD_PVARIABLE(CEconItemView, GetEconItemView, "CBaseAttributableItem->m_Item");
 	#pragma endregion
 
 	void SetModelIndex(int nModelIndex)
@@ -738,28 +749,6 @@ public:
 	}
 };
 
-class IRefCounted;
-class CEconItemView
-{
-public:
-	std::byte					pad0[0x4];					//0x0000
-	CUtlVector<IRefCounted*>	vecCustomMaterials;			//0x0004
-	std::byte					pad1[0x208];				//0x0018
-	CUtlVector<IRefCounted*>	vecVisualsDataProcessors;	//0x0220
-}; // Size: 0x0234
-
-class CAttributeManager
-{
-public:
-	std::byte		pad0[0x18];					//0x0000
-	int				iReapplyProvisionParity;	//0x0018
-	std::uintptr_t	hOuter;						//0x001C
-	std::byte		pad1[0x4];					//0x0020
-	int				iProviderType;				//0x0024
-	std::byte		pad2[0x18];					//0x0028
-	CEconItemView	Item;						//0x0040
-}; // Size: 0x0274
-
 class CTEFireBullets
 {
 public:
@@ -781,13 +770,6 @@ public:
 class CWeaponCSBase : public CBaseCombatWeapon
 {
 public:
-	std::byte					pad0[0x9CC];				//0x0000
-	CUtlVector<IRefCounted*>	vecCustomMaterials;			//0x09DC
-	std::byte					pad1[0x23A0];				//0x09EE
-	CAttributeManager			AttributeManager;			//0x2D80
-	std::byte					pad2[0x32C];				//0x3004
-	bool						bCustomMaterialInitialized; //0x3330
-
 	#pragma region DT_WeaponCSBaseGun
 	N_ADD_VARIABLE(int, GetZoomLevel, "CWeaponCSBaseGun->m_zoomLevel");
 	N_ADD_VARIABLE(int, GetBurstShotsRemaining, "CWeaponCSBaseGun->m_iBurstShotsRemaining");
@@ -798,7 +780,19 @@ public:
 	N_ADD_VARIABLE(float, GetAccuracyPenalty, "CWeaponCSBase->m_fAccuracyPenalty");
 	N_ADD_VARIABLE(float, GetFireReadyTime, "CWeaponCSBase->m_flPostponeFireReadyTime");
 	#pragma endregion
-}; // Size: 0x3331
+
+	CUtlVector<IRefCounted*>& GetCustomMaterials()
+	{
+		static auto uAddress = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, XorStr("83 BE ? ? ? ? ? 7F 67")) + 0x2) - 0xC;
+		return *reinterpret_cast<CUtlVector<IRefCounted*>*>(reinterpret_cast<std::uintptr_t>(this) + uAddress);
+	}
+
+	bool& IsCustomMaterialInitialized()
+	{
+		static auto uAddress = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, XorStr("C6 86 ? ? ? ? ? FF 50 04")) + 0x2);
+		return *reinterpret_cast<bool*>(reinterpret_cast<std::uintptr_t>(this) + uAddress);
+	}
+};
 
 class CBaseCSGrenade : public CWeaponCSBase
 {

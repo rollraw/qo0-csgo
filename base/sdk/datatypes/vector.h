@@ -56,11 +56,7 @@ public:
 		return !this->IsEqual(vecBase);
 	}
 
-	constexpr Vector& operator=(const Vector& vecBase)
-	{
-		this->x = vecBase.x; this->y = vecBase.y; this->z = vecBase.z;
-		return *this;
-	}
+	constexpr Vector& operator=(const Vector& vecBase) = default;
 
 	constexpr Vector& operator=(const Vector2D& vecBase2D)
 	{
