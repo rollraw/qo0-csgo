@@ -80,18 +80,18 @@ public:
 		SetProxy(pNewProxyFn);
 	}
 
-	/* restore original function */
-	~CRecvPropHook()
-	{
-		this->pRecvProp->oProxyFn = this->pOriginalFn;
-	}
-
 	// Get
 	/* replace with our function */
 	void Replace(RecvProp_t* pRecvProp)
 	{
 		this->pRecvProp = pRecvProp;
 		this->pOriginalFn = pRecvProp->oProxyFn;
+	}
+
+	/* restore original function */
+	void Restore()
+	{
+		this->pRecvProp->oProxyFn = this->pOriginalFn;
 	}
 
 	void SetProxy(const RecvVarProxyFn pNewProxyFn) const

@@ -217,7 +217,7 @@ std::vector<int> MEM::PatternToBytes(const char* szPattern)
 
 std::string MEM::BytesToPattern(std::uint8_t* arrBytes, std::size_t uSize)
 {
-	std::stringstream ssPattern = { };
+	std::stringstream ssPattern;
 	ssPattern << std::hex << std::setfill('0');
 
 	for (std::size_t i = 0U; i < uSize; i++)

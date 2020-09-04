@@ -16,11 +16,6 @@ public:
 	explicit CDetourHook(void* pFunction, void* pDetour)
 		: pBaseFn(pFunction), pReplaceFn(pDetour) { }
 
-	~CDetourHook()
-	{
-		this->Remove();
-	}
-
 	/* first hook setup */
 	bool Create(void* pFunction, void* pDetour)
 	{

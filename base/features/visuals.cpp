@@ -1291,10 +1291,8 @@ void CVisuals::FlashBar(CBaseEntity* pEntity, Context_t& ctx, Color colPrimary, 
 	float flFactor = pEntity->GetFlashAlpha() / *pEntity->GetFlashMaxAlpha();
 
 	// background
-	D::AddRect(ImVec2(ctx.box.left, ctx.box.top - 3 - ctx.arrPadding.at(DIR_TOP)), ImVec2(ctx.box.right, ctx.box.top - 5 - ctx.arrPadding.at(DIR_TOP)), colBackground, IMGUI_RECT_FILLED);
+	D::AddRect(ImVec2(ctx.box.left, ctx.box.top - 5 - ctx.arrPadding.at(DIR_TOP)), ImVec2(ctx.box.right, ctx.box.top - 3 - ctx.arrPadding.at(DIR_TOP)), colBackground, IMGUI_RECT_FILLED | IMGUI_RECT_OUTLINE);
 	// bar
-	D::AddRect(ImVec2(ctx.box.left, ctx.box.top - 3 - ctx.arrPadding.at(DIR_TOP)), ImVec2(ctx.box.left + ctx.box.width * flFactor, ctx.box.top - 5 - ctx.arrPadding.at(DIR_TOP)), colPrimary, IMGUI_RECT_FILLED);
-	// outline
-	D::AddRect(ImVec2(ctx.box.left - 1, ctx.box.top - 3 - ctx.arrPadding.at(DIR_TOP)), ImVec2(ctx.box.right + 1, ctx.box.top - 5 - ctx.arrPadding.at(DIR_TOP)), colOutline); // hmm, why offset here like for bar or bg?
+	D::AddRect(ImVec2(ctx.box.left, ctx.box.top - 5 - ctx.arrPadding.at(DIR_TOP)), ImVec2(ctx.box.left + ctx.box.width * flFactor, ctx.box.top - 3 - ctx.arrPadding.at(DIR_TOP)), colPrimary, IMGUI_RECT_FILLED);
 	ctx.arrPadding.at(DIR_TOP) += 6.0f;
 }

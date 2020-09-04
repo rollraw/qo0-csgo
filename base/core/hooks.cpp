@@ -109,27 +109,27 @@ bool H::Setup()
 
 void H::Restore()
 {
-	DTR::Reset.~CDetourHook();
-	DTR::EndScene.~CDetourHook();
-	DTR::FrameStageNotify.~CDetourHook();
-	DTR::OverrideView.~CDetourHook();
-	DTR::OverrideMouseInput.~CDetourHook();
-	DTR::CreateMove.~CDetourHook();
-	DTR::SendNetMsg.~CDetourHook();
-	DTR::SendDatagram.~CDetourHook();
-	DTR::GetViewModelFOV.~CDetourHook();
-	DTR::DoPostScreenEffects.~CDetourHook();
-	DTR::IsConnected.~CDetourHook();
-	DTR::ListLeavesInBox.~CDetourHook();
-	DTR::PaintTraverse.~CDetourHook();
-	DTR::DrawModel.~CDetourHook();
-	DTR::RunCommand.~CDetourHook();
-	DTR::SendMessageGC.~CDetourHook();
-	DTR::RetrieveMessage.~CDetourHook();
-	DTR::EmitSound.~CDetourHook();
-	DTR::LockCursor.~CDetourHook();
-	DTR::PlaySoundSurface.~CDetourHook();
-	DTR::SvCheatsGetBool.~CDetourHook();
+	DTR::Reset.Remove();
+	DTR::EndScene.Remove();
+	DTR::FrameStageNotify.Remove();
+	DTR::OverrideView.Remove();
+	DTR::OverrideMouseInput.Remove();
+	DTR::CreateMove.Remove();
+	DTR::SendNetMsg.Remove();
+	DTR::SendDatagram.Remove();
+	DTR::GetViewModelFOV.Remove();
+	DTR::DoPostScreenEffects.Remove();
+	DTR::IsConnected.Remove();
+	DTR::ListLeavesInBox.Remove();
+	DTR::PaintTraverse.Remove();
+	DTR::DrawModel.Remove();
+	DTR::RunCommand.Remove();
+	DTR::SendMessageGC.Remove();
+	DTR::RetrieveMessage.Remove();
+	DTR::EmitSound.Remove();
+	DTR::LockCursor.Remove();
+	DTR::PlaySoundSurface.Remove();
+	DTR::SvCheatsGetBool.Remove();
 
 	// @note: also should works but makes it undebuggable
 	#if 0
@@ -821,7 +821,7 @@ void P::Restore()
 	// @note: as example
 	#if 0
 	// restore smoke effect
-	RVP::SmokeEffectTickBegin->~CRecvPropHook();
+	RVP::SmokeEffectTickBegin->Restore();
 	#endif
 }
 #pragma endregion
