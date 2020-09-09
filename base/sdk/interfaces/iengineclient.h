@@ -204,9 +204,9 @@ public:
 		MEM::CallVFunc<void>(this, 108, szCmdString);
 	}
 
-	void ClientCmd_Unrestricted(const char* szCmdString, const char* szFlag = nullptr)
+	void ClientCmdUnrestricted(const char* szCmdString, bool bFromConsoleOrKeybind = false)
 	{
-		MEM::CallVFunc<void>(this, 114, szCmdString, szFlag);
+		MEM::CallVFunc<void>(this, 114, szCmdString, bFromConsoleOrKeybind);
 	}
 
 	SteamAPIContext_t* GetSteamAPIContext()

@@ -18,7 +18,7 @@ void CResolver::Run()
 
 void CResolver::Event(IGameEvent* pEvent, const FNV1A_t uNameHash)
 {
-	if (pEvent == nullptr || !I::Engine->IsInGame())
+	if (!I::Engine->IsInGame())
 		return;
 
 	/* check if we hit somebody in which hitbox (head or body) and log her angles to resolve */

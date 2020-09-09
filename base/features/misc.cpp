@@ -32,7 +32,7 @@ void CMiscellaneous::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 
 void CMiscellaneous::Event(IGameEvent* pEvent, const FNV1A_t uNameHash)
 {
-	if (pEvent == nullptr || !I::Engine->IsInGame())
+	if (!I::Engine->IsInGame())
 		return;
 }
 

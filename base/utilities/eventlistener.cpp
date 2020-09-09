@@ -29,6 +29,9 @@ void CEventListener::Destroy()
 
 void CEventListener::FireGameEvent(IGameEvent* pEvent)
 {
+	if (pEvent == nullptr)
+		return;
+
 	// get hash of event name
 	const FNV1A_t uNameHash = FNV1A::Hash(pEvent->GetName());
 

@@ -278,7 +278,7 @@ void CVisuals::Store(CBaseEntity* pLocal)
 
 void CVisuals::Event(IGameEvent* pEvent, const FNV1A_t uNameHash)
 {
-	if (pEvent == nullptr || !I::Engine->IsInGame())
+	if (!I::Engine->IsInGame())
 		return;
 
 	CBaseEntity* pLocal = CBaseEntity::GetLocalPlayer();
