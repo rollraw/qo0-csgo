@@ -17,13 +17,14 @@ enum class EKeyState : int
  * INPUT SYSTEM
  * listen and handle key states
  */
-namespace IPT // doesnt like that name uhh
+namespace IPT
 {
 	// Values
 	/* current window */
 	inline HWND	hWindow = nullptr;
 	/* saved window messages handler */
 	inline WNDPROC pOldWndProc = nullptr;
+	/* last processed key states */
 	inline std::array<EKeyState, 256U> arrKeyState = { };
 
 	// Get

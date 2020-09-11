@@ -468,7 +468,7 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 		{
 			static bool bThirdPerson = false;
 
-			if (!I::Engine->IsConsoleVisible() && !W::bMainOpened && IPT::IsKeyReleased(C::Get<int>(Vars.iWorldThirdPersonKey)))
+			if (!I::Engine->IsConsoleVisible() && IPT::IsKeyReleased(C::Get<int>(Vars.iWorldThirdPersonKey)))
 				bThirdPerson = !bThirdPerson;
 
 			// my solution is here cuz camera offset is dynamically by standard functions without any garbage in overrideview hook

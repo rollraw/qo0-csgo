@@ -3,9 +3,6 @@
 
 // used: winapi, directx, fmt includes
 #include "common.h"
-// used: ms,s time literals
-using namespace std::chrono_literals;
-
 // used: global variables
 #include "global.h"
 // used: cheat variables

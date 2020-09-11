@@ -1,12 +1,15 @@
 // used: std::this_thread
 #include <thread>
-// used: sleep_for
-#include <chrono>
-using namespace std::chrono_literals;
 
 #include "inputsystem.h"
 // used: wndproc hook, inputsystem interface
 #include "../core/hooks.h"
+// used: menu open/panic keys
+#include "../core/variables.h"
+// used: get variable
+#include "../core/config.h"
+// used: menu open state
+#include "../core/menu.h"
 
 bool IPT::Setup()
 {
@@ -41,6 +44,10 @@ void IPT::Restore()
 
 bool IPT::Process(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	// prevent process when e.g. binding something in-menu
+	if (W::bMainOpened && wParam != C::Get<int>(Vars.iMenuKey) && wParam != C::Get<int>(Vars.iPanicKey))
+		return false;
+
 	// current active key
 	int nKey = 0;
 	// current active key state

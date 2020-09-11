@@ -109,6 +109,9 @@
 #include "../dependencies/fmt/format.h"
 #include "../dependencies/fmt/chrono.h"
 
+// used: ns,ms,s,m,h time literals
+using namespace std::chrono_literals;
+
 /* crypt */
 #include "utilities/xorstr.h"
 // @note: also u can try lazy importer for some anti-reverse safety. documentation is available at https://github.com/JustasMasiulis/lazy_importer
