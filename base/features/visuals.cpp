@@ -29,8 +29,8 @@ void CVisuals::Store(CBaseEntity* pLocal)
 	mat_postprocess_enable->fnChangeCallbacks.Size() = NULL;
 	mat_postprocess_enable->SetValue(!(C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_POSTPROCESSING)));
 
-	// doesn't show when menu is opened
-	if (W::bMainOpened)
+	// check is initialized and doesn't show when menu is opened
+	if (!D::bInitialized || W::bMainOpened)
 		return;
 
 	const ImVec2 vecScreenSize = ImGui::GetIO().DisplaySize;
