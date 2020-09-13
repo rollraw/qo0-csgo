@@ -309,15 +309,6 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 		pCmd->angViewPoint.Clamp();
 	}
 
-	// clear data from previous call
-	D::ClearDrawData();
-
-	// store data to render
-	CVisuals::Get().Store(pLocal);
-
-	// swap given data to safe container
-	D::SwapDrawData();
-
 	if (C::Get<bool>(Vars.bMiscPingSpike))
 		CLagCompensation::Get().UpdateIncomingSequences(pNetChannel);
 	else
@@ -347,12 +338,26 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 void FASTCALL H::hkPaintTraverse(ISurface* thisptr, int edx, unsigned int uPanel, bool bForceRepaint, bool bForce)
 {
 	static auto oPaintTraverse = DTR::PaintTraverse.GetOriginal<decltype(&hkPaintTraverse)>();
+	const FNV1A_t uPanelHash = FNV1A::Hash(I::Panel->GetName(uPanel));
 
 	// remove zoom panel
-	if (!I::Engine->IsTakingScreenshot() && C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SCOPE) && !strcmp(I::Panel->GetName(uPanel), XorStr("HudZoom")))
+	if (!I::Engine->IsTakingScreenshot() && C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SCOPE) && uPanelHash == FNV1A::HashConst("HudZoom"))
 		return;
 
 	oPaintTraverse(thisptr, edx, uPanel, bForceRepaint, bForce);
+
+	// @note: we don't render here, only store's data and render it later
+	if (uPanelHash == FNV1A::HashConst("FocusOverlayPanel"))
+	{
+		// clear data from previous call
+		D::ClearDrawData();
+
+		// store data to render
+		CVisuals::Get().Store();
+
+		// swap given data to safe container
+		D::SwapDrawData();
+	}
 }
 
 void FASTCALL H::hkPlaySound(ISurface* thisptr, int edx, const char* szFileName)

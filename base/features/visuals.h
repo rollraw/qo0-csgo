@@ -33,7 +33,7 @@ class CVisuals : public CSingleton<CVisuals>
 public:
 	// Get
 	/* sort entities and save data to draw */
-	void Store(CBaseEntity* pLocal);
+	void Store();
 	/* get info for hitmarker or e.g. bullettracer */
 	void Event(IGameEvent* pEvent, const FNV1A_t uNameHash);
 	// Other

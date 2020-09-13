@@ -488,6 +488,10 @@ void D::RenderDrawData(ImDrawList* pDrawList)
 {
 	std::unique_lock<std::shared_mutex> lock(drawMutex);
 
+	// prevent render in main menu
+	if (!I::Engine->IsInGame())
+		return;
+
 	if (vecSafeDrawData.empty())
 		return;
 
