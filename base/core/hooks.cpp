@@ -90,9 +90,6 @@ bool H::Setup()
 	if (!DTR::RetrieveMessage.Create(MEM::GetVFunc(I::SteamGameCoordinator, VTABLE::RETRIEVEMESSAGE), &hkRetrieveMessage))
 		return false;
 
-	if (!DTR::EmitSound.Create(MEM::GetVFunc(I::EngineSound, VTABLE::EMITSOUND), &hkEmitSound))
-		return false;
-
 	if (!DTR::LockCursor.Create(MEM::GetVFunc(I::Surface, VTABLE::LOCKCURSOR), &hkLockCursor))
 		return false;
 
@@ -126,7 +123,6 @@ void H::Restore()
 	DTR::RunCommand.Remove();
 	DTR::SendMessageGC.Remove();
 	DTR::RetrieveMessage.Remove();
-	DTR::EmitSound.Remove();
 	DTR::LockCursor.Remove();
 	DTR::PlaySoundSurface.Remove();
 	DTR::SvCheatsGetBool.Remove();
@@ -758,15 +754,6 @@ int FASTCALL H::hkRetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::
 	}
 
 	return iStatus;
-}
-
-void FASTCALL H::hkEmitSound(IEngineSound* thisptr, int edx, IRecipientFilter& filter, int nEntityIndex, int iChannel, const char* szSoundEntry, unsigned int uSoundEntryHash, const char* szSample, float flVolume, float flAttenuation, int nSeed, int iFlags, int iPitch, const Vector* vecOrigin, const Vector* vecDirection, CUtlVector<Vector>* pUtlVecOrigins, bool bUpdatePositions, int flSoundTime, int nSpeakerEntity, StartSoundParams_t& parameters)
-{
-	static auto oEmitSound = DTR::EmitSound.GetOriginal<decltype(&hkEmitSound)>();
-
-	// @note: for sound esp use: "player/footsteps", "player/land", "clipout" sounds check
-
-	oEmitSound(thisptr, edx, filter, nEntityIndex, iChannel, szSoundEntry, uSoundEntryHash, szSample, flVolume, flAttenuation, nSeed, iFlags, iPitch, vecOrigin, vecDirection, pUtlVecOrigins, bUpdatePositions, flSoundTime, nSpeakerEntity, parameters);
 }
 
 bool FASTCALL H::hkSvCheatsGetBool(CConVar* thisptr, int edx)

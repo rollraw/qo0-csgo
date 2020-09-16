@@ -40,6 +40,7 @@ void CVisuals::Store()
 
 	const ImVec2 vecScreenSize = ImGui::GetIO().DisplaySize;
 
+	#pragma region visuals_store_world
 	// render scope lines
 	if (auto pWeapon = pLocal->GetWeapon(); pWeapon != nullptr && C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SCOPE))
 	{
@@ -62,14 +63,17 @@ void CVisuals::Store()
 			D::AddRectMultiColor(ImVec2(vecScreenSize.x * 0.5f - flWidth, 0.f), ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y), Color(0, 0, 0, 0), Color(0, 0, 0, uAlpha), Color(0, 0, 0, uAlpha), Color(0, 0, 0, 0));
 		}
 	}
+	#pragma endregion
 
-	// on-screen
+	#pragma region visuals_store_screen
 	if (C::Get<bool>(Vars.bScreen))
 	{
 		if (C::Get<bool>(Vars.bScreenHitMarker))
 			HitMarker(vecScreenSize, flServerTime, C::Get<Color>(Vars.colScreenHitMarker), C::Get<Color>(Vars.colScreenHitMarkerDamage));
 	}
+	#pragma endregion
 
+	#pragma region visuals_store_esp
 	std::vector<std::pair<CBaseEntity*, float>> vecOrder = { };
 
 	for (int i = 1; i < I::ClientEntityList->GetMaxEntities(); i++)
@@ -191,6 +195,7 @@ void CVisuals::Store()
 				 *		full
 				 *		corner
 				 2	bars:
+				 *		flash
 				 *		health
 				 *		ammo
 				 3	texts:
@@ -279,6 +284,7 @@ void CVisuals::Store()
 		}
 		}
 	}
+	#pragma endregion
 }
 
 void CVisuals::Event(IGameEvent* pEvent, const FNV1A_t uNameHash)
@@ -766,46 +772,52 @@ IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view sz
 
 void CVisuals::HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color colLines, Color colDamage)
 {
-	float flAlpha = 0.f;
+	if (vecHitMarks.empty())
+		return;
 
+	// get last time delta for lines
+	float flLastDelta = vecHitMarks.back().flTime - flServerTime;
+
+	if (flLastDelta <= 0.f)
+		return;
+
+	const float flMaxLinesAlpha = colLines.aBase();
+	constexpr int arrSides[4][2] = { { -1, -1 }, { 1, 1 }, { -1, 1 }, { 1, -1 } };
+	for (const auto& iSide : arrSides)
+	{
+		// set fade out alpha
+		colLines.arrColor.at(3) = static_cast<std::uint8_t>(std::min(flMaxLinesAlpha, flLastDelta / C::Get<float>(Vars.flScreenHitMarkerTime)) * 255.f);
+		// draw mark cross
+		D::AddLine(ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * iSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * iSide[1]), ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * iSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * iSide[1]), colLines);
+	}
+
+	if (!C::Get<bool>(Vars.bScreenHitMarkerDamage))
+		return;
+
+	const float flMaxDamageAlpha = colDamage.aBase();
 	for (std::size_t i = 0U; i < vecHitMarks.size(); i++)
 	{
-		float flDelta = vecHitMarks.at(i).flTime - flServerTime;
+		const float flDelta = vecHitMarks.at(i).flTime - flServerTime;
 
-		if (flDelta < 0.f)
+		if (flDelta <= 0.f)
 		{
 			vecHitMarks.erase(vecHitMarks.cbegin() + i);
 			continue;
 		}
 
-		if (!C::Get<bool>(Vars.bScreenHitMarkerDamage))
-			continue;
-
-		// max distance for floating damage
-		constexpr int iDistance = 40;
-
-		float flRatio = 1.f - (flDelta / C::Get<float>(Vars.flScreenHitMarkerTime));
-		flAlpha = flDelta / C::Get<float>(Vars.flScreenHitMarkerTime);
-
 		Vector2D vecScreen = { };
 		if (D::WorldToScreen(vecHitMarks.at(i).vecPosition, vecScreen))
 		{
-			// set fade out alpha
-			colDamage.arrColor.at(3) = static_cast<std::uint8_t>(std::min(colDamage.aBase(), flAlpha) * 255.f);
-			// draw dealt damage
-			D::AddText(F::SmallestPixel, 20.f, ImVec2(vecScreen.x, vecScreen.y - flRatio * iDistance), std::to_string(vecHitMarks.at(i).iDamage), colDamage, IMGUI_TEXT_OUTLINE);
-		}
-	}
+			// max distance for floating damage
+			constexpr float flDistance = 40.f;
+			const float flRatio = 1.0f - (flDelta / C::Get<float>(Vars.flScreenHitMarkerTime));
 
-	if (!vecHitMarks.empty())
-	{
-		constexpr int arrSides[4][2] = { { -1, -1 }, { 1, 1 }, { -1, 1 }, { 1, -1 } };
-		for (auto& iSide : arrSides)
-		{
 			// set fade out alpha
-			colLines.arrColor.at(3) = static_cast<std::uint8_t>(std::min(colLines.aBase(), flAlpha) * 255.f);
-			// draw mark cross
-			D::AddLine(ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * iSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * iSide[1]), ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * iSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * iSide[1]), colLines);
+			const std::uint8_t uAlpha = static_cast<std::uint8_t>(std::min(flMaxDamageAlpha, flDelta / C::Get<float>(Vars.flScreenHitMarkerTime)) * 255.f);
+			colDamage.arrColor.at(3) = uAlpha;
+
+			// draw dealt damage
+			D::AddText(F::SmallestPixel, 24.f, ImVec2(vecScreen.x, vecScreen.y - flRatio * flDistance), std::to_string(vecHitMarks.at(i).iDamage), colDamage, IMGUI_TEXT_OUTLINE, Color(0, 0, 0, uAlpha));
 		}
 	}
 }

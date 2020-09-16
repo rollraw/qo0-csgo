@@ -130,7 +130,7 @@ struct SoundInfo_t
 {
 	int			nGuid;
 	FileNameHandle_t hFileName;
-	int			iSoundSource;
+	int			nSoundSource;
 	int			iChannel;
 	int			nSpeakerEntity;
 	float		flVolume;
@@ -143,6 +143,7 @@ struct SoundInfo_t
 	bool		bIsSentence;
 	bool		bDryMix;
 	bool		bSpeaker;
+	bool		bSpecialDSP;
 	bool		bFromServer;
 };
 
@@ -189,16 +190,16 @@ public:
 	virtual bool	IsLoopingSound(const char* szSample) = 0;
 	virtual float	GetSoundDuration(const char* szSample) = 0;
 
-	virtual int EmitSound1(IRecipientFilter& filter, int nEntityIndex, int iChannel, const char* szSoundEntry, unsigned int uSoundEntryHash, const char* szSample,
-		float flVolume, ESoundLevel iSoundLevel, int nSeed, int iFlags = 0, int iPitch = PITCH_NORM,
-		const Vector* vecOrigin = nullptr, const Vector* vecDirection = nullptr, CUtlVector<Vector>* pUtlVecOrigins = nullptr, bool bUpdatePositions = true, float flSoundTime = 0.0f, int nSpeakerEntity = -1, int parameters = 0) = 0;
-
-	virtual int EmitSound2(IRecipientFilter& filter, int nEntityIndex, int iChannel, const char* szSoundEntry, unsigned int uSoundEntryHash, const char* szSample,
+	virtual int EmitSound(IRecipientFilter& filter, int nEntityIndex, int iChannel, const char* szSoundEntry, unsigned int uSoundEntryHash, const char* szSample,
 		float flVolume, float flAttenuation, int nSeed, int iFlags = 0, int iPitch = PITCH_NORM,
-		const Vector* vecOrigin = nullptr, const Vector* vecDirection = nullptr, CUtlVector<Vector>* pUtlVecOrigins = nullptr, bool bUpdatePositions = true, float flSoundTime = 0.0f, int nSpeakerEntity = -1, int parameters = 0) = 0;
+		const Vector* vecOrigin = nullptr, const Vector* vecDirection = nullptr, CUtlVector<Vector>* pUtlVecOrigins = nullptr, bool bUpdatePositions = true, float flSoundTime = 0.0f, int nSpeakerEntity = -1, StartSoundParams_t& parameters = StartSoundParams_t{ }) = 0;
+
+	virtual int EmitSound(IRecipientFilter& filter, int nEntityIndex, int iChannel, const char* szSoundEntry, unsigned int uSoundEntryHash, const char* szSample,
+		float flVolume, ESoundLevel nSoundLevel, int nSeed, int iFlags = 0, int iPitch = PITCH_NORM,
+		const Vector* vecOrigin = nullptr, const Vector* vecDirection = nullptr, CUtlVector<Vector>* pUtlVecOrigins = nullptr, bool bUpdatePositions = true, float flSoundTime = 0.0f, int nSpeakerEntity = -1, StartSoundParams_t& parameters = StartSoundParams_t{ }) = 0;
 
 	virtual void EmitSentenceByIndex(IRecipientFilter& filter, int nEntityIndex, int iChannel, int nSentenceIndex,
-		float flVolume, ESoundLevel iSoundLevel, int nSeed, int iFlags = 0, int iPitch = PITCH_NORM,
+		float flVolume, ESoundLevel nSoundLevel, int nSeed, int iFlags = 0, int iPitch = PITCH_NORM,
 		const Vector* vecOrigin = nullptr, const Vector* vecDirection = nullptr, CUtlVector<Vector>* pUtlVecOrigins = nullptr, bool bUpdatePositions = true, float flSoundTime = 0.0f, int nSpeakerEntity = -1) = 0;
 
 	virtual void	StopSound(int nEntityIndex, int iChannel, const char* szSample, unsigned int uSoundEntryHash) = 0;
@@ -220,4 +221,7 @@ public:
 	virtual void	NotifyEndMoviePlayback() = 0;
 	virtual bool	GetSoundChannelVolume(const char* szSound, float& flVolumeLeft, float& flVolumeRight) = 0;
 	virtual float	GetElapsedTimeByGuid(int nGUID) = 0;
+	virtual bool	GetPreventSound() = 0;
+	virtual void	SetReplaySoundFade(float flReplayVolume) = 0;
+	virtual float	GetReplaySoundFade() const = 0;
 };

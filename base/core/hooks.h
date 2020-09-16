@@ -106,7 +106,6 @@ namespace DTR
 	inline CDetourHook RunCommand;
 	inline CDetourHook SendMessageGC;
 	inline CDetourHook RetrieveMessage;
-	inline CDetourHook EmitSound;
 	inline CDetourHook LockCursor;
 	inline CDetourHook PlaySoundSurface;
 	inline CDetourHook SvCheatsGetBool;
@@ -143,7 +142,6 @@ namespace H
 	void	FASTCALL	hkRunCommand(IPrediction* thisptr, int edx, CBaseEntity* pEntity, CUserCmd* pCmd, IMoveHelper* pMoveHelper);
 	int		FASTCALL	hkSendMessage(ISteamGameCoordinator* thisptr, int edx, std::uint32_t uMsgType, const void* pData, std::uint32_t uData);
 	int		FASTCALL	hkRetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::uint32_t* puMsgType, void* pDest, std::uint32_t uDest, std::uint32_t* puMsgSize);
-	void	FASTCALL	hkEmitSound(IEngineSound* thisptr, int edx, IRecipientFilter& filter, int nEntityIndex, int iChannel, const char* szSoundEntry, unsigned int uSoundEntryHash, const char* szSample, float flVolume, float flAttenuation, int nSeed, int iFlags, int iPitch, const Vector* vecOrigin, const Vector* vecDirection, CUtlVector<Vector>* pUtlVecOrigins, bool bUpdatePositions, int flSoundTime, int nSpeakerEntity, StartSoundParams_t& parameters);
 	bool	FASTCALL	hkSvCheatsGetBool(CConVar* thisptr, int edx);
 	long	CALLBACK	hkWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 }
