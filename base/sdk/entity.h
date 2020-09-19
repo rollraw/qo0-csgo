@@ -436,6 +436,7 @@ public:
 	N_ADD_VARIABLE_OFFSET(int, GetGlowIndex, "CCSPlayer->m_flFlashDuration", 0x18);
 	N_ADD_VARIABLE(float, GetLowerBodyYaw, "CCSPlayer->m_flLowerBodyYawTarget");
 	N_ADD_VARIABLE(int, GetSurvivalTeam, "CCSPlayer->m_nSurvivalTeam");
+	N_ADD_VARIABLE_OFFSET(int, IsUsedNewAnimState, "CCSPlayer->m_flLastExoJumpTime", 0x8);
 	#pragma endregion
 
 	#pragma region DT_BaseEntity
@@ -473,7 +474,6 @@ public:
 	N_ADD_VARIABLE(float, GetCycle, "CBaseAnimating->m_flCycle");
 
 	N_ADD_OFFSET(int, GetAnimationOverlaysCount, 0x298C);
-	N_ADD_OFFSET(int, IsUsedNewAnimState, 0x3AC8); // @test: try to get it dynamically with "m_flLastExoJumpTime" + 0x8
 
 	[[nodiscard]] std::array<float, MAXSTUDIOPOSEPARAM>& GetPoseParameter()
 	{
@@ -830,6 +830,7 @@ public:
 
 	inline float GetMaxTime()
 	{
+		// @todo: get with inferno_flame_lifetime convar
 		return 7.f;
 	}
 };

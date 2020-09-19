@@ -125,17 +125,10 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 		I::GameConsole->Clear();
 		I::ConVar->ConsoleColorPrintf(Color(255, 50, 255, 255), XorStr("qo0 base successfully loaded.\nbuild date: %s / %s\n"), __DATE__, __TIME__);
 	}
-	catch (const std::runtime_error& ex)
+	catch (const std::exception& ex)
 	{
 		// show error message (or replace to your exception handler)
-		MessageBox(nullptr, ex.what(), XorStr("qo0 base (runtime error)"), MB_OK | MB_ICONERROR | MB_TOPMOST);
-		// exit from process (passed EXIT_SUCCESS to prevent game knowns unwanted errors)
-		FreeLibraryAndExitThread((HMODULE)lpParameter, EXIT_SUCCESS);
-	}
-	catch (const std::out_of_range& ex)
-	{
-		// show error message (or replace to your exception handler)
-		MessageBox(nullptr, ex.what(), XorStr("qo0 base (out of range)"), MB_OK | MB_ICONERROR | MB_TOPMOST);
+		MessageBox(nullptr, ex.what(), XorStr("qo0 base (error)"), MB_OK | MB_ICONERROR | MB_TOPMOST);
 		// exit from process (passed EXIT_SUCCESS to prevent game knowns unwanted errors)
 		FreeLibraryAndExitThread((HMODULE)lpParameter, EXIT_SUCCESS);
 	}

@@ -6,6 +6,8 @@
 #include "../core/variables.h"
 // used: actions with config
 #include "../core/config.h"
+// used: configurations error logging
+#include "../utilities/logging.h"
 // used: render setup, etc
 #include "../utilities/draw.h"
 // used: engine, inputsystem, convar interfaces
@@ -67,7 +69,7 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 	const ImVec2 vecScreenSize = io.DisplaySize;
 
 	ImGuiStyle& style = ImGui::GetStyle();
-	ImDrawList* pDrawList = ImGui::GetForegroundDrawList();
+	ImDrawList* pForegroundDrawList = ImGui::GetForegroundDrawList();
 
 	#pragma region main_visuals
 	if (!I::Engine->IsTakingScreenshot() && !I::Engine->IsDrawingLoadingImage())
@@ -103,7 +105,8 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 		ImGui::PopStyleColor(2);
 	}
 
-	D::RenderDrawData(pDrawList);
+	ImDrawList* pBackgroundDrawList = ImGui::GetBackgroundDrawList();
+	D::RenderDrawData(pBackgroundDrawList);
 	#pragma endregion
 
 	#pragma region main_window
@@ -126,8 +129,8 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 			float flWindowWidth = ImGui::GetWindowWidth();
 
 			// header separate line
-			pDrawList->AddRectFilledMultiColor(ImVec2(vecPos.x - 8.f, vecPos.y - 6.f), ImVec2(vecPos.x + flWindowWidth - flWindowWidth / 3.f - 8.f, vecPos.y - 8.f), IM_COL32(75, 50, 105, 255), IM_COL32(110, 100, 130, 255), IM_COL32(110, 100, 130, 255), IM_COL32(75, 50, 105, 255));
-			pDrawList->AddRectFilledMultiColor(ImVec2(vecPos.x + flWindowWidth - flWindowWidth / 3.f - 8.f, vecPos.y - 6.f), ImVec2(vecPos.x + flWindowWidth - 8.f, vecPos.y - 8.f), IM_COL32(110, 100, 130, 255), IM_COL32(75, 50, 105, 255), IM_COL32(75, 50, 105, 255), IM_COL32(110, 100, 130, 255));
+			pForegroundDrawList->AddRectFilledMultiColor(ImVec2(vecPos.x - 8.f, vecPos.y - 6.f), ImVec2(vecPos.x + flWindowWidth - flWindowWidth / 3.f - 8.f, vecPos.y - 8.f), IM_COL32(75, 50, 105, 255), IM_COL32(110, 100, 130, 255), IM_COL32(110, 100, 130, 255), IM_COL32(75, 50, 105, 255));
+			pForegroundDrawList->AddRectFilledMultiColor(ImVec2(vecPos.x + flWindowWidth - flWindowWidth / 3.f - 8.f, vecPos.y - 6.f), ImVec2(vecPos.x + flWindowWidth - 8.f, vecPos.y - 8.f), IM_COL32(110, 100, 130, 255), IM_COL32(75, 50, 105, 255), IM_COL32(75, 50, 105, 255), IM_COL32(110, 100, 130, 255));
 
 			// add tabs
 			static std::array<CTab, 4U> const arrTabs =
@@ -569,7 +572,13 @@ void T::Miscellaneous()
 				ImGui::PushItemWidth(-1);
 				if (ImGui::InputTextWithHint(XorStr("##config.file"), XorStr("create new..."), &szConfigFile, ImGuiInputTextFlags_EnterReturnsTrue))
 				{
-					C::Save(szConfigFile);
+					if (!C::Save(szConfigFile))
+					{
+						L::PushConsoleColor(FOREGROUND_RED);
+						L::Print(fmt::format(XorStr("[error] failed to create \"{}\" config"), szConfigFile));
+						L::PopConsoleColor();
+					}
+
 					szConfigFile.clear();
 					C::Refresh();
 				}
@@ -577,10 +586,24 @@ void T::Miscellaneous()
 					ImGui::SetTooltip(XorStr("press enter to create new configuration"));
 
 				if (ImGui::Button(XorStr("save"), ImVec2(-1, 15)))
-					C::Save(szCurrentConfig);
+				{
+					if (!C::Save(szCurrentConfig))
+					{
+						L::PushConsoleColor(FOREGROUND_RED);
+						L::Print(fmt::format(XorStr("[error] failed to save \"{}\" config"), szCurrentConfig));
+						L::PopConsoleColor();
+					}
+				}
 
 				if (ImGui::Button(XorStr("load"), ImVec2(-1, 15)))
-					C::Load(szCurrentConfig);
+				{
+					if (!C::Load(szCurrentConfig))
+					{
+						L::PushConsoleColor(FOREGROUND_RED);
+						L::Print(fmt::format(XorStr("[error] failed to load \"{}\" config"), szCurrentConfig));
+						L::PopConsoleColor();
+					}
+				}
 
 				if (ImGui::Button(XorStr("remove"), ImVec2(-1, 15)))
 					ImGui::OpenPopup(XorStr("confirmation##config.remove"));

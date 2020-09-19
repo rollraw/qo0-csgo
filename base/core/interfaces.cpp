@@ -129,7 +129,7 @@ T* I::Capture(const char* szModule, std::string_view szInterface)
 	}
 
 	#ifdef DEBUG_CONSOLE
-	L::PushConsoleColor(FOREGROUND_INTENSE_RED);
+	L::PushConsoleColor(FOREGROUND_RED);
 	L::Print(fmt::format(XorStr("[error] failed to find interface \"{}\" in \"{}\""), szInterface, szModule));
 	L::PopConsoleColor();
 	#endif

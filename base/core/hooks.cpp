@@ -260,6 +260,7 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	// save previous view angles for movement correction
 	QAngle angOldViewPoint = pCmd->angViewPoint;
 
+	// @note: need do bunnyhop and other movements before prediction
 	CMiscellaneous::Get().Run(pCmd, pLocal, bSendPacket);
 
 	/*
@@ -270,7 +271,6 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	if (I::ClientState->iDeltaTick > 0)
 		I::Prediction->Update(I::ClientState->iDeltaTick, I::ClientState->iDeltaTick > 0, I::ClientState->iLastCommandAck, I::ClientState->iLastOutgoingCommand + I::ClientState->nChokedCommands);
 
-	// @note: need do bunnyhop and other movements before prediction
 	CPrediction::Get().Start(pCmd, pLocal);
 	{
 		if (C::Get<bool>(Vars.bMiscAutoPistol))
