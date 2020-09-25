@@ -50,17 +50,17 @@ void CVisuals::Store()
 		if (pWeaponData != nullptr && pWeaponData->nWeaponType == WEAPONTYPE_SNIPER && pLocal->IsScoped())
 		{
 			float flWidth = pWeapon->GetInaccuracy() * 300.f;
-			std::uint8_t uAlpha = std::min(255, static_cast<int>(255.f * pWeapon->GetInaccuracy()));
+			int iAlpha = std::min(255, static_cast<int>(255.f * pWeapon->GetInaccuracy()));
 
 			D::AddLine(ImVec2(0.f, vecScreenSize.y * 0.5f), ImVec2(vecScreenSize.x, vecScreenSize.y * 0.5f), Color(0, 0, 0, 200));
 			D::AddLine(ImVec2(vecScreenSize.x * 0.5f, 0.f), ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y), Color(0, 0, 0, 200));
 
 			// horizontal
-			D::AddRectMultiColor(ImVec2(0.f, vecScreenSize.y * 0.5f), ImVec2(vecScreenSize.x, vecScreenSize.y * 0.5f + flWidth), Color(0, 0, 0, uAlpha), Color(0, 0, 0, uAlpha), Color(0, 0, 0, 0), Color(0, 0, 0, 0));
-			D::AddRectMultiColor(ImVec2(0.f, vecScreenSize.y * 0.5f - flWidth), ImVec2(vecScreenSize.x, vecScreenSize.y * 0.5f), Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, uAlpha), Color(0, 0, 0, uAlpha));
+			D::AddRectMultiColor(ImVec2(0.f, vecScreenSize.y * 0.5f), ImVec2(vecScreenSize.x, vecScreenSize.y * 0.5f + flWidth), Color(0, 0, 0, iAlpha), Color(0, 0, 0, iAlpha), Color(0, 0, 0, 0), Color(0, 0, 0, 0));
+			D::AddRectMultiColor(ImVec2(0.f, vecScreenSize.y * 0.5f - flWidth), ImVec2(vecScreenSize.x, vecScreenSize.y * 0.5f), Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, iAlpha), Color(0, 0, 0, iAlpha));
 			// vertical
-			D::AddRectMultiColor(ImVec2(vecScreenSize.x * 0.5f, 0.f), ImVec2(vecScreenSize.x * 0.5f + flWidth, vecScreenSize.y), Color(0, 0, 0, uAlpha), Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, uAlpha));
-			D::AddRectMultiColor(ImVec2(vecScreenSize.x * 0.5f - flWidth, 0.f), ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y), Color(0, 0, 0, 0), Color(0, 0, 0, uAlpha), Color(0, 0, 0, uAlpha), Color(0, 0, 0, 0));
+			D::AddRectMultiColor(ImVec2(vecScreenSize.x * 0.5f, 0.f), ImVec2(vecScreenSize.x * 0.5f + flWidth, vecScreenSize.y), Color(0, 0, 0, iAlpha), Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, iAlpha));
+			D::AddRectMultiColor(ImVec2(vecScreenSize.x * 0.5f - flWidth, 0.f), ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y), Color(0, 0, 0, 0), Color(0, 0, 0, iAlpha), Color(0, 0, 0, iAlpha), Color(0, 0, 0, 0));
 		}
 	}
 	#pragma endregion
@@ -813,11 +813,11 @@ void CVisuals::HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color 
 			const float flRatio = 1.0f - (flDelta / C::Get<float>(Vars.flScreenHitMarkerTime));
 
 			// set fade out alpha
-			const std::uint8_t uAlpha = static_cast<std::uint8_t>(std::min(flMaxDamageAlpha, flDelta / C::Get<float>(Vars.flScreenHitMarkerTime)) * 255.f);
-			colDamage.arrColor.at(3) = uAlpha;
+			const int iAlpha = static_cast<int>(std::min(flMaxDamageAlpha, flDelta / C::Get<float>(Vars.flScreenHitMarkerTime)) * 255.f);
+			colDamage.arrColor.at(3) = iAlpha;
 
 			// draw dealt damage
-			D::AddText(F::SmallestPixel, 24.f, ImVec2(vecScreen.x, vecScreen.y - flRatio * flDistance), std::to_string(vecHitMarks.at(i).iDamage), colDamage, IMGUI_TEXT_OUTLINE, Color(0, 0, 0, uAlpha));
+			D::AddText(F::SmallestPixel, 24.f, ImVec2(vecScreen.x, vecScreen.y - flRatio * flDistance), std::to_string(vecHitMarks.at(i).iDamage), colDamage, IMGUI_TEXT_OUTLINE, Color(0, 0, 0, iAlpha));
 		}
 	}
 }
@@ -839,7 +839,7 @@ void CVisuals::NightMode(CEnvTonemapController* pController)
 		bSwitch = (C::Get<bool>(Vars.bWorld) && C::Get<bool>(Vars.bWorldNightMode));
 }
 
-void CVisuals::Bomb(const Vector2D& vecScreen, Context_t& ctx, Color colFrame)
+void CVisuals::Bomb(const Vector2D& vecScreen, Context_t& ctx, const Color& colFrame)
 {
 	const char* szIcon = U::GetWeaponIcon(WEAPON_C4);
 	const ImVec2 vecIconSize = F::Icons->CalcTextSizeA(14.f, FLT_MAX, 0.f, szIcon);
@@ -860,7 +860,7 @@ void CVisuals::Bomb(const Vector2D& vecScreen, Context_t& ctx, Color colFrame)
 	D::AddText(F::Verdana, 14.f, ImVec2(ctx.box.left + vecIconSize.x + 7, ctx.box.top + 3), szName, Color(255, 255, 255));
 }
 
-void CVisuals::PlantedBomb(CPlantedC4* pBomb, float flServerTime, const Vector2D& vecScreen, Context_t& ctx, Color colFrame, Color colDefuse, Color colFailDefuse, Color colBackground, Color colOutline)
+void CVisuals::PlantedBomb(CPlantedC4* pBomb, float flServerTime, const Vector2D& vecScreen, Context_t& ctx, const Color& colFrame, const Color& colDefuse, const Color& colFailDefuse, const Color& colBackground, const Color& colOutline)
 {
 	const char* szIcon = U::GetWeaponIcon(WEAPON_C4);
 	static ImVec2 vecIconSize = F::Icons->CalcTextSizeA(14.f, FLT_MAX, 0.f, szIcon);
@@ -919,7 +919,7 @@ void CVisuals::PlantedBomb(CPlantedC4* pBomb, float flServerTime, const Vector2D
 	}
 }
 
-void CVisuals::Grenade(CBaseEntity* pGrenade, EClassIndex nIndex, float flServerTime, Vector2D vecScreen, Context_t& ctx, Color colFrame, Color colBackground, Color colOutline)
+void CVisuals::Grenade(CBaseEntity* pGrenade, EClassIndex nIndex, float flServerTime, const Vector2D& vecScreen, Context_t& ctx, const Color& colFrame, const Color& colBackground, const Color& colOutline)
 {
 	// setup temporary values
 	const char* szName = XorStr("NONE");
@@ -999,7 +999,7 @@ void CVisuals::Grenade(CBaseEntity* pGrenade, EClassIndex nIndex, float flServer
 	}
 }
 
-void CVisuals::DroppedWeapons(CBaseCombatWeapon* pWeapon, short nItemDefinitionIndex, Context_t& ctx, Color colPrimary, Color colAmmo, Color colBackground, Color colOutline)
+void CVisuals::DroppedWeapons(CBaseCombatWeapon* pWeapon, short nItemDefinitionIndex, Context_t& ctx, const Color& colPrimary, const Color& colAmmo, const Color& colBackground, const Color& colOutline)
 {
 	const float flDistance = std::fabsf((pWeapon->GetRenderOrigin() - G::vecCamera).Length());
 
@@ -1041,7 +1041,7 @@ void CVisuals::DroppedWeapons(CBaseCombatWeapon* pWeapon, short nItemDefinitionI
 	}
 }
 
-void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx, Color colInfo, Color colFrame, Color colOutline)
+void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx, const Color& colInfo, const Color& colFrame, const Color& colOutline)
 {
 	PlayerInfo_t pInfo;
 	if (!I::Engine->GetPlayerInfo(pEntity->GetIndex(), &pInfo))
@@ -1206,7 +1206,7 @@ void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx,
 	#pragma endregion
 }
 
-void CVisuals::Box(const Box_t& box, const int nBoxType, Color colPrimary, Color colOutline)
+void CVisuals::Box(const Box_t& box, const int nBoxType, const Color& colPrimary, const Color& colOutline)
 {
 	switch (nBoxType)
 	{
@@ -1249,7 +1249,7 @@ void CVisuals::Box(const Box_t& box, const int nBoxType, Color colPrimary, Color
 	}
 }
 
-void CVisuals::HealthBar(Context_t& ctx, float flFactor, Color colPrimary, Color colBackground, Color colOutline)
+void CVisuals::HealthBar(Context_t& ctx, const float flFactor, const Color& colPrimary, const Color& colBackground, const Color& colOutline)
 {
 	// background
 	D::AddRect(ImVec2(ctx.box.left - 5 - ctx.arrPadding.at(DIR_LEFT), ctx.box.top), ImVec2(ctx.box.left - 3 - ctx.arrPadding.at(DIR_LEFT), ctx.box.bottom), colBackground, IMGUI_RECT_FILLED | IMGUI_RECT_OUTLINE, colOutline);
@@ -1258,7 +1258,7 @@ void CVisuals::HealthBar(Context_t& ctx, float flFactor, Color colPrimary, Color
 	ctx.arrPadding.at(DIR_LEFT) += 6.0f;
 }
 
-void CVisuals::AmmoBar(CBaseEntity* pEntity, CBaseCombatWeapon* pWeapon, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline)
+void CVisuals::AmmoBar(CBaseEntity* pEntity, CBaseCombatWeapon* pWeapon, Context_t& ctx, const Color& colPrimary, const Color& colBackground, const Color& colOutline)
 {
 	CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(pWeapon->GetItemDefinitionIndex());
 
@@ -1302,7 +1302,7 @@ void CVisuals::AmmoBar(CBaseEntity* pEntity, CBaseCombatWeapon* pWeapon, Context
 	ctx.arrPadding.at(DIR_BOTTOM) += 6.0f;
 }
 
-void CVisuals::FlashBar(CBaseEntity* pEntity, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline)
+void CVisuals::FlashBar(CBaseEntity* pEntity, Context_t& ctx, const Color& colPrimary, const Color& colBackground, const Color& colOutline)
 {
 	// calculate flash alpha-based width factor
 	float flFactor = pEntity->GetFlashAlpha() / *pEntity->GetFlashMaxAlpha();

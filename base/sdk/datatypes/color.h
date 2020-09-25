@@ -13,32 +13,18 @@ class Color
 public:
 	Color() = default;
 
-	Color(std::uint8_t r, std::uint8_t g, std::uint8_t b)
-	{
-		Set(r, g, b, 255);
-	}
+	/* default color constructor ( 0 - 255 ) */
+	constexpr Color(std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a = 255) :
+		arrColor({ r, g, b, a }) { }
 
-	Color(std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a)
-	{
-		Set(r, g, b, a);
-	}
+	constexpr Color(int r, int g, int b, int a = 255) :
+		arrColor({ static_cast<std::uint8_t>(r), static_cast<std::uint8_t>(g), static_cast<std::uint8_t>(b), static_cast<std::uint8_t>(a) }) { }
 
-	void Set(std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a)
-	{
-		arrColor.at(0) = r;
-		arrColor.at(1) = g;
-		arrColor.at(2) = b;
-		arrColor.at(3) = a;
-	}
+	/* float color constructor ( 0.0 - 1.0 ) */
+	constexpr Color(float r, float g, float b, float a = 1.0f) :
+		arrColor({ static_cast<std::uint8_t>(r * 255.f), static_cast<std::uint8_t>(g * 255.f), static_cast<std::uint8_t>(b * 255.f), static_cast<std::uint8_t>(a * 255.f) }) { }
 
-	void Set(float r, float g, float b, float a)
-	{
-		arrColor.at(0) = static_cast<std::uint8_t>(r * 255.f);
-		arrColor.at(1) = static_cast<std::uint8_t>(g * 255.f);
-		arrColor.at(2) = static_cast<std::uint8_t>(b * 255.f);
-		arrColor.at(3) = static_cast<std::uint8_t>(a * 255.f);
-	}
-
+	/* output color to given variables */
 	void Get(std::uint8_t& r, std::uint8_t& g, std::uint8_t& b, std::uint8_t& a) const
 	{
 		r = arrColor.at(0);
@@ -48,9 +34,15 @@ public:
 	}
 
 	/* convert color to directx rgba */
-	ImU32 GetU32()
+	ImU32 GetU32() const
 	{
 		return ImGui::GetColorU32(ImVec4(this->rBase(), this->gBase(), this->bBase(), this->aBase()));
+	}
+
+	/* convert color to imgui vector */
+	ImVec4 GetVec4(float flAlphaMultiplier = 1.0f) const
+	{
+		return ImVec4(this->rBase(), this->gBase(), this->bBase(), this->aBase() * flAlphaMultiplier);
 	}
 
 	bool operator==(const Color& colSecond) const
@@ -65,7 +57,10 @@ public:
 
 	Color& operator=(const Color& colFrom)
 	{
-		Set(colFrom.r(), colFrom.g(), colFrom.b(), colFrom.a());
+		arrColor.at(0) = colFrom.r();
+		arrColor.at(1) = colFrom.g();
+		arrColor.at(2) = colFrom.b();
+		arrColor.at(3) = colFrom.a();
 		return *this;
 	}
 
@@ -79,7 +74,8 @@ public:
 	inline float bBase() const { return arrColor.at(2) / 255.f; }
 	inline float aBase() const { return arrColor.at(3) / 255.f; }
 
-	std::array<float, 3U> Base()
+	/* convert color to float array (in: 0 - 255, out: 0.0 - 1.0) */
+	std::array<float, 3U> Base() const
 	{
 		std::array<float, 3U> arrBaseColor = { };
 		arrBaseColor.at(0) = arrColor.at(0) / 255.f;
@@ -88,11 +84,13 @@ public:
 		return arrBaseColor;
 	}
 
-	static Color FromBase3(float rgb[3])
+	/* convert color by float array (in: 0.0 - 1.0, out: 0 - 255) */
+	static Color FromBase3(float arrBase[3])
 	{
-		return Color(static_cast<std::uint8_t>(rgb[0] * 255.f), static_cast<std::uint8_t>(rgb[1] * 255.f), static_cast<std::uint8_t>(rgb[2] * 255.f));
+		return Color(arrBase[0], arrBase[1], arrBase[2]);
 	}
 
+	/* convert color to float array w/ alpha (in: 0 - 255, out: 0.0 - 1.0) */
 	std::array<float, 4U> BaseAlpha()
 	{
 		std::array<float, 4U> arrBaseColor = { };
@@ -103,9 +101,10 @@ public:
 		return arrBaseColor;
 	}
 
-	static Color FromBase4(float rgba[4])
+	/* convert color by float array w/ alpha (in: 0.0 - 1.0, out: 0 - 255) */
+	static Color FromBase4(float arrBase[4])
 	{
-		return Color(static_cast<std::uint8_t>(rgba[0] * 255.f), static_cast<std::uint8_t>(rgba[1] * 255.f), static_cast<std::uint8_t>(rgba[2] * 255.f), static_cast<std::uint8_t>(rgba[3] * 255.f));
+		return Color(arrBase[0], arrBase[1], arrBase[2], arrBase[3]);
 	}
 
 	float Hue() const
@@ -113,9 +112,9 @@ public:
 		if (arrColor.at(0) == arrColor.at(1) && arrColor.at(1) == arrColor.at(2))
 			return 0.f;
 
-		const float r = arrColor[0] / 255.f;
-		const float g = arrColor[1] / 255.f;
-		const float b = arrColor[2] / 255.f;
+		const float r = this->rBase();
+		const float g = this->gBase();
+		const float b = this->bBase();
 
 		const float flMax = std::max(r, std::max(g, b)), flMin = std::min(r, std::min(g, b));
 
@@ -142,9 +141,9 @@ public:
 
 	float Saturation() const
 	{
-		const float r = arrColor.at(0) / 255.f;
-		const float g = arrColor.at(1) / 255.f;
-		const float b = arrColor.at(2) / 255.f;
+		const float r = this->rBase();
+		const float g = this->gBase();
+		const float b = this->bBase();
 
 		const float flMax = std::max(r, std::max(g, b)), flMin = std::min(r, std::min(g, b));
 		const float flDelta = flMax - flMin;
@@ -157,22 +156,24 @@ public:
 
 	float Brightness() const
 	{
-		const float r = arrColor.at(0) / 255.f;
-		const float g = arrColor.at(1) / 255.f;
-		const float b = arrColor.at(2) / 255.f;
+		const float r = this->rBase();
+		const float g = this->gBase();
+		const float b = this->bBase();
 
 		return std::max(r, std::max(g, b));
 	}
 
+	/* convert HSB/HSV color to RGB color */
 	static Color FromHSB(float flHue, float flSaturation, float flBrightness)
 	{
-		float r = 0.0f, g = 0.0f, b = 0.0f;
 		const float h = std::fmodf(flHue, 1.0f) / (60.0f / 360.0f);
 		const int i = static_cast<int>(h);
 		const float f = h - static_cast<float>(i);
 		const float p = flBrightness * (1.0f - flSaturation);
 		const float q = flBrightness * (1.0f - flSaturation * f);
 		const float t = flBrightness * (1.0f - flSaturation * (1.0f - f));
+
+		float r = 0.0f, g = 0.0f, b = 0.0f;
 
 		switch (i)
 		{
@@ -197,8 +198,9 @@ public:
 			break;
 		}
 
-		return Color(static_cast<std::uint8_t>(r * 255.f), static_cast<std::uint8_t>(g * 255.f), static_cast<std::uint8_t>(b * 255.f));
+		return Color(r, g, b);
 	}
 
+public:
 	std::array<std::uint8_t, 4U> arrColor;
 };

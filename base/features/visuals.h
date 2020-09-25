@@ -75,27 +75,27 @@ private:
 	/* changes the exposure to make the world looks like at night or fullbright */
 	void NightMode(CEnvTonemapController* pController); // @credits: sapphyrus
 	/* draw frame with title at bomb position */
-	void Bomb(const Vector2D& vecScreen, Context_t& ctx, Color colFrame);
+	void Bomb(const Vector2D& vecScreen, Context_t& ctx, const Color& colFrame);
 	/* draw frame with title, timer and defuse bars at planted bomb position */
-	void PlantedBomb(CPlantedC4* pBomb, float flServerTime, const Vector2D& vecScreen, Context_t& ctx, Color colFrame, Color colDefuse, Color colFailDefuse, Color colBackground, Color colOutline);
+	void PlantedBomb(CPlantedC4* pBomb, float flServerTime, const Vector2D& vecScreen, Context_t& ctx, const Color& colFrame, const Color& colDefuse, const Color& colFailDefuse, const Color& colBackground, const Color& colOutline);
 	/* draw frame with name and timer bar at grenade position */
-	void Grenade(CBaseEntity* pGrenade, EClassIndex nIndex, float flServerTime, Vector2D vecScreen, Context_t& ctx, Color colFrame, Color colBackground, Color colOutline);
+	void Grenade(CBaseEntity* pGrenade, EClassIndex nIndex, float flServerTime, const Vector2D& vecScreen, Context_t& ctx, const Color& colFrame, const Color& colBackground, const Color& colOutline);
 	/* draw weapon icon, ammo bar, distance at dropped weapons positions */
-	void DroppedWeapons(CBaseCombatWeapon* pWeapon, short nItemDefinitionIndex, Context_t& ctx, Color colPrimary, Color colAmmo, Color colBackground, Color colOutline);
+	void DroppedWeapons(CBaseCombatWeapon* pWeapon, short nItemDefinitionIndex, Context_t& ctx, const Color& colPrimary, const Color& colAmmo, const Color& colBackground, const Color& colOutline);
 
 	// Player
 	/* draw box, bars, text info's, etc for player */
-	void Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx, Color colInfo, Color colFrame, Color colOutline);
+	void Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx, const Color& colInfo, const Color& colFrame, const Color& colOutline);
 
 	// Entities
 	/* draw entity bounding box */
-	void Box(const Box_t& box, const int nBoxType, Color colPrimary, Color colOutline);
+	void Box(const Box_t& box, const int nBoxType, const Color& colPrimary, const Color& colOutline);
 	/* draw vertical line with health-based height */
-	void HealthBar(Context_t& ctx, float flFactor, Color colPrimary, Color colBackground, Color colOutline);
+	void HealthBar(Context_t& ctx, const float flFactor, const Color& colPrimary, const Color& colBackground, const Color& colOutline);
 	/* draw horizontal line with ammo-based width */
-	void AmmoBar(CBaseEntity* pEntity, CBaseCombatWeapon* pWeapon, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline);
+	void AmmoBar(CBaseEntity* pEntity, CBaseCombatWeapon* pWeapon, Context_t& ctx, const Color& colPrimary, const Color& colBackground, const Color& colOutline);
 	/* draw horizontal line with flashed duration-based width */
-	void FlashBar(CBaseEntity* pEntity, Context_t& ctx, Color colPrimary, Color colBackground, Color colOutline);
+	void FlashBar(CBaseEntity* pEntity, Context_t& ctx, const Color& colPrimary, const Color& colBackground, const Color& colOutline);
 
 	// Values
 	std::deque<HitMarkerObject_t> vecHitMarks;

@@ -311,7 +311,7 @@ bool ImGui::ColorEdit4(const char* szLabel, Color* v, ImGuiColorEditFlags flags)
 
 	if (ImGui::ColorEdit4(szLabel, &vecColor.x, flags))
 	{
-		v->Set(vecColor.x, vecColor.y, vecColor.z, vecColor.w);
+		*v = Color(vecColor.x, vecColor.y, vecColor.z, vecColor.w);
 		return true;
 	}
 

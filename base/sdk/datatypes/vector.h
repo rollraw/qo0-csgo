@@ -8,10 +8,9 @@ class Vector2D
 {
 public:
 	Vector2D() = default;
-	Vector2D(float x, float y)
-	{
-		this->x = x; this->y = y;
-	}
+
+	constexpr Vector2D(float x, float y) :
+		x(x), y(y) { }
 
 public:
 	float x, y;
@@ -26,15 +25,11 @@ public:
 	constexpr Vector(const float* arrVector) :
 		x(arrVector[0]), y(arrVector[1]), z(arrVector[2]) { }
 
-	Vector(const Vector& vecBase)
-	{
-		this->x = vecBase.x; this->y = vecBase.y; this->z = vecBase.z;
-	}
+	constexpr Vector(const Vector& vecBase) :
+		x(vecBase.x), y(vecBase.y), z(vecBase.z) { }
 
-	Vector(const Vector2D& vecBase2D)
-	{
-		this->x = vecBase2D.x; this->y = vecBase2D.y; this->z = 0.0f;
-	}
+	constexpr Vector(const Vector2D& vecBase2D) :
+		x(vecBase2D.x), y(vecBase2D.y), z(0.0f) { }
 
 	bool IsValid() const
 	{
@@ -56,7 +51,11 @@ public:
 		return !this->IsEqual(vecBase);
 	}
 
-	constexpr Vector& operator=(const Vector& vecBase) = default;
+	constexpr Vector& operator=(const Vector& vecBase)
+	{
+		this->x = vecBase.x; this->y = vecBase.y; this->z = vecBase.z;
+		return *this;
+	}
 
 	constexpr Vector& operator=(const Vector2D& vecBase2D)
 	{
@@ -154,15 +153,15 @@ public:
 	bool IsEqual(const Vector& vecEqual) const
 	{
 		return (std::fabsf(this->x - vecEqual.x) < std::numeric_limits<float>::epsilon() &&
-				std::fabsf(this->y - vecEqual.y) < std::numeric_limits<float>::epsilon() &&
-				std::fabsf(this->z - vecEqual.z) < std::numeric_limits<float>::epsilon());
+			std::fabsf(this->y - vecEqual.y) < std::numeric_limits<float>::epsilon() &&
+			std::fabsf(this->z - vecEqual.z) < std::numeric_limits<float>::epsilon());
 	}
 
 	bool IsZero() const
 	{
 		return (std::fpclassify(this->x) == FP_ZERO &&
-				std::fpclassify(this->y) == FP_ZERO &&
-				std::fpclassify(this->z) == FP_ZERO);
+			std::fpclassify(this->y) == FP_ZERO &&
+			std::fpclassify(this->z) == FP_ZERO);
 	}
 
 	Vector2D ToVector2D()
@@ -265,7 +264,7 @@ public:
 
 	explicit VectorAligned(const Vector& v)
 	{
-		this->x = v.x; this->y = v.y; this->z = v.z;
+		this->x = v.x; this->y = v.y; this->z = v.z; this->w = 0.f;
 	}
 
 public:
