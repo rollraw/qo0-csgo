@@ -8,7 +8,7 @@
 #include "../features/visuals.h"
 #include "../features/misc.h"
 
-void CEventListener::Setup(std::deque<const char*> arrEvents)
+void CEventListener::Setup(const std::deque<const char*>& arrEvents)
 {
 	if (arrEvents.empty())
 		return;

@@ -43,13 +43,13 @@ namespace L
 	void Print(std::string_view szText);
 
 	/* set given color to console */
-	inline const void PushConsoleColor(const std::uint8_t wColor)
+	inline void PushConsoleColor(const std::uint8_t wColor)
 	{
 		wConsoleColor = wColor;
 	}
 
 	/* reset console color */
-	inline const void PopConsoleColor()
+	inline void PopConsoleColor()
 	{
 		wConsoleColor = FOREGROUND_WHITE;
 	}

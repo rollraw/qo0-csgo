@@ -118,7 +118,7 @@ namespace MEM
 	 * returns native function of specified class at given index
 	 */
 	template <typename T = void*>
-	inline constexpr T GetVFunc(void* thisptr, std::size_t nIndex)
+	constexpr T GetVFunc(void* thisptr, std::size_t nIndex)
 	{
 		return (*static_cast<T**>(thisptr))[nIndex];
 	}
@@ -129,7 +129,7 @@ namespace MEM
 	 * @note: doesnt adding references automatic and needs to add it manually!
 	 */
 	template <typename T, typename ... args_t>
-	inline constexpr T CallVFunc(void* thisptr, std::size_t nIndex, args_t... argList)
+	constexpr T CallVFunc(void* thisptr, std::size_t nIndex, args_t... argList)
 	{
 		using VirtualFn = T(__thiscall*)(void*, decltype(argList)...);
 		return (*static_cast<VirtualFn**>(thisptr))[nIndex](thisptr, argList...);

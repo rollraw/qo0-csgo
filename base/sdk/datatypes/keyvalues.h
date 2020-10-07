@@ -1,7 +1,4 @@
 #pragma once
-// used: std::runtime_error
-#include <stdexcept>
-
 // used: winapi includes, call vfunc
 #include "../../common.h"
 

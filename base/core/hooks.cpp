@@ -149,7 +149,7 @@ long D3DAPI H::hkReset(IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pPresen
 	// invalidate vertex & index buffer, release fonts texture
 	ImGui_ImplDX9_InvalidateDeviceObjects();
 
-	HRESULT hReset = oReset(pDevice, pPresentationParameters);
+	const HRESULT hReset = oReset(pDevice, pPresentationParameters);
 
 	// get directx device and create fonts texture
 	if (hReset == D3D_OK)
@@ -170,7 +170,7 @@ long D3DAPI H::hkEndScene(IDirect3DDevice9* pDevice)
 		VirtualQuery(_ReturnAddress(), &memInfo, sizeof(MEMORY_BASIC_INFORMATION));
 
 		char chModuleName[MAX_PATH];
-		GetModuleFileName((HMODULE)memInfo.AllocationBase, chModuleName, MAX_PATH);
+		GetModuleFileName(static_cast<HMODULE>(memInfo.AllocationBase), chModuleName, MAX_PATH);
 
 		if (strstr(chModuleName, GAMEOVERLAYRENDERER_DLL) != nullptr)
 			pUsedAddress = _ReturnAddress();
@@ -314,10 +314,10 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	if (pNetChannel != nullptr)
 	{
 		if (!DTR::SendNetMsg.IsHooked())
-			DTR::SendNetMsg.Create(MEM::GetVFunc(pNetChannel, VTABLE::SENDNETMSG), H::hkSendNetMsg);
+			DTR::SendNetMsg.Create(MEM::GetVFunc(pNetChannel, VTABLE::SENDNETMSG), &hkSendNetMsg);
 
 		if (!DTR::SendDatagram.IsHooked())
-			DTR::SendDatagram.Create(MEM::GetVFunc(pNetChannel, VTABLE::SENDDATAGRAM), H::hkSendDatagram);
+			DTR::SendDatagram.Create(MEM::GetVFunc(pNetChannel, VTABLE::SENDDATAGRAM), &hkSendDatagram);
 	}
 
 	// save next view angles state
@@ -601,7 +601,7 @@ bool FASTCALL H::hkSendNetMsg(INetChannel* thisptr, int edx, INetMessage* pMessa
 	return oSendNetMsg(thisptr, edx, pMessage, bForceReliable, bVoice);
 }
 
-int FASTCALL H::hkSendDatagram(INetChannel* pNetChannel, int edx, bf_write* pDatagram)
+int FASTCALL H::hkSendDatagram(INetChannel* thisptr, int edx, bf_write* pDatagram)
 {
 	static auto oSendDatagram = DTR::SendDatagram.GetOriginal<decltype(&hkSendDatagram)>();
 
@@ -609,19 +609,19 @@ int FASTCALL H::hkSendDatagram(INetChannel* pNetChannel, int edx, bf_write* pDat
 	static CConVar* sv_maxunlag = I::ConVar->FindVar(XorStr("sv_maxunlag"));
 
 	if (!I::Engine->IsInGame() || !C::Get<bool>(Vars.bMiscPingSpike) || pDatagram != nullptr || pNetChannelInfo == nullptr || sv_maxunlag == nullptr)
-		return oSendDatagram(pNetChannel, edx, pDatagram);
+		return oSendDatagram(thisptr, edx, pDatagram);
 
-	int iInReliableStateOld = pNetChannel->iInReliableState;
-	int iInSequenceNrOld = pNetChannel->iInSequenceNr;
+	const int iInReliableStateOld = thisptr->iInReliableState;
+	const int iInSequenceNrOld = thisptr->iInSequenceNr;
 
 	// calculate max available fake latency with our real ping to keep it w/o real lags or delays
-	float flMaxLatency = std::max(0.f, std::clamp(C::Get<float>(Vars.flMiscLatencyFactor), 0.f, sv_maxunlag->GetFloat()) - pNetChannelInfo->GetLatency(FLOW_OUTGOING));
-	CLagCompensation::Get().AddLatencyToNetChannel(pNetChannel, flMaxLatency);
+	const float flMaxLatency = std::max(0.f, std::clamp(C::Get<float>(Vars.flMiscLatencyFactor), 0.f, sv_maxunlag->GetFloat()) - pNetChannelInfo->GetLatency(FLOW_OUTGOING));
+	CLagCompensation::Get().AddLatencyToNetChannel(thisptr, flMaxLatency);
 
-	int iReturn = oSendDatagram(pNetChannel, edx, pDatagram);
+	const int iReturn = oSendDatagram(thisptr, edx, pDatagram);
 
-	pNetChannel->iInReliableState = iInReliableStateOld;
-	pNetChannel->iInSequenceNr = iInSequenceNrOld;
+	thisptr->iInReliableState = iInReliableStateOld;
+	thisptr->iInSequenceNr = iInSequenceNrOld;
 
 	return iReturn;
 }
@@ -715,7 +715,7 @@ int FASTCALL H::hkSendMessage(ISteamGameCoordinator* thisptr, int edx, std::uint
 	std::uint32_t uMessageType = uMsgType & 0x7FFFFFFF;
 	void* pDataMutable = const_cast<void*>(pData);
 
-	int iStatus = oSendMessage(thisptr, edx, uMsgType, pDataMutable, uData);
+	const int iStatus = oSendMessage(thisptr, edx, uMsgType, pDataMutable, uData);
 
 	if (iStatus != EGCResultOK)
 		return iStatus;
@@ -732,7 +732,7 @@ int FASTCALL H::hkSendMessage(ISteamGameCoordinator* thisptr, int edx, std::uint
 int FASTCALL H::hkRetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::uint32_t* puMsgType, void* pDest, std::uint32_t uDest, std::uint32_t* puMsgSize)
 {
 	static auto oRetrieveMessage = DTR::RetrieveMessage.GetOriginal<decltype(&hkRetrieveMessage)>();
-	int iStatus = oRetrieveMessage(thisptr, edx, puMsgType, pDest, uDest, puMsgSize);
+	const int iStatus = oRetrieveMessage(thisptr, edx, puMsgType, pDest, uDest, puMsgSize);
 
 	if (iStatus != EGCResultOK)
 		return iStatus;

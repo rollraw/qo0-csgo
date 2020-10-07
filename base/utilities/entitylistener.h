@@ -2,8 +2,6 @@
 // used: std::vector
 #include <vector>
 
-// used: hooks setup/remove
-#include "../utilities/detourhook.h"
 // used: cliententitylistener class
 #include "../sdk/interfaces/icliententitylist.h"
 

@@ -1,16 +1,12 @@
 #pragma once
 // used: winapi, fmt includes
 #include "common.h"
-// used: color
-#include "sdk/datatypes/color.h"
 // used: vector
 #include "sdk/datatypes/vector.h"
 // used: keyvalues
 #include "sdk/datatypes/keyvalues.h"
 // used: baseentity, handleentity
 #include "sdk/entity.h"
-// used: trace
-#include "sdk/interfaces/ienginetrace.h"
 // used: material
 #include "sdk/interfaces/imaterialsystem.h"
 // used: events listerner setup

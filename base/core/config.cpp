@@ -2,8 +2,6 @@
 #include <shlobj.h>
 
 #include "config.h"
-// used: cheat variables
-#include "variables.h"
 // used: log config result state
 #include "../utilities/logging.h"
 // used: json parser implementation

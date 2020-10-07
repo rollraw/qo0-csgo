@@ -8,7 +8,7 @@
 class CEventListener : public IGameEventListener2
 {
 public:
-	void Setup(std::deque<const char*> arrEvents);
+	void Setup(const std::deque<const char*>& arrEvents);
 	void Destroy();
 
 	virtual void FireGameEvent(IGameEvent* pEvent) override;

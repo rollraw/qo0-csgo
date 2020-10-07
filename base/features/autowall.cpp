@@ -31,8 +31,8 @@ float CAutoWall::GetDamage(CBaseEntity* pLocal, const Vector& vecPoint, FireBull
 
 void CAutoWall::ScaleDamage(int iHitGroup, CBaseEntity* pEntity, float flWeaponArmorRatio, float& flDamage)
 {
-	bool bHeavyArmor = pEntity->HasHeavyArmor();
-	int iArmor = pEntity->GetArmor();
+	const bool bHeavyArmor = pEntity->HasHeavyArmor();
+	const int iArmor = pEntity->GetArmor();
 
 	switch (iHitGroup)
 	{
@@ -146,7 +146,7 @@ bool CAutoWall::IsBreakableEntity(CBaseEntity* pEntity)
 	if (pEntity == nullptr)
 		return false;
 
-	int iHealth = pEntity->GetHealth();
+	const int iHealth = pEntity->GetHealth();
 
 	// first check to see if it's already broken
 	if (iHealth < 0 && pEntity->IsMaxHealth() > 0)
@@ -154,14 +154,14 @@ bool CAutoWall::IsBreakableEntity(CBaseEntity* pEntity)
 
 	if (pEntity->GetTakeDamage() != DAMAGE_YES)
 	{
-		EClassIndex nClassIndex = pEntity->GetClientClass()->nClassID;
+		const EClassIndex nClassIndex = pEntity->GetClientClass()->nClassID;
 
 		// force pass cfuncbrush
 		if (nClassIndex != EClassIndex::CFuncBrush)
 			return false;
 	}
 
-	int nCollisionGroup = pEntity->GetCollisionGroup();
+	const int nCollisionGroup = pEntity->GetCollisionGroup();
 
 	if (nCollisionGroup != COLLISION_GROUP_PUSHAWAY && nCollisionGroup != COLLISION_GROUP_BREAKABLE_GLASS && nCollisionGroup != COLLISION_GROUP_NONE)
 		return false;
@@ -296,8 +296,8 @@ bool CAutoWall::HandleBulletPenetration(CBaseEntity* pLocal, CCSWeaponData* pWea
 
 	const MaterialHandle_t hEnterMaterial = pEnterSurfaceData->game.hMaterial;
 	const float flEnterPenetrationModifier = pEnterSurfaceData->game.flPenetrationModifier;
-	bool bIsSolidSurf = ((data.enterTrace.iContents >> 3) & CONTENTS_SOLID);
-	bool bIsLightSurf = ((data.enterTrace.surface.uFlags >> 7) & SURF_LIGHT);
+	const bool bIsSolidSurf = ((data.enterTrace.iContents >> 3) & CONTENTS_SOLID);
+	const bool bIsLightSurf = ((data.enterTrace.surface.uFlags >> 7) & SURF_LIGHT);
 
 	Trace_t exitTrace = { };
 
@@ -404,7 +404,7 @@ bool CAutoWall::SimulateFireBullet(CBaseEntity* pLocal, CBaseCombatWeapon* pWeap
 		ClipTraceToPlayers(data.vecPosition, vecEnd + data.vecDirection * 40.0f, MASK_SHOT_HULL | CONTENTS_HITBOX, &filter, &data.enterTrace);
 
 		surfacedata_t* pEnterSurfaceData = I::PhysicsProps->GetSurfaceData(data.enterTrace.surface.nSurfaceProps);
-		float flEnterPenetrationModifier = pEnterSurfaceData->game.flPenetrationModifier;
+		const float flEnterPenetrationModifier = pEnterSurfaceData->game.flPenetrationModifier;
 
 		// we didn't hit anything, stop tracing shoot
 		if (data.enterTrace.flFraction == 1.0f)

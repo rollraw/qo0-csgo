@@ -31,6 +31,40 @@ class CEnvTonemapController;
 class CVisuals : public CSingleton<CVisuals>
 {
 public:
+	CVisuals()
+	{
+		constexpr std::string_view szScrollProxies = R"#("texturescroll"
+		{
+			"texturescrollvar"		"$basetexturetransform"
+			"texturescrollrate"		"0.2"
+			"texturescrollangle"	"90"
+		})#";
+
+		/*
+		 * materials navigation:
+		 * [N]	[group]		[lit][proxy]
+		 *					[1/2] [1/2]
+		 *	0 - players		[+/-] [-/-]
+		 *	1 - viewmodel	[+/-] [-/-]
+		 *	2 - reflects	[+/+] [-/-]
+		 *	3 - custom		[+/+] [+/-]
+		 */
+		arrMaterials =
+		{
+			std::make_pair(CreateMaterial(XorStr("qo0_players"), XorStr("VertexLitGeneric")),
+			CreateMaterial(XorStr("qo0_players_flat"), XorStr("UnlitGeneric"))),
+
+			std::make_pair(CreateMaterial(XorStr("qo0_viewmodel"), XorStr("VertexLitGeneric")),
+			CreateMaterial(XorStr("qo0_viewmodel_flat"), XorStr("UnlitGeneric"))),
+
+			std::make_pair(CreateMaterial(XorStr("qo0_reflective"), XorStr("VertexLitGeneric"), XorStr("vgui/white"), XorStr("env_cubemap")),
+			CreateMaterial(XorStr("qo0_glow"), XorStr("VertexLitGeneric"), XorStr("vgui/white"), XorStr("models/effects/cube_white"))),
+
+			std::make_pair(CreateMaterial(XorStr("qo0_scroll"), XorStr("VertexLitGeneric"), XorStr("dev/screenhighlight_pulse"), "", false, false, szScrollProxies),
+			I::MaterialSystem->FindMaterial(XorStr("models/inventory_items/hydra_crystal/hydra_crystal_detail"), TEXTURE_GROUP_OTHER))
+		};
+	}
+
 	// Get
 	/* sort entities and save data to draw */
 	void Store();
@@ -64,16 +98,16 @@ private:
 
 	// Extra
 	/* get bounding box points of given entity */
-	bool GetBoundingBox(CBaseEntity* pEntity, Box_t* pBox);
+	bool GetBoundingBox(CBaseEntity* pEntity, Box_t* pBox) const;
 	/* create .vmt materials with customized parameters for chams */
-	IMaterial* CreateMaterial(std::string_view szName, std::string_view szShader, std::string_view szBaseTexture = XorStr("vgui/white"), std::string_view szEnvMap = "", bool bIgnorez = false, bool bWireframe = false, std::string_view szProxies = "");
+	IMaterial* CreateMaterial(std::string_view szName, std::string_view szShader, std::string_view szBaseTexture = XorStr("vgui/white"), std::string_view szEnvMap = "", bool bIgnorez = false, bool bWireframe = false, std::string_view szProxies = "") const;
 
 	// On-Screen
 	void HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color colLines, Color colDamage);
 
 	// World
 	/* changes the exposure to make the world looks like at night or fullbright */
-	void NightMode(CEnvTonemapController* pController); // @credits: sapphyrus
+	void NightMode(CEnvTonemapController* pController) const; // @credits: sapphyrus
 	/* draw frame with title at bomb position */
 	void Bomb(const Vector2D& vecScreen, Context_t& ctx, const Color& colFrame);
 	/* draw frame with title, timer and defuse bars at planted bomb position */
@@ -85,7 +119,7 @@ private:
 
 	// Player
 	/* draw box, bars, text info's, etc for player */
-	void Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx, const Color& colInfo, const Color& colFrame, const Color& colOutline);
+	void Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx, const float flDistance, const Color& colInfo, const Color& colFrame, const Color& colOutline);
 
 	// Entities
 	/* draw entity bounding box */
@@ -98,5 +132,8 @@ private:
 	void FlashBar(CBaseEntity* pEntity, Context_t& ctx, const Color& colPrimary, const Color& colBackground, const Color& colOutline);
 
 	// Values
-	std::deque<HitMarkerObject_t> vecHitMarks;
+	/* saved hitmarker info's */
+	std::deque<HitMarkerObject_t> vecHitMarks = { };
+	/* chams materials */
+	std::array<std::pair<IMaterial*, IMaterial*>, 4U> arrMaterials = { };
 };

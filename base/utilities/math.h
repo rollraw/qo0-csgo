@@ -44,7 +44,7 @@ namespace M
 	/* convert angles to x, y, z vectors */
 	void	AngleVectors(const QAngle& angView, Vector* pForward, Vector* pRight = nullptr, Vector* pUp = nullptr);
 	/* convert angles to matrix */
-	void	AngleMatrix(const QAngle& angles, matrix3x4_t& matrix);
+	void	AngleMatrix(const QAngle& angView, matrix3x4_t& matrix);
 	/* convert angle to screen pixels by sensivity, pitch and yaw */
 	// @note: can be useful at mouse event aimbot
 	Vector2D AnglePixels(float flSensitivity, float flPitch, float flYaw, const QAngle& angBegin, const QAngle& angEnd);
@@ -53,7 +53,7 @@ namespace M
 	/* calculate angles by source and destination vectors */
 	QAngle	CalcAngle(const Vector vecStart, Vector vecEnd);
 	/* transform vector by matrix and return it */
-	Vector	VectorTransform(const Vector& vecIn, const matrix3x4_t& matrix);
+	Vector	VectorTransform(const Vector& vecTransform, const matrix3x4_t& matrix);
 	/* calculate next tick position */
 	Vector	ExtrapolateTick(Vector p0, Vector v0);
 

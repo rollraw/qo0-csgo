@@ -8,8 +8,6 @@
 #include "../sdk/datatypes/keyvalues.h"
 // used: cheat variables
 #include "../core/variables.h"
-// used: main window open state
-#include "../core/menu.h"
 // used: drawmodelexecute original for chams
 #include "../core/hooks.h"
 // used: render functions
@@ -29,7 +27,7 @@ void CVisuals::Store()
 
 	float flServerTime = TICKS_TO_TIME(pLocal->GetTickBase());
 
-	// disable post-proccesing
+	// disable post-processing
 	static CConVar* mat_postprocess_enable = I::ConVar->FindVar(XorStr("mat_postprocess_enable"));
 	mat_postprocess_enable->fnChangeCallbacks.Size() = NULL;
 	mat_postprocess_enable->SetValue(!(C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_POSTPROCESSING)));
@@ -83,10 +81,8 @@ void CVisuals::Store()
 		if (pEntity == nullptr || pEntity->IsDormant())
 			continue;
 
-		const Vector vecOrigin = pEntity->GetOrigin();
-
 		// save entities and calculated distance for sort
-		vecOrder.emplace_back(std::make_pair(pEntity, (pLocal->GetOrigin() - vecOrigin).Length2D()));
+		vecOrder.emplace_back(std::make_pair(pEntity, std::fabsf((pEntity->GetRenderOrigin() - G::vecCamera).Length())));
 	}
 
 	// sort entities by distance to make closest entity drawn last to make it easy readable and look nicer
@@ -95,9 +91,8 @@ void CVisuals::Store()
 			return a.second > b.second;
 		});
 
-	for (const auto& arrEntity : vecOrder)
+	for (const auto& [pEntity, flDistance] : vecOrder)
 	{
-		CBaseEntity* pEntity = arrEntity.first;
 		CBaseClient* pClientClass = pEntity->GetClientClass();
 
 		if (pClientClass == nullptr)
@@ -210,7 +205,7 @@ void CVisuals::Store()
 				 *		weapons
 				 *		distance
 				 */
-				Player(pLocal, pEntity, ctx, Color(255, 255, 255, 255), Color(20, 20, 20, 150), Color(0, 0, 0, 220));
+				Player(pLocal, pEntity, ctx, flDistance, Color(255, 255, 255, 255), Color(20, 20, 20, 150), Color(0, 0, 0, 220));
 			}
 
 			break;
@@ -297,7 +292,7 @@ void CVisuals::Event(IGameEvent* pEvent, const FNV1A_t uNameHash)
 	if (pLocal == nullptr || !pLocal->IsAlive())
 		return;
 
-	float flServerTime = TICKS_TO_TIME(pLocal->GetTickBase());
+	const float flServerTime = TICKS_TO_TIME(pLocal->GetTickBase());
 
 	/* get hitmarker info */
 	if (C::Get<bool>(Vars.bScreen) && C::Get<bool>(Vars.bScreenHitMarker) && uNameHash == FNV1A::HashConst("player_hurt"))
@@ -340,47 +335,13 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 	if (pEntity == nullptr)
 		return false;
 
-	constexpr std::string_view szScrollProxies = R"#("texturescroll"
-	{
-		"texturescrollvar"		"$basetexturetransform"
-		"texturescrollrate"		"0.2"
-		"texturescrollangle"	"90"
-	})#";
-
-	/*
-	 * materials navigation:
-	 * [N]	[group]		[lit][proxy]
-	 *					[1/2] [1/2]
-	 *	0 - players		[+/-] [-/-]
-	 *	1 - viewmodel	[+/-] [-/-]
-	 *	2 - reflects	[+/+] [-/-]
-	 *	3 - custom		[+/+] [+/-]
-	 */
-	static std::array<std::pair<IMaterial*, IMaterial*>, 4U> arrMaterials =
-	{
-		std::make_pair(CreateMaterial(XorStr("qo0_players"), XorStr("VertexLitGeneric")),
-		CreateMaterial(XorStr("qo0_players_flat"), XorStr("UnlitGeneric"))),
-
-		std::make_pair(CreateMaterial(XorStr("qo0_viewmodel"), XorStr("VertexLitGeneric")),
-		CreateMaterial(XorStr("qo0_viewmodel_flat"), XorStr("UnlitGeneric"))),
-
-		std::make_pair(CreateMaterial(XorStr("qo0_reflective"), XorStr("VertexLitGeneric"), XorStr("vgui/white"), XorStr("env_cubemap")),
-		CreateMaterial(XorStr("qo0_glow"), XorStr("VertexLitGeneric"), XorStr("vgui/white"), XorStr("models/effects/cube_white"))),
-
-		std::make_pair(CreateMaterial(XorStr("qo0_scroll"), XorStr("VertexLitGeneric"), XorStr("dev/screenhighlight_pulse"), "", false, false, szScrollProxies),
-		I::MaterialSystem->FindMaterial(XorStr("models/inventory_items/hydra_crystal/hydra_crystal_detail"), TEXTURE_GROUP_OTHER))
-	};
-	
-	std::string_view szModelName = info.pStudioHdr->szName;
+	const std::string_view szModelName = info.pStudioHdr->szName;
 
 	// check for players
-	if (szModelName.find(XorStr("player")) != std::string_view::npos && szModelName.find(XorStr("shadow")) == std::string_view::npos && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies)))
+	if (pEntity->IsPlayer() && pEntity->IsAlive() && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies)))
 	{
 		// skip glow models
 		if (nFlags & (STUDIO_RENDER | STUDIO_SKIP_FLEXES | STUDIO_DONOTMODIFYSTENCILSTATE | STUDIO_NOLIGHTING_OR_CUBEMAP | STUDIO_SKIP_DECALS))
-			return false;
-
-		if (!pEntity->IsAlive())
 			return false;
 
 		// team filters check
@@ -410,8 +371,8 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 				return false;
 
 			// get colors
-			Color colVisible = pLocal->IsEnemy(pEntity) ? C::Get<Color>(Vars.colEspChamsEnemies) : C::Get<Color>(Vars.colEspChamsAllies);
-			Color colHidden = pLocal->IsEnemy(pEntity) ? C::Get<Color>(Vars.colEspChamsEnemiesWall) : C::Get<Color>(Vars.colEspChamsAlliesWall);
+			const Color colVisible = pLocal->IsEnemy(pEntity) ? C::Get<Color>(Vars.colEspChamsEnemies) : C::Get<Color>(Vars.colEspChamsAllies);
+			const Color colHidden = pLocal->IsEnemy(pEntity) ? C::Get<Color>(Vars.colEspChamsEnemiesWall) : C::Get<Color>(Vars.colEspChamsAlliesWall);
 
 			/* chams through walls */
 			if (C::Get<bool>(Vars.bEspChamsXQZ))
@@ -527,8 +488,8 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 			return false;
 
 		// get color
-		Color colAdditional = C::Get<Color>(Vars.colEspChamsViewModelAdditional);
-		Color colViewModel = C::Get<Color>(Vars.colEspChamsViewModel);
+		const Color colAdditional = C::Get<Color>(Vars.colEspChamsViewModelAdditional);
+		const Color colViewModel = C::Get<Color>(Vars.colEspChamsViewModel);
 
 		pMaterial->IncrementReferenceCount();
 
@@ -648,7 +609,7 @@ void CVisuals::Glow(CBaseEntity* pLocal)
 	}
 }
 
-bool CVisuals::GetBoundingBox(CBaseEntity* pEntity, Box_t* pBox)
+bool CVisuals::GetBoundingBox(CBaseEntity* pEntity, Box_t* pBox) const
 {
 	const ICollideable* pCollideable = pEntity->GetCollideable();
 
@@ -731,7 +692,7 @@ bool CVisuals::GetBoundingBox(CBaseEntity* pEntity, Box_t* pBox)
 	return true;
 }
 
-IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view szShader, std::string_view szBaseTexture, std::string_view szEnvMap, bool bIgnorez, bool bWireframe, std::string_view szProxies)
+IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view szShader, std::string_view szBaseTexture, std::string_view szEnvMap, bool bIgnorez, bool bWireframe, std::string_view szProxies) const
 {
 	/*
 	 * @note: materials info:
@@ -776,7 +737,7 @@ void CVisuals::HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color 
 		return;
 
 	// get last time delta for lines
-	float flLastDelta = vecHitMarks.back().flTime - flServerTime;
+	const float flLastDelta = vecHitMarks.back().flTime - flServerTime;
 
 	if (flLastDelta <= 0.f)
 		return;
@@ -814,7 +775,7 @@ void CVisuals::HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color 
 
 			// set fade out alpha
 			const int iAlpha = static_cast<int>(std::min(flMaxDamageAlpha, flDelta / C::Get<float>(Vars.flScreenHitMarkerTime)) * 255.f);
-			colDamage.arrColor.at(3) = iAlpha;
+			colDamage.arrColor.at(3) = static_cast<std::uint8_t>(iAlpha);
 
 			// draw dealt damage
 			D::AddText(F::SmallestPixel, 24.f, ImVec2(vecScreen.x, vecScreen.y - flRatio * flDistance), std::to_string(vecHitMarks.at(i).iDamage), colDamage, IMGUI_TEXT_OUTLINE, Color(0, 0, 0, iAlpha));
@@ -822,7 +783,7 @@ void CVisuals::HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color 
 	}
 }
 
-void CVisuals::NightMode(CEnvTonemapController* pController)
+void CVisuals::NightMode(CEnvTonemapController* pController) const
 {
 	static bool bSwitch = false;
 
@@ -1041,7 +1002,7 @@ void CVisuals::DroppedWeapons(CBaseCombatWeapon* pWeapon, short nItemDefinitionI
 	}
 }
 
-void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx, const Color& colInfo, const Color& colFrame, const Color& colOutline)
+void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx, const float flDistance, const Color& colInfo, const Color& colFrame, const Color& colOutline)
 {
 	PlayerInfo_t pInfo;
 	if (!I::Engine->GetPlayerInfo(pEntity->GetIndex(), &pInfo))
@@ -1050,7 +1011,7 @@ void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx,
 	if (C::Get<int>(Vars.iEspMainPlayerBox) > (int)EVisualsBoxType::NONE)
 	{
 		// get box color based on visibility & enmity
-		Color colBox = pEntity->IsEnemy(pLocal) ?
+		const Color colBox = pEntity->IsEnemy(pLocal) ?
 			pLocal->IsVisible(pEntity, pEntity->GetBonePosition(BONE_HEAD).value_or(pEntity->GetEyePosition(false))) ? C::Get<Color>(Vars.colEspMainBoxEnemies) : C::Get<Color>(Vars.colEspMainBoxEnemiesWall) :
 			pLocal->IsVisible(pEntity, pEntity->GetBonePosition(BONE_HEAD).value_or(pEntity->GetEyePosition(false))) ? C::Get<Color>(Vars.colEspMainBoxAllies) : C::Get<Color>(Vars.colEspMainBoxAlliesWall);
 
@@ -1062,7 +1023,6 @@ void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx,
 		return;
 
 	// @note: distance font scale
-	const float flDistance = std::fabsf((pEntity->GetRenderOrigin() - G::vecCamera).Length());
 	const float flFontSize = std::clamp(90.f / (flDistance / 90.f), 10.f, 40.f);
 
 	#pragma region visuals_player_top
@@ -1214,7 +1174,7 @@ void CVisuals::Box(const Box_t& box, const int nBoxType, const Color& colPrimary
 	{
 		D::AddRect(ImVec2(box.left, box.top), ImVec2(box.right, box.bottom), colPrimary, IMGUI_RECT_OUTLINE | IMGUI_RECT_BORDER, colOutline);
 		break;
-	};
+	}
 	case (int)EVisualsBoxType::CORNERS:
 	{
 		// num of parts we divide the whole line
@@ -1243,7 +1203,7 @@ void CVisuals::Box(const Box_t& box, const int nBoxType, const Color& colPrimary
 			D::AddLine(arrPoint.first, arrPoint.second, colPrimary);
 
 		break;
-	};
+	}
 	default:
 		break;
 	}
@@ -1273,9 +1233,6 @@ void CVisuals::AmmoBar(CBaseEntity* pEntity, CBaseCombatWeapon* pWeapon, Context
 	const int iAmmo = pWeapon->GetAmmo();
 	const int iMaxAmmo = pWeaponData->iMaxClip1;
 
-	// add modifiable width factor
-	float flFactor = 0.f;
-
 	CAnimationLayer* pLayer = nullptr;
 	int nActivity = 0;
 
@@ -1285,6 +1242,9 @@ void CVisuals::AmmoBar(CBaseEntity* pEntity, CBaseCombatWeapon* pWeapon, Context
 		pLayer = pEntity->GetAnimationLayer(1);
 		nActivity = pEntity->GetSequenceActivity(pLayer->nSequence);
 	}
+
+	// add modifiable width factor
+	float flFactor = 0.f;
 
 	// calculate ammo-based width factor
 		// check for reloading animation
@@ -1305,7 +1265,7 @@ void CVisuals::AmmoBar(CBaseEntity* pEntity, CBaseCombatWeapon* pWeapon, Context
 void CVisuals::FlashBar(CBaseEntity* pEntity, Context_t& ctx, const Color& colPrimary, const Color& colBackground, const Color& colOutline)
 {
 	// calculate flash alpha-based width factor
-	float flFactor = pEntity->GetFlashAlpha() / *pEntity->GetFlashMaxAlpha();
+	const float flFactor = pEntity->GetFlashAlpha() / *pEntity->GetFlashMaxAlpha();
 
 	// background
 	D::AddRect(ImVec2(ctx.box.left, ctx.box.top - 5 - ctx.arrPadding.at(DIR_TOP)), ImVec2(ctx.box.right, ctx.box.top - 3 - ctx.arrPadding.at(DIR_TOP)), colBackground, IMGUI_RECT_FILLED | IMGUI_RECT_OUTLINE);
