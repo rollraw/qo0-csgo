@@ -16,7 +16,7 @@ namespace FNV1A
 	/* create compile time hash */
 	constexpr FNV1A_t HashConst(const char* szString, const FNV1A_t uValue = ullBasis) noexcept
 	{
-		return !*szString ? uValue : HashConst(&szString[1], (uValue ^ FNV1A_t(szString[0])) * ullPrime);
+		return (szString[0] == '\0') ? uValue : HashConst(&szString[1], (uValue ^ FNV1A_t(szString[0])) * ullPrime);
 	}
 
 	/* create runtime hash */
