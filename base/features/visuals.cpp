@@ -82,7 +82,7 @@ void CVisuals::Store()
 			continue;
 
 		// save entities and calculated distance for sort
-		vecOrder.emplace_back(std::make_pair(pEntity, std::fabsf((pEntity->GetRenderOrigin() - G::vecCamera).Length())));
+		vecOrder.emplace_back(std::make_pair(pEntity, (pEntity->GetRenderOrigin() - G::vecCamera).Length()));
 	}
 
 	// sort entities by distance to make closest entity drawn last to make it easy readable and look nicer
@@ -272,7 +272,7 @@ void CVisuals::Store()
 				if (!GetBoundingBox(pEntity, &ctx.box))
 					break;
 
-				DroppedWeapons(pWeapon, nDefinitionIndex, ctx, Color(255, 255, 255, 200), Color(80, 180, 200, 200), Color(40, 40, 40, 50), Color(0, 0, 0, 150));
+				DroppedWeapons(pWeapon, nDefinitionIndex, ctx, flDistance, Color(255, 255, 255, 200), Color(80, 180, 200, 200), Color(40, 40, 40, 50), Color(0, 0, 0, 150));
 			}
 
 			break;
@@ -374,22 +374,20 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 			const Color colVisible = pLocal->IsEnemy(pEntity) ? C::Get<Color>(Vars.colEspChamsEnemies) : C::Get<Color>(Vars.colEspChamsAllies);
 			const Color colHidden = pLocal->IsEnemy(pEntity) ? C::Get<Color>(Vars.colEspChamsEnemiesWall) : C::Get<Color>(Vars.colEspChamsAlliesWall);
 
-			/* chams through walls */
+			// do chams through walls
 			if (C::Get<bool>(Vars.bEspChamsXQZ))
 			{
-				pMaterial->IncrementReferenceCount();
+				// set xqz color
+				I::StudioRender->SetColorModulation(colHidden.Base().data());
+
+				// set xqz alpha
+				I::StudioRender->SetAlphaModulation(colHidden.aBase());
 
 				// enable "$ignorez" flag and it enables ignore the z axis
 				pMaterial->SetMaterialVarFlag(MATERIAL_VAR_IGNOREZ, true);
 
 				// set xqz wireframe
 				pMaterial->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, C::Get<int>(Vars.iEspChamsPlayer) == (int)EVisualsPlayersChams::WIREFRAME ? true : false);
-
-				// set xqz color
-				I::StudioRender->SetColorModulation(colHidden.Base().data());
-
-				// set xqz alpha
-				I::StudioRender->SetAlphaModulation(colHidden.aBase());
 
 				// override ignorez material
 				I::StudioRender->ForcedMaterialOverride(pMaterial);
@@ -398,20 +396,18 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 				oDrawModel(I::StudioRender, 0, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
 			}
 
-			/* visible chams */
-			pMaterial->IncrementReferenceCount();
+			// do visible chams
+			// set color
+			I::StudioRender->SetColorModulation(colVisible.Base().data());
+
+			// set alpha
+			I::StudioRender->SetAlphaModulation((pEntity == pLocal && pLocal->IsScoped() && I::Input->bCameraInThirdPerson) ? 0.3f : colVisible.aBase());
 
 			// disable "$ignorez" flag
 			pMaterial->SetMaterialVarFlag(MATERIAL_VAR_IGNOREZ, false);
 
 			// set wireframe
 			pMaterial->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, C::Get<int>(Vars.iEspChamsPlayer) == (int)EVisualsPlayersChams::WIREFRAME ? true : false);
-
-			// set color
-			I::StudioRender->SetColorModulation(colVisible.Base().data());
-
-			// set alpha
-			I::StudioRender->SetAlphaModulation((pEntity == pLocal && pLocal->IsScoped() && I::Input->bCameraInThirdPerson) ? 0.3f : colVisible.aBase());
 
 			// override customized material
 			I::StudioRender->ForcedMaterialOverride(pMaterial);
@@ -491,8 +487,6 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 		const Color colAdditional = C::Get<Color>(Vars.colEspChamsViewModelAdditional);
 		const Color colViewModel = C::Get<Color>(Vars.colEspChamsViewModel);
 
-		pMaterial->IncrementReferenceCount();
-
 		// change material variables
 		if (C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::GLOW)
 		{
@@ -503,32 +497,46 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 			if (bEnvMapFresnelFound)
 				pEnvMapFresnel->SetInt(1);
 
-			static bool bTranslucentFound = false;
-			IMaterialVar* pTranslucent = pMaterial->FindVar(XorStr("$translucent"), &bTranslucentFound);
-
-			// add the materials colour values to the existing image
-			if (bTranslucentFound)
-				pTranslucent->SetInt(1);
-
 			static bool bFoundEnvMapTint = false;
 			IMaterialVar* pEnvMapTint = pMaterial->FindVar(XorStr("$envmaptint"), &bFoundEnvMapTint);
 
 			// set additional color
 			if (bFoundEnvMapTint)
 				pEnvMapTint->SetVector(colAdditional.rBase(), colAdditional.gBase(), colAdditional.bBase());
+
+			// disable color fusion for glow
+			pMaterial->SetMaterialVarFlag(MATERIAL_VAR_ADDITIVE, true);
+
+			// set "$ignorez" flag to 0 and disable it
+			pMaterial->SetMaterialVarFlag(MATERIAL_VAR_IGNOREZ, false);
+
+			// set wireframe
+			pMaterial->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::WIREFRAME ? true : false);
+
+			// override customized material
+			I::StudioRender->ForcedMaterialOverride(pMaterial);
+
+			// then draw original with our material
+			oDrawModel(I::StudioRender, 0, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
+
+			// clear overrides
+			I::StudioRender->ForcedMaterialOverride(nullptr);
 		}
-
-		// set wireframe
-		pMaterial->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::WIREFRAME ? true : false);
-
-		// set "$ignorez" flag to 0 and disable it
-		pMaterial->SetMaterialVarFlag(MATERIAL_VAR_IGNOREZ, false);
 
 		// set color
 		I::StudioRender->SetColorModulation(colViewModel.Base().data());
 
 		// set alpha
 		I::StudioRender->SetAlphaModulation(colViewModel.aBase());
+
+		// disable color fusion
+		pMaterial->SetMaterialVarFlag(MATERIAL_VAR_ADDITIVE, false);
+
+		// set wireframe
+		pMaterial->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::WIREFRAME ? true : false);
+
+		// set "$ignorez" flag to 0 and disable it
+		pMaterial->SetMaterialVarFlag(MATERIAL_VAR_IGNOREZ, false);
 
 		// override customized material
 		I::StudioRender->ForcedMaterialOverride(pMaterial);
@@ -704,7 +712,7 @@ IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view sz
 	 * use "mat_texture_list 1" command to see full materials list
 	 */
 
-	std::string szMaterial = fmt::format(XorStr(R"#("{shader}"
+	const std::string szMaterial = fmt::format(XorStr(R"#("{shader}"
 	{{
 		"$basetexture"		"{texture}"
 		"$envmap"			"{envmap}"
@@ -960,10 +968,8 @@ void CVisuals::Grenade(CBaseEntity* pGrenade, EClassIndex nIndex, float flServer
 	}
 }
 
-void CVisuals::DroppedWeapons(CBaseCombatWeapon* pWeapon, short nItemDefinitionIndex, Context_t& ctx, const Color& colPrimary, const Color& colAmmo, const Color& colBackground, const Color& colOutline)
+void CVisuals::DroppedWeapons(CBaseCombatWeapon* pWeapon, short nItemDefinitionIndex, Context_t& ctx, const float flDistance, const Color& colPrimary, const Color& colAmmo, const Color& colBackground, const Color& colOutline)
 {
-	const float flDistance = std::fabsf((pWeapon->GetRenderOrigin() - G::vecCamera).Length());
-
 	if (C::Get<int>(Vars.iEspMainWeaponBox) > (int)EVisualsBoxType::NONE)
 		Box(ctx.box, C::Get<int>(Vars.iEspMainWeaponBox), C::Get<Color>(Vars.colEspMainBoxWeapons), Color(0, 0, 0, 150));
 

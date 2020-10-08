@@ -63,6 +63,16 @@ public:
 			std::make_pair(CreateMaterial(XorStr("qo0_scroll"), XorStr("VertexLitGeneric"), XorStr("dev/screenhighlight_pulse"), "", false, false, szScrollProxies),
 			I::MaterialSystem->FindMaterial(XorStr("models/inventory_items/hydra_crystal/hydra_crystal_detail"), TEXTURE_GROUP_OTHER))
 		};
+
+		// increment references for every material only once
+		for (auto& [pFirstMaterial, pSecondMaterial] : arrMaterials)
+		{
+			if (pFirstMaterial != nullptr && !pFirstMaterial->IsErrorMaterial())
+				pFirstMaterial->IncrementReferenceCount();
+
+			if (pSecondMaterial != nullptr && !pSecondMaterial->IsErrorMaterial())
+				pSecondMaterial->IncrementReferenceCount();
+		}
 	}
 
 	// Get
@@ -115,7 +125,7 @@ private:
 	/* draw frame with name and timer bar at grenade position */
 	void Grenade(CBaseEntity* pGrenade, EClassIndex nIndex, float flServerTime, const Vector2D& vecScreen, Context_t& ctx, const Color& colFrame, const Color& colBackground, const Color& colOutline);
 	/* draw weapon icon, ammo bar, distance at dropped weapons positions */
-	void DroppedWeapons(CBaseCombatWeapon* pWeapon, short nItemDefinitionIndex, Context_t& ctx, const Color& colPrimary, const Color& colAmmo, const Color& colBackground, const Color& colOutline);
+	void DroppedWeapons(CBaseCombatWeapon* pWeapon, short nItemDefinitionIndex, Context_t& ctx, const float flDistance, const Color& colPrimary, const Color& colAmmo, const Color& colBackground, const Color& colOutline);
 
 	// Player
 	/* draw box, bars, text info's, etc for player */
