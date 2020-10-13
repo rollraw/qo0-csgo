@@ -504,7 +504,10 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 			if (bFoundEnvMapTint)
 				pEnvMapTint->SetVector(colAdditional.rBase(), colAdditional.gBase(), colAdditional.bBase());
 
-			// disable color fusion for glow
+			// set alpha
+			pMaterial->AlphaModulate(colAdditional.aBase());
+
+			// set color fusion for glow
 			pMaterial->SetMaterialVarFlag(MATERIAL_VAR_ADDITIVE, true);
 
 			// set "$ignorez" flag to 0 and disable it
@@ -662,8 +665,8 @@ bool CVisuals::GetBoundingBox(CBaseEntity* pEntity, Box_t* pBox) const
 
 	float flLeft = std::numeric_limits<float>::max();
 	float flTop = std::numeric_limits<float>::max();
-	float flRight = -std::numeric_limits<float>::max();
-	float flBottom = -std::numeric_limits<float>::max();
+	float flRight = std::numeric_limits<float>::lowest();
+	float flBottom = std::numeric_limits<float>::lowest();
 
 	// get screen points position
 	std::array<Vector2D, 8U> arrScreen = { };

@@ -296,7 +296,7 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	}
 	CPrediction::Get().End(pCmd, pLocal);
 
-	CMiscellaneous::Get().MovementCorrection(pCmd, pLocal, angOldViewPoint);
+	CMiscellaneous::Get().MovementCorrection(pCmd, angOldViewPoint);
 
 	// clamp & normalize view angles
 	if (C::Get<bool>(Vars.bMiscAntiUntrusted))

@@ -36,47 +36,63 @@ void CMiscellaneous::Event(IGameEvent* pEvent, const FNV1A_t uNameHash)
 		return;
 }
 
-void CMiscellaneous::MovementCorrection(CUserCmd* pCmd, CBaseEntity* pLocal, QAngle& angOldViewPoint)
+void CMiscellaneous::MovementCorrection(CUserCmd* pCmd, const QAngle& angOldViewPoint) const
 {
-	if (!pLocal->IsAlive())
+	static CConVar* cl_forwardspeed = I::ConVar->FindVar(XorStr("cl_forwardspeed"));
+
+	if (cl_forwardspeed == nullptr)
 		return;
 
-	Vector vecForward, vecRight, vecUp, vecForwardOld, vecRightOld, vecUpOld;
+	static CConVar* cl_sidespeed = I::ConVar->FindVar(XorStr("cl_sidespeed"));
+
+	if (cl_sidespeed == nullptr)
+		return;
+
+	static CConVar* cl_upspeed = I::ConVar->FindVar(XorStr("cl_upspeed"));
+
+	if (cl_upspeed == nullptr)
+		return;
+
+	// get max speed limits by convars
+	const float flMaxForwardSpeed = cl_forwardspeed->GetFloat();
+	const float flMaxSideSpeed = cl_sidespeed->GetFloat();
+	const float flMaxUpSpeed = cl_upspeed->GetFloat();
+
+	Vector vecForward = { }, vecRight = { }, vecUp = { };
 	M::AngleVectors(angOldViewPoint, &vecForward, &vecRight, &vecUp);
-	M::AngleVectors(pCmd->angViewPoint, &vecForwardOld, &vecRightOld, &vecUpOld);
 
-	const float flFwdLenght = vecForward.Length2D();
-	const float flRightLenght = vecRight.Length2D();
-	const float flUpLenght = std::sqrtf(vecUp.z * vecUp.z);
+	// we don't attempt on forward/right roll, and on up pitch/yaw
+	vecForward.z = vecRight.z = vecUp.x = vecUp.y = 0.f;
 
-	const Vector vecNormFwd = Vector(1.f / flFwdLenght * vecForward.x, 1.f / flFwdLenght * vecForward.y, 0.f) * pCmd->flForwardMove;
-	const Vector vecNormRight = Vector(1.f / flRightLenght * vecRight.x, 1.f / flRightLenght * vecRight.y, 0.f) * pCmd->flSideMove;
-	const Vector vecNormUp = Vector(0.f, 0.f, 1.f / flUpLenght * vecUp.z) * pCmd->flUpMove;
+	vecForward.Normalize();
+	vecRight.Normalize();
+	vecUp.Normalize();
 
-	const float flFwdOldLenght = vecForwardOld.Length2D();
-	const float flRightOldLenght = vecRightOld.Length2D();
-	const float flUpOldLenght = std::sqrtf(vecUpOld.z * vecUpOld.z);
+	Vector vecOldForward, vecOldRight, vecOldUp;
+	M::AngleVectors(pCmd->angViewPoint, &vecOldForward, &vecOldRight, &vecOldUp);
 
-	const Vector vecNormFwdOld(1.f / flFwdOldLenght * vecForwardOld.x, 1.f / flFwdOldLenght * vecForwardOld.y, 0.f);
-	const Vector vecNormRightOld(1.f / flRightOldLenght * vecRightOld.x, 1.f / flRightOldLenght * vecRightOld.y, 0.f);
-	const Vector vecNormUpOld(0.f, 0.f, 1.f / flUpOldLenght * vecUpOld.z);
+	// we don't attempt on forward/right roll, and on up pitch/yaw
+	vecOldForward.z = vecOldRight.z = vecOldUp.x = vecOldUp.y = 0.f;
 
-	const float x = vecNormFwdOld.x * vecNormRight.x + vecNormFwdOld.y * vecNormRight.y + vecNormFwdOld.z * vecNormRight.z
-		+ (vecNormFwdOld.x * vecNormFwd.x + vecNormFwdOld.y * vecNormFwd.y + vecNormFwdOld.z * vecNormFwd.z)
-		+ (vecNormFwdOld.y * vecNormUp.x + vecNormFwdOld.x * vecNormUp.y + vecNormFwdOld.z * vecNormUp.z);
+	vecOldForward.Normalize();
+	vecOldRight.Normalize();
+	vecOldUp.Normalize();
 
-	const float y = vecNormRightOld.x * vecNormRight.x + vecNormRightOld.y * vecNormRight.y + vecNormRightOld.z * vecNormRight.z
-		+ (vecNormRightOld.x * vecNormFwd.x + vecNormRightOld.y * vecNormFwd.y + vecNormRightOld.z * vecNormFwd.z)
-		+ (vecNormRightOld.x * vecNormUp.y + vecNormRightOld.y * vecNormUp.x + vecNormRightOld.z * vecNormUp.z);
+	const float flPitchForward = vecForward.x * pCmd->flForwardMove;
+	const float flYawForward = vecForward.y * pCmd->flForwardMove;
+	const float flPitchSide = vecRight.x * pCmd->flSideMove;
+	const float flYawSide = vecRight.y * pCmd->flSideMove;
+	const float flRollUp = vecUp.z * pCmd->flUpMove;
 
-	const float z = vecNormUpOld.x * vecNormRight.y + vecNormUpOld.y * vecNormRight.x + vecNormUpOld.z * vecNormRight.z
-		+ (vecNormUpOld.x * vecNormFwd.y + vecNormUpOld.y * vecNormFwd.x + vecNormUpOld.z * vecNormFwd.z)
-		+ (vecNormUpOld.x * vecNormUp.x + vecNormUpOld.y * vecNormUp.y + vecNormUpOld.z * vecNormUp.z);
+	// solve corrected movement
+	const float x = vecOldForward.x * flPitchSide + vecOldForward.y * flYawSide + vecOldForward.x * flPitchForward + vecOldForward.y * flYawForward + vecOldForward.z * flRollUp;
+	const float y = vecOldRight.x * flPitchSide + vecOldRight.y * flYawSide + vecOldRight.x * flPitchForward + vecOldRight.y * flYawForward + vecOldRight.z * flRollUp;
+	const float z = vecOldUp.x * flYawSide + vecOldUp.y * flPitchSide + vecOldUp.x * flYawForward + vecOldUp.y * flPitchForward + vecOldUp.z * flRollUp;
 
 	// clamp and apply corrected movement
-	pCmd->flForwardMove = std::clamp(x, -450.f, 450.f);
-	pCmd->flSideMove = std::clamp(y, -450.f, 450.f);
-	pCmd->flUpMove = std::clamp(z, -450.f, 450.f);
+	pCmd->flForwardMove = std::clamp(x, -flMaxForwardSpeed, flMaxForwardSpeed);
+	pCmd->flSideMove = std::clamp(y, -flMaxSideSpeed, flMaxSideSpeed);
+	pCmd->flUpMove = std::clamp(z, -flMaxUpSpeed, flMaxUpSpeed);
 }
 
 void CMiscellaneous::AutoPistol(CUserCmd* pCmd, CBaseEntity* pLocal)
@@ -89,7 +105,7 @@ void CMiscellaneous::AutoPistol(CUserCmd* pCmd, CBaseEntity* pLocal)
 	if (pWeapon == nullptr)
 		return;
 
-	short nDefinitionIndex = pWeapon->GetItemDefinitionIndex();
+	const short nDefinitionIndex = pWeapon->GetItemDefinitionIndex();
 	const CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(nDefinitionIndex);
 
 	// check for pistol and attack
@@ -129,7 +145,7 @@ void CMiscellaneous::FakeLag(CBaseEntity* pLocal, bool& bSendPacket)
 	bSendPacket = I::ClientState->nChokedCommands >= iMaxCmdProcessTicks;
 }
 
-void CMiscellaneous::BunnyHop(CUserCmd* pCmd, CBaseEntity* pLocal)
+void CMiscellaneous::BunnyHop(CUserCmd* pCmd, CBaseEntity* pLocal) const
 {
 	static CConVar* sv_autobunnyhopping = I::ConVar->FindVar(XorStr("sv_autobunnyhopping"));
 
@@ -141,7 +157,7 @@ void CMiscellaneous::BunnyHop(CUserCmd* pCmd, CBaseEntity* pLocal)
 
 	std::random_device randomDevice;
 	std::mt19937 generate(randomDevice());
-	std::uniform_int_distribution<> chance(0, 100);
+	const std::uniform_int_distribution<> chance(0, 100);
 
 	if (chance(generate) > C::Get<int>(Vars.iMiscBunnyHopChance))
 		return;
@@ -181,5 +197,10 @@ void CMiscellaneous::AutoStrafe(CUserCmd* pCmd, CBaseEntity* pLocal)
 	if (pLocal->GetFlags() & FL_ONGROUND)
 		return;
 
-	pCmd->flSideMove = pCmd->sMouseDeltaX < 0.f ? -450.f : 450.f;
+	static CConVar* cl_sidespeed = I::ConVar->FindVar(XorStr("cl_sidespeed"));
+
+	if (cl_sidespeed == nullptr)
+		return;
+
+	pCmd->flSideMove = pCmd->sMouseDeltaX < 0 ? -cl_sidespeed->GetFloat() : cl_sidespeed->GetFloat();
 }
