@@ -40,10 +40,9 @@ int CBaseEntity::GetMaxHealth()
 
 std::optional<Vector> CBaseEntity::GetBonePosition(int iBone)
 {
-	if (iBone <= BONE_INVALID || iBone >= MAXSTUDIOBONES)
-		throw std::out_of_range(XorStr("given invalid bone index for getboneposition"));
+	assert(iBone > BONE_INVALID && iBone < MAXSTUDIOBONES); // given invalid bone index for getboneposition
 
-	std::array<matrix3x4_t, MAXSTUDIOBONES> arrBonesToWorld;
+	std::array<matrix3x4_t, MAXSTUDIOBONES> arrBonesToWorld = { };
 
 	if (this->SetupBones(arrBonesToWorld.data(), MAXSTUDIOBONES, BONE_USED_BY_ANYTHING, 0.f))
 		return arrBonesToWorld.at(iBone).at(3);
@@ -70,10 +69,9 @@ int CBaseEntity::GetBoneByHash(const FNV1A_t uBoneHash)
 
 std::optional<Vector> CBaseEntity::GetHitboxPosition(int iHitbox)
 {
-	if (iHitbox <= HITBOX_INVALID || iHitbox >= HITBOX_MAX)
-		throw std::out_of_range(XorStr("given invalid hitbox index for gethitboxposition"));
+	assert(iHitbox > HITBOX_INVALID && iHitbox < HITBOX_MAX); // given invalid hitbox index for gethitboxposition
 
-	std::array<matrix3x4_t, MAXSTUDIOBONES> arrBonesToWorld;
+	std::array<matrix3x4_t, MAXSTUDIOBONES> arrBonesToWorld = { };
 
 	if (auto pModel = this->GetModel(); pModel != nullptr)
 	{
@@ -101,7 +99,9 @@ std::optional<Vector> CBaseEntity::GetHitboxPosition(int iHitbox)
 
 std::optional<Vector> CBaseEntity::GetHitGroupPosition(int iHitGroup)
 {
-	std::array<matrix3x4_t, MAXSTUDIOBONES> arrBonesToWorld;
+	assert(iHitGroup >= HITGROUP_GENERIC && iHitGroup <= HITGROUP_GEAR); // given invalid hitbox index for gethitgroupposition
+
+	std::array<matrix3x4_t, MAXSTUDIOBONES> arrBonesToWorld = { };
 
 	if (auto pModel = this->GetModel(); pModel != nullptr)
 	{
@@ -123,7 +123,7 @@ std::optional<Vector> CBaseEntity::GetHitGroupPosition(int iHitGroup)
 
 					if (pHitbox != nullptr)
 					{
-						Vector vecMin{ }, vecMax{ };
+						Vector vecMin = { }, vecMax = { };
 
 						// get mins/maxs by bone
 						vecMin = M::VectorTransform(pHitbox->vecBBMin, arrBonesToWorld.at(pHitbox->iBone));
@@ -140,7 +140,7 @@ std::optional<Vector> CBaseEntity::GetHitGroupPosition(int iHitGroup)
 	return std::nullopt;
 }
 
-void CBaseEntity::ModifyEyePosition(CBasePlayerAnimState* pAnimState, Vector* vecPosition)
+void CBaseEntity::ModifyEyePosition(CBasePlayerAnimState* pAnimState, Vector* vecPosition) const
 {
 	if (I::Engine->IsHLTV() || I::Engine->IsPlayingDemo())
 		return;
@@ -160,9 +160,9 @@ void CBaseEntity::ModifyEyePosition(CBasePlayerAnimState* pAnimState, Vector* ve
 
 	if (vecPosition->z > vecBone.z)
 	{
-		float flFactor = 0.0f;
-		float flDelta = vecPosition->z - vecBone.z;
-		float flOffset = (flDelta - 4.0f) / 6.0f;
+		float flFactor = 0.f;
+		const float flDelta = vecPosition->z - vecBone.z;
+		const float flOffset = (flDelta - 4.0f) / 6.0f;
 
 		if (flOffset >= 0.f)
 			flFactor = std::min(flOffset, 1.0f);
@@ -230,14 +230,14 @@ bool CBaseEntity::IsEnemy(CBaseEntity* pEntity)
 bool CBaseEntity::IsTargetingLocal(CBaseEntity* pLocal)
 {
 	Vector vecForward = { };
-	QAngle angView = this->GetEyeAngles();
+	const QAngle angView = this->GetEyeAngles();
 	M::AngleVectors(angView, &vecForward);
 	vecForward *= MAX_DISTANCE;
 
-	Vector vecStart = this->GetEyePosition();
-	Vector vecEnd = vecStart + vecForward;
+	const Vector vecStart = this->GetEyePosition();
+	const Vector vecEnd = vecStart + vecForward;
 
-	Ray_t ray(vecStart, vecEnd);
+	const Ray_t ray(vecStart, vecEnd);
 	CTraceFilter filter(this);
 
 	Trace_t trace = { };
@@ -251,7 +251,7 @@ bool CBaseEntity::IsTargetingLocal(CBaseEntity* pLocal)
 
 bool CBaseEntity::CanShoot(CWeaponCSBase* pBaseWeapon)
 {
-	float flServerTime = TICKS_TO_TIME(this->GetTickBase());
+	const float flServerTime = TICKS_TO_TIME(this->GetTickBase());
 
 	// check is have ammo
 	if (pBaseWeapon->GetAmmo() <= 0)
@@ -261,7 +261,7 @@ bool CBaseEntity::CanShoot(CWeaponCSBase* pBaseWeapon)
 	if (this->GetNextAttack() > flServerTime)
 		return false;
 
-	short nDefinitionIndex = pBaseWeapon->GetItemDefinitionIndex();
+	const short nDefinitionIndex = pBaseWeapon->GetItemDefinitionIndex();
 
 	// check is weapon with burst mode
 	if ((nDefinitionIndex == WEAPON_FAMAS || nDefinitionIndex == WEAPON_GLOCK) &&
@@ -284,7 +284,7 @@ bool CBaseEntity::IsVisible(CBaseEntity* pEntity, const Vector& vecEnd, bool bSm
 {
 	const Vector vecStart = this->GetEyePosition(false);
 
-	Ray_t ray(vecStart, vecEnd);
+	const Ray_t ray(vecStart, vecEnd);
 	CTraceFilter filter(this);
 
 	Trace_t trace = { };

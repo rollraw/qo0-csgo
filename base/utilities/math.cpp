@@ -97,10 +97,10 @@ void M::AngleMatrix(const QAngle& angView, matrix3x4_t& matrix)
 	matrix[1][0] = cp * sy;
 	matrix[2][0] = -sp;
 
-	float crcy = cr * cy;
-	float crsy = cr * sy;
-	float srcy = sr * cy;
-	float srsy = sr * sy;
+	const float crcy = cr * cy;
+	const float crsy = cr * sy;
+	const float srcy = sr * cy;
+	const float srsy = sr * sy;
 
 	matrix[0][1] = sp * srcy - crsy;
 	matrix[1][1] = sp * srsy + crcy;
@@ -115,29 +115,29 @@ void M::AngleMatrix(const QAngle& angView, matrix3x4_t& matrix)
 	matrix[2][3] = 0.f;
 }
 
-Vector2D M::AnglePixels(float flSensitivity, float flPitch, float flYaw, const QAngle& angBegin, const QAngle& angEnd)
+Vector2D M::AnglePixels(const float flSensitivity, const float flPitch, const float flYaw, const QAngle& angBegin, const QAngle& angEnd)
 {
 	QAngle angDelta = angBegin - angEnd;
 	angDelta.Normalize();
 
-	float flPixelMovePitch = (-angDelta.x) / (flYaw * flSensitivity);
-	float flPixelMoveYaw = (angDelta.y) / (flPitch * flSensitivity);
+	const float flPixelMovePitch = (-angDelta.x) / (flYaw * flSensitivity);
+	const float flPixelMoveYaw = (angDelta.y) / (flPitch * flSensitivity);
 
 	return Vector2D(flPixelMoveYaw, flPixelMovePitch);
 }
 
-QAngle M::PixelsAngle(float flSensitivity, float flPitch, float flYaw, const Vector2D& vecPixels)
+QAngle M::PixelsAngle(const float flSensitivity, const float flPitch, const float flYaw, const Vector2D& vecPixels)
 {
-	float flAngleMovePitch = (-vecPixels.x) * (flYaw * flSensitivity);
-	float flAngleMoveYaw = (vecPixels.y) * (flPitch * flSensitivity);
+	const float flAngleMovePitch = (-vecPixels.x) * (flYaw * flSensitivity);
+	const float flAngleMoveYaw = (vecPixels.y) * (flPitch * flSensitivity);
 
 	return QAngle(flAngleMoveYaw, flAngleMovePitch, 0.f);
 }
 
-QAngle M::CalcAngle(Vector vecStart, Vector vecEnd)
+QAngle M::CalcAngle(const Vector& vecStart, const Vector& vecEnd)
 {
 	QAngle angView;
-	Vector vecDelta = vecEnd - vecStart;
+	const Vector vecDelta = vecEnd - vecStart;
 	VectorAngles(vecDelta, angView);
 	angView.Normalize();
 
@@ -151,7 +151,7 @@ Vector M::VectorTransform(const Vector& vecTransform, const matrix3x4_t& matrix)
 		vecTransform.DotProduct(matrix[2]) + matrix[2][3]);
 }
 
-Vector M::ExtrapolateTick(Vector p0, Vector v0)
+Vector M::ExtrapolateTick(const Vector& p0, const Vector& v0)
 {
 	// position formula: p0 + v0t
 	return p0 + (v0 * I::Globals->flIntervalPerTick);

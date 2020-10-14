@@ -606,7 +606,7 @@ public:
 	int						GetBoneByHash(const FNV1A_t uBoneHash);
 	std::optional<Vector>	GetHitboxPosition(int iHitbox);
 	std::optional<Vector>	GetHitGroupPosition(int iHitGroup);
-	void					ModifyEyePosition(CBasePlayerAnimState* pAnimState, Vector* vecPosition);
+	void					ModifyEyePosition(CBasePlayerAnimState* pAnimState, Vector* vecPosition) const;
 	int						PostThink();
 	bool					IsEnemy(CBaseEntity* pEntity);
 	bool					IsTargetingLocal(CBaseEntity* pLocal);

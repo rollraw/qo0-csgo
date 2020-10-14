@@ -17,7 +17,7 @@ C* U::FindHudElement(const char* szName)
 
 	using FindHudElementFn = std::uintptr_t(__thiscall*)(void*, const char*);
 	static auto oFindHudElement = reinterpret_cast<FindHudElementFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 53 8B 5D 08 56 57 8B F9 33 F6 39 77 28"))); // @xref: "[%d] Could not find Hud Element: %s\n"
-	return (C*)oFindHudElement(pHud, szName);
+	return reinterpret_cast<C*>(oFindHudElement(pHud, szName));
 }
 #pragma endregion
 
@@ -33,7 +33,7 @@ void U::ForceFullUpdate()
 		if (auto pHudWeapons = FindHudElement<std::uintptr_t>(XorStr("CCSGO_HudWeaponSelection")) - 0x28; pHudWeapons != nullptr)
 		{
 			// go through all weapons
-			for (int i = 0; i < *(pHudWeapons + 0x20); i++)
+			for (std::size_t i = 0; i < *(pHudWeapons + 0x20); i++)
 				i = oClearHudWeaponIcon(pHudWeapons, i);
 		}
 	}
@@ -79,7 +79,9 @@ bool U::PrecacheModel(const char* szModelName)
 {
 	if (auto pModelPrecache = I::StringContainer->FindTable(XorStr("modelprecache")); pModelPrecache != nullptr)
 	{
-		I::ModelInfo->FindOrLoadModel(szModelName);
+		if (I::ModelInfo->FindOrLoadModel(szModelName) == nullptr)
+			return false;
+
 		if (pModelPrecache->AddString(false, szModelName) == INVALID_STRING_INDEX)
 			return false;
 	}
@@ -278,13 +280,29 @@ void U::FlashWindow(HWND pWindow)
 #pragma region utilities_string
 std::string U::UnicodeAscii(const std::wstring& wszUnicode)
 {
-	std::string szOutput(wszUnicode.cbegin(), wszUnicode.cend());
+	const int nLength = WideCharToMultiByte(CP_UTF8, 0UL, wszUnicode.c_str(), wszUnicode.length(), nullptr, 0, nullptr, nullptr);
+	std::string szOutput = { };
+
+	if (nLength > 0)
+	{
+		szOutput.resize(nLength);
+		WideCharToMultiByte(CP_UTF8, 0UL, wszUnicode.c_str(), wszUnicode.length(), &szOutput[0], nLength, nullptr, nullptr);
+	}
+
 	return szOutput;
 }
 
 std::wstring U::AsciiUnicode(const std::string& szAscii)
 {
-	std::wstring wszOutput(szAscii.cbegin(), szAscii.cend());
+	const int nLength = MultiByteToWideChar(CP_UTF8, 0UL, szAscii.c_str(), szAscii.length(), nullptr, 0);
+	std::wstring wszOutput = { };
+
+	if (nLength > 0)
+	{
+		wszOutput.resize(nLength);
+		MultiByteToWideChar(CP_UTF8, 0UL, szAscii.c_str(), szAscii.length(), &wszOutput[0], nLength);
+	}
+
 	return wszOutput;
 }
 #pragma endregion

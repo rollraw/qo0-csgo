@@ -23,7 +23,11 @@ public:
 		return !this->IsEqual(angBase);
 	}
 
-	constexpr QAngle& operator=(const QAngle& angBase) = default;
+	constexpr QAngle& operator=(const QAngle& angBase)
+	{
+		this->x = angBase.x; this->y = angBase.y; this->z = angBase.z;
+		return *this;
+	}
 
 	constexpr QAngle& operator+=(const QAngle& angBase)
 	{
@@ -49,25 +53,25 @@ public:
 		return *this;
 	}
 
-	constexpr QAngle& operator+=(float flAdd)
+	constexpr QAngle& operator+=(const float flAdd)
 	{
 		this->x += flAdd; this->y += flAdd; this->z += flAdd;
 		return *this;
 	}
 
-	constexpr QAngle& operator-=(float flSubtract)
+	constexpr QAngle& operator-=(const float flSubtract)
 	{
 		this->x -= flSubtract; this->y -= flSubtract; this->z -= flSubtract;
 		return *this;
 	}
 
-	constexpr QAngle& operator*=(float flMultiply)
+	constexpr QAngle& operator*=(const float flMultiply)
 	{
 		this->x *= flMultiply; this->y *= flMultiply; this->z *= flMultiply;
 		return *this;
 	}
 
-	constexpr QAngle& operator/=(float flDivide)
+	constexpr QAngle& operator/=(const float flDivide)
 	{
 		this->x /= flDivide; this->y /= flDivide; this->z /= flDivide;
 		return *this;
@@ -93,46 +97,46 @@ public:
 		return QAngle(this->x / angDivide.x, this->y / angDivide.y, this->z / angDivide.z);
 	}
 
-	QAngle operator+(float flAdd) const
+	QAngle operator+(const float flAdd) const
 	{
 		return QAngle(this->x + flAdd, this->y + flAdd, this->z + flAdd);
 	}
 
-	QAngle operator-(float flSubtract) const
+	QAngle operator-(const float flSubtract) const
 	{
 		return QAngle(this->x - flSubtract, this->y - flSubtract, this->z - flSubtract);
 	}
 
-	QAngle operator*(float flMultiply) const
+	QAngle operator*(const float flMultiply) const
 	{
 		return QAngle(this->x * flMultiply, this->y * flMultiply, this->z * flMultiply);
 	}
 
-	QAngle operator/(float flDivide) const
+	QAngle operator/(const float flDivide) const
 	{
 		return QAngle(this->x / flDivide, this->y / flDivide, this->z / flDivide);
 	}
 
-	bool IsEqual(const QAngle& angEqual) const
+	[[nodiscard]] bool IsEqual(const QAngle& angEqual) const
 	{
 		return (std::fabsf(this->x - angEqual.x) < std::numeric_limits<float>::epsilon() &&
 				std::fabsf(this->y - angEqual.y) < std::numeric_limits<float>::epsilon() &&
 				std::fabsf(this->z - angEqual.z) < std::numeric_limits<float>::epsilon());
 	}
 
-	bool IsZero() const
+	[[nodiscard]] bool IsZero() const
 	{
 		return (std::fpclassify(this->x) == FP_ZERO &&
 				std::fpclassify(this->y) == FP_ZERO &&
 				std::fpclassify(this->z) == FP_ZERO);
 	}
 
-	float Length() const
+	[[nodiscard]] float Length() const
 	{
 		return std::sqrtf(this->x * this->x + this->y * this->y + this->z * this->z);
 	}
 
-	constexpr float LengthSqr() const
+	[[nodiscard]] constexpr float LengthSqr() const
 	{
 		return this->x * this->x + this->y * this->y + this->z * this->z;
 	}
@@ -152,7 +156,7 @@ public:
 		return *this;
 	}
 
-	QAngle Mod(float flValue)
+	QAngle Mod(const float flValue)
 	{
 		this->x = std::fmodf(this->x, flValue);
 		this->y = std::fmodf(this->y, flValue);
