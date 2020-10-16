@@ -104,7 +104,7 @@ namespace I
 	inline IDirect3DDevice9*		DirectDevice;
 	inline IViewRenderBeams*		ViewRenderBeams;
 	inline IInput*					Input;
-	inline IBaseClientState*		ClientState;
+	inline IClientState*		ClientState;
 	inline IWeaponSystem*			WeaponSystem;
 	inline IGlowObjectManager*		GlowManager;
 }

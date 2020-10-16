@@ -244,7 +244,7 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 		return oCreateMove(thisptr, edx, flInputSampleTime, pCmd);
 
 	// netchannel pointer
-	INetChannel* pNetChannel = reinterpret_cast<INetChannel*>(I::ClientState->pNetChannel);
+	INetChannel* pNetChannel = I::ClientState->pNetChannel;
 
 	// get stack frame without asm inlines
 	// safe and will not break if you omitting frame pointer
@@ -296,7 +296,8 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	}
 	CPrediction::Get().End(pCmd, pLocal);
 
-	CMiscellaneous::Get().MovementCorrection(pCmd, angOldViewPoint);
+	if (pLocal->IsAlive())
+		CMiscellaneous::Get().MovementCorrection(pCmd, angOldViewPoint);
 
 	// clamp & normalize view angles
 	if (C::Get<bool>(Vars.bMiscAntiUntrusted))

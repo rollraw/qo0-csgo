@@ -123,7 +123,7 @@ void CMiscellaneous::FakeLag(CBaseEntity* pLocal, bool& bSendPacket)
 	if (!pLocal->IsAlive())
 		return;
 
-	INetChannel* pNetChannel = reinterpret_cast<INetChannel*>(I::ClientState->pNetChannel);
+	INetChannel* pNetChannel = I::ClientState->pNetChannel;
 
 	if (pNetChannel == nullptr)
 		return;

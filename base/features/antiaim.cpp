@@ -89,12 +89,6 @@ void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 	// do antiaim for yaw
 	Yaw(pCmd, pLocal, flServerTime, bSendPacket);
 
-	if (C::Get<bool>(Vars.bMiscAntiUntrusted))
-	{
-		angSentView.Normalize();
-		angSentView.Clamp();
-	}
-
 	// send angles
 	pCmd->angViewPoint = angSentView;
 }

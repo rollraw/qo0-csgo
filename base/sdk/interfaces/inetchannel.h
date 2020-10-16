@@ -67,7 +67,8 @@ public:
 	std::byte	pad0[0x14];				//0x0000
 	bool		bProcessingMessages;	//0x0014
 	bool		bShouldDelete;			//0x0015
-	std::byte	pad1[0x2];				//0x0016
+	bool		bStopProcessing;		//0x0016
+	std::byte	pad1[0x1];				//0x0017
 	int			iOutSequenceNr;			//0x0018 last send outgoing sequence number
 	int			iInSequenceNr;			//0x001C last received incoming sequence number
 	int			iOutSequenceNrAck;		//0x0020 last received acknowledge outgoing sequence number
