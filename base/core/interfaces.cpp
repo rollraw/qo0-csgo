@@ -75,7 +75,7 @@ bool I::Setup()
 	if (Input == nullptr)
 		return false;
 
-	ClientState = **reinterpret_cast<IClientState***>(MEM::FindPattern(ENGINE_DLL, XorStr("A1 ? ? ? ? 8B 80 ? ? ? ? C3")) + 0x1);
+	ClientState = **reinterpret_cast<IClientState***>(MEM::FindPattern(ENGINE_DLL, XorStr("A1 ? ? ? ? 8B 88 ? ? ? ? 85 C9 75 07")) + 0x1);
 	if (ClientState == nullptr)
 		return false;
 

@@ -97,10 +97,10 @@ public:
 	char			szLastLevelNameShort[80]; // 0x032C
 	std::byte		pad5[0xC];				// 0x037C
 	int				nMaxClients;			// 0x0388 
-	std::byte		pad6[0x4984];			// 0x038C
-	float			flLastServerTickTime;	// 0x4D10
-	bool			bInSimulation;			// 0x4D14
-	std::byte		pad7[0xB];				// 0x4D15
+	std::byte		pad6[0x498C];			// 0x038C
+	float			flLastServerTickTime;	// 0x4D18
+	bool			bInSimulation;			// 0x4D1C
+	std::byte		pad7[0x3];				// 0x4D1D
 	int				iOldTickcount;			// 0x4D20
 	float			flTickRemainder;		// 0x4D24
 	float			flFrameTime;			// 0x4D28
