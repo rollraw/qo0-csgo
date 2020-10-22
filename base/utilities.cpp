@@ -41,11 +41,11 @@ void U::ForceFullUpdate()
 	I::ClientState->iDeltaTick = -1;
 }
 
-bool U::LineGoesThroughSmoke(Vector vecStartPos, Vector vecEndPos)
+bool U::LineGoesThroughSmoke(const Vector& vecStart, const Vector& vecEnd, const bool bGrenadeBloat)
 {
-	using LineGoesThroughSmokeFn = bool(__cdecl*)(Vector, Vector, std::int16_t);
+	using LineGoesThroughSmokeFn = bool(__cdecl*)(Vector, Vector, bool);
 	static auto oLineGoesThroughSmoke = reinterpret_cast<LineGoesThroughSmokeFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 EC 08 8B 15 ? ? ? ? 0F 57 C0"))); // @xref: "effects/overlaysmoke"
-	return oLineGoesThroughSmoke(vecStartPos, vecEndPos, 1);
+	return oLineGoesThroughSmoke(vecStart, vecEnd, bGrenadeBloat);
 }
 
 void U::SetLocalPlayerReady()
@@ -278,29 +278,29 @@ void U::FlashWindow(HWND pWindow)
 #pragma endregion
 
 #pragma region utilities_string
-std::string U::UnicodeAscii(const std::wstring& wszUnicode)
+std::string U::UnicodeAscii(std::wstring_view wszUnicode)
 {
-	const int nLength = WideCharToMultiByte(CP_UTF8, 0UL, wszUnicode.c_str(), wszUnicode.length(), nullptr, 0, nullptr, nullptr);
+	const int nLength = WideCharToMultiByte(CP_UTF8, 0UL, wszUnicode.data(), wszUnicode.length(), nullptr, 0, nullptr, nullptr);
 	std::string szOutput = { };
 
 	if (nLength > 0)
 	{
 		szOutput.resize(nLength);
-		WideCharToMultiByte(CP_UTF8, 0UL, wszUnicode.c_str(), wszUnicode.length(), &szOutput[0], nLength, nullptr, nullptr);
+		WideCharToMultiByte(CP_UTF8, 0UL, wszUnicode.data(), wszUnicode.length(), &szOutput[0], nLength, nullptr, nullptr);
 	}
 
 	return szOutput;
 }
 
-std::wstring U::AsciiUnicode(const std::string& szAscii)
+std::wstring U::AsciiUnicode(std::string_view szAscii)
 {
-	const int nLength = MultiByteToWideChar(CP_UTF8, 0UL, szAscii.c_str(), szAscii.length(), nullptr, 0);
+	const int nLength = MultiByteToWideChar(CP_UTF8, 0UL, szAscii.data(), szAscii.length(), nullptr, 0);
 	std::wstring wszOutput = { };
 
 	if (nLength > 0)
 	{
 		wszOutput.resize(nLength);
-		MultiByteToWideChar(CP_UTF8, 0UL, szAscii.c_str(), szAscii.length(), &wszOutput[0], nLength);
+		MultiByteToWideChar(CP_UTF8, 0UL, szAscii.data(), szAscii.length(), &wszOutput[0], nLength);
 	}
 
 	return wszOutput;

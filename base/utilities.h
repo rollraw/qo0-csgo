@@ -56,7 +56,7 @@ namespace U
 	/* updates hud, clears delta tick */
 	void ForceFullUpdate();
 	/* return true if ray goes through smoke */
-	bool LineGoesThroughSmoke(Vector vecStartPos, Vector vecEndPos);
+	bool LineGoesThroughSmoke(const Vector& vecStart, const Vector& vecEnd, const bool bGrenadeBloat = true);
 	/* set localplayer accepted competitive game */
 	void SetLocalPlayerReady(); // @credits: oneshotgh
 	/* set given string to nickname */
@@ -76,9 +76,9 @@ namespace U
 
 	// String
 	/* converts from unicode to ascii string */
-	std::string UnicodeAscii(const std::wstring& wszUnicode);
+	std::string UnicodeAscii(std::wstring_view wszUnicode);
 	/* converts from ascii to unicode string */
-	std::wstring AsciiUnicode(const std::string& szAscii);
+	std::wstring AsciiUnicode(std::string_view szAscii);
 
 	// Links
 	/* event listener implementation */

@@ -554,11 +554,11 @@ void D::RenderDrawData(ImDrawList* pDrawList)
 			pDrawList->PushTextureID(data.pFont->ContainerAtlas->TexID);
 
 			if (data.iFlags & IMGUI_TEXT_DROPSHADOW)
-				pDrawList->AddText(data.pFont, data.flFontSize, ImVec2(data.vecFirst) + ImVec2(1.0f, -1.0f), data.colSecond, data.szText.data());
+				pDrawList->AddText(data.pFont, data.flFontSize, data.vecFirst + ImVec2(1.0f, -1.0f), data.colSecond, data.szText.data());
 			else if (data.iFlags & IMGUI_TEXT_OUTLINE)
 			{
-				pDrawList->AddText(data.pFont, data.flFontSize, ImVec2(data.vecFirst) + ImVec2(1.0f, -1.0f), data.colSecond, data.szText.data());
-				pDrawList->AddText(data.pFont, data.flFontSize, ImVec2(data.vecFirst) + ImVec2(-1.0f, 1.0f), data.colSecond, data.szText.data());
+				pDrawList->AddText(data.pFont, data.flFontSize, data.vecFirst + ImVec2(1.0f, -1.0f), data.colSecond, data.szText.data());
+				pDrawList->AddText(data.pFont, data.flFontSize, data.vecFirst + ImVec2(-1.0f, 1.0f), data.colSecond, data.szText.data());
 			}
 
 			pDrawList->AddText(data.pFont, data.flFontSize, data.vecFirst, data.colFirst, data.szText.data());
