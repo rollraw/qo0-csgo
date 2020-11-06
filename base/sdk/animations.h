@@ -96,7 +96,7 @@ public:
 
 	void Update(QAngle angView)
 	{
-		using UpdateAnimationStateFn = void(_vectorcall*)(void*, void*, float, float, float, void*);
+		using UpdateAnimationStateFn = void(__vectorcall*)(void*, void*, float, float, float, void*);
 		static auto oUpdateAnimationState = reinterpret_cast<UpdateAnimationStateFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 83 EC 18 56 57 8B F9 F3 0F 11 54 24"))); // @xref: "%s_aim"
 
 		if (oUpdateAnimationState == nullptr)

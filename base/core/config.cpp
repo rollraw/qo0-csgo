@@ -1,11 +1,11 @@
 // used: shgetknownfolderpath
 #include <shlobj.h>
+// used: json parser implementation
+#include <json.hpp>
 
 #include "config.h"
 // used: log config result state
 #include "../utilities/logging.h"
-// used: json parser implementation
-#include "../../dependencies/json/json.hpp"
 
 bool C::Setup(std::string_view szDefaultFileName)
 {
