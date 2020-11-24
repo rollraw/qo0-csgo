@@ -64,9 +64,9 @@ void CMiscellaneous::MovementCorrection(CUserCmd* pCmd, const QAngle& angOldView
 	// we don't attempt on forward/right roll, and on up pitch/yaw
 	vecForward.z = vecRight.z = vecUp.x = vecUp.y = 0.f;
 
-	vecForward.Normalize();
-	vecRight.Normalize();
-	vecUp.Normalize();
+	vecForward.NormalizeInPlace();
+	vecRight.NormalizeInPlace();
+	vecUp.NormalizeInPlace();
 
 	Vector vecOldForward = { }, vecOldRight = { }, vecOldUp = { };
 	M::AngleVectors(pCmd->angViewPoint, &vecOldForward, &vecOldRight, &vecOldUp);
@@ -74,9 +74,9 @@ void CMiscellaneous::MovementCorrection(CUserCmd* pCmd, const QAngle& angOldView
 	// we don't attempt on forward/right roll, and on up pitch/yaw
 	vecOldForward.z = vecOldRight.z = vecOldUp.x = vecOldUp.y = 0.f;
 
-	vecOldForward.Normalize();
-	vecOldRight.Normalize();
-	vecOldUp.Normalize();
+	vecOldForward.NormalizeInPlace();
+	vecOldRight.NormalizeInPlace();
+	vecOldUp.NormalizeInPlace();
 
 	const float flPitchForward = vecForward.x * pCmd->flForwardMove;
 	const float flYawForward = vecForward.y * pCmd->flForwardMove;

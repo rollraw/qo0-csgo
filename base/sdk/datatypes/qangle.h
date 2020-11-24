@@ -131,16 +131,6 @@ public:
 				std::fpclassify(this->z) == FP_ZERO);
 	}
 
-	[[nodiscard]] float Length() const
-	{
-		return std::sqrtf(this->x * this->x + this->y * this->y + this->z * this->z);
-	}
-
-	[[nodiscard]] constexpr float LengthSqr() const
-	{
-		return this->x * this->x + this->y * this->y + this->z * this->z;
-	}
-
 	void Clamp()
 	{
 		this->x = std::clamp(this->x, -89.f, 89.f);

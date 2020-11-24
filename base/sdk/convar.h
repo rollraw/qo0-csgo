@@ -6,6 +6,7 @@
 // used: utlvector
 #include "datatypes/utlvector.h"
 
+using FnCommandCallbackV1_t = void(__cdecl*)();
 using FnChangeCallback_t = void(__cdecl*)(void*, const char*, float);
 class CConVar
 {
@@ -31,7 +32,7 @@ public:
 		return !!GetInt();
 	}
 
-	const char* GetString()
+	const char* GetString() const
 	{
 		char const* szValue = pParent->szString;
 		return szValue ? szValue : "";
@@ -64,7 +65,7 @@ public:
 	const char*						szName;				//0x0C
 	const char*						szHelpString;		//0x10
 	int								nFlags;				//0x14
-	std::byte						pad1[0x4];			//0x18
+	FnCommandCallbackV1_t			pCallback;			//0x18
 	CConVar*						pParent;			//0x1C
 	const char*						szDefaultValue;		//0x20
 	char*							szString;			//0x24
@@ -87,24 +88,25 @@ public:
 	~CSpoofedConVar();
 
 	// Check
-	bool	IsSpoofed();
+	bool	IsSpoofed() const;
 	void	Spoof();
 
 	// Flags
-	void	SetFlags(int iFlags);
-	int		GetFlags();
+	void	SetFlags(int iFlags) const;
+	int		GetFlags() const;
 
 	// Set
-	void	SetBool(bool bValue);
-	void	SetInt(int iValue);
-	void	SetFloat(float flValue);
-	void	SetString(const char* szValue);
+	void	SetBool(bool bValue) const;
+	void	SetInt(int iValue) const;
+	void	SetFloat(float flValue) const;
+	void	SetString(const char* szValue) const;
+
 private:
 	CConVar*	pOriginalCVar = nullptr;
 	CConVar*	pDummyCVar = nullptr;
-	char		szDummyName[128];
-	char		szDummyValue[128];
-	char		szOriginalName[128];
-	char		szOriginalValue[128];
-	int			iOriginalFlags;
+	char		szDummyName[128] = { };
+	char		szDummyValue[128] = { };
+	char		szOriginalName[128] = { };
+	char		szOriginalValue[128] = { };
+	int			iOriginalFlags= 0;
 };

@@ -175,10 +175,10 @@ public:
 
 	[[nodiscard]] float Length() const
 	{
-		return std::sqrtf(this->x * this->x + this->y * this->y + this->z * this->z);
+		return std::sqrtf(this->LengthSqr());
 	}
 
-	[[nodiscard]] float LengthSqr() const
+	[[nodiscard]] constexpr float LengthSqr() const
 	{
 		return DotProduct(*this);
 	}
@@ -203,20 +203,10 @@ public:
 		return (*this - vecEnd).LengthSqr();
 	}
 
-	void Normalize()
-	{
-		const float flLength = this->Length();
-
-		if (flLength != 0.0f)
-			*this /= flLength;
-		else
-			this->x = this->y = this->z = 0.0f;
-	}
-
 	[[nodiscard]] Vector Normalized() const
 	{
 		Vector vecOut = *this;
-		vecOut.Normalize();
+		vecOut.NormalizeInPlace();
 		return vecOut;
 	}
 

@@ -14,8 +14,7 @@ float CAutoWall::GetDamage(CBaseEntity* pLocal, const Vector& vecPoint, FireBull
 	// setup data
 	FireBulletData_t data = { };
 	data.vecPosition = vecPosition;
-	data.vecDirection = vecPoint - vecPosition;
-	data.vecDirection.Normalize();
+	data.vecDirection = (vecPoint - vecPosition).Normalized();
 
 	CBaseCombatWeapon* pWeapon = pLocal->GetWeapon();
 

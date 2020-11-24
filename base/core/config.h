@@ -18,15 +18,15 @@
 #pragma region config_definitions
 #define C_ADD_VARIABLE( Type, szName, pDefault ) const std::uint32_t szName = C::AddVariable<Type>(FNV1A::HashConst(#szName), FNV1A::HashConst(#Type), pDefault);
 #define C_ADD_VARIABLE_VECTOR( Type, uSize, szName, pDefault ) const std::uint32_t szName = C::AddVariable<std::vector<Type>>(FNV1A::HashConst(#szName), FNV1A::HashConst("std::vector<" #Type ">"), MEM::GetFilledVector<Type, uSize>(pDefault));
-#define C_INVALID_VARIABLE (std::size_t)-1
+#define C_INVALID_VARIABLE (std::size_t)(-1)
 #pragma endregion
 
 struct VariableObject_t
 {
 	VariableObject_t() = default;
 
-	explicit VariableObject_t(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, const std::any pDefault)
-		: uNameHash(uNameHash), uTypeHash(uTypeHash), pValue(pDefault) { }
+	explicit VariableObject_t(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, std::any&& pDefault)
+		: uNameHash(uNameHash), uTypeHash(uTypeHash), pValue(std::move(pDefault)) { }
 
 	~VariableObject_t() = default;
 
@@ -51,7 +51,7 @@ struct VariableObject_t
 
 /*
  * CONFIGURATION
- * cheat variables file manipulating (save/load/remove)
+ * cheat variables file control (save/load/remove)
  */
 namespace C // @credits: ducarii
 {
@@ -84,7 +84,7 @@ namespace C // @credits: ducarii
 	template <typename T>
 	std::uint32_t AddVariable(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, const T pDefault)
 	{
-		vecVariables.push_back(VariableObject_t(uNameHash, uTypeHash, std::make_any<T>(pDefault)));
+		vecVariables.emplace_back(uNameHash, uTypeHash, std::make_any<T>(pDefault));
 		return vecVariables.size() - 1U;
 	}
 

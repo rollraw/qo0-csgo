@@ -333,7 +333,6 @@ public:
 class IClientEntity : public IClientUnknown, public IClientRenderable, public IClientNetworkable, public IClientThinkable
 {
 public:
-	virtual void					Release() override = 0;
 	virtual const Vector&			GetAbsOrigin() const = 0;
 	virtual const QAngle&			GetAbsAngles() const = 0;
 	virtual void*					GetMouth() = 0;

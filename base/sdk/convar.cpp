@@ -34,7 +34,7 @@ CSpoofedConVar::~CSpoofedConVar()
 	}
 }
 
-bool CSpoofedConVar::IsSpoofed()
+bool CSpoofedConVar::IsSpoofed() const
 {
 	return pDummyCVar != nullptr;
 }
@@ -69,36 +69,36 @@ void CSpoofedConVar::Spoof()
 	}
 }
 
-void CSpoofedConVar::SetFlags(int nFlags)
+void CSpoofedConVar::SetFlags(int nFlags) const
 {
 	if (IsSpoofed())
 		pOriginalCVar->nFlags = nFlags;
 }
 
-int CSpoofedConVar::GetFlags()
+int CSpoofedConVar::GetFlags() const
 {
 	return pOriginalCVar->nFlags;
 }
 
-void CSpoofedConVar::SetInt(int iValue)
+void CSpoofedConVar::SetInt(int iValue) const
 {
 	if (IsSpoofed())
 		pOriginalCVar->SetValue(iValue);
 }
 
-void CSpoofedConVar::SetBool(bool bValue)
+void CSpoofedConVar::SetBool(bool bValue) const
 {
 	if (IsSpoofed())
 		pOriginalCVar->SetValue(bValue);
 }
 
-void CSpoofedConVar::SetFloat(float flValue)
+void CSpoofedConVar::SetFloat(float flValue) const
 {
 	if (IsSpoofed())
 		pOriginalCVar->SetValue(flValue);
 }
 
-void CSpoofedConVar::SetString(const char* szValue)
+void CSpoofedConVar::SetString(const char* szValue) const
 {
 	if (IsSpoofed())
 		pOriginalCVar->SetValue(szValue);

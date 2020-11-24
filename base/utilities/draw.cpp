@@ -463,13 +463,15 @@ void D::Setup(IDirect3DDevice9* pDevice, unsigned int uFontFlags)
 
 	ImFontConfig imIconsConfig;
 	imIconsConfig.RasterizerFlags = ImGuiFreeType::LightHinting;
-	const ImWchar wIconRanges[] = { 0xE000, 0xF000, 0 };
+	constexpr ImWchar wIconRanges[] =
+	{
+		0xE000, 0xF8FF, // Private Use Area
+		0
+	};
+
 	F::Icons = io.Fonts->AddFontFromMemoryCompressedTTF(qo0icons_compressed_data, qo0icons_compressed_size, 40.f, &imIconsConfig, wIconRanges);
 
-	if (ImGuiFreeType::BuildFontAtlas(io.Fonts, uFontFlags))
-		bInitialized = true;
-	else
-		bInitialized = false;
+	bInitialized = ImGuiFreeType::BuildFontAtlas(io.Fonts, uFontFlags);
 }
 
 void D::Destroy()
