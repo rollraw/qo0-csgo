@@ -108,5 +108,5 @@ private:
 	char		szDummyValue[128] = { };
 	char		szOriginalName[128] = { };
 	char		szOriginalValue[128] = { };
-	int			iOriginalFlags= 0;
+	int			iOriginalFlags = 0;
 };

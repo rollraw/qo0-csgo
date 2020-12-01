@@ -1,6 +1,7 @@
 #pragma once
 // used: std::function
 #include <functional>
+#include <utility>
 
 // used: matrix3x4_t
 #include "../datatypes/matrix.h"
@@ -129,6 +130,23 @@ struct Ray_t
 		this->bIsSwept = (this->vecDelta.LengthSqr() != 0.f);
 	}
 
+	Ray_t(const Vector& vecStart, const Vector& vecEnd, const Vector& vecMins, const Vector& vecMaxs)
+	{
+		this->vecDelta = vecEnd - vecStart;
+
+		this->matWorldAxisTransform = nullptr;
+		this->bIsSwept = (this->vecDelta.LengthSqr() != 0.f);
+
+		this->vecExtents = vecMaxs - vecMins;
+		this->vecExtents *= 0.5f;
+		this->bIsRay = (this->vecExtents.LengthSqr() < 1e-6);
+
+		this->vecStartOffset = vecMins + vecMaxs;
+		this->vecStartOffset *= 0.5f;
+		this->vecStart = vecStart + this->vecStartOffset;
+		this->vecStartOffset *= -1.0f;
+	}
+
 	VectorAligned		vecStart;
 	VectorAligned		vecDelta;
 	VectorAligned		vecStartOffset;
@@ -154,10 +172,10 @@ public:
 	// @todo: sig ctracefiltersimple constructor and use it
 
 	CTraceFilter(const IHandleEntity* pSkipEntity, ETraceType iTraceType = TRACE_EVERYTHING)
-		: pSkip(pSkipEntity), checkCallback(nullptr), iTraceType(iTraceType) { }
+		: pSkip(pSkipEntity), iTraceType(iTraceType) { }
 
-	CTraceFilter(FilterCallbackFn checkCallback, ETraceType iTraceType = TRACE_EVERYTHING)
-		: pSkip(nullptr), checkCallback(checkCallback), iTraceType(iTraceType) { }
+	CTraceFilter(FilterCallbackFn&& checkCallback, ETraceType iTraceType = TRACE_EVERYTHING)
+		: checkCallback(std::move(checkCallback)), iTraceType(iTraceType) { }
 
 	bool ShouldHitEntity(IHandleEntity* pHandleEntity, int fContentsMask) override
 	{

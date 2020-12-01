@@ -254,9 +254,15 @@ class __declspec(align(16)) VectorAligned : public Vector
 public:
 	VectorAligned() = default;
 
-	explicit VectorAligned(const Vector& v)
+	explicit VectorAligned(const Vector& vecBase)
 	{
-		this->x = v.x; this->y = v.y; this->z = v.z; this->w = 0.f;
+		this->x = vecBase.x; this->y = vecBase.y; this->z = vecBase.z; this->w = 0.f;
+	}
+
+	constexpr VectorAligned& operator=(const Vector& vecBase)
+	{
+		this->x = vecBase.x; this->y = vecBase.y; this->z = vecBase.z; this->w = 0.f;
+		return *this;
 	}
 
 public:
