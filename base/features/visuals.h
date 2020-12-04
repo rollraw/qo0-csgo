@@ -27,7 +27,6 @@ struct HitMarkerObject_t
 	float	flTime;
 };
 
-class CEnvTonemapController;
 class CVisuals : public CSingleton<CVisuals>
 {
 public:

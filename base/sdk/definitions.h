@@ -422,6 +422,7 @@ enum class EClassIndex : int
 	CKnife,
 	CKnifeGG,
 	CLightGlow,
+	CMapVetoPickController,
 	CMaterialModifyControl,
 	CMelee,
 	CMolotovGrenade,

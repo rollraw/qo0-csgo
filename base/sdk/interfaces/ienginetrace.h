@@ -1,7 +1,6 @@
 #pragma once
 // used: std::function
 #include <functional>
-#include <utility>
 
 // used: matrix3x4_t
 #include "../datatypes/matrix.h"

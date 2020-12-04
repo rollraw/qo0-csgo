@@ -754,13 +754,14 @@ void CVisuals::HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color 
 		return;
 
 	const float flMaxLinesAlpha = colLines.aBase();
-	constexpr int arrSides[4][2] = { { -1, -1 }, { 1, 1 }, { -1, 1 }, { 1, -1 } };
-	for (const auto& iSide : arrSides)
+	constexpr std::array<std::array<float, 2U>, 4U> arrSides = { { { -1.0f, -1.0f }, { 1.0f, 1.0f }, { -1.0f, 1.0f }, { 1.0f, -1.0f } } };
+
+	for (const auto& arrSide : arrSides)
 	{
 		// set fade out alpha
 		colLines.arrColor.at(3) = static_cast<std::uint8_t>(std::min(flMaxLinesAlpha, flLastDelta / C::Get<float>(Vars.flScreenHitMarkerTime)) * 255.f);
 		// draw mark cross
-		D::AddLine(ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * iSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * iSide[1]), ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * iSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * iSide[1]), colLines);
+		D::AddLine(ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * arrSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * arrSide[1]), ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * arrSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * arrSide[1]), colLines);
 	}
 
 	if (!C::Get<bool>(Vars.bScreenHitMarkerDamage))
