@@ -557,6 +557,12 @@ public:
 	// pattern @xref: "ankle_L"
 	// index @xref: "SetupBones: invalid bone array size (%d - needs %d)\n"
 
+	const char* GetClassname()
+	{
+		// @ida: 8B 01 FF 90 ? ? ? ? 90 + 0x4
+		return MEM::CallVFunc<const char*>(this, 59);
+	}
+
 	int IsMaxHealth()
 	{
 		// @ida: FF 90 ? ? ? ? 85 C0 0F 8F ? ? ? ? 80 + 0x2
@@ -566,12 +572,6 @@ public:
 	void Think()
 	{
 		MEM::CallVFunc<void>(this, 138);
-	}
-
-	const char* GetClassname()
-	{
-		// @ida: 8B 01 FF 90 ? ? ? ? 90 + 0x4
-		return MEM::CallVFunc<const char*>(this, 142);
 	}
 
 	unsigned int PhysicsSolidMaskForEntity()

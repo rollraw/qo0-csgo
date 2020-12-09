@@ -118,11 +118,11 @@ private:
 	/* changes the exposure to make the world looks like at night or fullbright */
 	void NightMode(CEnvTonemapController* pController) const; // @credits: sapphyrus
 	/* draw frame with title at bomb position */
-	void Bomb(const Vector2D& vecScreen, Context_t& ctx, const Color& colFrame);
+	void Bomb(const ImVec2& vecScreen, Context_t& ctx, const Color& colFrame) const;
 	/* draw frame with title, timer and defuse bars at planted bomb position */
-	void PlantedBomb(CPlantedC4* pBomb, float flServerTime, const Vector2D& vecScreen, Context_t& ctx, const Color& colFrame, const Color& colDefuse, const Color& colFailDefuse, const Color& colBackground, const Color& colOutline);
+	void PlantedBomb(CPlantedC4* pBomb, float flServerTime, const ImVec2& vecScreen, Context_t& ctx, const Color& colFrame, const Color& colDefuse, const Color& colFailDefuse, const Color& colBackground, const Color& colOutline) const;
 	/* draw frame with name and timer bar at grenade position */
-	void Grenade(CBaseEntity* pGrenade, EClassIndex nIndex, float flServerTime, const Vector2D& vecScreen, Context_t& ctx, const Color& colFrame, const Color& colBackground, const Color& colOutline);
+	void Grenade(CBaseEntity* pGrenade, EClassIndex nIndex, float flServerTime, const ImVec2& vecScreen, Context_t& ctx, const Color& colFrame, const Color& colBackground, const Color& colOutline) const;
 	/* draw weapon icon, ammo bar, distance at dropped weapons positions */
 	void DroppedWeapons(CBaseCombatWeapon* pWeapon, short nItemDefinitionIndex, Context_t& ctx, const float flDistance, const Color& colPrimary, const Color& colAmmo, const Color& colBackground, const Color& colOutline);
 

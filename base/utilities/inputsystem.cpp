@@ -13,7 +13,7 @@
 
 bool IPT::Setup()
 {
-	D3DDEVICE_CREATION_PARAMETERS creationParameters;
+	D3DDEVICE_CREATION_PARAMETERS creationParameters = { };
 	while (FAILED(I::DirectDevice->GetCreationParameters(&creationParameters)))
 		std::this_thread::sleep_for(200ms);
 
@@ -22,7 +22,7 @@ bool IPT::Setup()
 	if (hWindow == nullptr)
 		return false;
 
-	pOldWndProc = (WNDPROC)SetWindowLongPtrW(hWindow, GWLP_WNDPROC, (LONG_PTR)H::hkWndProc);
+	pOldWndProc = reinterpret_cast<WNDPROC>(SetWindowLongPtrW(hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(H::hkWndProc)));
 
 	if (pOldWndProc == nullptr)
 		return false;
@@ -34,7 +34,7 @@ void IPT::Restore()
 {
 	if (pOldWndProc != nullptr)
 	{
-		SetWindowLongPtrW(hWindow, GWLP_WNDPROC, (LONG_PTR)pOldWndProc);
+		SetWindowLongPtrW(hWindow, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(pOldWndProc));
 		pOldWndProc = nullptr;
 	}
 
@@ -57,7 +57,7 @@ bool IPT::Process(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
-		if (wParam >= 0U && wParam < 256U)
+		if (wParam < 256U)
 		{
 			nKey = wParam;
 			state = EKeyState::DOWN;
@@ -65,7 +65,7 @@ bool IPT::Process(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
-		if (wParam >= 0U && wParam < 256U)
+		if (wParam < 256U)
 		{
 			nKey = wParam;
 			state = EKeyState::UP;

@@ -681,7 +681,7 @@ void D::AddText(const ImVec2& vecPosition, const std::string& szText, Color colT
 #pragma endregion
 
 #pragma region draw_extra
-bool D::WorldToScreen(const Vector& vecOrigin, Vector2D& vecScreen)
+bool D::WorldToScreen(const Vector& vecOrigin, ImVec2& vecScreen)
 {
 	const ViewMatrix_t& matWorldToScreen = I::Engine->WorldToScreenMatrix();
 	const float flWidth = matWorldToScreen[3][0] * vecOrigin.x + matWorldToScreen[3][1] * vecOrigin.y + matWorldToScreen[3][2] * vecOrigin.z + matWorldToScreen[3][3];

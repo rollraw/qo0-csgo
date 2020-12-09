@@ -160,7 +160,7 @@ namespace D
 
 	// Extra
 	/* converts 3d game world space to screen space */
-	bool WorldToScreen(const Vector& vecOrigin, Vector2D& vecScreen);
+	bool WorldToScreen(const Vector& vecOrigin, ImVec2& vecScreen);
 
 	// Values
 	/* directx init state */

@@ -115,7 +115,7 @@ void CVisuals::Store()
 				break;
 
 			const Vector vecOrigin = pEntity->GetOrigin();
-			Vector2D vecScreen = { };
+			ImVec2 vecScreen = { };
 
 			// get bomb on-screen position
 			if (!D::WorldToScreen(vecOrigin, vecScreen))
@@ -139,7 +139,7 @@ void CVisuals::Store()
 				break;
 
 			const Vector vecOrigin = pEntity->GetOrigin();
-			Vector2D vecScreen = { };
+			ImVec2 vecScreen = { };
 
 			// get planted bomb on-screen position
 			if (!D::WorldToScreen(vecOrigin, vecScreen))
@@ -225,7 +225,7 @@ void CVisuals::Store()
 				break;
 
 			const Vector vecOrigin = pEntity->GetOrigin();
-			Vector2D vecScreen = { };
+			ImVec2 vecScreen = { };
 
 			// get grenade on-screen position
 			if (!D::WorldToScreen(vecOrigin, vecScreen))
@@ -669,7 +669,7 @@ bool CVisuals::GetBoundingBox(CBaseEntity* pEntity, Box_t* pBox) const
 	float flBottom = std::numeric_limits<float>::lowest();
 
 	// get screen points position
-	std::array<Vector2D, 8U> arrScreen = { };
+	std::array<ImVec2, 8U> arrScreen = { };
 	for (std::size_t i = 0U; i < 8U; i++)
 	{
 		if (!D::WorldToScreen(M::VectorTransform(arrPoints.at(i), matTransformed), arrScreen.at(i)))
@@ -778,7 +778,7 @@ void CVisuals::HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color 
 			continue;
 		}
 
-		Vector2D vecScreen = { };
+		ImVec2 vecScreen = { };
 		if (D::WorldToScreen(vecHitMarks.at(i).vecPosition, vecScreen))
 		{
 			// max distance for floating damage
@@ -812,7 +812,7 @@ void CVisuals::NightMode(CEnvTonemapController* pController) const
 		bSwitch = (C::Get<bool>(Vars.bWorld) && C::Get<bool>(Vars.bWorldNightMode));
 }
 
-void CVisuals::Bomb(const Vector2D& vecScreen, Context_t& ctx, const Color& colFrame)
+void CVisuals::Bomb(const ImVec2& vecScreen, Context_t& ctx, const Color& colFrame) const
 {
 	const char* szIcon = U::GetWeaponIcon(WEAPON_C4);
 	const ImVec2 vecIconSize = F::Icons->CalcTextSizeA(14.f, FLT_MAX, 0.f, szIcon);
@@ -833,7 +833,7 @@ void CVisuals::Bomb(const Vector2D& vecScreen, Context_t& ctx, const Color& colF
 	D::AddText(F::Verdana, 14.f, ImVec2(ctx.box.left + vecIconSize.x + 7, ctx.box.top + 3), szName, Color(255, 255, 255));
 }
 
-void CVisuals::PlantedBomb(CPlantedC4* pBomb, float flServerTime, const Vector2D& vecScreen, Context_t& ctx, const Color& colFrame, const Color& colDefuse, const Color& colFailDefuse, const Color& colBackground, const Color& colOutline)
+void CVisuals::PlantedBomb(CPlantedC4* pBomb, float flServerTime, const ImVec2& vecScreen, Context_t& ctx, const Color& colFrame, const Color& colDefuse, const Color& colFailDefuse, const Color& colBackground, const Color& colOutline) const
 {
 	const char* szIcon = U::GetWeaponIcon(WEAPON_C4);
 	static ImVec2 vecIconSize = F::Icons->CalcTextSizeA(14.f, FLT_MAX, 0.f, szIcon);
@@ -892,7 +892,7 @@ void CVisuals::PlantedBomb(CPlantedC4* pBomb, float flServerTime, const Vector2D
 	}
 }
 
-void CVisuals::Grenade(CBaseEntity* pGrenade, EClassIndex nIndex, float flServerTime, const Vector2D& vecScreen, Context_t& ctx, const Color& colFrame, const Color& colBackground, const Color& colOutline)
+void CVisuals::Grenade(CBaseEntity* pGrenade, EClassIndex nIndex, float flServerTime, const ImVec2& vecScreen, Context_t& ctx, const Color& colFrame, const Color& colBackground, const Color& colOutline) const
 {
 	// setup temporary values
 	const char* szName = XorStr("NONE");
