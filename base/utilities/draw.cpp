@@ -85,7 +85,7 @@ bool ImGui::ListBox(const char* szLabel, int* iCurrentItem, std::function<const 
 {
 	return ListBox(szLabel, iCurrentItem, [](void* pData, int nIndex, const char** szOutText)
 		{
-			*szOutText = (*(std::function<const char* (int)>*)pData)(nIndex);
+			*szOutText = (*static_cast<std::function<const char*(int)>*>(pData))(nIndex);
 			return true;
 		}, &pLambda, nItemsCount, iHeightInItems);
 }

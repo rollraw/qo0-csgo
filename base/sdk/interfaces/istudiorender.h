@@ -52,7 +52,7 @@ struct DrawModelInfo_t
 	int						iLOD;
 	ColorMeshInfo_t*		pColorMeshes;
 	bool					bStaticLighting;
-	MaterialLightingState_t	LightingState;
+	MaterialLightingState_t	lightingState;
 };
 
 class IStudioRender

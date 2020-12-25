@@ -1,8 +1,6 @@
 #pragma once
 // @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/ivrenderview.h
 
-class IWorldRenderList : public IRefCounted{ };
-
 struct VisibleFogVolumeInfo_t
 {
 	int			iVisibleFogVolume;
@@ -13,16 +11,35 @@ struct VisibleFogVolumeInfo_t
 	IMaterial*	pFogVolumeMaterial;
 };
 
+struct ViewPlane_t
+{
+	ViewPlane_t() = default;
+
+	ViewPlane_t(const Vector& vecNormal, const float flDistance) :
+		vecNormal(vecNormal), flDistance(flDistance) { }
+
+	Vector vecNormal;
+	float flDistance;
+};
+
+enum
+{
+	FRUSTUM_RIGHT = 0,
+	FRUSTUM_LEFT = 1,
+	FRUSTUM_TOP = 2,
+	FRUSTUM_BOTTOM = 3,
+	FRUSTUM_NEARZ = 4,
+	FRUSTUM_FARZ = 5,
+	FRUSTUM_NUMPLANES = 6
+};
+
+using Frustum_t = ViewPlane_t[FRUSTUM_NUMPLANES];
+
 using LeafIndex_t = std::uint16_t;
 
 enum
 {
-	INVALID_LEAF_INDEX = (LeafIndex_t)~0
-};
-
-struct ColorVec_t
-{
-	unsigned r, g, b, a;
+	INVALID_LEAF_INDEX = static_cast<LeafIndex_t>(~0)
 };
 
 struct WorldListLeafData_t
@@ -41,10 +58,25 @@ struct WorldListInfo_t
 	WorldListLeafData_t* pLeafDataList;
 };
 
+class IWorldRenderList : public IRefCounted
+{
+
+};
+
 struct VisOverrideData_t
 {
-	Vector		vecVisOrigin;					// The point to to use as the viewpoint for area portal backface cull checks.
-	float		flDistToAreaPortalTolerance;	// The distance from an area portal before using the full screen as the viewable portion.
+	Vector		vecVisOrigin;					// the point to to use as the viewpoint for area portal backface cull checks.
+	float		flDistToAreaPortalTolerance;	// the distance from an area portal before using the full screen as the viewable portion.
+	Vector		vecPortalCorners[4];			// when rendering a portal view, these are the 4 corners of the portal you are looking through (used to shrink the frustum)
+	bool		bTrimFrustumToPortalCorners;
+	Vector		vecPortalOrigin;
+	Vector		vecPortalForward;
+	float		flPortalRadius;
+};
+
+struct ColorVec_t
+{
+	unsigned r, g, b, a;
 };
 
 struct BrushVertex_t
@@ -63,22 +95,16 @@ private:
 class IBrushSurface
 {
 public:
-	// Computes texture coordinates + lightmap coordinates given a world position
 	virtual void ComputeTextureCoordinate(Vector const& worldPos, Vector2D& texCoord) = 0;
 	virtual void ComputeLightmapCoordinate(Vector const& worldPos, Vector2D& lightmapCoord) = 0;
-
-	// Gets the vertex data for this surface
 	virtual int  GetVertexCount() const = 0;
 	virtual void GetVertexData(BrushVertex_t* pVerts) = 0;
-
-	// Gets at the material properties for this surface
 	virtual IMaterial* GetMaterial() = 0;
 };
 
 class IBrushRenderer
 {
 public:
-	// Draws the surface; returns true if decals should be rendered on this surface
 	virtual bool RenderBrushModelSurface(CBaseEntity* pBaseEntity, IBrushSurface* pBrushSurface) = 0;
 };
 

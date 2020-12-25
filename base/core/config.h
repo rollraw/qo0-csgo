@@ -62,8 +62,8 @@ namespace C // @credits: ducarii
 	bool Save(std::string_view szFileName);
 	/* read values from config file */
 	bool Load(std::string_view szFileName);
-	/* remove config file */
-	void Remove(std::string_view szFileName);
+	/* remove config file at given index */
+	void Remove(const std::size_t nIndex);
 	/* loop through directory content and push config filenames to vector */
 	void Refresh();
 

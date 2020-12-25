@@ -306,8 +306,10 @@ bool C::Load(std::string_view szFileName)
 	return true;
 }
 
-void C::Remove(std::string_view szFileName)
+void C::Remove(const std::size_t nIndex)
 {
+	const std::string& szFileName = vecFileNames.at(nIndex);
+
 	// unable delete default config
 	if (!szFileName.compare(XorStr("default.qo0")))
 		return;
@@ -316,7 +318,10 @@ void C::Remove(std::string_view szFileName)
 	const std::string szFile = std::filesystem::path(fsPath / szFileName).string();
 
 	if (std::filesystem::remove(szFile))
+	{
+		vecFileNames.erase(vecFileNames.cbegin() + nIndex);
 		L::Print(fmt::format(XorStr("removed configuration at: {}"), szFile));
+	}
 }
 
 void C::Refresh()

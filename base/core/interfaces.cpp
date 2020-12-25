@@ -99,24 +99,23 @@ T* I::Capture(const char* szModule, std::string_view szInterface)
 
 		if (const auto hModule = GetModuleHandle(szModule); hModule != nullptr)
 			oCreateInterface = GetProcAddress(hModule, XorStr("CreateInterface"));
-		
+
 		if (oCreateInterface == nullptr)
 			throw std::runtime_error(XorStr("failed get createinterface address"));
 
-		const std::uintptr_t uCreateInterfaceJmp = reinterpret_cast<std::uintptr_t>(oCreateInterface) + 0x4;
-		const std::int32_t iJmpDisp = *reinterpret_cast<std::int32_t*>(uCreateInterfaceJmp + 0x1);
-		const std::uintptr_t uCreateInterface = uCreateInterfaceJmp + 0x5 + iJmpDisp;
+		const std::uintptr_t uCreateInterfaceRelative = reinterpret_cast<std::uintptr_t>(oCreateInterface) + 0x5;
+		const std::uintptr_t uCreateInterface = uCreateInterfaceRelative + 4U + *reinterpret_cast<std::int32_t*>(uCreateInterfaceRelative);
 		return **reinterpret_cast<CInterfaceRegister***>(uCreateInterface + 0x6);
 	};
 
 	for (auto pRegister = GetRegisterList(); pRegister != nullptr; pRegister = pRegister->pNext)
 	{
 		// found needed interface
-		if ((!std::string(pRegister->szName).compare(0U, szInterface.length(), szInterface) &&
-			// and has digits after name
+		if ((std::string_view(pRegister->szName).compare(0U, szInterface.length(), szInterface) == 0 &&
+			// and it have digits after name
 			std::atoi(pRegister->szName + szInterface.length()) > 0) ||
 			// or given full interface with hardcoded digits
-			!szInterface.compare(pRegister->szName))
+			szInterface.compare(pRegister->szName) == 0)
 		{
 			// capture our interface
 			auto pInterface = pRegister->pCreateFn();
@@ -129,7 +128,7 @@ T* I::Capture(const char* szModule, std::string_view szInterface)
 	}
 
 	#ifdef DEBUG_CONSOLE
-	L::PushConsoleColor(FOREGROUND_RED);
+	L::PushConsoleColor(FOREGROUND_INTENSE_RED);
 	L::Print(fmt::format(XorStr("[error] failed to find interface \"{}\" in \"{}\""), szInterface, szModule));
 	L::PopConsoleColor();
 	#endif

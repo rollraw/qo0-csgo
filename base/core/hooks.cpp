@@ -276,23 +276,23 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 		if (C::Get<bool>(Vars.bMiscAutoPistol))
 			CMiscellaneous::Get().AutoPistol(pCmd, pLocal);
 
-		if (C::Get<bool>(Vars.bRage))
-			CRageBot::Get().Run(pCmd, pLocal, bSendPacket);
-
 		if (C::Get<bool>(Vars.bMiscFakeLag) || C::Get<bool>(Vars.bAntiAim))
 			CMiscellaneous::Get().FakeLag(pLocal, bSendPacket);
 
-		if (C::Get<bool>(Vars.bAntiAim))
-			CAntiAim::Get().UpdateServerAnimations(pCmd, pLocal);
-
-		if (C::Get<bool>(Vars.bAntiAim))
-			CAntiAim::Get().Run(pCmd, pLocal, bSendPacket);
+		if (C::Get<bool>(Vars.bRage))
+			CRageBot::Get().Run(pCmd, pLocal, bSendPacket);
 
 		if (C::Get<bool>(Vars.bLegit))
 			CLegitBot::Get().Run(pCmd, pLocal, bSendPacket);
 
 		if (C::Get<bool>(Vars.bTrigger))
 			CTriggerBot::Get().Run(pCmd, pLocal);
+
+		if (C::Get<bool>(Vars.bAntiAim))
+			CAntiAim::Get().UpdateServerAnimations(pCmd, pLocal);
+
+		if (C::Get<bool>(Vars.bAntiAim))
+			CAntiAim::Get().Run(pCmd, pLocal, bSendPacket);
 	}
 	CPrediction::Get().End(pCmd, pLocal);
 

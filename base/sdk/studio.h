@@ -51,6 +51,22 @@ struct vcollide_t;
 struct virtualmodel_t;
 struct vertexfileheader_t;
 
+struct studiohdr_t;
+class CStudioHdr
+{
+public:
+	studiohdr_t*	pStudioHdr;
+	virtualmodel_t*	pVirtualModel;
+	void*			pSoftbody;
+	mutable CUtlVector<const studiohdr_t*> pStudioHdrCache;
+	mutable int		mnFrameUnlockCounter;
+	int*			pFrameUnlockCounter;
+	std::byte		pad0[0x8];
+	CUtlVector<int>	vecBoneFlags;
+	CUtlVector<int>	vecBoneParent;
+	void*			pActivityToSequence;
+};
+
 struct mstudiobone_t
 {
 	int			nNameIndex;
@@ -267,6 +283,20 @@ struct mstudioseqdesc_t
 
 	int	nRootDriverIndex;
 	std::byte pad[0x8];
+};
+
+struct mstudioposeparamdesc_t
+{
+	int nNameIndex;
+	int nFlags;
+	float flStart; // starting value
+	float flEnd; // ending value
+	float flLoop; // looping range, 0 for no looping, 360 for rotations, etc.
+
+	inline const char* GetName() const
+	{
+		return (char*)this + nNameIndex;
+	}
 };
 
 struct studiohwdata_t;

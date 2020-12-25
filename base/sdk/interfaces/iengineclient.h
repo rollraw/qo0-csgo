@@ -62,7 +62,6 @@ struct Model_t;
 struct SteamAPIContext_t;
 struct ClientTextMessage_t;
 struct SurfInfo_t;
-struct Frustum_t;
 class CSentence;
 class CAudioSource;
 class CPhysCollide;

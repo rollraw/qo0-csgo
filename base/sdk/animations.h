@@ -7,7 +7,7 @@
 #include "../utilities/memory.h"
 
 /* max animation layers */
-#define MAXLAYERRECORDS 13
+#define MAXOVERLAYS 15
 
 enum ESequenceActivity : int
 {

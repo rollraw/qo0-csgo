@@ -185,6 +185,9 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
+		// disable DLL_THREAD_ATTACH and DLL_THREAD_DETACH reasons to call
+		DisableThreadLibraryCalls(hModule);
+
 		// basic process check
 		if (GetModuleHandle(XorStr("csgo.exe")) == nullptr)
 		{
@@ -194,9 +197,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 
 		// save our module
 		G::hDll = hModule;
-
-		// disable DLL_THREAD_ATTACH and DLL_THREAD_DETACH reasons to call
-		DisableThreadLibraryCalls(hModule);
 
 		// create main thread
 		if (auto hThread = CreateThread(nullptr, 0U, OnDllAttach, hModule, 0UL, nullptr); hThread != nullptr)

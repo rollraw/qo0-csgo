@@ -14,7 +14,7 @@ enum ECreateRenderTargetFlags : unsigned int
 	CREATERENDERTARGETFLAGS_HDR = 0x00000001,
 	CREATERENDERTARGETFLAGS_AUTOMIPMAP = 0x00000002,
 	CREATERENDERTARGETFLAGS_UNFILTERABLE_OK = 0x00000004,
-	CREATERENDERTARGETFLAGS_NOEDRAM	= 0x00000008,
+	CREATERENDERTARGETFLAGS_NOEDRAM = 0x00000008,
 	CREATERENDERTARGETFLAGS_TEMP = 0x00000010
 };
 
@@ -51,7 +51,7 @@ enum ETextureFlags : unsigned int
 	TEXTUREFLAGS_UNUSED_10000000 = 0x10000000,
 	TEXTUREFLAGS_BORDER = 0x20000000,
 	TEXTUREFLAGS_UNUSED_40000000 = 0x40000000,
-	TEXTUREFLAGS_UNUSED_80000000 = 0x80000000,
+	TEXTUREFLAGS_UNUSED_80000000 = 0x80000000
 };
 
 enum EMaterialPropertyType : int
@@ -123,7 +123,7 @@ enum EMaterialVarFlags
 	MATERIAL_VAR_WIREFRAME = (1 << 28),
 	MATERIAL_VAR_ALLOWALPHATOCOVERAGE = (1 << 29),
 	MATERIAL_VAR_ALPHA_MODIFIED_BY_PROXY = (1 << 30),
-	MATERIAL_VAR_VERTEXFOG = (1 << 31),
+	MATERIAL_VAR_VERTEXFOG = (1 << 31)
 };
 
 enum EMaterialRenderTargetDepth : unsigned int
@@ -312,9 +312,9 @@ public:
 		return MEM::CallVFunc<IMaterial*>(this, 83, szName, pKeyValues);
 	}
 
-	IMaterial* FindMaterial(char const* pMaterialName, const char* pTextureGroupName = TEXTURE_GROUP_MODEL, bool bComplain = true, const char* pComplainPrefix = nullptr)
+	IMaterial* FindMaterial(char const* szMaterialName, const char* szTextureGroupName = TEXTURE_GROUP_MODEL, bool bComplain = true, const char* pComplainPrefix = nullptr)
 	{
-		return MEM::CallVFunc<IMaterial*>(this, 84, pMaterialName, pTextureGroupName, bComplain, pComplainPrefix);
+		return MEM::CallVFunc<IMaterial*>(this, 84, szMaterialName, szTextureGroupName, bComplain, pComplainPrefix);
 	}
 
 	MaterialHandle_t FirstMaterial()
@@ -342,6 +342,11 @@ public:
 		return MEM::CallVFunc<int>(this, 90);
 	}
 
+	ITexture* FindTexture(char const* szTextureName, const char* szTextureGroupName, bool bComplain = true, int nAdditionalCreationFlags = 0)
+	{
+		return MEM::CallVFunc<ITexture*>(this, 91, szTextureName, szTextureGroupName, bComplain, nAdditionalCreationFlags);
+	}
+
 	void BeginRenderTargetAllocation()
 	{
 		MEM::CallVFunc<void>(this, 94);
@@ -354,21 +359,29 @@ public:
 
 	void ForceBeginRenderTargetAllocation()
 	{
-		bool bOldState = *IsGameStarted();
-		*IsGameStarted() = false;
+		const bool bOldState = DisableRenderTargetAllocationForever();
+
+		DisableRenderTargetAllocationForever() = false;
 		BeginRenderTargetAllocation();
-		*IsGameStarted() = bOldState;
+		DisableRenderTargetAllocationForever() = bOldState;
 	}
 
 	void ForceEndRenderTargetAllocation()
 	{
-		bool bOldState = *IsGameStarted();
-		*IsGameStarted() = false;
+		const bool bOldState = DisableRenderTargetAllocationForever();
+
+		DisableRenderTargetAllocationForever() = false;
 		EndRenderTargetAllocation();
-		*IsGameStarted() = bOldState;
+		DisableRenderTargetAllocationForever() = bOldState;
 	}
 
 	ITexture* CreateNamedRenderTargetTextureEx(const char* szName, int iWidth, int iHeight, ERenderTargetSizeMode sizeMode, EImageFormat format, EMaterialRenderTargetDepth depth = MATERIAL_RT_DEPTH_SHARED, unsigned int fTextureFlags = 0U, unsigned int fRenderTargetFlags = CREATERENDERTARGETFLAGS_HDR)
+	{
+		return MEM::CallVFunc<ITexture*>(this, 97, szName, iWidth, iHeight, sizeMode, format, depth, fTextureFlags, fRenderTargetFlags);
+	}
+
+	// must be called between the above begin-end calls
+	ITexture* CreateNamedRenderTargetTextureEx2(const char* szName, int iWidth, int iHeight, ERenderTargetSizeMode sizeMode, EImageFormat format, EMaterialRenderTargetDepth depth = MATERIAL_RT_DEPTH_SHARED, unsigned int fTextureFlags = 0U, unsigned int fRenderTargetFlags = CREATERENDERTARGETFLAGS_HDR)
 	{
 		return MEM::CallVFunc<ITexture*>(this, 99, szName, iWidth, iHeight, sizeMode, format, depth, fTextureFlags, fRenderTargetFlags);
 	}
@@ -378,10 +391,81 @@ public:
 		return MEM::CallVFunc<IMatRenderContext*>(this, 115);
 	}
 
-	bool* IsGameStarted()
+	void FinishRenderTargetAllocation()
 	{
-		// m_bLoadingComplete
-		static auto uIsGameStarted = (MEM::FindPattern(MATERIALSYSTEM_DLL, XorStr("80 B9 ? ? ? ? ? 74 0F")) + 0x2);
-		return reinterpret_cast<bool*>(reinterpret_cast<std::uintptr_t>(this) + uIsGameStarted);
+		MEM::CallVFunc<void>(this, 136);
 	}
+
+	// i realize if i call this all textures will be unloaded and load time will suffer horribly
+	void ReEnableRenderTargetAllocation()
+	{
+		MEM::CallVFunc<void>(this, 137);
+	}
+
+	bool& DisableRenderTargetAllocationForever()
+	{
+		// @xref: "Tried BeginRenderTargetAllocation after game startup. If I let you do this, all users would suffer.\n"
+		static auto uDisableRenderTargetAllocationForever = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(MATERIALSYSTEM_DLL, XorStr("80 B9 ? ? ? ? ? 74 0F")) + 0x2);
+		return *reinterpret_cast<bool*>(reinterpret_cast<std::uintptr_t>(this) + uDisableRenderTargetAllocationForever);
+	}
+};
+
+class CMatRenderContextPtr : public CRefPtr<IMatRenderContext>
+{
+	typedef CRefPtr<IMatRenderContext> CBaseClass;
+public:
+	CMatRenderContextPtr() = default;
+
+	CMatRenderContextPtr(IMatRenderContext* pInit) : CBaseClass(pInit)
+	{
+		if (CBaseClass::pObject != nullptr)
+			CBaseClass::pObject->BeginRender();
+	}
+
+	CMatRenderContextPtr(IMaterialSystem* pFrom) : CBaseClass(pFrom->GetRenderContext())
+	{
+		if (CBaseClass::pObject != nullptr)
+			CBaseClass::pObject->BeginRender();
+	}
+
+	~CMatRenderContextPtr()
+	{
+		if (CBaseClass::pObject != nullptr)
+			CBaseClass::pObject->EndRender();
+	}
+
+	IMatRenderContext* operator=(IMatRenderContext* pSecondContext)
+	{
+		if (pSecondContext != nullptr)
+			pSecondContext->BeginRender();
+
+		return CBaseClass::operator=(pSecondContext);
+	}
+
+	void SafeRelease()
+	{
+		if (CBaseClass::pObject != nullptr)
+			CBaseClass::pObject->EndRender();
+
+		CBaseClass::SafeRelease();
+	}
+
+	void AssignAddReference(IMatRenderContext* pFrom)
+	{
+		if (CBaseClass::pObject)
+			CBaseClass::pObject->EndRender();
+
+		CBaseClass::AssignAddReference(pFrom);
+		CBaseClass::pObject->BeginRender();
+	}
+
+	void GetFrom(IMaterialSystem* pFrom)
+	{
+		AssignAddReference(pFrom->GetRenderContext());
+	}
+
+
+private:
+	CMatRenderContextPtr(const CMatRenderContextPtr& pRefPtr);
+	void operator=(const CMatRenderContextPtr& pSecondRefPtr);
 };

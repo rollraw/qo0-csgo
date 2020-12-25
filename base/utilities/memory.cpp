@@ -19,7 +19,7 @@ std::uintptr_t MEM::FindPattern(const char* szModuleName, const char* szPattern)
 
 	if (!uOffset)
 	{
-		L::PushConsoleColor(FOREGROUND_RED);
+		L::PushConsoleColor(FOREGROUND_INTENSE_RED);
 		L::Print(fmt::format(XorStr("[error] failed get pattern: [{}] [{}]"), szModuleName, szPattern));
 		L::PopConsoleColor();
 	}

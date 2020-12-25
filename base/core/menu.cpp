@@ -628,10 +628,11 @@ void T::Miscellaneous()
 
 				if (ImGui::Button(XorStr("yes"), ImVec2(30, 0)))
 				{
-					C::Remove(szCurrentConfig);
+					C::Remove(iSelectedConfig);
+
 					// reset current configuration
 					iSelectedConfig = 0;
-					C::Refresh();
+
 					ImGui::CloseCurrentPopup();
 				}
 
