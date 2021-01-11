@@ -480,7 +480,7 @@ void T::Visuals()
 			ImGui::Checkbox(XorStr("sound"), &C::Get<bool>(Vars.bScreenHitMarkerSound));
 			ImGui::SliderFloat(XorStr("time"), &C::Get<float>(Vars.flScreenHitMarkerTime), 0.5f, 5.f, "%.1fsec");
 			ImGui::SliderInt(XorStr("gap"), &C::Get<int>(Vars.iScreenHitMarkerGap), 1, 20, "%d pixels");
-			ImGui::SliderInt(XorStr("lenght"), &C::Get<int>(Vars.iScreenHitMarkerLenght), 1, 20, "%d pixels");
+			ImGui::SliderInt(XorStr("length"), &C::Get<int>(Vars.iScreenHitMarkerLenght), 1, 20, "%d pixels");
 			ImGui::PopStyleVar();
 
 			ImGui::EndChild();
