@@ -119,16 +119,16 @@ namespace ImGui
 	// Main
 	void HelpMarker(const char* szDescription);
 	bool ListBox(const char* szLabel, int* iCurrentItem, std::function<const char* (int)> pLambda, int nItemsCount, int iHeightInItems);
-	bool HotKey(const char* szLabel, int* v);
-	bool MultiCombo(const char* szLabel, const char** szDisplayName, std::vector<bool>& v, int nHeightInItems);
+	bool HotKey(const char* szLabel, int* pValue);
+	bool MultiCombo(const char* szLabel, std::vector<bool>& vecValues, const std::string_view* arrItems, int nItemsCount);
 
 	// Wrappers
-	bool Combo(const char* szLabel, std::vector<int>& v, int nIndex, const char* szItemsSeparatedByZeros, int nHeightInItems = -1);
-	bool Checkbox(const char* szLabel, std::vector<bool>& v, int nIndex);
-	bool SliderFloat(const char* szLabel, std::vector<float>& v, int nIndex, float flMin, float flMax, const char* szFormat = "%.3f", float flPower = 1.0f);
-	bool SliderInt(const char* szLabel, std::vector<int>& v, int nIndex, int iMin, int iMax, const char* szFormat = "%d");
-	bool ColorEdit3(const char* szLabel, Color* v, ImGuiColorEditFlags flags);
-	bool ColorEdit4(const char* szLabel, Color* v, ImGuiColorEditFlags flags);
+	bool Combo(const char* szLabel, std::vector<int>& vecValues, int nIndex, const char* szItemsSeparatedByZeros, int nHeightInItems = -1);
+	bool Checkbox(const char* szLabel, std::vector<bool>& vecValues, int nIndex);
+	bool SliderFloat(const char* szLabel, std::vector<float>& vecValues, int nIndex, float flMin, float flMax, const char* szFormat = "%.3f", float flPower = 1.0f);
+	bool SliderInt(const char* szLabel, std::vector<int>& vecValues, int nIndex, int iMin, int iMax, const char* szFormat = "%d");
+	bool ColorEdit3(const char* szLabel, Color* pColor, ImGuiColorEditFlags flags);
+	bool ColorEdit4(const char* szLabel, Color* pColor, ImGuiColorEditFlags flags);
 }
 
 /*

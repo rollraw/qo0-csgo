@@ -44,7 +44,7 @@ const std::pair<const char*, std::uint32_t> arrColors[] =
 	{ "[screen] hitmarker - damage", Vars.colScreenHitMarkerDamage }
 };
 
-const char* arrVisualsFlags[] =
+constexpr std::array<std::string_view, 4U> arrVisualsFlags =
 {
 	"helmet",
 	"kevlar",
@@ -52,7 +52,7 @@ const char* arrVisualsFlags[] =
 	"zoom"
 };
 
-const char* arrVisualsRemovals[] =
+constexpr std::array<std::string_view, 4U> arrVisualsRemovals =
 {
 	"post-processing",
 	"punch",
@@ -371,7 +371,7 @@ void T::Visuals()
 						//ImGui::Checkbox(XorStr("rank##player"), &C::Get<bool>(Vars.bEspMainPlayerRank));
 						ImGui::Checkbox(XorStr("name##player"), &C::Get<bool>(Vars.bEspMainPlayerName));
 						ImGui::Checkbox(XorStr("flash##player"), &C::Get<bool>(Vars.bEspMainPlayerFlash));
-						ImGui::MultiCombo(XorStr("flags##player"), arrVisualsFlags, C::Get<std::vector<bool>>(Vars.vecEspMainPlayerFlags), IM_ARRAYSIZE(arrVisualsFlags));
+						ImGui::MultiCombo(XorStr("flags##player"), C::Get<std::vector<bool>>(Vars.vecEspMainPlayerFlags), arrVisualsFlags.data(), arrVisualsFlags.size());
 						ImGui::Checkbox(XorStr("weapons##player"), &C::Get<bool>(Vars.bEspMainPlayerWeapons));
 						ImGui::Checkbox(XorStr("ammo##player"), &C::Get<bool>(Vars.bEspMainPlayerAmmo));
 						ImGui::Checkbox(XorStr("distance##player"), &C::Get<bool>(Vars.bEspMainPlayerDistance));
@@ -449,7 +449,7 @@ void T::Visuals()
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
 			ImGui::Checkbox(XorStr("night mode"), &C::Get<bool>(Vars.bWorldNightMode));
 			ImGui::SliderInt(XorStr("max flash effect"), &C::Get<int>(Vars.iWorldMaxFlash), 0, 100, "%d%%");
-			ImGui::MultiCombo(XorStr("removals"), arrVisualsRemovals, C::Get<std::vector<bool>>(Vars.vecWorldRemovals), IM_ARRAYSIZE(arrVisualsRemovals));
+			ImGui::MultiCombo(XorStr("removals"), C::Get<std::vector<bool>>(Vars.vecWorldRemovals), arrVisualsRemovals.data(), arrVisualsRemovals.size());
 			ImGui::Separator();
 
 			ImGui::HotKey(XorStr("thirdperson"), &C::Get<int>(Vars.iWorldThirdPersonKey));

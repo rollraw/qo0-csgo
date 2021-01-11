@@ -30,7 +30,9 @@ namespace L
 	/* console write stream */
 	inline FILE*			pStream;
 	/* current color of console text */
-	inline std::uint8_t		wConsoleColor = FOREGROUND_WHITE;
+	inline std::uint16_t	wConsoleColor = FOREGROUND_WHITE;
+	/* previous color of console text */
+	inline std::uint16_t	wLastConsoleColor = ~0;
 	/* current file used for file-logging */
 	inline std::ofstream	ofsFile;
 
@@ -43,14 +45,20 @@ namespace L
 	void Print(std::string_view szText);
 
 	/* set given color to console */
-	inline void PushConsoleColor(const std::uint8_t wColor)
+	inline void PushConsoleColor(const std::uint16_t wColor)
 	{
-		wConsoleColor = wColor;
+		wConsoleColor = wLastConsoleColor = wColor;
 	}
 
 	/* reset console color */
 	inline void PopConsoleColor()
 	{
-		wConsoleColor = FOREGROUND_WHITE;
+		assert(wLastConsoleColor != static_cast<std::uint16_t>(~0)); // PushConsoleColor/PopConsoleColor mismatch
+
+		// set previous color
+		wConsoleColor = wLastConsoleColor;
+
+		// clear last color
+		wLastConsoleColor = ~0;
 	}
 }

@@ -86,7 +86,7 @@ void CVisuals::Store()
 	}
 
 	// sort entities by distance to make closest entity drawn last to make it easy readable and look nicer
-	std::sort(vecOrder.begin(), vecOrder.end(), [](const std::pair<CBaseEntity*, float>& a, const std::pair<CBaseEntity*, float>& b)
+	std::sort(vecOrder.begin(), vecOrder.end(), [](const auto& a, const auto& b)
 		{
 			return a.second > b.second;
 		});

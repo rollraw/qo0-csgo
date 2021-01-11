@@ -1,32 +1,13 @@
 #pragma once
 // @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/datacache/imdlcache.h
 
-#include "ivmodelinfo.h"
-
-#pragma region mdlcache_definitions
-#define MDCACHE_FINE_GRAINED 1
-
-#if defined(MDCACHE_FINE_GRAINED)
-#define MDLCACHE_CRITICAL_SECTION_( pCache ) CMDLCacheCriticalSection cacheCriticalSection(pCache)
-#define MDLCACHE_COARSE_LOCK_( pCache ) ((void)(0))
-#elif defined(MDLCACHE_LEVEL_LOCKED)
-#define MDLCACHE_CRITICAL_SECTION_( pCache ) ((void)(0))
-#define MDLCACHE_COARSE_LOCK_( pCache ) ((void)(0))
-#else
-#define MDLCACHE_CRITICAL_SECTION_( pCache ) ((void)(0))
-#define MDLCACHE_COARSE_LOCK_( pCache ) CMDLCacheCriticalSection cacheCriticalSection(pCache)
-#endif
-#define MDLCACHE_CRITICAL_SECTION() MDLCACHE_CRITICAL_SECTION_(mdlcache)
-#define MDLCACHE_COARSE_LOCK() MDLCACHE_COARSE_LOCK_(mdlcache)
-#pragma endregion
-
 #pragma region mdlcache_enumerations
 enum
 {
-	MDLHANDLE_INVALID = (MDLHandle_t)~0
+	MDLHANDLE_INVALID = static_cast<MDLHandle_t>(~0)
 };
 
-enum MDLCacheDataType_t
+enum MDLCacheDataType_t : int
 {
 	MDLCACHE_STUDIOHDR = 0,
 	MDLCACHE_STUDIOHWDATA,
@@ -37,7 +18,7 @@ enum MDLCacheDataType_t
 	MDLCACHE_DECODEDANIMBLOCK,
 };
 
-enum MDLCacheFlush_t
+enum MDLCacheFlush_t : unsigned int
 {
 	MDLCACHE_FLUSH_STUDIOHDR = 0x01,
 	MDLCACHE_FLUSH_STUDIOHWDATA = 0x02,
@@ -54,8 +35,8 @@ enum MDLCacheFlush_t
 class IMDLCacheNotify
 {
 public:
-	virtual void OnDataLoaded(MDLCacheDataType_t type, MDLHandle_t handle) = 0;
-	virtual void OnDataUnloaded(MDLCacheDataType_t type, MDLHandle_t handle) = 0;
+	virtual void OnDataLoaded(MDLCacheDataType_t nType, MDLHandle_t handle) = 0;
+	virtual void OnDataUnloaded(MDLCacheDataType_t nType, MDLHandle_t handle) = 0;
 };
 
 class IMDLCache : public IAppSystem
@@ -63,19 +44,16 @@ class IMDLCache : public IAppSystem
 public:
 	virtual void SetCacheNotify(IMDLCacheNotify* pNotify) = 0;
 	virtual MDLHandle_t FindMDL(const char* szMDLRelativePath) = 0;
-
-	// Reference counting 
-	virtual int AddRef(MDLHandle_t handle) = 0;
+	virtual int AddReference(MDLHandle_t handle) = 0;
 	virtual int Release(MDLHandle_t handle) = 0;
-	virtual int GetRef(MDLHandle_t handle) = 0;
-private:
-	virtual void function0() = 0;
-	virtual void function1() = 0;
-public:
+	virtual int GetReference(MDLHandle_t handle) = 0;
 	virtual studiohdr_t* GetStudioHdr(MDLHandle_t handle) = 0;
 	virtual studiohwdata_t* GetHardwareData(MDLHandle_t handle) = 0;
 	virtual vcollide_t* GetVCollide(MDLHandle_t handle) = 0;
 	virtual vcollide_t* GetVCollide(MDLHandle_t handle, float flScale) = 0;
+private:
+	virtual void function9() = 0;
+public:
 	virtual unsigned char* GetAnimBlock(MDLHandle_t handle, int nBlock) = 0;
 	virtual virtualmodel_t* GetVirtualModel(MDLHandle_t handle) = 0;
 	virtual int GetAutoplayList(MDLHandle_t handle, unsigned short** pOut) = 0;
@@ -84,18 +62,13 @@ public:
 	virtual void SetUserData(MDLHandle_t handle, void* pData) = 0;
 	virtual void* GetUserData(MDLHandle_t handle) = 0;
 	virtual bool IsErrorModel(MDLHandle_t handle) = 0;
+	virtual bool IsOverBudget(MDLHandle_t handle) = 0;
 	virtual void Flush(MDLCacheFlush_t nFlushFlags = MDLCACHE_FLUSH_ALL) = 0;
-	virtual void Flush(MDLHandle_t handle, int nFlushFlags = MDLCACHE_FLUSH_ALL) = 0;
+	virtual void Flush(MDLHandle_t handle, MDLCacheFlush_t nFlushFlags = MDLCACHE_FLUSH_ALL) = 0;
 	virtual const char* GetModelName(MDLHandle_t handle) = 0;
 	virtual virtualmodel_t* GetVirtualModelFast(const studiohdr_t* pStudioHdr, MDLHandle_t handle) = 0;
-
-	// all cache entries that subsequently allocated or successfully checked 
-	// are considered "locked" and will not be freed when additional memory is needed 
 	virtual void BeginLock() = 0;
-
-	// reset all protected blocks to normal 
 	virtual void EndLock() = 0;
-
 	virtual int* GetFrameUnlockCounterPtrOLD() = 0;
 	virtual void FinishPendingLoads() = 0;
 	virtual vcollide_t* GetVCollideEx(MDLHandle_t handle, bool bSynchronousLoad = true) = 0;
@@ -114,6 +87,32 @@ public:
 	virtual bool PreloadModel(MDLHandle_t handle) = 0;
 	virtual void ResetErrorModelStatus(MDLHandle_t handle) = 0;
 	virtual void MarkFrame() = 0;
+	virtual void BeginCoarseLock() = 0;
+	virtual void EndCoarseLock() = 0;
+	virtual void ReloadVCollide(MDLHandle_t handle) = 0;
+	virtual bool ReleaseAnimBlockAllocator() = 0;
+	virtual bool RestoreHardwareData(MDLHandle_t handle, void* pAsyncVTXControl, void* pAsyncVVDControl) = 0;
+	virtual void DisableVCollideLoad() = 0;
+	virtual void EnableVCollideLoad() = 0;
+	virtual void DisableFileNotFoundWarnings() = 0;
+	virtual void EnableFileNotFoundWarnings() = 0;
+	virtual bool ProcessPendingHardwareRestore() = 0;
+	virtual void UnloadQueuedHardwareData() = 0;
+	virtual void DumpDictionaryState() = 0;
+	virtual MDLHandle_t	CreateCombinedModel(const char* szModelName) = 0;
+	virtual bool CreateCombinedModel(MDLHandle_t handle) = 0;
+	virtual bool SetCombineModels(MDLHandle_t handle, const CUtlVector<void*>& vecModelsToCombine) = 0;
+	virtual bool FinishCombinedModel(MDLHandle_t handle, void* pFunction, void* pUserData = nullptr) = 0;
+	virtual bool IsCombinedPlaceholder(MDLHandle_t handle) = 0;
+	virtual bool IsCombinedModel(MDLHandle_t handle) = 0;
+	virtual int GetNumCombinedSubModels(MDLHandle_t handle) = 0;
+	virtual void GetCombinedSubModelFilename(MDLHandle_t handle, int nSubModelIndex, char* szResult, int nResultSize) = 0;
+	virtual CKeyValues* GetCombinedMaterialKV(MDLHandle_t handle, int nAtlasGroup = 0) = 0;
+	virtual void UpdateCombiner() = 0;
+	virtual void* GetCombinedInternalAsset(int nAssetType, const char* szAssetID = nullptr, int* nSize = nullptr) = 0;
+	virtual void SetCombinerFlags(unsigned int fFlags) = 0;
+	virtual void ClearCombinerFlags(unsigned int nFlags) = 0;
+	virtual void DebugCombinerInfo() = 0;
 };
 
 class CMDLCacheCriticalSection

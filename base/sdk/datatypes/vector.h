@@ -44,6 +44,26 @@ public:
 		this->x = this->y = this->z = std::numeric_limits<float>::infinity();
 	}
 
+	[[nodiscard]] float* data()
+	{
+		return reinterpret_cast<float*>(this);
+	}
+
+	[[nodiscard]] const float* data() const
+	{
+		return reinterpret_cast<float*>(const_cast<Vector*>(this));
+	}
+
+	float& operator[](const std::size_t i)
+	{
+		return this->data()[i];
+	}
+
+	const float& operator[](const std::size_t i) const
+	{
+		return this->data()[i];
+	}
+
 	bool operator==(const Vector& vecBase) const
 	{
 		return this->IsEqual(vecBase);
@@ -185,7 +205,7 @@ public:
 
 	[[nodiscard]] float Length2D() const
 	{
-		return std::sqrtf(this->x * this->x + this->y * this->y);
+		return std::sqrtf(this->Length2DSqr());
 	}
 
 	[[nodiscard]] constexpr float Length2DSqr() const

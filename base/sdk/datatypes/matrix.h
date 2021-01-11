@@ -6,12 +6,12 @@ struct ViewMatrix_t
 {
 	ViewMatrix_t() = default;
 
-	float* operator[](int nIndex)
+	float* operator[](const int nIndex)
 	{
 		return flData[nIndex];
 	}
 
-	const float* operator[](int nIndex) const
+	const float* operator[](const int nIndex) const
 	{
 		return flData[nIndex];
 	}
@@ -25,13 +25,13 @@ struct matrix3x4_t
 	matrix3x4_t() = default;
 
 	matrix3x4_t(
-		float m00, float m01, float m02, float m03,
-		float m10, float m11, float m12, float m13,
-		float m20, float m21, float m22, float m23)
+		const float m00, const float m01, const float m02, const float m03,
+		const float m10, const float m11, const float m12, const float m13,
+		const float m20, const float m21, const float m22, const float m23)
 	{
-		flData[0][0] = m00; flData[0][1] = m01; flData[0][2] = m02; flData[0][3] = m03;
-		flData[1][0] = m10; flData[1][1] = m11; flData[1][2] = m12; flData[1][3] = m13;
-		flData[2][0] = m20; flData[2][1] = m21; flData[2][2] = m22; flData[2][3] = m23;
+		arrData[0][0] = m00; arrData[0][1] = m01; arrData[0][2] = m02; arrData[0][3] = m03;
+		arrData[1][0] = m10; arrData[1][1] = m11; arrData[1][2] = m12; arrData[1][3] = m13;
+		arrData[2][0] = m20; arrData[2][1] = m21; arrData[2][2] = m22; arrData[2][3] = m23;
 	}
 
 	matrix3x4_t(const Vector& xAxis, const Vector& yAxis, const Vector& zAxis, const Vector& vecOrigin)
@@ -39,55 +39,77 @@ struct matrix3x4_t
 		Init(xAxis, yAxis, zAxis, vecOrigin);
 	}
 
-	// create matrix where the X axis = forward, the Y axis = left, the Z axis = up
-	void Init(const Vector& vecX, const Vector& vecY, const Vector& vecZ, const Vector& vecOrigin)
+	constexpr void Init(const Vector& vecForward, const Vector& vecLeft, const Vector& vecUp, const Vector& vecOrigin)
 	{
-		this->at(0) = vecX;
-		this->at(1) = vecY;
-		this->at(2) = vecZ;
-		this->at(3) = vecOrigin;
+		SetForward(vecForward);
+		SetLeft(vecLeft);
+		SetUp(vecUp);
+		SetOrigin(vecOrigin);
 	}
 
-	void SetOrigin(const Vector& vecOrigin)
+	constexpr void SetForward(const Vector& vecForward)
 	{
-		this->at(3) = vecOrigin;
+		this->arrData[0][0] = vecForward.x;
+		this->arrData[1][0] = vecForward.y;
+		this->arrData[2][0] = vecForward.z;
+	}
+
+	constexpr void SetLeft(const Vector& vecLeft)
+	{
+		this->arrData[0][1] = vecLeft.x;
+		this->arrData[1][1] = vecLeft.y;
+		this->arrData[2][1] = vecLeft.z;
+	}
+
+	constexpr void SetUp(const Vector& vecUp)
+	{
+		this->arrData[0][2] = vecUp.x;
+		this->arrData[1][2] = vecUp.y;
+		this->arrData[2][2] = vecUp.z;
+	}
+
+	constexpr void SetOrigin(const Vector& vecOrigin)
+	{
+		this->arrData[0][3] = vecOrigin.x;
+		this->arrData[1][3] = vecOrigin.y;
+		this->arrData[2][3] = vecOrigin.z;
 	}
 
 	constexpr void Invalidate()
 	{
-		for (int i = 0; i < 3; i++)
+		for (auto& arrSubData : arrData)
 		{
-			for (int k = 0; k < 4; k++)
-				flData[i][k] = std::numeric_limits<float>::infinity();
+			for (auto& flData : arrSubData)
+				flData = std::numeric_limits<float>::infinity();
 		}
 	}
 
-	float* operator[](int i)
+	float* operator[](const int nIndex)
 	{
-		return flData[i];
+		return arrData[nIndex];
 	}
 
-	const float* operator[](int i) const
+	const float* operator[](const int nIndex) const
 	{
-		return flData[i];
+		return arrData[nIndex];
 	}
 
-	Vector at(int i) const
+	[[nodiscard]] constexpr Vector at(const int nIndex) const
 	{
-		return Vector{ flData[0][i], flData[1][i], flData[2][i] };
+		return Vector(arrData[0][nIndex], arrData[1][nIndex], arrData[2][nIndex]);
 	}
 
 	float* Base()
 	{
-		return &flData[0][0];
+		return &arrData[0][0];
 	}
 
-	const float* Base() const
+	[[nodiscard]] const float* Base() const
 	{
-		return &flData[0][0];
+		return &arrData[0][0];
 	}
 
-	float flData[3][4] = { };
+	float arrData[3][4] = { };
 };
 
 __declspec(align(16)) class matrix3x4a_t : public matrix3x4_t
@@ -95,7 +117,7 @@ __declspec(align(16)) class matrix3x4a_t : public matrix3x4_t
 public:
 	matrix3x4a_t& operator=(const matrix3x4_t& matSource)
 	{
-		memcpy(this->Base(), matSource.Base(), sizeof(float) * 3U * 4U);
+		std::copy_n(matSource.Base(), sizeof(float) * 3U * 4U, this->Base());
 		return *this;
-	};
+	}
 };

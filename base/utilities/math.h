@@ -46,7 +46,7 @@ namespace M
 	/* convert angles to x, y, z vectors */
 	void	AngleVectors(const QAngle& angView, Vector* pForward, Vector* pRight = nullptr, Vector* pUp = nullptr);
 	/* convert angles to matrix */
-	void	AngleMatrix(const QAngle& angView, matrix3x4_t& matrix);
+	void	AngleMatrix(const QAngle& angView, matrix3x4_t& matOutput, const Vector& vecOrigin = Vector(0.0f, 0.0f, 0.0f));
 	/* convert angle to screen pixels by sensivity, pitch and yaw */
 	// @note: could be useful at mouse event aimbot
 	Vector2D AnglePixels(const float flSensitivity, const float flPitch, const float flYaw, const QAngle& angBegin, const QAngle& angEnd);
@@ -58,6 +58,10 @@ namespace M
 	Vector	VectorTransform(const Vector& vecTransform, const matrix3x4_t& matrix);
 	/* calculate next tick position */
 	Vector	ExtrapolateTick(const Vector& p0, const Vector& v0);
+	/* rotates given point and outputs to given outpoint by given angle */
+	void	RotatePoint(const ImVec2& vecIn, const float flAngle, ImVec2* pOutPoint);
+	/* rotates given center point and outputs to given outpoint by given angle */
+	void	RotateCenter(const ImVec2& vecCenter, const float flAngle, ImVec2* pOutPoint);
 
 	// Exports
 	inline RandomSeedFn				RandomSeed;

@@ -197,8 +197,26 @@ long D3DAPI H::hkEndScene(IDirect3DDevice9* pDevice)
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
-		// render cheat menu & visuals
-		W::MainWindow(pDevice);
+		try
+		{
+			// render cheat menu & visuals
+			W::MainWindow(pDevice);
+		}
+		catch (const std::exception& ex)
+		{
+			// print errvor message
+			L::PushConsoleColor(FOREGROUND_INTENSE_RED);
+			L::Print(fmt::format(XorStr("[error] {}"), ex.what()));
+			L::PopConsoleColor();
+
+			#ifdef _DEBUG
+			// show error message window (or replace to your exception handler)
+			MessageBox(nullptr, ex.what(), XorStr("qo0 base (error)"), MB_OK | MB_ICONERROR | MB_TOPMOST);
+			#else
+			// crash the game
+			std::abort();
+			#endif
+		}
 
 		ImGui::EndFrame();
 		ImGui::Render();

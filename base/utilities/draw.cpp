@@ -90,10 +90,11 @@ bool ImGui::ListBox(const char* szLabel, int* iCurrentItem, std::function<const 
 		}, &pLambda, nItemsCount, iHeightInItems);
 }
 
-bool ImGui::HotKey(const char* szLabel, int* v)
+bool ImGui::HotKey(const char* szLabel, int* pValue)
 {
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* pWindow = g.CurrentWindow;
+
 	if (pWindow->SkipItems)
 		return false;
 
@@ -104,14 +105,14 @@ bool ImGui::HotKey(const char* szLabel, int* v)
 	const float flWidth = CalcItemWidth();
 	const ImVec2 vecLabelSize = CalcTextSize(szLabel, nullptr, true);
 
-	const ImRect frame_bb(pWindow->DC.CursorPos + ImVec2(vecLabelSize.x > 0.0f ? style.ItemInnerSpacing.x + GetFrameHeight() : 0.0f, 0.0f), pWindow->DC.CursorPos + ImVec2(flWidth, vecLabelSize.x > 0.0f ? vecLabelSize.y + style.FramePadding.y : 0.f));
-	const ImRect total_bb(frame_bb.Min, frame_bb.Max);
+	const ImRect rectFrame(pWindow->DC.CursorPos + ImVec2(vecLabelSize.x > 0.0f ? style.ItemInnerSpacing.x + GetFrameHeight() : 0.0f, 0.0f), pWindow->DC.CursorPos + ImVec2(flWidth, vecLabelSize.x > 0.0f ? vecLabelSize.y + style.FramePadding.y : 0.f));
+	const ImRect rectTotal(rectFrame.Min, rectFrame.Max);
 
-	ItemSize(total_bb, style.FramePadding.y);
-	if (!ItemAdd(total_bb, nIndex, &frame_bb))
+	ItemSize(rectTotal, style.FramePadding.y);
+	if (!ItemAdd(rectTotal, nIndex, &rectFrame))
 		return false;
 
-	const bool bHovered = ItemHoverable(frame_bb, nIndex);
+	const bool bHovered = ItemHoverable(rectFrame, nIndex);
 	if (bHovered)
 	{
 		SetHoveredID(nIndex);
@@ -127,15 +128,15 @@ bool ImGui::HotKey(const char* szLabel, int* v)
 		{
 			memset(io.MouseDown, 0, sizeof(io.MouseDown));
 			memset(io.KeysDown, 0, sizeof(io.KeysDown));
-			*v = 0;
+			*pValue = 0;
 		}
 
 		SetActiveID(nIndex, pWindow);
 		FocusWindow(pWindow);
 	}
 
-	bool bPressed = false;
-	if (int nKey = *v; g.ActiveId == nIndex)
+	bool bValueChanged = false;
+	if (int nKey = *pValue; g.ActiveId == nIndex)
 	{
 		for (int n = 0; n < IM_ARRAYSIZE(io.MouseDown); n++)
 		{
@@ -160,19 +161,19 @@ bool ImGui::HotKey(const char* szLabel, int* v)
 					break;
 				}
 
-				bPressed = true;
+				bValueChanged = true;
 				ClearActiveID();
 			}
 		}
 
-		if (!bPressed)
+		if (!bValueChanged)
 		{
 			for (int n = VK_BACK; n <= VK_RMENU; n++)
 			{
 				if (IsKeyDown(n))
 				{
 					nKey = n;
-					bPressed = true;
+					bValueChanged = true;
 					ClearActiveID();
 				}
 			}
@@ -180,28 +181,28 @@ bool ImGui::HotKey(const char* szLabel, int* v)
 
 		if (IsKeyPressed(io.KeyMap[ImGuiKey_Escape]))
 		{
-			*v = 0;
+			*pValue = 0;
 			ClearActiveID();
 		}
 		else
-			*v = nKey;
+			*pValue = nKey;
 	}
 
 	char chBuffer[64] = { };
-	sprintf_s(chBuffer, sizeof(chBuffer), XorStr("[ %s ]"), *v != 0 && g.ActiveId != nIndex ? arrKeyNames.at(*v) : g.ActiveId == nIndex ? XorStr("press") : XorStr("none"));
+	sprintf_s(chBuffer, sizeof(chBuffer), XorStr("[ %s ]"), *pValue != 0 && g.ActiveId != nIndex ? arrKeyNames.at(*pValue) : g.ActiveId == nIndex ? XorStr("press") : XorStr("none"));
 
 	// modified by qo0
 	PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
-	pWindow->DrawList->AddText(ImVec2(frame_bb.Max.x - CalcTextSize(chBuffer).x, total_bb.Min.y + style.FramePadding.y), GetColorU32(g.ActiveId == nIndex ? ImGuiCol_Text : ImGuiCol_TextDisabled), chBuffer);
+	pWindow->DrawList->AddText(ImVec2(rectFrame.Max.x - CalcTextSize(chBuffer).x, rectTotal.Min.y + style.FramePadding.y), GetColorU32(g.ActiveId == nIndex ? ImGuiCol_Text : ImGuiCol_TextDisabled), chBuffer);
 
 	if (vecLabelSize.x > 0.f)
-		RenderText(ImVec2(total_bb.Min.x, total_bb.Min.y + style.FramePadding.y), szLabel);
+		RenderText(ImVec2(rectTotal.Min.x, rectTotal.Min.y + style.FramePadding.y), szLabel);
 
 	PopStyleVar();
-	return bPressed;
+	return bValueChanged;
 }
 
-bool ImGui::MultiCombo(const char* szLabel, const char** szDisplayName, std::vector<bool>& v, int nHeightInItems)
+bool ImGui::MultiCombo(const char* szLabel, std::vector<bool>& vecValues, const std::string_view* arrItems, int nItemsCount)
 {
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* pWindow = g.CurrentWindow;
@@ -210,41 +211,39 @@ bool ImGui::MultiCombo(const char* szLabel, const char** szDisplayName, std::vec
 		return false;
 
 	const ImGuiStyle& style = g.Style;
-
-	std::string szBuffer = { };
-	static ImVec2 vecTextSize = { };
-	const ImVec2 vecLabelSize = CalcTextSize(szLabel);
 	const float flActiveWidth = CalcItemWidth() - (style.ItemInnerSpacing.x + GetFrameHeight()) - 40.f;
 
-	for (int i = 0; i < nHeightInItems; i++)
-	{
-		if (v[i])
-		{
-			vecTextSize = CalcTextSize(szBuffer.c_str());
+	std::vector<std::string_view> vecActiveItems = { };
+	vecActiveItems.reserve(nItemsCount);
 
-			if (szBuffer.empty())
-				szBuffer.assign(szDisplayName[i]);
-			else
-				szBuffer.append(", ").append(szDisplayName[i]);
-		}
+	// collect active items
+	for (int i = 0; i < nItemsCount; i++)
+	{
+		if (vecValues[i])
+			vecActiveItems.push_back(arrItems[i]);
 	}
+
+	vecActiveItems.shrink_to_fit();
+
+	std::string szBuffer = fmt::format(XorStr("{}"), fmt::join(vecActiveItems, XorStr(", ")));
+	const ImVec2 vecTextSize = CalcTextSize(szBuffer.c_str());
 
 	if (szBuffer.empty())
 		szBuffer.assign("none");
 	else if (vecTextSize.x > flActiveWidth)
 	{
-		szBuffer.resize((std::size_t)(flActiveWidth * 0.26f));
+		szBuffer.resize(static_cast<std::size_t>(flActiveWidth * 0.26f));
 		szBuffer.append("...");
 	}
 
 	bool bValueChanged = false;
 	if (BeginCombo(szLabel, szBuffer.c_str()))
 	{
-		for (int i = 0; i < nHeightInItems; i++)
+		for (int i = 0; i < nItemsCount; i++)
 		{
-			if (Selectable(szDisplayName[i], v[i], ImGuiSelectableFlags_DontClosePopups))
+			if (Selectable(arrItems[i].data(), vecValues[i], ImGuiSelectableFlags_DontClosePopups))
 			{
-				v[i] = !v[i];
+				vecValues[i] = !vecValues[i];
 				bValueChanged = true;
 			}
 		}
@@ -255,63 +254,63 @@ bool ImGui::MultiCombo(const char* szLabel, const char** szDisplayName, std::vec
 	return bValueChanged;
 }
 
-bool ImGui::Combo(const char* szLabel, std::vector<int>& v, int nIndex, const char* szItemsSeparatedByZeros, int nHeightInItems)
+bool ImGui::Combo(const char* szLabel, std::vector<int>& vecValues, int nIndex, const char* szItemsSeparatedByZeros, int nHeightInItems)
 {
-	int iValue = v[nIndex];
+	int iValue = vecValues[nIndex];
 
-	bool bPressed = Combo(szLabel, &iValue, szItemsSeparatedByZeros, nHeightInItems);
+	const bool bValueChanged = Combo(szLabel, &iValue, szItemsSeparatedByZeros, nHeightInItems);
 
-	if (v[nIndex] != iValue)
-		v[nIndex] = iValue;
+	if (vecValues[nIndex] != iValue)
+		vecValues[nIndex] = iValue;
 
-	return bPressed;
+	return bValueChanged;
 }
 
-bool ImGui::Checkbox(const char* szLabel, std::vector<bool>& v, int nIndex)
+bool ImGui::Checkbox(const char* szLabel, std::vector<bool>& vecValues, int nIndex)
 {
-	bool bValue = v[nIndex];
-	bool bPressed = Checkbox(szLabel, &bValue);
+	bool bValue = vecValues[nIndex];
+	const bool bValueChanged = Checkbox(szLabel, &bValue);
 
-	if (v[nIndex] != bValue)
-		v[nIndex] = bValue;
+	if (vecValues[nIndex] != bValue)
+		vecValues[nIndex] = bValue;
 
-	return bPressed;
+	return bValueChanged;
 }
 
-bool ImGui::SliderFloat(const char* szLabel, std::vector<float>& v, int nIndex, float flMin, float flMax, const char* szFormat, float flPower)
+bool ImGui::SliderFloat(const char* szLabel, std::vector<float>& vecValues, int nIndex, float flMin, float flMax, const char* szFormat, float flPower)
 {
-	float flValue = v[nIndex];
-	bool bPressed = SliderFloat(szLabel, &flValue, flMin, flMax, szFormat, flPower);
+	float flValue = vecValues[nIndex];
+	const bool bValueChanged = SliderFloat(szLabel, &flValue, flMin, flMax, szFormat, flPower);
 
-	if (v[nIndex] != flValue)
-		v[nIndex] = flValue;
+	if (vecValues[nIndex] != flValue)
+		vecValues[nIndex] = flValue;
 
-	return bPressed;
+	return bValueChanged;
 }
 
 bool ImGui::SliderInt(const char* szLabel, std::vector<int>& v, int nIndex, int iMin, int iMax, const char* szFormat)
 {
 	int iValue = v[nIndex];
-	bool bPressed = SliderInt(szLabel, &iValue, iMin, iMax, szFormat);
+	const bool bValueChanged = SliderInt(szLabel, &iValue, iMin, iMax, szFormat);
 
 	if (v[nIndex] != iValue)
 		v[nIndex] = iValue;
 
-	return bPressed;
+	return bValueChanged;
 }
 
-bool ImGui::ColorEdit3(const char* szLabel, Color* v, ImGuiColorEditFlags flags)
+bool ImGui::ColorEdit3(const char* szLabel, Color* pColor, ImGuiColorEditFlags flags)
 {
-	return ColorEdit4(szLabel, v, flags);
+	return ColorEdit4(szLabel, pColor, flags);
 }
 
-bool ImGui::ColorEdit4(const char* szLabel, Color* v, ImGuiColorEditFlags flags)
+bool ImGui::ColorEdit4(const char* szLabel, Color* pColor, ImGuiColorEditFlags flags)
 {
-	ImVec4 vecColor = ImVec4{ v->rBase(), v->gBase(), v->bBase(), v->aBase() };
+	ImVec4 vecColor = ImVec4{ pColor->rBase(), pColor->gBase(), pColor->bBase(), pColor->aBase() };
 
-	if (ImGui::ColorEdit4(szLabel, &vecColor.x, flags))
+	if (ColorEdit4(szLabel, &vecColor.x, flags))
 	{
-		*v = Color(vecColor.x, vecColor.y, vecColor.z, vecColor.w);
+		*pColor = Color(vecColor.x, vecColor.y, vecColor.z, vecColor.w);
 		return true;
 	}
 
