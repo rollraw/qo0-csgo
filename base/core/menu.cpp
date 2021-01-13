@@ -127,10 +127,17 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 		{
 			ImVec2 vecPos = ImGui::GetCursorScreenPos();
 			float flWindowWidth = ImGui::GetWindowWidth();
+			ImDrawList* pWindowDrawList = ImGui::GetWindowDrawList();
+
+			// push cliprect so header separator doesnt draw over other windows
+			ImGui::PushClipRect(ImVec2(vecPos.x - 8.f, vecPos.y - 8.f), ImVec2(vecPos.x + flWindowWidth - 8.f, vecPos.y - 6.f), false);
 
 			// header separate line
-			pForegroundDrawList->AddRectFilledMultiColor(ImVec2(vecPos.x - 8.f, vecPos.y - 6.f), ImVec2(vecPos.x + flWindowWidth - flWindowWidth / 3.f - 8.f, vecPos.y - 8.f), IM_COL32(75, 50, 105, 255), IM_COL32(110, 100, 130, 255), IM_COL32(110, 100, 130, 255), IM_COL32(75, 50, 105, 255));
-			pForegroundDrawList->AddRectFilledMultiColor(ImVec2(vecPos.x + flWindowWidth - flWindowWidth / 3.f - 8.f, vecPos.y - 6.f), ImVec2(vecPos.x + flWindowWidth - 8.f, vecPos.y - 8.f), IM_COL32(110, 100, 130, 255), IM_COL32(75, 50, 105, 255), IM_COL32(75, 50, 105, 255), IM_COL32(110, 100, 130, 255));
+			pWindowDrawList->AddRectFilledMultiColor(ImVec2(vecPos.x - 8.f, vecPos.y - 6.f), ImVec2(vecPos.x + flWindowWidth - flWindowWidth / 3.f - 8.f, vecPos.y - 8.f), IM_COL32(75, 50, 105, 255), IM_COL32(110, 100, 130, 255), IM_COL32(110, 100, 130, 255), IM_COL32(75, 50, 105, 255));
+			pWindowDrawList->AddRectFilledMultiColor(ImVec2(vecPos.x + flWindowWidth - flWindowWidth / 3.f - 8.f, vecPos.y - 6.f), ImVec2(vecPos.x + flWindowWidth - 8.f, vecPos.y - 8.f), IM_COL32(110, 100, 130, 255), IM_COL32(75, 50, 105, 255), IM_COL32(75, 50, 105, 255), IM_COL32(110, 100, 130, 255));
+
+			// restore cliprect
+			ImGui::PopClipRect();
 
 			// add tabs
 			static std::array<CTab, 4U> const arrTabs =
