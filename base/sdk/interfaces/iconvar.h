@@ -52,7 +52,7 @@ class IConVar : public IAppSystem
 {
 public:
 	virtual CVarDLLIdentifier_t	AllocateDLLIdentifier() = 0;
-	virtual void			RegisterConCommand(CConVar* pCommandBase) = 0;
+	virtual void			RegisterConCommand(CConVar* pCommandBase, int iDefaultValue = 1) = 0;
 	virtual void			UnregisterConCommand(CConVar* pCommandBase) = 0;
 	virtual void			UnregisterConCommands(CVarDLLIdentifier_t id) = 0;
 	virtual const char*		GetCommandLineValue(const char* szVariableName) = 0;
