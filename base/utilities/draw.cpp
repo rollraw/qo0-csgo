@@ -446,7 +446,6 @@ void D::Setup(IDirect3DDevice9* pDevice, unsigned int uFontFlags)
 
 	// create fonts
 	ImGuiIO& io = ImGui::GetIO();
-	io.Fonts->AddFontDefault();
 
 	ImFontConfig imWhitneyConfig;
 	imWhitneyConfig.RasterizerFlags = ImGuiFreeType::ForceAutoHint;

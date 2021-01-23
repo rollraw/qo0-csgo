@@ -21,6 +21,21 @@
 #define FOREGROUND_INTENSE_MAGENTA	(FOREGROUND_MAGENTA | FOREGROUND_INTENSITY)
 #pragma endregion
 
+#pragma region logging_exception_handling
+#ifdef _DEBUG
+#define SEH_CATCH MessageBox(nullptr, ex.what(), XorStr("qo0 base (error)"), MB_OK | MB_ICONERROR | MB_TOPMOST);
+#else
+#define SEH_CATCH std::abort();
+#endif
+
+#define SEH_START try {
+#define SEH_END } catch (const std::exception& ex) {		\
+	L::PushConsoleColor(FOREGROUND_INTENSE_RED);			\
+	L::Print(fmt::format(XorStr("[error] {}"), ex.what()));	\
+	L::PopConsoleColor();									\
+	SEH_CATCH }
+#pragma endregion
+
 /*
  * LOGGING
  */
@@ -31,8 +46,6 @@ namespace L
 	inline FILE*			pStream;
 	/* current color of console text */
 	inline std::uint16_t	wConsoleColor = FOREGROUND_WHITE;
-	/* previous color of console text */
-	inline std::uint16_t	wLastConsoleColor = ~0;
 	/* current file used for file-logging */
 	inline std::ofstream	ofsFile;
 
@@ -47,18 +60,12 @@ namespace L
 	/* set given color to console */
 	inline void PushConsoleColor(const std::uint16_t wColor)
 	{
-		wConsoleColor = wLastConsoleColor = wColor;
+		wConsoleColor = wColor;
 	}
 
 	/* reset console color */
 	inline void PopConsoleColor()
 	{
-		assert(wLastConsoleColor != static_cast<std::uint16_t>(~0)); // PushConsoleColor/PopConsoleColor mismatch
-
-		// set previous color
-		wConsoleColor = wLastConsoleColor;
-
-		// clear last color
-		wLastConsoleColor = ~0;
+		wConsoleColor = FOREGROUND_WHITE;
 	}
 }

@@ -110,7 +110,6 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 	#pragma endregion
 
 	#pragma region main_window
-	ImGui::PushFont(F::Whitney);
 	io.MouseDrawCursor = bMainOpened;
 
 	if (bMainOpened)
@@ -125,16 +124,16 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 		ImGui::SetNextWindowSize(ImVec2(500, 327), ImGuiCond_Always);
 		ImGui::Begin(XorStr("qo0 base"), &bMainOpened, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse);
 		{
-			ImVec2 vecPos = ImGui::GetCursorScreenPos();
-			float flWindowWidth = ImGui::GetWindowWidth();
+			const ImVec2 vecPosition = ImGui::GetCursorScreenPos();
+			const float flWindowWidth = ImGui::GetWindowWidth();
 			ImDrawList* pWindowDrawList = ImGui::GetWindowDrawList();
 
-			// push cliprect so header separator doesnt draw over other windows
-			ImGui::PushClipRect(ImVec2(vecPos.x - 8.f, vecPos.y - 8.f), ImVec2(vecPos.x + flWindowWidth - 8.f, vecPos.y - 6.f), false);
+			// push clip so separator will be drawn at maximal window bounds
+			ImGui::PushClipRect(ImVec2(vecPosition.x - 8.f, vecPosition.y - 8.f), ImVec2(vecPosition.x + flWindowWidth - 8.f, vecPosition.y - 6.f), false);
 
 			// header separate line
-			pWindowDrawList->AddRectFilledMultiColor(ImVec2(vecPos.x - 8.f, vecPos.y - 6.f), ImVec2(vecPos.x + flWindowWidth - flWindowWidth / 3.f - 8.f, vecPos.y - 8.f), IM_COL32(75, 50, 105, 255), IM_COL32(110, 100, 130, 255), IM_COL32(110, 100, 130, 255), IM_COL32(75, 50, 105, 255));
-			pWindowDrawList->AddRectFilledMultiColor(ImVec2(vecPos.x + flWindowWidth - flWindowWidth / 3.f - 8.f, vecPos.y - 6.f), ImVec2(vecPos.x + flWindowWidth - 8.f, vecPos.y - 8.f), IM_COL32(110, 100, 130, 255), IM_COL32(75, 50, 105, 255), IM_COL32(75, 50, 105, 255), IM_COL32(110, 100, 130, 255));
+			pWindowDrawList->AddRectFilledMultiColor(ImVec2(vecPosition.x - 8.f, vecPosition.y - 6.f), ImVec2(vecPosition.x + flWindowWidth - flWindowWidth / 3.f - 8.f, vecPosition.y - 8.f), IM_COL32(75, 50, 105, 255), IM_COL32(110, 100, 130, 255), IM_COL32(110, 100, 130, 255), IM_COL32(75, 50, 105, 255));
+			pWindowDrawList->AddRectFilledMultiColor(ImVec2(vecPosition.x + flWindowWidth - flWindowWidth / 3.f - 8.f, vecPosition.y - 6.f), ImVec2(vecPosition.x + flWindowWidth - 8.f, vecPosition.y - 8.f), IM_COL32(110, 100, 130, 255), IM_COL32(75, 50, 105, 255), IM_COL32(75, 50, 105, 255), IM_COL32(110, 100, 130, 255));
 
 			// restore cliprect
 			ImGui::PopClipRect();
@@ -154,8 +153,6 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 			ImGui::End();
 		}
 	}
-
-	ImGui::PopFont();
 	#pragma endregion
 }
 #pragma endregion

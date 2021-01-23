@@ -5,7 +5,7 @@
 // info: contains other simplified/modified/updated valve's definitions (i tried keep it look's not like shit)
 
 #define MAX_COORD_FLOAT		16'384.f			// max world coordinates
-#define MIN_COORD_FLOAT		-MAX_COORD_FLOAT	// min world coordinates
+#define MIN_COORD_FLOAT		-(MAX_COORD_FLOAT)	// min world coordinates
 #define MAX_DISTANCE		8'192.f				// max bullet distance, etc
 #define MAX_FOV				180.f				// max field of view
 #define MAX_DAMAGE			500.f				// max weapons damage
@@ -25,7 +25,7 @@ inline float BitsToFloat(std::uint32_t i)
 	return tmp.fl;
 }
 
-#define FLOAT32_NAN_BITS		(std::uint32_t)0x7FC00000
+#define FLOAT32_NAN_BITS		0x7FC00000U
 #define FLOAT32_NAN				BitsToFloat( FLOAT32_NAN_BITS )
 #define VEC_T_NAN				FLOAT32_NAN
 #pragma endregion
@@ -206,6 +206,7 @@ enum EHitGroupIndex : int
 	HITGROUP_RIGHTARM,
 	HITGROUP_LEFTLEG,
 	HITGROUP_RIGHTLEG,
+	HITGROUP_NECK,
 	HITGROUP_GEAR = 10
 };
 

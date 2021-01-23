@@ -163,6 +163,8 @@ long D3DAPI H::hkEndScene(IDirect3DDevice9* pDevice)
 	static auto oEndScene = DTR::EndScene.GetOriginal<decltype(&hkEndScene)>();
 	static void* pUsedAddress = nullptr;
 
+	SEH_START
+
 	if (pUsedAddress == nullptr)
 	{
 		// search for gameoverlay address
@@ -197,26 +199,8 @@ long D3DAPI H::hkEndScene(IDirect3DDevice9* pDevice)
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
-		try
-		{
-			// render cheat menu & visuals
-			W::MainWindow(pDevice);
-		}
-		catch (const std::exception& ex)
-		{
-			// print errvor message
-			L::PushConsoleColor(FOREGROUND_INTENSE_RED);
-			L::Print(fmt::format(XorStr("[error] {}"), ex.what()));
-			L::PopConsoleColor();
-
-			#ifdef _DEBUG
-			// show error message window (or replace to your exception handler)
-			MessageBox(nullptr, ex.what(), XorStr("qo0 base (error)"), MB_OK | MB_ICONERROR | MB_TOPMOST);
-			#else
-			// crash the game
-			std::abort();
-			#endif
-		}
+		// render cheat menu & visuals
+		W::MainWindow(pDevice);
 
 		ImGui::EndFrame();
 		ImGui::Render();
@@ -228,6 +212,8 @@ long D3DAPI H::hkEndScene(IDirect3DDevice9* pDevice)
 		pDevice->SetRenderState(D3DRS_COLORWRITEENABLE, dwColorWriteOld);
 		pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, dwSRGBWriteOld);
 	}
+
+	SEH_END
 
 	return oEndScene(pDevice);
 }
@@ -277,6 +263,8 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 
 	// save previous view angles for movement correction
 	QAngle angOldViewPoint = pCmd->angViewPoint;
+
+	SEH_START
 
 	// @note: need do bunnyhop and other movements before prediction
 	CMiscellaneous::Get().Run(pCmd, pLocal, bSendPacket);
@@ -347,6 +335,8 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 
 	// @note: i seen many times this mistake and please do not set/clamp angles here cuz u get confused with psilent aimbot later!
 
+	SEH_END
+
 	return false;
 }
 
@@ -364,6 +354,8 @@ void FASTCALL H::hkPaintTraverse(ISurface* thisptr, int edx, unsigned int uPanel
 	// @note: we don't render here, only store's data and render it later
 	if (uPanelHash == FNV1A::HashConst("FocusOverlayPanel"))
 	{
+		SEH_START
+
 		// clear data from previous call
 		D::ClearDrawData();
 
@@ -372,6 +364,8 @@ void FASTCALL H::hkPaintTraverse(ISurface* thisptr, int edx, unsigned int uPanel
 
 		// swap given data to safe container
 		D::SwapDrawData();
+
+		SEH_END
 	}
 }
 
@@ -397,6 +391,8 @@ void FASTCALL H::hkLockCursor(ISurface* thisptr, int edx)
 void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFrameStage stage)
 {
 	static auto oFrameStageNotify = DTR::FrameStageNotify.GetOriginal<decltype(&hkFrameStageNotify)>();
+
+	SEH_START
 
 	if (!I::Engine->IsInGame())
 	{
@@ -517,6 +513,8 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 	default:
 		break;
 	}
+
+	SEH_END
 
 	oFrameStageNotify(thisptr, edx, stage);
 }
