@@ -7,6 +7,8 @@
 #include <mutex>
 // used: std::shared_mutex
 #include <shared_mutex>
+// used: std::any
+#include <any>
 
 // used: winapi, directx, imgui, fmt includes
 #include "../common.h"
@@ -15,7 +17,7 @@
 // used: vector
 #include "../sdk/datatypes/vector.h"
 
-#pragma region draw_enumerations
+// types of thread-safe render objects
 enum class EDrawType : int
 {
 	NONE = 0,
@@ -24,74 +26,145 @@ enum class EDrawType : int
 	RECT_MULTICOLOR,
 	CIRCLE,
 	TRIANGLE,
-	TEXT
+	POLYGON,
+	TEXT,
+	IMAGE
 };
-
-// rectangle rendering flags
-enum ERectRenderFlags : int
-{
-	IMGUI_RECT_NONE =		0,
-	IMGUI_RECT_OUTLINE =	(1 << 0),
-	IMGUI_RECT_BORDER =		(1 << 1),
-	IMGUI_RECT_FILLED =		(1 << 2)
-};
-
-// circle rendering flags
-enum ECircleRenderFlags : int
-{
-	IMGUI_CIRCLE_NONE =		0,
-	IMGUI_CIRCLE_OUTLINE =	(1 << 0),
-	IMGUI_CIRCLE_FILLED =	(1 << 1)
-};
-
-// triangle rendering flags
-enum ETriangleRenderFlags : int
-{
-	IMGUI_TRIANGLE_NONE =	0,
-	IMGUI_TRIANGLE_OUTLINE = (1 << 0),
-	IMGUI_TRIANGLE_FILLED =	(1 << 1)
-};
-
-// text rendering flags
-enum ETextRenderFlags : int
-{
-	IMGUI_TEXT_NONE =		0,
-	IMGUI_TEXT_DROPSHADOW =	(1 << 0),
-	IMGUI_TEXT_OUTLINE =	(1 << 1)
-};
-#pragma endregion
 
 struct DrawObject_t
 {
+	DrawObject_t(const EDrawType nType, std::any&& pObject) :
+		nType(nType), pObject(std::move(pObject)) { }
+
 	EDrawType nType = EDrawType::NONE;
+	std::any pObject = { };
+};
 
-	// Values
-	/* font */
-	float flFontSize = 0.0f;
-	const ImFont* pFont = nullptr;
+#pragma region draw_objects
+struct LineObject_t
+{
+	ImVec2 vecStart = { };
+	ImVec2 vecEnd = { };
+	ImU32 colLine = 0x0;
+	float flThickness = 0.f;
+};
 
-	/* position */
+// rectangle rendering flags
+enum ERectRenderFlags : unsigned int
+{
+	DRAW_RECT_NONE = 0,
+	DRAW_RECT_OUTLINE = (1 << 0),
+	DRAW_RECT_BORDER = (1 << 1),
+	DRAW_RECT_FILLED = (1 << 2)
+};
+
+struct RectObject_t
+{
+	ImVec2 vecMin = { };
+	ImVec2 vecMax = { };
+	ImU32 colRect = 0x0;
+	unsigned int uFlags = 0x0;
+	ImU32 colOutline = 0x0;
+	float flRounding = 0.f;
+	ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_None;
+	float flThickness = 0.f;
+};
+
+struct RectMultiColorObject_t
+{
+	ImVec2 vecMin = { };
+	ImVec2 vecMax = { };
+	ImU32 colUpperLeft = 0x0;
+	ImU32 colUpperRight = 0x0;
+	ImU32 colBottomLeft = 0x0;
+	ImU32 colBottomRight = 0x0;
+};
+
+// circle rendering flags
+enum ECircleRenderFlags : unsigned int
+{
+	DRAW_CIRCLE_NONE = 0,
+	DRAW_CIRCLE_OUTLINE = (1 << 0),
+	DRAW_CIRCLE_FILLED = (1 << 1)
+};
+
+struct CircleObject_t
+{
+	ImVec2 vecCenter = { };
+	float flRadius = 0.f;
+	ImU32 colCircle = 0x0;
+	int nSegments = 0;
+	unsigned int uFlags = 0x0;
+	ImU32 colOutline = 0x0;
+	float flThickness = 0.f;
+};
+
+// triangle rendering flags
+enum ETriangleRenderFlags : unsigned int
+{
+	DRAW_TRIANGLE_NONE = 0,
+	DRAW_TRIANGLE_OUTLINE = (1 << 0),
+	DRAW_TRIANGLE_FILLED = (1 << 1)
+};
+
+struct TriangleObject_t
+{
 	ImVec2 vecFirst = { };
 	ImVec2 vecSecond = { };
 	ImVec2 vecThird = { };
-
-	/* colors */
-	ImU32 colFirst = 0U;
-	ImU32 colSecond = 0U;
-	ImU32 colThird = 0U;
-	ImU32 colFourth = 0U;
-
-	/* string */
-	std::string szText = { };
-	int iFlags = 0;
-
-	/* primitive factors */
-	float flRadius = 0.0f;
-	int nSegments = 0;
-	float flRounding = 0.0f;
-	ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_None;
-	float flThickness = 0.0f;
+	ImU32 colTriangle = 0x0;
+	unsigned int uFlags = 0x0;
+	ImU32 colOutline = 0x0;
+	float flThickness = 0.f;
 };
+
+// polygon rendering flags
+enum EPolygonRenderFlags : unsigned int
+{
+	DRAW_POLYGON_NONE = 0,
+	DRAW_POLYGON_OUTLINE = (1 << 0),
+	DRAW_POLYGON_FILLED = (1 << 1)
+};
+
+struct PolygonObject_t
+{
+	std::vector<ImVec2> vecPoints = { };
+	ImU32 colPolygon = 0x0;
+	unsigned int uFlags = 0x0;
+	ImU32 colOutline = 0x0;
+	bool bClosed = false;
+	float flThickness = 0.f;
+};
+
+// text rendering flags
+enum ETextRenderFlags : unsigned int
+{
+	DRAW_TEXT_NONE = 0,
+	DRAW_TEXT_DROPSHADOW = (1 << 0),
+	DRAW_TEXT_OUTLINE = (1 << 1)
+};
+
+struct TextObject_t
+{
+	const ImFont* pFont = nullptr;
+	float flFontSize = 0.f;
+	ImVec2 vecPosition = { };
+	std::string szText = { };
+	ImU32 colText = 0x0;
+	unsigned int uFlags = 0x0;
+	ImU32 colOutline = 0x0;
+};
+
+struct ImageObject_t
+{
+	ImTextureID pTexture = nullptr;
+	ImVec2 vecMin = { };
+	ImVec2 vecMax = { };
+	ImU32 colImage = 0x0;
+	float flRounding = 0.f;
+	ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_None;
+};
+#pragma endregion
 
 /*
  * FONTS
@@ -150,13 +223,19 @@ namespace D
 	void SwapDrawData();
 
 	// Render
-	void AddLine(const ImVec2& vecStart, const ImVec2& vecEnd, Color colLine, float flThickness = 1.0f);
-	void AddRect(const ImVec2& vecMin, const ImVec2& vecMax, Color colRect, int iFlags = IMGUI_RECT_NONE, Color colOutline = Color(0, 0, 0, 255), float flRounding = 0.f, ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_All, float flThickness = 1.0f);
-	void AddRectMultiColor(const ImVec2& vecMin, const ImVec2& vecMax, Color colUpperLeft, Color colUpperRight, Color colBottomLeft, Color colBottomRight);
-	void AddCircle(const ImVec2& vecCenter, float flRadius, Color colCircle, int nSegments = 12, int iFlags = IMGUI_CIRCLE_NONE, Color colOutline = Color(0, 0, 0, 255), float flThickness = 1.0f);
-	void AddTriangle(const ImVec2& vecFirst, const ImVec2& vecSecond, const ImVec2& vecThird, Color colTriangle, int iFlags = IMGUI_TRIANGLE_NONE, Color colOutline = Color(0, 0, 0, 255), float flThickness = 1.0f);
-	void AddText(const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const std::string& szText, Color colText, int iFlags = IMGUI_TEXT_NONE, Color colOutline = Color(0, 0, 0, 255));
-	void AddText(const ImVec2& vecPosition, const std::string& szText, Color colText, int iFlags = IMGUI_TEXT_NONE, Color colOutline = Color(0, 0, 0, 255));
+	void AddLine(const ImVec2& vecStart, const ImVec2& vecEnd, const Color& colLine, float flThickness = 1.0f);
+	void AddRect(const ImVec2& vecMin, const ImVec2& vecMax, const Color& colRect, unsigned int uFlags = DRAW_RECT_NONE, const Color& colOutline = Color(0, 0, 0, 255), float flRounding = 0.f, ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_All, float flThickness = 1.0f);
+	void AddRectMultiColor(const ImVec2& vecMin, const ImVec2& vecMax, const Color& colUpperLeft, const Color& colUpperRight, const Color& colBottomLeft, const Color& colBottomRight);
+	void AddCircle(const ImVec2& vecCenter, float flRadius, const Color& colCircle, int nSegments = 12, unsigned int uFlags = DRAW_CIRCLE_NONE, const Color& colOutline = Color(0, 0, 0, 255), float flThickness = 1.0f);
+	void AddTriangle(const ImVec2& vecFirst, const ImVec2& vecSecond, const ImVec2& vecThird, const Color& colTriangle, unsigned int uFlags = DRAW_TRIANGLE_NONE, const Color& colOutline = Color(0, 0, 0, 255), float flThickness = 1.0f);
+	void AddPolygon(std::vector<ImVec2>& vecPoints, const Color& colPolygon, unsigned int uFlags = DRAW_POLYGON_FILLED, const Color& colOutline = Color(0, 0, 0, 255), bool bClosed = true, float flThickness = 1.0f);
+	void AddText(const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const std::string& szText, const Color& colText, unsigned int uFlags = DRAW_TEXT_NONE, const Color& colOutline = Color(0, 0, 0, 255));
+	void AddText(const ImVec2& vecPosition, const std::string& szText, const Color& colText, int iFlags = DRAW_TEXT_NONE, const Color& colOutline = Color(0, 0, 0, 255));
+	void AddImage(ImTextureID pTexture, const ImVec2& vecMin, const ImVec2& vecMax, const Color& colImage = Color(255, 255, 255, 255), float flRounding = 0.f, ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_All);
+
+	// Bindings
+	void AddDrawListRect(ImDrawList* pDrawList, const ImVec2& vecMin, const ImVec2& vecMax, ImU32 colRect, unsigned int uFlags = DRAW_RECT_NONE, ImU32 colOutline = IM_COL32(0, 0, 0, 255), float flRounding = 0.f, ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_All, float flThickness = 1.0f);
+	void AddDrawListText(ImDrawList* pDrawList, const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const std::string& szText, ImU32 colText, unsigned int uFlags = DRAW_TEXT_NONE, ImU32 colOutline = IM_COL32(0, 0, 0, 255));
 
 	// Extra
 	/* converts 3d game world space to screen space */
