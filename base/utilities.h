@@ -3,10 +3,6 @@
 #include "common.h"
 // used: vector
 #include "sdk/datatypes/vector.h"
-// used: keyvalues
-#include "sdk/datatypes/keyvalues.h"
-// used: baseentity, handleentity
-#include "sdk/entity.h"
 // used: material
 #include "sdk/interfaces/imaterialsystem.h"
 // used: events listerner setup

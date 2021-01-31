@@ -1,8 +1,5 @@
 #pragma once
-// used: winapi includes
-#include "../common.h"
-
-// info: contains other simplified/modified/updated valve's definitions (i tried keep it look's not like shit)
+// @note: contains other simplified/modified/updated valve's definitions (i tried keep it look's not like shit)
 
 #define MAX_COORD_FLOAT		16'384.f			// max world coordinates
 #define MIN_COORD_FLOAT		-(MAX_COORD_FLOAT)	// min world coordinates

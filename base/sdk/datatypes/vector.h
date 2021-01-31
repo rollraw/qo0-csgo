@@ -1,8 +1,10 @@
 #pragma once
+// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/mathlib/vector.h
+
 // used: isfinite, fmodf, sqrtf
 #include <cmath>
-
-// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/mathlib/vector.h
+// used: numeric_limits
+#include <limits>
 
 class Vector2D
 {

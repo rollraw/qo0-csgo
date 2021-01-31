@@ -1,8 +1,8 @@
 #pragma once
+// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/tier1/utlvector.h
+
 // used: utlmemory
 #include "utlmemory.h"
-
-// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/tier1/utlvector.h
 
 template <class T>
 void Destruct(T* pMemory)
@@ -27,6 +27,16 @@ class CUtlVector
 {
 	using CAllocator = A;
 public:
+	auto begin() const noexcept
+	{
+		return pMemory.Base();
+	}
+
+	auto end() const noexcept
+	{
+		return pMemory.Base() + iSize;
+	}
+
 	T& operator[](int i)
 	{
 		return pMemory[i];
@@ -62,29 +72,31 @@ public:
 		return iSize;
 	}
 
-	void GrowVector(int iNum = 1)
+	void GrowVector(int nCount = 1)
 	{
-		if (iSize + iNum > pMemory.NumAllocated())
-			pMemory.Grow(iSize + iNum - pMemory.NumAllocated());
+		if (iSize + nCount > pMemory.NumAllocated())
+			pMemory.Grow(iSize + nCount - pMemory.NumAllocated());
 
-		iSize += iNum;
+		iSize += nCount;
 	}
 
-	void ShiftElementsRight(int nElement, int iNum = 1)
+	void ShiftElementsRight(const int nElement, const int nShift = 1)
 	{
-		int nToMove = iSize - nElement - iNum;
-		if (nToMove > 0 && iNum > 0)
-			memmove(&Element(nElement + iNum), &Element(nElement), nToMove * sizeof(T));
+		const int nToMove = iSize - nElement - nShift;
+
+		if (nToMove > 0 && nShift > 0)
+			memmove(&Element(nElement + nShift), &Element(nElement), nToMove * sizeof(T));
 	}
 
-	void ShiftElementsLeft(int nElement, int iNum = 1)
+	void ShiftElementsLeft(const int nElement, const int nShift = 1)
 	{
-		int nToMove = iSize - nElement - iNum;
-		if (nToMove > 0 && iNum > 0)
-			memmove(&Element(nElement), &Element(nElement + iNum), nToMove * sizeof(T));
+		const int nToMove = iSize - nElement - nShift;
+
+		if (nToMove > 0 && nShift > 0)
+			memmove(&Element(nElement), &Element(nElement + nShift), nToMove * sizeof(T));
 	}
 
-	int InsertBefore(int nElement)
+	int InsertBefore(const int nElement)
 	{
 		// can insert at the end
 		GrowVector();
@@ -124,7 +136,7 @@ public:
 		return -1;
 	}
 
-	void Remove(int nElement)
+	void Remove(const int nElement)
 	{
 		Destruct(&Element(nElement));
 		ShiftElementsLeft(nElement);
@@ -141,8 +153,7 @@ public:
 
 	bool FindAndRemove(const T& src)
 	{
-		int nElement = Find(src);
-		if (nElement != -1)
+		if (const int nElement = Find(src); nElement != -1)
 		{
 			Remove(nElement);
 			return true;

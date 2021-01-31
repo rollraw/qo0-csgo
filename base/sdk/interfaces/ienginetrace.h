@@ -1,4 +1,6 @@
 #pragma once
+// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/engine/IEngineTrace.h
+
 // used: std::function
 #include <functional>
 
@@ -8,8 +10,6 @@
 #include "../datatypes/utlvector.h"
 // used: mask, content, surf flags
 #include "../bspflags.h"
-
-// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/engine/IEngineTrace.h
 
 #pragma region enginetrace_enumerations
 enum EDispSurfFlags

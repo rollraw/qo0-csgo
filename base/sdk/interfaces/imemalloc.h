@@ -1,6 +1,6 @@
 #pragma once
-
 // @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/tier0/memalloc.h
+
 using MemAllocFailHandler_t = std::size_t(__cdecl*)(std::size_t);
 
 // @note: not full class

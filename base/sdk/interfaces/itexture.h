@@ -1,4 +1,6 @@
 #pragma once
+// used: directx texture class, call virtual function
+#include "../../utilities/memory.h"
 
 struct Texture_t
 {

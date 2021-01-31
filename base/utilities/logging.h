@@ -23,7 +23,7 @@
 
 #pragma region logging_exception_handling
 #ifdef _DEBUG
-#define SEH_CATCH MessageBox(nullptr, ex.what(), XorStr("qo0 base (error)"), MB_OK | MB_ICONERROR | MB_TOPMOST);
+#define SEH_CATCH _RPT0(_CRT_ERROR, ex.what());
 #else
 #define SEH_CATCH std::abort();
 #endif

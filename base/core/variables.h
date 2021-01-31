@@ -128,7 +128,6 @@ struct Variables_t
 	C_ADD_VARIABLE(bool, bEspMainPlayerMoney, false);
 
 	/* top */
-	C_ADD_VARIABLE(bool, bEspMainPlayerRank, false);
 	C_ADD_VARIABLE(bool, bEspMainPlayerName, true);
 	C_ADD_VARIABLE(bool, bEspMainPlayerFlash, false);
 

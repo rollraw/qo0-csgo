@@ -90,6 +90,7 @@
     <ClInclude Include="sdk\interfaces\iinputsystem.h" />
     <ClInclude Include="sdk\interfaces\imatchframework.h" />
     <ClInclude Include="sdk\interfaces\ilocalize.h" />
+    <ClInclude Include="sdk\interfaces\imaterial.h" />
     <ClInclude Include="sdk\interfaces\imaterialsystem.h" />
     <ClInclude Include="sdk\interfaces\imatrendercontext.h" />
     <ClInclude Include="sdk\interfaces\imdlcache.h" />

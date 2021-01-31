@@ -2,14 +2,12 @@
 
 // used: angle/vector calculations
 #include "../utilities/math.h"
-// used: deathmatch check
-#include "../core/variables.h"
 // used: convar, cliententitylist, physics, trace, clients, globals interfaces
 #include "../core/interfaces.h"
 
 float CAutoWall::GetDamage(CBaseEntity* pLocal, const Vector& vecPoint, FireBulletData_t& dataOut)
 {
-	Vector vecPosition = pLocal->GetEyePosition();
+	const Vector vecPosition = pLocal->GetEyePosition();
 
 	// setup data
 	FireBulletData_t data = { };
@@ -45,6 +43,8 @@ void CAutoWall::ScaleDamage(int iHitGroup, CBaseEntity* pEntity, float flWeaponA
 	case HITGROUP_RIGHTLEG:
 		flDamage *= 0.75f;
 		break;
+	default:
+		break;
 	}
 
 	// check is armored
@@ -71,73 +71,7 @@ void CAutoWall::ScaleDamage(int iHitGroup, CBaseEntity* pEntity, float flWeaponA
 	}
 }
 
-// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/shared/util_shared.cpp#L687
-void CAutoWall::ClipTraceToPlayers(const Vector& vecAbsStart, const Vector& vecAbsEnd, unsigned int fMask, ITraceFilter* pFilter, Trace_t* pTrace)
-{
-	Trace_t trace = { };
-	float flSmallestFraction = pTrace->flFraction;
-
-	Ray_t ray(vecAbsStart, vecAbsEnd);
-
-	for (int i = 1; i < I::Globals->nMaxClients; i++)
-	{
-		CBaseEntity* pEntity = I::ClientEntityList->Get<CBaseEntity>(i);
-
-		if (pEntity == nullptr || !pEntity->IsAlive() || pEntity->IsDormant())
-			continue;
-
-		if (pFilter != nullptr && pFilter->ShouldHitEntity(pEntity, fMask) == false)
-			continue;
-
-		const ICollideable* pCollideable = pEntity->GetCollideable();
-
-		if (pCollideable == nullptr)
-			continue;
-
-		// get bounding box
-		const Vector vecMin = pCollideable->OBBMins();
-		const Vector vecMax = pCollideable->OBBMaxs();
-
-		// calculate world space center
-		const Vector vecCenter = (vecMax + vecMin) * 0.5f;
-		const Vector vecPosition = vecCenter + pEntity->GetOrigin();
-
-		Vector vecTo = vecPosition - vecAbsStart;
-		Vector vecDirection = vecAbsEnd - vecAbsStart;
-		float flLength = vecDirection.NormalizeInPlace();
-
-		const float flRangeAlong = vecDirection.DotProduct(vecTo);
-		float flRange = 0.0f;
-
-		// calculate distance to ray
-		// off start point
-		if (flRangeAlong < 0.0f)
-			flRange = -vecTo.Length();
-		// off end point
-		else if (flRangeAlong > flLength)
-			flRange = -(vecPosition - vecAbsEnd).Length();
-		// within ray bounds
-		else
-		{
-			Vector vecRay = vecPosition - (vecDirection * flRangeAlong + vecAbsStart);
-			flRange = vecRay.Length();
-		}
-
-		if (flRange < 0.0f || flRange > 60.0f)
-			continue;
-
-		I::EngineTrace->ClipRayToEntity(ray, fMask | CONTENTS_HITBOX, pEntity, &trace);
-
-		if (trace.flFraction < flSmallestFraction)
-		{
-			// we shortened the ray - save off the trace
-			*pTrace = trace;
-			flSmallestFraction = trace.flFraction;
-		}
-	}
-}
-
-bool CAutoWall::IsBreakableEntity(CBaseEntity* pEntity)
+bool CAutoWall::IsBreakableEntity(CBaseEntity* pEntity) const
 {
 	// @ida isbreakableentity: 55 8B EC 51 56 8B F1 85 F6 74 68
 
@@ -207,7 +141,70 @@ bool CAutoWall::IsBreakableEntity(CBaseEntity* pEntity)
 	return true;
 }
 
-bool CAutoWall::TraceToExit(Trace_t& enterTrace, Trace_t& exitTrace, Vector vecPosition, Vector vecDirection)
+// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/shared/util_shared.cpp#L687
+void CAutoWall::ClipTraceToPlayers(const Vector& vecAbsStart, const Vector& vecAbsEnd, unsigned int fMask, ITraceFilter* pFilter, Trace_t* pTrace)
+{
+	Trace_t trace = { };
+	float flSmallestFraction = pTrace->flFraction;
+
+	Ray_t ray(vecAbsStart, vecAbsEnd);
+
+	for (int i = 1; i < I::Globals->nMaxClients; i++)
+	{
+		CBaseEntity* pEntity = I::ClientEntityList->Get<CBaseEntity>(i);
+
+		if (pEntity == nullptr || !pEntity->IsAlive() || pEntity->IsDormant())
+			continue;
+
+		if (pFilter != nullptr && !pFilter->ShouldHitEntity(pEntity, fMask))
+			continue;
+
+		const ICollideable* pCollideable = pEntity->GetCollideable();
+
+		if (pCollideable == nullptr)
+			continue;
+
+		// get bounding box
+		const Vector vecMin = pCollideable->OBBMins();
+		const Vector vecMax = pCollideable->OBBMaxs();
+
+		// calculate world space center
+		const Vector vecCenter = (vecMax + vecMin) * 0.5f;
+		const Vector vecPosition = vecCenter + pEntity->GetOrigin();
+
+		Vector vecTo = vecPosition - vecAbsStart;
+		Vector vecDirection = vecAbsEnd - vecAbsStart;
+		const float flLength = vecDirection.NormalizeInPlace();
+
+		const float flRangeAlong = vecDirection.DotProduct(vecTo);
+		float flRange = 0.0f;
+
+		// calculate distance to ray
+		if (flRangeAlong < 0.0f)
+			// off start point
+			flRange = -vecTo.Length();
+		else if (flRangeAlong > flLength)
+			// off end point
+			flRange = -(vecPosition - vecAbsEnd).Length();
+		else
+			// within ray bounds
+			flRange = (vecPosition - (vecDirection * flRangeAlong + vecAbsStart)).Length();
+
+		if (flRange < 0.0f || flRange > 60.0f)
+			continue;
+
+		I::EngineTrace->ClipRayToEntity(ray, fMask | CONTENTS_HITBOX, pEntity, &trace);
+
+		if (trace.flFraction < flSmallestFraction)
+		{
+			// we shortened the ray - save off the trace
+			*pTrace = trace;
+			flSmallestFraction = trace.flFraction;
+		}
+	}
+}
+
+bool CAutoWall::TraceToExit(Trace_t& enterTrace, Trace_t& exitTrace, Vector vecPosition, Vector vecDirection) const
 {
 	float flDistance = 0.0f;
 	int iStartContents = 0;
@@ -285,7 +282,7 @@ bool CAutoWall::TraceToExit(Trace_t& enterTrace, Trace_t& exitTrace, Vector vecP
 	return false;
 }
 
-bool CAutoWall::HandleBulletPenetration(CBaseEntity* pLocal, CCSWeaponData* pWeaponData, surfacedata_t* pEnterSurfaceData, FireBulletData_t& data)
+bool CAutoWall::HandleBulletPenetration(CBaseEntity* pLocal, CCSWeaponData* pWeaponData, surfacedata_t* pEnterSurfaceData, FireBulletData_t& data) const
 {
 	static CConVar* ff_damage_reduction_bullets = I::ConVar->FindVar(XorStr("ff_damage_reduction_bullets"));
 	static CConVar* ff_damage_bullet_penetration = I::ConVar->FindVar(XorStr("ff_damage_bullet_penetration"));

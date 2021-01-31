@@ -1,6 +1,9 @@
 #pragma once
 // @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/vphysics_interfaceV30.h
 
+// used: MaterialHandle_t
+#include "imaterialsystem.h"
+
 struct surfacephysicsparams_t
 {
 	float flFriction;

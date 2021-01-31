@@ -196,7 +196,6 @@ void CVisuals::Store()
 				 3	texts:
 				 *		money
 				 *		name
-				 *		rank
 				 >		flags:
 				 *			helmet
 				 *			kit
@@ -294,7 +293,7 @@ void CVisuals::Event(IGameEvent* pEvent, const FNV1A_t uNameHash)
 
 	const float flServerTime = TICKS_TO_TIME(pLocal->GetTickBase());
 
-	/* get hitmarker info */
+	// get hitmarker info
 	if (C::Get<bool>(Vars.bScreen) && C::Get<bool>(Vars.bScreenHitMarker) && uNameHash == FNV1A::HashConst("player_hurt"))
 	{
 		CBaseEntity* pAttacker = I::ClientEntityList->Get<CBaseEntity>(I::Engine->GetPlayerForUserID(pEvent->GetInt(XorStr("attacker"))));
@@ -353,12 +352,12 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 			static IMaterial* pMaterial = nullptr;
 
 			// set players material
-			switch (C::Get<int>(Vars.iEspChamsPlayer))
+			switch (static_cast<EVisualsPlayersChams>(C::Get<int>(Vars.iEspChamsPlayer)))
 			{
-			case (int)EVisualsPlayersChams::FLAT:
+			case EVisualsPlayersChams::FLAT:
 				pMaterial = arrMaterials.at(0).second;
 				break;
-			case (int)EVisualsPlayersChams::REFLECTIVE:
+			case EVisualsPlayersChams::REFLECTIVE:
 				pMaterial = arrMaterials.at(2).first;
 				break;
 			default:
@@ -446,7 +445,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 		if (pViewModelMaterial == nullptr)
 			return false;
 
-		if (C::Get<int>(Vars.iEspChamsViewModel) == (int)EVisualsViewModelChams::NO_DRAW)
+		if (C::Get<int>(Vars.iEspChamsViewModel) == static_cast<int>(EVisualsViewModelChams::NO_DRAW))
 		{
 			pViewModelMaterial->SetMaterialVarFlag(MATERIAL_VAR_NO_DRAW, true);
 			I::StudioRender->ForcedMaterialOverride(pViewModelMaterial);
@@ -460,18 +459,18 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 		static IMaterial* pMaterial = nullptr;
 
 		// set viewmodel material
-		switch (C::Get<int>(Vars.iEspChamsViewModel))
+		switch (static_cast<EVisualsViewModelChams>(C::Get<int>(Vars.iEspChamsViewModel)))
 		{
-		case (int)EVisualsViewModelChams::FLAT:
+		case EVisualsViewModelChams::FLAT:
 			pMaterial = arrMaterials.at(1).second;
 			break;
-		case (int)EVisualsViewModelChams::GLOW:
+		case EVisualsViewModelChams::GLOW:
 			pMaterial = arrMaterials.at(2).second;
 			break;
-		case (int)EVisualsViewModelChams::SCROLL:
+		case EVisualsViewModelChams::SCROLL:
 			pMaterial = arrMaterials.at(3).first;
 			break;
-		case (int)EVisualsViewModelChams::CHROME:
+		case EVisualsViewModelChams::CHROME:
 			pMaterial = arrMaterials.at(3).second;
 			break;
 		default:
@@ -1013,11 +1012,12 @@ void CVisuals::DroppedWeapons(CBaseCombatWeapon* pWeapon, short nItemDefinitionI
 
 void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx, const float flDistance, const Color& colInfo, const Color& colFrame, const Color& colOutline)
 {
-	PlayerInfo_t pInfo;
-	if (!I::Engine->GetPlayerInfo(pEntity->GetIndex(), &pInfo))
+	PlayerInfo_t playerInfo = { };
+
+	if (!I::Engine->GetPlayerInfo(pEntity->GetIndex(), &playerInfo))
 		return;
 
-	if (C::Get<int>(Vars.iEspMainPlayerBox) > (int)EVisualsBoxType::NONE)
+	if (C::Get<int>(Vars.iEspMainPlayerBox) > static_cast<int>(EVisualsBoxType::NONE))
 	{
 		// get box color based on visibility & enmity
 		const Color colBox = pEntity->IsEnemy(pLocal) ?
@@ -1038,15 +1038,10 @@ void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx,
 	if (C::Get<bool>(Vars.bEspMainPlayerFlash) && pEntity->GetFlashDuration() > 0.2f)
 		FlashBar(pEntity, ctx, Color(255, 255, 255, 220), Color(40, 40, 40, 100), Color(0, 0, 0, 150));
 
-	if (C::Get<bool>(Vars.bEspMainPlayerRank) && !pInfo.bFakePlayer)
-	{
-		// @todo: make with images from vpk
-	}
-
 	if (C::Get<bool>(Vars.bEspMainPlayerName))
 	{
 		// get player name
-		std::string szName = pInfo.szName;
+		std::string szName = playerInfo.szName;
 
 		// truncate name
 		if (szName.length() > 24U)
@@ -1057,7 +1052,7 @@ void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx,
 		const ImVec2 vecNameSize = F::SmallestPixel->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szName.c_str());
 
 		// add prefix for bots
-		if (pInfo.bFakePlayer)
+		if (playerInfo.bFakePlayer)
 		{
 			vecBotSize = F::SmallestPixel->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szBot);
 			D::AddText(F::SmallestPixel, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f + 1 + vecNameSize.x * 0.5f - vecBotSize.x * 0.5f, ctx.box.top - 2 - vecBotSize.y - ctx.arrPadding.at(DIR_TOP)), szBot, Color(140, 140, 140), DRAW_TEXT_OUTLINE, colOutline);
@@ -1177,14 +1172,14 @@ void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx,
 
 void CVisuals::Box(const Box_t& box, const int nBoxType, const Color& colPrimary, const Color& colOutline)
 {
-	switch (nBoxType)
+	switch (static_cast<EVisualsBoxType>(nBoxType))
 	{
-	case (int)EVisualsBoxType::FULL:
+	case EVisualsBoxType::FULL:
 	{
 		D::AddRect(ImVec2(box.left, box.top), ImVec2(box.right, box.bottom), colPrimary, DRAW_RECT_OUTLINE | DRAW_RECT_BORDER, colOutline);
 		break;
 	}
-	case (int)EVisualsBoxType::CORNERS:
+	case EVisualsBoxType::CORNERS:
 	{
 		// num of parts we divide the whole line
 		constexpr int nDivideParts = 5;

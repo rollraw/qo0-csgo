@@ -372,7 +372,6 @@ void T::Visuals()
 					{
 						ImGui::Checkbox(XorStr("health##player"), &C::Get<bool>(Vars.bEspMainPlayerHealth));
 						ImGui::Checkbox(XorStr("money##player"), &C::Get<bool>(Vars.bEspMainPlayerMoney));
-						//ImGui::Checkbox(XorStr("rank##player"), &C::Get<bool>(Vars.bEspMainPlayerRank));
 						ImGui::Checkbox(XorStr("name##player"), &C::Get<bool>(Vars.bEspMainPlayerName));
 						ImGui::Checkbox(XorStr("flash##player"), &C::Get<bool>(Vars.bEspMainPlayerFlash));
 						ImGui::MultiCombo(XorStr("flags##player"), C::Get<std::vector<bool>>(Vars.vecEspMainPlayerFlags), arrVisualsFlags.data(), arrVisualsFlags.size());

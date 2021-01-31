@@ -1,10 +1,12 @@
 #pragma once
+// used: vector
+#include "../datatypes/vector.h"
 // used: irefcouted
 #include "irefcount.h"
 // used: texture
 #include "itexture.h"
-
-using VertexFormat_t = std::uint64_t;
+// used: material
+#include "imaterial.h"
 
 // @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/mathlib/lightdesc.h
 enum ELightType : int
@@ -133,83 +135,6 @@ struct ShaderStencilState_t
 	std::uint32_t				uWriteMask;
 };
 
-enum EImageFormat : int
-{
-	IMAGE_FORMAT_UNKNOWN = -1,
-	IMAGE_FORMAT_RGBA8888 = 0,
-	IMAGE_FORMAT_ABGR8888,
-	IMAGE_FORMAT_RGB888,
-	IMAGE_FORMAT_BGR888,
-	IMAGE_FORMAT_RGB565,
-	IMAGE_FORMAT_I8,
-	IMAGE_FORMAT_IA88,
-	IMAGE_FORMAT_P8,
-	IMAGE_FORMAT_A8,
-	IMAGE_FORMAT_RGB888_BLUESCREEN,
-	IMAGE_FORMAT_BGR888_BLUESCREEN,
-	IMAGE_FORMAT_ARGB8888,
-	IMAGE_FORMAT_BGRA8888,
-	IMAGE_FORMAT_DXT1,
-	IMAGE_FORMAT_DXT3,
-	IMAGE_FORMAT_DXT5,
-	IMAGE_FORMAT_BGRX8888,
-	IMAGE_FORMAT_BGR565,
-	IMAGE_FORMAT_BGRX5551,
-	IMAGE_FORMAT_BGRA4444,
-	IMAGE_FORMAT_DXT1_ONEBITALPHA,
-	IMAGE_FORMAT_BGRA5551,
-	IMAGE_FORMAT_UV88,
-	IMAGE_FORMAT_UVWQ8888,
-	IMAGE_FORMAT_RGBA16161616F,
-	IMAGE_FORMAT_RGBA16161616,
-	IMAGE_FORMAT_UVLX8888,
-	IMAGE_FORMAT_R32F,			// single-channel 32-bit floating point
-	IMAGE_FORMAT_RGB323232F,	// note: D3D9 does not have this format
-	IMAGE_FORMAT_RGBA32323232F,
-	IMAGE_FORMAT_RG1616F,
-	IMAGE_FORMAT_RG3232F,
-	IMAGE_FORMAT_RGBX8888,
-
-	IMAGE_FORMAT_NULL,			// dummy format which takes no video memory
-
-	// compressed normal map formats
-	IMAGE_FORMAT_ATI2N,			// one-surface ATI2N / DXN format
-	IMAGE_FORMAT_ATI1N,			// two-surface ATI1N format
-
-	IMAGE_FORMAT_RGBA1010102,	// 10 bit-per component render targets
-	IMAGE_FORMAT_BGRA1010102,
-	IMAGE_FORMAT_R16F,			// 16 bit FP format
-
-	// depth-stencil texture formats
-	IMAGE_FORMAT_D16,
-	IMAGE_FORMAT_D15S1,
-	IMAGE_FORMAT_D32,
-	IMAGE_FORMAT_D24S8,
-	IMAGE_FORMAT_LINEAR_D24S8,
-	IMAGE_FORMAT_D24X8,
-	IMAGE_FORMAT_D24X4S4,
-	IMAGE_FORMAT_D24FS8,
-	IMAGE_FORMAT_D16_SHADOW,	// specific formats for shadow mapping
-	IMAGE_FORMAT_D24X8_SHADOW,	// specific formats for shadow mapping
-
-	// supporting these specific formats as non-tiled for procedural cpu access (360-specific)
-	IMAGE_FORMAT_LINEAR_BGRX8888,
-	IMAGE_FORMAT_LINEAR_RGBA8888,
-	IMAGE_FORMAT_LINEAR_ABGR8888,
-	IMAGE_FORMAT_LINEAR_ARGB8888,
-	IMAGE_FORMAT_LINEAR_BGRA8888,
-	IMAGE_FORMAT_LINEAR_RGB888,
-	IMAGE_FORMAT_LINEAR_BGR888,
-	IMAGE_FORMAT_LINEAR_BGRX5551,
-	IMAGE_FORMAT_LINEAR_I8,
-	IMAGE_FORMAT_LINEAR_RGBA16161616,
-
-	IMAGE_FORMAT_LE_BGRX8888,
-	IMAGE_FORMAT_LE_BGRA8888,
-
-	NUM_IMAGE_FORMATS
-};
-
 // @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/materialsystem/imaterialsystem.h
 class IMatRenderContext : public IRefCounted
 {
@@ -292,5 +217,15 @@ public:
 	void SetLightingOrigin(/*Vector vecLightingOrigin*/float x, float y, float z)
 	{
 		MEM::CallVFunc<void>(this, 158, x, y, z);
+	}
+
+	void SetScissorRect(const int nLeft, const int nTop, const int nRight, const int nBottom, const bool bEnableScissor = true)
+	{
+		MEM::CallVFunc<void>(this, 159, nLeft, nTop, nRight, nBottom, bEnableScissor);
+	}
+
+	void PopScissorRect()
+	{
+		MEM::CallVFunc<void>(this, 160);
 	}
 };

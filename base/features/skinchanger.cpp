@@ -12,10 +12,6 @@ void CSkinChanger::Run()
 	if (pLocal == nullptr || !pLocal->IsAlive())
 		return;
 
-	PlayerInfo_t pInfo;
-	if (!I::Engine->GetPlayerInfo(I::Engine->GetLocalPlayer(), &pInfo))
-		return;
-
 	// it will help you here my sweetest candy <3
 	// https://www.unknowncheats.me/wiki/Counter_Strike_Global_Offensive:Skin_Changer
 }

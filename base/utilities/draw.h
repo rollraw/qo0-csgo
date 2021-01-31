@@ -40,22 +40,51 @@ struct DrawObject_t
 	std::any pObject = { };
 };
 
-#pragma region draw_objects
-struct LineObject_t
-{
-	ImVec2 vecStart = { };
-	ImVec2 vecEnd = { };
-	ImU32 colLine = 0x0;
-	float flThickness = 0.f;
-};
-
-// rectangle rendering flags
+#pragma region draw_objects_enumerations
 enum ERectRenderFlags : unsigned int
 {
 	DRAW_RECT_NONE = 0,
 	DRAW_RECT_OUTLINE = (1 << 0),
 	DRAW_RECT_BORDER = (1 << 1),
 	DRAW_RECT_FILLED = (1 << 2)
+};
+
+enum ECircleRenderFlags : unsigned int
+{
+	DRAW_CIRCLE_NONE = 0,
+	DRAW_CIRCLE_OUTLINE = (1 << 0),
+	DRAW_CIRCLE_FILLED = (1 << 1)
+};
+
+enum ETriangleRenderFlags : unsigned int
+{
+	DRAW_TRIANGLE_NONE = 0,
+	DRAW_TRIANGLE_OUTLINE = (1 << 0),
+	DRAW_TRIANGLE_FILLED = (1 << 1)
+};
+
+enum EPolygonRenderFlags : unsigned int
+{
+	DRAW_POLYGON_NONE = 0,
+	DRAW_POLYGON_OUTLINE = (1 << 0),
+	DRAW_POLYGON_FILLED = (1 << 1)
+};
+
+enum ETextRenderFlags : unsigned int
+{
+	DRAW_TEXT_NONE = 0,
+	DRAW_TEXT_DROPSHADOW = (1 << 0),
+	DRAW_TEXT_OUTLINE = (1 << 1)
+};
+#pragma endregion
+
+#pragma region draw_objects_structures
+struct LineObject_t
+{
+	ImVec2 vecStart = { };
+	ImVec2 vecEnd = { };
+	ImU32 colLine = 0x0;
+	float flThickness = 0.f;
 };
 
 struct RectObject_t
@@ -80,14 +109,6 @@ struct RectMultiColorObject_t
 	ImU32 colBottomRight = 0x0;
 };
 
-// circle rendering flags
-enum ECircleRenderFlags : unsigned int
-{
-	DRAW_CIRCLE_NONE = 0,
-	DRAW_CIRCLE_OUTLINE = (1 << 0),
-	DRAW_CIRCLE_FILLED = (1 << 1)
-};
-
 struct CircleObject_t
 {
 	ImVec2 vecCenter = { };
@@ -97,14 +118,6 @@ struct CircleObject_t
 	unsigned int uFlags = 0x0;
 	ImU32 colOutline = 0x0;
 	float flThickness = 0.f;
-};
-
-// triangle rendering flags
-enum ETriangleRenderFlags : unsigned int
-{
-	DRAW_TRIANGLE_NONE = 0,
-	DRAW_TRIANGLE_OUTLINE = (1 << 0),
-	DRAW_TRIANGLE_FILLED = (1 << 1)
 };
 
 struct TriangleObject_t
@@ -118,14 +131,6 @@ struct TriangleObject_t
 	float flThickness = 0.f;
 };
 
-// polygon rendering flags
-enum EPolygonRenderFlags : unsigned int
-{
-	DRAW_POLYGON_NONE = 0,
-	DRAW_POLYGON_OUTLINE = (1 << 0),
-	DRAW_POLYGON_FILLED = (1 << 1)
-};
-
 struct PolygonObject_t
 {
 	std::vector<ImVec2> vecPoints = { };
@@ -134,14 +139,6 @@ struct PolygonObject_t
 	ImU32 colOutline = 0x0;
 	bool bClosed = false;
 	float flThickness = 0.f;
-};
-
-// text rendering flags
-enum ETextRenderFlags : unsigned int
-{
-	DRAW_TEXT_NONE = 0,
-	DRAW_TEXT_DROPSHADOW = (1 << 0),
-	DRAW_TEXT_OUTLINE = (1 << 1)
 };
 
 struct TextObject_t
@@ -244,9 +241,9 @@ namespace D
 	// Values
 	/* directx init state */
 	inline bool	bInitialized = false;
-	/* saved data of draw functions */
+	/* saved data to draw */
 	inline std::deque<DrawObject_t> vecDrawData = { };
-	/* thread-safe data of draw functions */
+	/* thread-safe data to draw */
 	inline std::deque<DrawObject_t> vecSafeDrawData = { };
 	/* thread-safe render mutex */
 	inline std::shared_mutex drawMutex = { };

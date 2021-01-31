@@ -6,7 +6,6 @@
 /* features event */
 #include "../features/resolver.h"
 #include "../features/visuals.h"
-#include "../features/misc.h"
 
 void CEventListener::Setup(const std::deque<const char*>& arrEvents)
 {
