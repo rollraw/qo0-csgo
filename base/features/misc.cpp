@@ -194,12 +194,8 @@ void CMiscellaneous::BunnyHop(CUserCmd* pCmd, CBaseEntity* pLocal) const
 
 void CMiscellaneous::DisablePanoramaBlur() {
 
-	L::Print(XorStr("Applicando Blur"));
-	std::cout << "Check Blur";
 	static CConVar* Blur = I::ConVar->FindVar(XorStr("@panorama_disable_blur"));
-	
 	Blur->SetValue(C::Get<bool>(Vars.bMiscDisableHudBlur));
-
 }
 
 void CMiscellaneous::AutoStrafe(CUserCmd* pCmd, CBaseEntity* pLocal)
