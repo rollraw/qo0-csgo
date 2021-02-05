@@ -23,10 +23,14 @@ public:
 	void AutoPistol(CUserCmd* pCmd, CBaseEntity* pLocal);
 	/* dont send packets for a certain number of ticks */
 	void FakeLag(CBaseEntity* pLocal, bool& bSendPacket);
+
+	void DisablePanoramaBlur();
 private:
 	// Movement
 	/* automatic jump when steps on the ground */
 	void BunnyHop(CUserCmd* pCmd, CBaseEntity* pLocal) const;
+	
+	
 	/* strafes on optimal sides for maximum speed in air */
 	void AutoStrafe(CUserCmd* pCmd, CBaseEntity* pLocal);
 };

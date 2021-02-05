@@ -10,9 +10,12 @@
 #include "../core/interfaces.h"
 // used: angle-vector calculations
 #include "../utilities/math.h"
+#include "../utilities/logging.h"
+#include <iostream>
 
 void CMiscellaneous::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 {
+
 	if (!pLocal->IsAlive())
 		return;
 
@@ -187,6 +190,16 @@ void CMiscellaneous::BunnyHop(CUserCmd* pCmd, CBaseEntity* pLocal) const
 		bLastJumped = false;
 		bShouldFake = false;
 	}
+}
+
+void CMiscellaneous::DisablePanoramaBlur() {
+
+	L::Print(XorStr("Applicando Blur"));
+	std::cout << "Check Blur";
+	static CConVar* Blur = I::ConVar->FindVar(XorStr("@panorama_disable_blur"));
+	
+	Blur->SetValue(C::Get<bool>(Vars.bMiscDisableHudBlur));
+
 }
 
 void CMiscellaneous::AutoStrafe(CUserCmd* pCmd, CBaseEntity* pLocal)

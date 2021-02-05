@@ -535,6 +535,7 @@ void T::Miscellaneous()
 			ImGui::Checkbox(XorStr("ping spike"), &C::Get<bool>(Vars.bMiscPingSpike));
 			ImGui::SliderFloat(XorStr("latency factor"), &C::Get<float>(Vars.flMiscLatencyFactor), 0.1f, 1.0f, "%.1f second");
 			ImGui::Checkbox(XorStr("reveal ranks"), &C::Get<bool>(Vars.bMiscRevealRanks));
+			ImGui::Checkbox(XorStr("Disable Hud Blur"), &C::Get<bool>(Vars.bMiscDisableHudBlur));
 			ImGui::Checkbox(XorStr("unlock inventory"), &C::Get<bool>(Vars.bMiscUnlockInventory));
 			ImGui::Checkbox(XorStr("anti-untrusted"), &C::Get<bool>(Vars.bMiscAntiUntrusted));
 			ImGui::PopStyleVar();

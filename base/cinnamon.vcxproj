@@ -218,8 +218,8 @@
     <OutDir>$(SolutionDir)build\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)log\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>base</TargetName>
-    <IncludePath>$(SolutionDir)dependencies\freetype\include;$(SolutionDir)dependencies\json;$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)dependencies\freetype\win32;$(DXSDK_DIR)Lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>E:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;$(SolutionDir)dependencies\freetype\include;$(SolutionDir)dependencies\json;$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;$(SolutionDir)dependencies\freetype\win32;$(DXSDK_DIR)Lib\x86;$(LibraryPath)</LibraryPath>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

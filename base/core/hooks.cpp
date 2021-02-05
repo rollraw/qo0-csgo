@@ -205,6 +205,8 @@ long D3DAPI H::hkEndScene(IDirect3DDevice9* pDevice)
 		ImGui::EndFrame();
 		ImGui::Render();
 
+		CMiscellaneous::Get().DisablePanoramaBlur();
+
 		// render draw lists from draw data
 		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 
@@ -404,6 +406,8 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 	if (I::Engine->IsTakingScreenshot())
 		return oFrameStageNotify(thisptr, edx, stage);
 
+	
+
 	CBaseEntity* pLocal = CBaseEntity::GetLocalPlayer();
 
 	if (pLocal == nullptr)
@@ -442,6 +446,7 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 	}
 	case FRAME_RENDER_START:
 	{
+		
 		/*
 		 * start rendering the scene
 		 * e.g. remove visual punch, thirdperson, other render/update stuff

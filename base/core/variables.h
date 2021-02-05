@@ -222,6 +222,7 @@ struct Variables_t
 	C_ADD_VARIABLE(bool, bMiscPingSpike, false);
 	C_ADD_VARIABLE(float, flMiscLatencyFactor, 0.4f);
 	C_ADD_VARIABLE(bool, bMiscRevealRanks, false);
+	C_ADD_VARIABLE(bool, bMiscDisableHudBlur, false);
 	C_ADD_VARIABLE(bool, bMiscUnlockInventory, false);
 	C_ADD_VARIABLE(bool, bMiscAntiUntrusted, true);
 	#pragma endregion
