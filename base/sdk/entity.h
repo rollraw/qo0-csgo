@@ -647,7 +647,7 @@ public:
 	CBaseCombatWeapon*		GetWeapon();
 	int						GetMaxHealth();
 	std::optional<Vector>	GetBonePosition(int iBone);
-	int						GetBoneByHash(const FNV1A_t uBoneHash);
+	int						GetBoneByHash(const FNV1A_t uBoneHash) const;
 	std::optional<Vector>	GetHitboxPosition(int iHitbox);
 	std::optional<Vector>	GetHitGroupPosition(int iHitGroup);
 	void					ModifyEyePosition(CBasePlayerAnimState* pAnimState, Vector* vecPosition) const;

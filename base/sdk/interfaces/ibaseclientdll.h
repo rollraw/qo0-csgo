@@ -21,7 +21,7 @@ public:
 };
 
 using CreateInterfaceFn = void*(__cdecl*)(const char*, int*);
-using InstantiateInterfaceFn = void*(__cdecl*)(void);
+using InstantiateInterfaceFn = void*(__cdecl*)();
 using DemoCustomDataCallbackFn = void(__cdecl*)(unsigned char*, std::size_t);
 
 class IBaseClientDll

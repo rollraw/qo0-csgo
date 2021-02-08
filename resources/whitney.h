@@ -1,7 +1,7 @@
-// File: 'whitney.ttf' (78540 bytes)
-// Exported using binary_to_compressed_c.cpp
-constexpr unsigned int whitney_compressed_size = 44745;
-constexpr unsigned int whitney_compressed_data[44748 / 4] =
+#pragma once
+
+static constexpr unsigned int whitney_compressed_size = 44745;
+static constexpr unsigned int whitney_compressed_data[44748 / 4] =
 {
 	0x0000bc57, 0x00000000, 0xcc320100, 0x00000400, 0x00010037, 0x000e0000, 0x00030080, 0x54464660, 0xddf1794d, 0x32010017, 0x281582b0, 0x4544471c,
 	0x03270046, 0x200f8220, 0x2c0f8290, 0x2f534f1e, 0x0b8c6532, 0x01000085, 0x280f8268, 0x616d6360, 0xbf219770, 0x304082a9, 0x04000030, 0x7476630e,

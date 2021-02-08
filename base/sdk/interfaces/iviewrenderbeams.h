@@ -125,8 +125,8 @@ struct BeamInfo_t
 	{
 		nType = TE_BEAMPOINTS;
 		nSegments = -1;
-		pszModelName = NULL;
-		pszHaloName = NULL;
+		pszModelName = nullptr;
+		pszHaloName = nullptr;
 		nModelIndex = -1;
 		nHaloIndex = -1;
 		bRenderable = true;

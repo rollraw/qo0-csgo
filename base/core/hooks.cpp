@@ -28,7 +28,7 @@
 #include "../features/misc.h"
 #include "../features/skinchanger.h"
 
-constexpr std::array<const char*, 3U> arrSmokeMaterials =
+static constexpr std::array<const char*, 3U> arrSmokeMaterials =
 {
 	//"particle/vistasmokev1/vistasmokev1_fire",  // to look cool fresh fashionable yo :sunglasses: (if u wont be cool just uncomment this)
 	"particle/vistasmokev1/vistasmokev1_smokegrenade",

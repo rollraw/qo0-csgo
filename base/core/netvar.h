@@ -18,7 +18,7 @@
 #define N_ADD_VARIABLE_OFFSET( Type, szFunctionName, szNetVar, uAdditional )								\
 	[[nodiscard]] std::add_lvalue_reference_t<Type> szFunctionName()										\
 	{																										\
-		constexpr FNV1A_t uHash = FNV1A::HashConst(szNetVar);												\
+		static constexpr FNV1A_t uHash = FNV1A::HashConst(szNetVar);										\
 		static std::uintptr_t uOffset = CNetvarManager::Get().mapProps[uHash].uOffset;						\
 		return *(std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset + uAdditional);	\
 	}
@@ -30,7 +30,7 @@
 #define N_ADD_PVARIABLE_OFFSET( Type, szFunctionName, szNetVar, uAdditional )								\
 	[[nodiscard]] std::add_pointer_t<Type> szFunctionName()													\
 	{																										\
-		constexpr FNV1A_t uHash = FNV1A::HashConst(szNetVar);												\
+		static constexpr FNV1A_t uHash = FNV1A::HashConst(szNetVar);										\
 		static std::uintptr_t uOffset = CNetvarManager::Get().mapProps[uHash].uOffset;						\
 		return (std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset + uAdditional);	\
 	}
@@ -42,7 +42,7 @@
 #define N_ADD_DATAFIELD( Type, szFunctionName, pMap, szDataField )											\
 	[[nodiscard]] std::add_lvalue_reference_t<Type> szFunctionName()										\
 	{																										\
-		constexpr FNV1A_t uHash = FNV1A::HashConst(szDataField);											\
+		static constexpr FNV1A_t uHash = FNV1A::HashConst(szDataField);										\
 		static std::uintptr_t uOffset = CNetvarManager::Get().FindInDataMap(pMap, uHash);					\
 		return *(std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset);				\
 	}
@@ -51,7 +51,7 @@
 #define N_ADD_PDATAFIELD( Type, szFunctionName, pMap, szDataField )											\
 	[[nodiscard]] std::add_pointer_t<Type> szFunctionName()													\
 	{																										\
-		constexpr FNV1A_t uHash = FNV1A::HashConst(szDataField);											\
+		static constexpr FNV1A_t uHash = FNV1A::HashConst(szDataField);										\
 		static std::uintptr_t uOffset = CNetvarManager::Get().FindInDataMap(pMap, uHash);					\
 		return (std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset);				\
 	}
@@ -145,7 +145,7 @@ private:
 	void StoreProps(const char* szClassName, RecvTable_t* pRecvTable, const std::uintptr_t uOffset, int nDumpTabs);
 
 	// Extra
-	std::string GetPropertyType(ESendPropType nPropertyType, int iElements, int nStringBufferSize);
+	std::string GetPropertyType(ESendPropType nPropertyType, int iElements, int nStringBufferSize) const;
 
 	// Values
 	/* output file */

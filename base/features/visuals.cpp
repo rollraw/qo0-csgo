@@ -753,7 +753,7 @@ void CVisuals::HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color 
 		return;
 
 	const float flMaxLinesAlpha = colLines.aBase();
-	constexpr std::array<std::array<float, 2U>, 4U> arrSides = { { { -1.0f, -1.0f }, { 1.0f, 1.0f }, { -1.0f, 1.0f }, { 1.0f, -1.0f } } };
+	static constexpr std::array<std::array<float, 2U>, 4U> arrSides = { { { -1.0f, -1.0f }, { 1.0f, 1.0f }, { -1.0f, 1.0f }, { 1.0f, -1.0f } } };
 
 	for (const auto& arrSide : arrSides)
 	{

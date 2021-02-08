@@ -45,8 +45,7 @@ namespace U
 {
 	// Get
 	/* returns class of hud element with given name */
-	template <class C>
-	C* FindHudElement(const char* szName);
+	std::uintptr_t* FindHudElement(const char* szName);
 
 	// Game
 	/* updates hud, clears delta tick */

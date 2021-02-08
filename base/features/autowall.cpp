@@ -147,7 +147,7 @@ void CAutoWall::ClipTraceToPlayers(const Vector& vecAbsStart, const Vector& vecA
 	Trace_t trace = { };
 	float flSmallestFraction = pTrace->flFraction;
 
-	Ray_t ray(vecAbsStart, vecAbsEnd);
+	const Ray_t ray(vecAbsStart, vecAbsEnd);
 
 	for (int i = 1; i < I::Globals->nMaxClients; i++)
 	{

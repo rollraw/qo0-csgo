@@ -13,7 +13,7 @@ bool CNetvarManager::Setup(std::string_view szDumpFileName)
 	iStoredTables = 0;
 
 	// format time
-	std::string szTime = fmt::format(XorStr("[{:%d-%m-%Y %X}] "), fmt::localtime(std::time(nullptr)));
+	const std::string szTime = fmt::format(XorStr("[{:%d-%m-%Y %X}] "), fmt::localtime(std::time(nullptr)));
 
 	#ifdef _DEBUG
 	// open our dump file to write in (here is not exception handle because dump is not critical)
@@ -65,13 +65,13 @@ void CNetvarManager::StoreProps(const char* szClassName, RecvTable_t* pRecvTable
 			continue;
 
 		// has child table
-		if (auto pChildTable = pCurrentProp->pDataTable; pChildTable != nullptr &&
+		if (const auto pChildTable = pCurrentProp->pDataTable; pChildTable != nullptr &&
 			// has props
 			pChildTable->nProps > 0 &&
 			// first char is 'D' ("DT" - "DataTable")
 			pChildTable->szNetTableName[0] == 'D' &&
 			// type is data table
-			pCurrentProp->iRecvType == ESendPropType::DPT_DATATABLE)
+			pCurrentProp->iRecvType == DPT_DATATABLE)
 			// recursively get props in all child tables
 			StoreProps(szClassName, pChildTable, static_cast<std::uintptr_t>(pCurrentProp->iOffset) + uOffset, nDumpTabs + 1);
 
@@ -98,7 +98,7 @@ void CNetvarManager::StoreProps(const char* szClassName, RecvTable_t* pRecvTable
 	iStoredTables++;
 }
 
-std::string CNetvarManager::GetPropertyType(ESendPropType nPropertyType, int iElements, int nStringBufferSize)
+std::string CNetvarManager::GetPropertyType(ESendPropType nPropertyType, int iElements, int nStringBufferSize) const
 {
 	switch (nPropertyType)
 	{

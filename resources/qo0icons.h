@@ -1,7 +1,7 @@
 #pragma once
 
-constexpr unsigned int qo0icons_compressed_size = 38581;
-constexpr unsigned int qo0icons_compressed_data[38584 / 4] =
+static constexpr unsigned int qo0icons_compressed_size = 38581;
+static constexpr unsigned int qo0icons_compressed_data[38584 / 4] =
 {
     0x0000bc57, 0x00000000, 0xdca20000, 0x00000400, 0x00010037, 0x000b0000, 0x00030080, 0x2f534f30, 0x24de1132, 0x010000f6, 0x2c158238, 0x616d6360,
     0x4f884d70, 0x02000089, 0x240382d0, 0x73616724, 0x24178270, 0xa2000010, 0x380782d4, 0x796c6708, 0x69fa9066, 0x05000031, 0x99000094, 0x61656878,

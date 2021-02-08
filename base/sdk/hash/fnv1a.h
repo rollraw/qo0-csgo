@@ -1,5 +1,4 @@
 #pragma once
-
 using FNV1A_t = std::uint32_t;
 
 /*
@@ -10,8 +9,8 @@ using FNV1A_t = std::uint32_t;
 namespace FNV1A
 {
 	/* fnv1a constants */
-	constexpr std::uint32_t ullBasis = 0x811C9DC5;
-	constexpr std::uint32_t ullPrime = 0x1000193;
+	inline constexpr std::uint32_t ullBasis = 0x811C9DC5;
+	inline constexpr std::uint32_t ullPrime = 0x1000193;
 
 	/* create compile time hash */
 	constexpr FNV1A_t HashConst(const char* szString, const FNV1A_t uValue = ullBasis) noexcept
@@ -20,7 +19,7 @@ namespace FNV1A
 	}
 
 	/* create runtime hash */
-	inline const FNV1A_t Hash(const char* szString)
+	inline FNV1A_t Hash(const char* szString)
 	{
 		FNV1A_t uHashed = ullBasis;
 

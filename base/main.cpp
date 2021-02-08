@@ -134,7 +134,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 
 		#ifdef _DEBUG
 		// show error message window (or replace to your exception handler)
-		MessageBox(nullptr, ex.what(), XorStr("qo0 base (error)"), MB_OK | MB_ICONERROR | MB_TOPMOST);
+		_RPT0(_CRT_ERROR, ex.what());
 		#else
 		// unload
 		FreeLibraryAndExitThread(static_cast<HMODULE>(lpParameter), EXIT_FAILURE);
@@ -149,15 +149,6 @@ DWORD WINAPI OnDllDetach(LPVOID lpParameter)
 	// unload cheat if pressed specified key
 	while (!IPT::IsKeyReleased(C::Get<int>(Vars.iPanicKey)))
 		std::this_thread::sleep_for(500ms);
-
-	#ifdef DEBUG_CONSOLE
-	// detach console
-	L::Detach();
-	#else
-	// close logging output file
-	if (L::ofsFile.is_open())
-		L::ofsFile.close();
-	#endif
 
 	#if 0
 	// destroy entity listener
@@ -182,10 +173,16 @@ DWORD WINAPI OnDllDetach(LPVOID lpParameter)
 	// destroy render
 	D::Destroy();
 
-	/*
-	 * free our library memory from process and exit from our thread
-	 * anyway throws assertion about source engine max unique threads limit (16)
-	 */
+	#ifdef DEBUG_CONSOLE
+	// detach console
+	L::Detach();
+	#else
+	// close logging output file
+	if (L::ofsFile.is_open())
+		L::ofsFile.close();
+	#endif
+
+	 // free our library memory from process and exit from our thread
 	FreeLibraryAndExitThread((HMODULE)lpParameter, EXIT_SUCCESS);
 }
 

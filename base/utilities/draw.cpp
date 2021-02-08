@@ -40,7 +40,7 @@
  *
  */
 
-constexpr std::array<const char*, 166U> arrKeyNames =
+static constexpr std::array<const char*, 166U> arrKeyNames =
 {
 	"",
 	"mouse 1", "mouse 2", "cancel", "mouse 3", "mouse 4", "mouse 5", "",

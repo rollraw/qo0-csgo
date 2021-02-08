@@ -51,11 +51,11 @@ std::optional<Vector> CBaseEntity::GetBonePosition(int iBone)
 	return std::nullopt;
 }
 
-int CBaseEntity::GetBoneByHash(const FNV1A_t uBoneHash)
+int CBaseEntity::GetBoneByHash(const FNV1A_t uBoneHash) const
 {
-	if (auto pModel = this->GetModel(); pModel != nullptr)
+	if (const auto pModel = this->GetModel(); pModel != nullptr)
 	{
-		if (auto pStudioHdr = I::ModelInfo->GetStudioModel(pModel); pStudioHdr != nullptr)
+		if (const auto pStudioHdr = I::ModelInfo->GetStudioModel(pModel); pStudioHdr != nullptr)
 		{
 			for (int i = 0; i < pStudioHdr->nBones; i++)
 			{
@@ -74,19 +74,17 @@ std::optional<Vector> CBaseEntity::GetHitboxPosition(int iHitbox)
 
 	std::array<matrix3x4_t, MAXSTUDIOBONES> arrBonesToWorld = { };
 
-	if (auto pModel = this->GetModel(); pModel != nullptr)
+	if (const auto pModel = this->GetModel(); pModel != nullptr)
 	{
-		if (auto pStudioHdr = I::ModelInfo->GetStudioModel(pModel); pStudioHdr != nullptr)
+		if (const auto pStudioHdr = I::ModelInfo->GetStudioModel(pModel); pStudioHdr != nullptr)
 		{
-			if (auto pHitbox = pStudioHdr->GetHitbox(iHitbox, 0); pHitbox != nullptr)
+			if (const auto pHitbox = pStudioHdr->GetHitbox(iHitbox, 0); pHitbox != nullptr)
 			{
 				if (this->SetupBones(arrBonesToWorld.data(), arrBonesToWorld.size(), BONE_USED_BY_HITBOX, 0.f))
 				{
-					Vector vecMin = { }, vecMax = { };
-
 					// get mins/maxs by bone
-					vecMin = M::VectorTransform(pHitbox->vecBBMin, arrBonesToWorld.at(pHitbox->iBone));
-					vecMax = M::VectorTransform(pHitbox->vecBBMax, arrBonesToWorld.at(pHitbox->iBone));
+					const Vector vecMin = M::VectorTransform(pHitbox->vecBBMin, arrBonesToWorld.at(pHitbox->iBone));
+					const Vector vecMax = M::VectorTransform(pHitbox->vecBBMax, arrBonesToWorld.at(pHitbox->iBone));
 
 					// get center
 					return (vecMin + vecMax) * 0.5f;
@@ -104,11 +102,11 @@ std::optional<Vector> CBaseEntity::GetHitGroupPosition(int iHitGroup)
 
 	std::array<matrix3x4_t, MAXSTUDIOBONES> arrBonesToWorld = { };
 
-	if (auto pModel = this->GetModel(); pModel != nullptr)
+	if (const auto pModel = this->GetModel(); pModel != nullptr)
 	{
-		if (auto pStudioHdr = I::ModelInfo->GetStudioModel(pModel); pStudioHdr != nullptr)
+		if (const auto pStudioHdr = I::ModelInfo->GetStudioModel(pModel); pStudioHdr != nullptr)
 		{
-			if (auto pHitboxSet = pStudioHdr->GetHitboxSet(this->GetHitboxSet()); pHitboxSet != nullptr)
+			if (const auto pHitboxSet = pStudioHdr->GetHitboxSet(this->GetHitboxSet()); pHitboxSet != nullptr)
 			{
 				if (this->SetupBones(arrBonesToWorld.data(), arrBonesToWorld.size(), BONE_USED_BY_HITBOX, 0.f))
 				{
@@ -124,11 +122,9 @@ std::optional<Vector> CBaseEntity::GetHitGroupPosition(int iHitGroup)
 
 					if (pHitbox != nullptr)
 					{
-						Vector vecMin = { }, vecMax = { };
-
 						// get mins/maxs by bone
-						vecMin = M::VectorTransform(pHitbox->vecBBMin, arrBonesToWorld.at(pHitbox->iBone));
-						vecMax = M::VectorTransform(pHitbox->vecBBMax, arrBonesToWorld.at(pHitbox->iBone));
+						const Vector vecMin = M::VectorTransform(pHitbox->vecBBMin, arrBonesToWorld.at(pHitbox->iBone));
+						const Vector vecMax = M::VectorTransform(pHitbox->vecBBMax, arrBonesToWorld.at(pHitbox->iBone));
 
 						// get center
 						return (vecMin + vecMax) * 0.5f;

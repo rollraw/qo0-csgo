@@ -8,16 +8,15 @@
 #include "core/interfaces.h"
 
 #pragma region utilities_get
-template <class C>
-C* U::FindHudElement(const char* szName)
+std::uintptr_t* U::FindHudElement(const char* szName)
 {
 	// @note: https://www.unknowncheats.me/forum/counterstrike-global-offensive/342743-finding-sigging-chud-pointer-chud-findelement.html
 
 	static auto pHud = *reinterpret_cast<void**>(MEM::FindPattern(CLIENT_DLL, XorStr("B9 ? ? ? ? 68 ? ? ? ? E8 ? ? ? ? 89")) + 0x1); // @xref: "CHudWeaponSelection"
 
-	using FindHudElementFn = std::uintptr_t(__thiscall*)(void*, const char*);
+	using FindHudElementFn = std::uintptr_t*(__thiscall*)(void*, const char*);
 	static auto oFindHudElement = reinterpret_cast<FindHudElementFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 53 8B 5D 08 56 57 8B F9 33 F6 39 77 28"))); // @xref: "[%d] Could not find Hud Element: %s\n"
-	return reinterpret_cast<C*>(oFindHudElement(pHud, szName));
+	return oFindHudElement(pHud, szName);
 }
 #pragma endregion
 
@@ -30,7 +29,7 @@ void U::ForceFullUpdate()
 	if (oClearHudWeaponIcon != nullptr)
 	{
 		// get hud weapons
-		if (auto pHudWeapons = FindHudElement<std::uintptr_t>(XorStr("CCSGO_HudWeaponSelection")) - 0x28; pHudWeapons != nullptr)
+		if (const auto pHudWeapons = FindHudElement(XorStr("CCSGO_HudWeaponSelection")) - 0x28; pHudWeapons != nullptr)
 		{
 			// go through all weapons
 			for (std::size_t i = 0; i < *(pHudWeapons + 0x20); i++)

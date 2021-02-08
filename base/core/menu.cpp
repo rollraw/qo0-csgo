@@ -44,7 +44,7 @@ const std::pair<const char*, std::uint32_t> arrColors[] =
 	{ "[screen] hitmarker - damage", Vars.colScreenHitMarkerDamage }
 };
 
-constexpr std::array<std::string_view, 4U> arrVisualsFlags =
+static constexpr std::array<std::string_view, 4U> arrVisualsFlags =
 {
 	"helmet",
 	"kevlar",
@@ -52,7 +52,7 @@ constexpr std::array<std::string_view, 4U> arrVisualsFlags =
 	"zoom"
 };
 
-constexpr std::array<std::string_view, 4U> arrVisualsRemovals =
+static constexpr std::array<std::string_view, 4U> arrVisualsRemovals =
 {
 	"post-processing",
 	"punch",

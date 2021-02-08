@@ -1,7 +1,7 @@
 #pragma once
 
-constexpr unsigned int smallest_pixel_compressed_size = 10434;
-constexpr unsigned int smallest_pixel_compressed_data[10436 / 4] =
+static constexpr unsigned int smallest_pixel_compressed_size = 10434;
+static constexpr unsigned int smallest_pixel_compressed_data[10436 / 4] =
 {
 	0x0000bc57, 0x00000000, 0x00640000, 0x00000400, 0x00010037, 0x000c0000, 0x00030080, 0x2f534f40, 0xfcb36432, 0x0100007d, 0x38158248, 0x4d445660,
 	0x6f606858, 0x060000f7, 0x05000098, 0x616d63e0, 0x805f7a70, 0x20308223, 0x260f8278, 0x73616730, 0x83ffff70, 0xf8632141, 0x08382f82, 0x66796c67,
