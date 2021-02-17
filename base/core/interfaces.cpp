@@ -67,6 +67,10 @@ bool I::Setup()
 	if (DirectDevice == nullptr)
 		return false;
 
+	ViewRender = **reinterpret_cast<IViewRender***>(MEM::FindPattern(CLIENT_DLL, XorStr("8B 0D ? ? ? ? FF 75 0C 8B 45 08")) + 0x2);
+	if (ViewRender == nullptr)
+		return false;
+
 	ViewRenderBeams = *reinterpret_cast<IViewRenderBeams**>(MEM::FindPattern(CLIENT_DLL, XorStr("B9 ? ? ? ? A1 ? ? ? ? FF 10 A1 ? ? ? ? B9")) + 0x1); // @xref: "r_drawbrushmodels"
 	if (ViewRenderBeams == nullptr)
 		return false;

@@ -45,6 +45,9 @@ namespace VTABLE
 		/* studiorender table */
 		DRAWMODEL = 29,
 
+		/* viewrender table */
+		RENDERSMOKEOVERLAY = 41,
+
 		/* engine table */
 		ISCONNECTED = 27,
 
@@ -100,6 +103,7 @@ namespace DTR
 	inline CDetourHook GetViewModelFOV;
 	inline CDetourHook DoPostScreenEffects;
 	inline CDetourHook IsConnected;
+	inline CDetourHook RenderSmokeOverlay;
 	inline CDetourHook ListLeavesInBox;
 	inline CDetourHook PaintTraverse;
 	inline CDetourHook DrawModel;
@@ -131,6 +135,7 @@ namespace H
 	void	FASTCALL	hkLockCursor(ISurface* thisptr, int edx);
 	void	FASTCALL	hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFrameStage stage);
 	void	FASTCALL	hkDrawModel(IStudioRender* thisptr, int edx, DrawModelResults_t* pResults, const DrawModelInfo_t& info, matrix3x4_t* pBoneToWorld, float* flFlexWeights, float* flFlexDelayedWeights, const Vector& vecModelOrigin, int nFlags);
+	void	FASTCALL	hkRenderSmokeOverlay(IViewRender* thisptr, int edx, bool bPreViewModel);
 	int		FASTCALL	hkListLeavesInBox(void* thisptr, int edx, const Vector& vecMins, const Vector& vecMaxs, unsigned short* puList, int nListMax);
 	bool	FASTCALL	hkIsConnected(IEngineClient* thisptr, int edx);
 	bool	FASTCALL	hkSendNetMsg(INetChannel* thisptr, int edx, INetMessage* pMessage, bool bForceReliable, bool bVoice);

@@ -99,7 +99,7 @@ IClientNetworkable* U::CreateDLLEntity(int iEntity, EClassIndex nClassID, int nS
 	return nullptr;
 }
 
-const char* U::GetWeaponIcon(short nItemDefinitionIndex)
+const char8_t* U::GetWeaponIcon(short nItemDefinitionIndex)
 {
 	/*
 	 * @note: icon code = weapon item definition index in hex
@@ -258,7 +258,7 @@ const char* U::GetWeaponIcon(short nItemDefinitionIndex)
 	case WEAPON_KNIFE_SKELETON:
 		return u8"\uE20D";
 	default:
-		return "?";
+		return u8"\u003F";
 	}
 }
 #pragma endregion

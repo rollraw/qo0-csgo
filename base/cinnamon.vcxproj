@@ -108,6 +108,7 @@
     <ClInclude Include="sdk\interfaces\itexture.h" />
     <ClInclude Include="sdk\interfaces\ivdebugoverlay.h" />
     <ClInclude Include="sdk\interfaces\ivengineeffects.h" />
+    <ClInclude Include="sdk\interfaces\iviewrender.h" />
     <ClInclude Include="sdk\interfaces\iviewrenderbeams.h" />
     <ClInclude Include="sdk\interfaces\ivmodelinfo.h" />
     <ClInclude Include="sdk\interfaces\ivmodelrender.h" />
@@ -243,7 +244,7 @@
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <BufferSecurityCheck>
       </BufferSecurityCheck>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DebugInformationFormat>None</DebugInformationFormat>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
@@ -294,7 +295,7 @@
       </FunctionLevelLinking>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <SupportJustMyCode>false</SupportJustMyCode>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>

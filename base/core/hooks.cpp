@@ -81,6 +81,9 @@ bool H::Setup()
 	if (!DTR::DrawModel.Create(MEM::GetVFunc(I::StudioRender, VTABLE::DRAWMODEL), &hkDrawModel))
 		return false;
 
+	if (!DTR::RenderSmokeOverlay.Create(MEM::GetVFunc(I::ViewRender, VTABLE::RENDERSMOKEOVERLAY), &hkRenderSmokeOverlay))
+		return false;
+
 	if (!DTR::RunCommand.Create(MEM::GetVFunc(I::Prediction, VTABLE::RUNCOMMAND), &hkRunCommand))
 		return false;
 
@@ -459,11 +462,6 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 				pMaterial->SetMaterialVarFlag(MATERIAL_VAR_NO_DRAW, (C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SMOKE)) ? true : false);
 		}
 
-		// remove smoke overlay
-		static std::uintptr_t uSmokeCount = (MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 EC 08 8B 15 ? ? ? ? 0F 57 C0")) + 0x8); // @xref: "effects/overlaysmoke"
-		if (C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SMOKE))
-			*reinterpret_cast<int*>(*reinterpret_cast<std::uintptr_t*>(uSmokeCount)) = 0;
-
 		// remove visual punch
 		if (pLocal->IsAlive() && C::Get<bool>(Vars.bWorld))
 		{
@@ -526,16 +524,26 @@ void FASTCALL H::hkDrawModel(IStudioRender* thisptr, int edx, DrawModelResults_t
 	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
 		return oDrawModel(thisptr, edx, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
 
-	CBaseEntity* pLocal = CBaseEntity::GetLocalPlayer();
 	bool bClearOverride = false;
 
-	if (pLocal != nullptr && C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams))
-		bClearOverride = CVisuals::Get().Chams(pLocal, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
+	if (G::pLocal != nullptr && C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams))
+		bClearOverride = CVisuals::Get().Chams(G::pLocal, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
 
 	oDrawModel(thisptr, edx, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
 	
 	if (bClearOverride)
 		I::StudioRender->ForcedMaterialOverride(nullptr);
+}
+
+void FASTCALL H::hkRenderSmokeOverlay(IViewRender* thisptr, int edx, bool bPreViewModel)
+{
+	static auto oRenderSmokeOverlay = DTR::RenderSmokeOverlay.GetOriginal<decltype(&hkRenderSmokeOverlay)>();
+
+	if (C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SMOKE))
+		// set flSmokeIntensity to 0
+		*reinterpret_cast<float*>(reinterpret_cast<std::uintptr_t>(thisptr) + 0x588) = 0.0f;
+	else
+		oRenderSmokeOverlay(thisptr, edx, bPreViewModel);
 }
 
 int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, const Vector& vecMins, const Vector& vecMaxs, unsigned short* puList, int nListMax)
@@ -653,12 +661,10 @@ void FASTCALL H::hkOverrideView(IClientModeShared* thisptr, int edx, CViewSetup*
 	// get camera origin
 	G::vecCamera = pSetup->vecOrigin;
 
-	CBaseEntity* pLocal = CBaseEntity::GetLocalPlayer();
-
-	if (pLocal == nullptr || !pLocal->IsAlive())
+	if (G::pLocal == nullptr || !G::pLocal->IsAlive())
 		return oOverrideView(thisptr, edx, pSetup);
 
-	CBaseCombatWeapon* pWeapon = pLocal->GetWeapon();
+	CBaseCombatWeapon* pWeapon = G::pLocal->GetWeapon();
 
 	if (pWeapon == nullptr)
 		return oOverrideView(thisptr, edx, pSetup);
@@ -666,7 +672,7 @@ void FASTCALL H::hkOverrideView(IClientModeShared* thisptr, int edx, CViewSetup*
 	if (CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(pWeapon->GetItemDefinitionIndex());
 		pWeaponData != nullptr && C::Get<bool>(Vars.bScreen) && std::fpclassify(C::Get<float>(Vars.flScreenCameraFOV)) != FP_ZERO &&
 		// check is we not scoped
-		(pWeaponData->nWeaponType == WEAPONTYPE_SNIPER ? !pLocal->IsScoped() : true))
+		(pWeaponData->nWeaponType == WEAPONTYPE_SNIPER ? !G::pLocal->IsScoped() : true))
 		// set camera fov
 		pSetup->flFOV += C::Get<float>(Vars.flScreenCameraFOV);
 
@@ -690,9 +696,7 @@ float FASTCALL H::hkGetViewModelFOV(IClientModeShared* thisptr, int edx)
 	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
 		return oGetViewModelFOV(thisptr, edx);
 
-	if (auto pLocal = CBaseEntity::GetLocalPlayer();
-		pLocal != nullptr && pLocal->IsAlive() &&
-		C::Get<bool>(Vars.bScreen) && std::fpclassify(C::Get<float>(Vars.flScreenViewModelFOV)) != FP_ZERO)
+	if (G::pLocal != nullptr && G::pLocal->IsAlive() && C::Get<bool>(Vars.bScreen) && std::fpclassify(C::Get<float>(Vars.flScreenViewModelFOV)) != FP_ZERO)
 		return oGetViewModelFOV(thisptr, edx) + C::Get<float>(Vars.flScreenViewModelFOV);
 
 	return oGetViewModelFOV(thisptr, edx);
@@ -705,10 +709,8 @@ int FASTCALL H::hkDoPostScreenEffects(IClientModeShared* thisptr, int edx, CView
 	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
 		return oDoPostScreenEffects(thisptr, edx, pSetup);
 
-	CBaseEntity* pLocal = CBaseEntity::GetLocalPlayer();
-
-	if (pLocal != nullptr && I::GlowManager != nullptr && C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspGlow))
-		CVisuals::Get().Glow(pLocal);
+	if (G::pLocal != nullptr && C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspGlow))
+		CVisuals::Get().Glow(G::pLocal);
 
 	return oDoPostScreenEffects(thisptr, edx, pSetup);
 }

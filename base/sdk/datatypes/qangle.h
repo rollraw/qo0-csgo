@@ -117,11 +117,11 @@ public:
 		return QAngle(this->x / flDivide, this->y / flDivide, this->z / flDivide);
 	}
 
-	[[nodiscard]] bool IsEqual(const QAngle& angEqual) const
+	[[nodiscard]] bool IsEqual(const QAngle& angEqual, const float flErrorMargin = std::numeric_limits<float>::epsilon()) const
 	{
-		return (std::fabsf(this->x - angEqual.x) < std::numeric_limits<float>::epsilon() &&
-				std::fabsf(this->y - angEqual.y) < std::numeric_limits<float>::epsilon() &&
-				std::fabsf(this->z - angEqual.z) < std::numeric_limits<float>::epsilon());
+		return (std::fabsf(this->x - angEqual.x) < flErrorMargin &&
+				std::fabsf(this->y - angEqual.y) < flErrorMargin &&
+				std::fabsf(this->z - angEqual.z) < flErrorMargin);
 	}
 
 	[[nodiscard]] bool IsZero() const

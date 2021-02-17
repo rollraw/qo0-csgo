@@ -753,7 +753,7 @@ void CVisuals::HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color 
 		return;
 
 	const float flMaxLinesAlpha = colLines.aBase();
-	static constexpr std::array<std::array<float, 2U>, 4U> arrSides = { { { -1.0f, -1.0f }, { 1.0f, 1.0f }, { -1.0f, 1.0f }, { 1.0f, -1.0f } } };
+	static constexpr auto arrSides = std::to_array<std::array<float, 2U>>({ { -1.0f, -1.0f }, { 1.0f, 1.0f }, { -1.0f, 1.0f }, { 1.0f, -1.0f } });
 
 	for (const auto& arrSide : arrSides)
 	{
@@ -812,7 +812,7 @@ void CVisuals::NightMode(CEnvTonemapController* pController) const
 
 void CVisuals::Bomb(const ImVec2& vecScreen, Context_t& ctx, const Color& colFrame) const
 {
-	const char* szIcon = U::GetWeaponIcon(WEAPON_C4);
+	const char* szIcon = reinterpret_cast<const char*>(U::GetWeaponIcon(WEAPON_C4));
 	const ImVec2 vecIconSize = F::Icons->CalcTextSizeA(14.f, FLT_MAX, 0.f, szIcon);
 
 	const char* szName = XorStr("C4");
@@ -833,7 +833,7 @@ void CVisuals::Bomb(const ImVec2& vecScreen, Context_t& ctx, const Color& colFra
 
 void CVisuals::PlantedBomb(CPlantedC4* pBomb, float flServerTime, const ImVec2& vecScreen, Context_t& ctx, const Color& colFrame, const Color& colDefuse, const Color& colFailDefuse, const Color& colBackground, const Color& colOutline) const
 {
-	const char* szIcon = U::GetWeaponIcon(WEAPON_C4);
+	const char* szIcon = reinterpret_cast<const char*>(U::GetWeaponIcon(WEAPON_C4));
 	static ImVec2 vecIconSize = F::Icons->CalcTextSizeA(14.f, FLT_MAX, 0.f, szIcon);
 
 	const char* szName = XorStr("PLANTED C4");
@@ -987,7 +987,7 @@ void CVisuals::DroppedWeapons(CBaseCombatWeapon* pWeapon, short nItemDefinitionI
 	if (C::Get<bool>(Vars.bEspMainWeaponIcon))
 	{
 		// get dropped weapon icon
-		const char* szIcon = U::GetWeaponIcon(nItemDefinitionIndex);
+		const char* szIcon = reinterpret_cast<const char*>(U::GetWeaponIcon(nItemDefinitionIndex));
 		const ImVec2 vecNameSize = F::Icons->CalcTextSizeA(10.f, FLT_MAX, 0.f, szIcon);
 
 		D::AddText(F::Icons, 10.f, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecNameSize.x * 0.5f, ctx.box.bottom + 3), szIcon, colPrimary, DRAW_TEXT_OUTLINE, colOutline);
@@ -1098,7 +1098,7 @@ void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx,
 						continue;
 
 					// draw weapons list
-					const char* szIcon = U::GetWeaponIcon(nDefinitionIndex);
+					const char* szIcon = reinterpret_cast<const char*>(U::GetWeaponIcon(nDefinitionIndex));
 					const ImVec2 vecIconSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szIcon);
 					D::AddText(F::Icons, flFontSize, ImVec2(ctx.box.left + ctx.box.width * 0.5f - vecIconSize.x * 0.5f, ctx.box.bottom + 2 + ctx.arrPadding.at(DIR_BOTTOM)), szIcon, pCurrentWeapon == pActiveWeapon ? colInfo : Color(160, 160, 160), DRAW_TEXT_OUTLINE, colOutline);
 					ctx.arrPadding.at(DIR_BOTTOM) += vecIconSize.y;
@@ -1138,7 +1138,7 @@ void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx,
 	#pragma region visuals_player_right
 	if (C::Get<std::vector<bool>>(Vars.vecEspMainPlayerFlags).at(INFO_FLAG_HELMET) && pEntity->HasHelmet())
 	{
-		constexpr const char* szHelmetIcon = u8"\uE20E";
+		constexpr const char* szHelmetIcon = "\xEE\x88\x8E";
 		const ImVec2 vecHelmetSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szHelmetIcon);
 		D::AddText(F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szHelmetIcon, colInfo, DRAW_TEXT_OUTLINE, colOutline);
 		ctx.arrPadding.at(DIR_RIGHT) += vecHelmetSize.y;
@@ -1146,7 +1146,7 @@ void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx,
 
 	if (C::Get<std::vector<bool>>(Vars.vecEspMainPlayerFlags).at(INFO_FLAG_KEVLAR) && pEntity->GetArmor() > 0)
 	{
-		constexpr const char* szKevlarIcon = u8"\uE210";
+		constexpr const char* szKevlarIcon = "\xEE\x88\x90";
 		const ImVec2 vecKevlarSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szKevlarIcon);
 		D::AddText(F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szKevlarIcon, colInfo, DRAW_TEXT_OUTLINE, colOutline);
 		ctx.arrPadding.at(DIR_RIGHT) += vecKevlarSize.y;
@@ -1154,7 +1154,7 @@ void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx,
 
 	if (C::Get<std::vector<bool>>(Vars.vecEspMainPlayerFlags).at(INFO_FLAG_KIT) && pEntity->HasDefuser())
 	{
-		constexpr const char* szKitIcon = u8"\uE20F";
+		constexpr const char* szKitIcon = "\xEE\x88\x8F";
 		const ImVec2 vecKitSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szKitIcon);
 		D::AddText(F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szKitIcon, pEntity->IsDefusing() ? Color(80, 180, 200) : colInfo, DRAW_TEXT_OUTLINE, colOutline);
 		ctx.arrPadding.at(DIR_RIGHT) += vecKitSize.y;
@@ -1162,7 +1162,7 @@ void CVisuals::Player(CBaseEntity* pLocal, CBaseEntity* pEntity, Context_t& ctx,
 
 	if (C::Get<std::vector<bool>>(Vars.vecEspMainPlayerFlags).at(INFO_FLAG_ZOOM) && pEntity->IsScoped())
 	{
-		constexpr const char* szTargetIcon = u8"\uE212";
+		constexpr const char* szTargetIcon = "\xEE\x88\x92";
 		const ImVec2 vecZoomSize = F::Icons->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szTargetIcon);
 		D::AddText(F::Icons, flFontSize, ImVec2(ctx.box.right + 2, ctx.box.top + ctx.arrPadding.at(DIR_RIGHT)), szTargetIcon, colInfo, DRAW_TEXT_OUTLINE, colOutline);
 		ctx.arrPadding.at(DIR_RIGHT) += vecZoomSize.y;

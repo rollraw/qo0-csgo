@@ -414,6 +414,9 @@
     <ClInclude Include="sdk\interfaces\imaterial.h">
       <Filter>include\sdk\interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="sdk\interfaces\iviewrender.h">
+      <Filter>include\sdk\interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="features\antiaim.cpp">

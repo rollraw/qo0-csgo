@@ -50,12 +50,7 @@ void CEntityListener::OnEntityDeleted(CBaseEntity* pEntity)
 		return;
 
 	// get current player entry
-	const auto current = std::find_if(vecEntities.begin(), vecEntities.end(),
-		// compare entry index
-		[&](const EntityObject_t& entry)
-		{
-			return entry.nIndex == nIndex;
-		});
+	const auto current = std::ranges::find_if(vecEntities, [&](const EntityObject_t& entry) { return entry.nIndex == nIndex; });
 
 	if (current == vecEntities.end())
 		return;

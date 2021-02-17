@@ -50,6 +50,18 @@ public:
 		int				nNextFreeSlot;
 	};
 
+	struct GlowBoxObject_t
+	{
+		Vector	vecPosition;
+		QAngle	angOrientation;
+		Vector	vecMins;
+		Vector	vecMaxs;
+		float	flBirthTimeIndex;
+		float	flTerminationTimeIndex;
+		Color	colColor;
+	};
+
 	CUtlVector<GlowObject_t> vecGlowObjectDefinitions;
 	int nFirstFreeSlot;
+	CUtlVector<GlowBoxObject_t> vecGlowBoxDefinitions;
 };

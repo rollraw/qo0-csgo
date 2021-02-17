@@ -63,7 +63,7 @@ namespace U
 	/* allocate client dll data for the object */
 	IClientNetworkable* CreateDLLEntity(int iEntity, EClassIndex nClassID, int nSerial);
 	/* returns icon of given index for custom font */
-	const char* GetWeaponIcon(short nItemDefinitionIndex);
+	const char8_t* GetWeaponIcon(short nItemDefinitionIndex);
 
 	// Extra
 	/* flashes the specified window */
