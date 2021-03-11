@@ -380,7 +380,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 				I::StudioRender->SetColorModulation(colHidden.Base().data());
 
 				// set xqz alpha
-				I::StudioRender->SetAlphaModulation(colHidden.aBase());
+				I::StudioRender->SetAlphaModulation(colHidden.Base<COLOR_A>());
 
 				// enable "$ignorez" flag and it enables ignore the z axis
 				pMaterial->SetMaterialVarFlag(MATERIAL_VAR_IGNOREZ, true);
@@ -400,7 +400,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 			I::StudioRender->SetColorModulation(colVisible.Base().data());
 
 			// set alpha
-			I::StudioRender->SetAlphaModulation((pEntity == pLocal && pLocal->IsScoped() && I::Input->bCameraInThirdPerson) ? 0.3f : colVisible.aBase());
+			I::StudioRender->SetAlphaModulation((pEntity == pLocal && pLocal->IsScoped() && I::Input->bCameraInThirdPerson) ? 0.3f : colVisible.Base<COLOR_A>());
 
 			// disable "$ignorez" flag
 			pMaterial->SetMaterialVarFlag(MATERIAL_VAR_IGNOREZ, false);
@@ -501,10 +501,10 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 
 			// set additional color
 			if (bFoundEnvMapTint)
-				pEnvMapTint->SetVector(colAdditional.rBase(), colAdditional.gBase(), colAdditional.bBase());
+				pEnvMapTint->SetVector(colAdditional.Base<COLOR_R>(), colAdditional.Base<COLOR_G>(), colAdditional.Base<COLOR_B>());
 
 			// set alpha
-			pMaterial->AlphaModulate(colAdditional.aBase());
+			pMaterial->AlphaModulate(colAdditional.Base<COLOR_A>());
 
 			// set color fusion for glow
 			pMaterial->SetMaterialVarFlag(MATERIAL_VAR_ADDITIVE, true);
@@ -529,7 +529,7 @@ bool CVisuals::Chams(CBaseEntity* pLocal, DrawModelResults_t* pResults, const Dr
 		I::StudioRender->SetColorModulation(colViewModel.Base().data());
 
 		// set alpha
-		I::StudioRender->SetAlphaModulation(colViewModel.aBase());
+		I::StudioRender->SetAlphaModulation(colViewModel.Base<COLOR_A>());
 
 		// disable color fusion
 		pMaterial->SetMaterialVarFlag(MATERIAL_VAR_ADDITIVE, false);
@@ -752,21 +752,17 @@ void CVisuals::HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color 
 	if (flLastDelta <= 0.f)
 		return;
 
-	const float flMaxLinesAlpha = colLines.aBase();
+	const float flMaxLinesAlpha = colLines.Base<COLOR_A>();
 	static constexpr auto arrSides = std::to_array<std::array<float, 2U>>({ { -1.0f, -1.0f }, { 1.0f, 1.0f }, { -1.0f, 1.0f }, { 1.0f, -1.0f } });
 
 	for (const auto& arrSide : arrSides)
-	{
-		// set fade out alpha
-		colLines.arrColor.at(3) = static_cast<std::uint8_t>(std::min(flMaxLinesAlpha, flLastDelta / C::Get<float>(Vars.flScreenHitMarkerTime)) * 255.f);
 		// draw mark cross
-		D::AddLine(ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * arrSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * arrSide[1]), ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * arrSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * arrSide[1]), colLines);
-	}
+		D::AddLine(ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * arrSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * arrSide[1]), ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * arrSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * arrSide[1]), colLines.Set<COLOR_A>(static_cast<std::uint8_t>(std::min(flMaxLinesAlpha, flLastDelta / C::Get<float>(Vars.flScreenHitMarkerTime)) * 255.f)));
 
 	if (!C::Get<bool>(Vars.bScreenHitMarkerDamage))
 		return;
 
-	const float flMaxDamageAlpha = colDamage.aBase();
+	const float flMaxDamageAlpha = colDamage.Base<COLOR_A>();
 	for (std::size_t i = 0U; i < vecHitMarks.size(); i++)
 	{
 		const float flDelta = vecHitMarks.at(i).flTime - flServerTime;
@@ -783,12 +779,11 @@ void CVisuals::HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color 
 			constexpr float flDistance = 40.f;
 			const float flRatio = 1.0f - (flDelta / C::Get<float>(Vars.flScreenHitMarkerTime));
 
-			// set fade out alpha
+			// calculate fade out alpha
 			const int iAlpha = static_cast<int>(std::min(flMaxDamageAlpha, flDelta / C::Get<float>(Vars.flScreenHitMarkerTime)) * 255.f);
-			colDamage.arrColor.at(3) = static_cast<std::uint8_t>(iAlpha);
 
 			// draw dealt damage
-			D::AddText(F::SmallestPixel, 24.f, ImVec2(vecScreen.x, vecScreen.y - flRatio * flDistance), std::to_string(vecHitMarks.at(i).iDamage), colDamage, DRAW_TEXT_OUTLINE, Color(0, 0, 0, iAlpha));
+			D::AddText(F::SmallestPixel, 24.f, ImVec2(vecScreen.x, vecScreen.y - flRatio * flDistance), std::to_string(vecHitMarks.at(i).iDamage), colDamage.Set<COLOR_A>(static_cast<std::uint8_t>(iAlpha)), DRAW_TEXT_OUTLINE, Color(0, 0, 0, iAlpha));
 		}
 	}
 }

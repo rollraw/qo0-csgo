@@ -77,7 +77,7 @@ namespace I
 	inline IEngineVGui*				EngineVGui;
 	inline IEngineTrace*			EngineTrace;
 	inline IEngineSound*			EngineSound;
-	inline INetworkContainer*		StringContainer;
+	inline INetworkContainer*		NetworkContainer;
 	inline IGameEventManager2*		GameEvent;
 	inline IVRenderView*			RenderView;
 	inline IVDebugOverlay*			DebugOverlay;

@@ -191,12 +191,12 @@ public:
 	virtual float	GetSoundDuration(const char* szSample) = 0;
 
 	virtual int EmitSound(IRecipientFilter& filter, int nEntityIndex, int iChannel, const char* szSoundEntry, unsigned int uSoundEntryHash, const char* szSample,
-		float flVolume, float flAttenuation, int nSeed, int iFlags = 0, int iPitch = PITCH_NORM,
-		const Vector* vecOrigin = nullptr, const Vector* vecDirection = nullptr, CUtlVector<Vector>* pUtlVecOrigins = nullptr, bool bUpdatePositions = true, float flSoundTime = 0.0f, int nSpeakerEntity = -1, StartSoundParams_t& parameters = StartSoundParams_t{ }) = 0;
+		float flVolume, float flAttenuation, int nSeed, int iFlags, int iPitch,
+		const Vector* vecOrigin, const Vector* vecDirection, CUtlVector<Vector>* pUtlVecOrigins, bool bUpdatePositions, float flSoundTime, int nSpeakerEntity, StartSoundParams_t& parameters) = 0;
 
 	virtual int EmitSound(IRecipientFilter& filter, int nEntityIndex, int iChannel, const char* szSoundEntry, unsigned int uSoundEntryHash, const char* szSample,
-		float flVolume, ESoundLevel nSoundLevel, int nSeed, int iFlags = 0, int iPitch = PITCH_NORM,
-		const Vector* vecOrigin = nullptr, const Vector* vecDirection = nullptr, CUtlVector<Vector>* pUtlVecOrigins = nullptr, bool bUpdatePositions = true, float flSoundTime = 0.0f, int nSpeakerEntity = -1, StartSoundParams_t& parameters = StartSoundParams_t{ }) = 0;
+		float flVolume, ESoundLevel nSoundLevel, int nSeed, int iFlags, int iPitch,
+		const Vector* vecOrigin, const Vector* vecDirection, CUtlVector<Vector>* pUtlVecOrigins, bool bUpdatePositions, float flSoundTime, int nSpeakerEntity, StartSoundParams_t& parameters) = 0;
 
 	virtual void EmitSentenceByIndex(IRecipientFilter& filter, int nEntityIndex, int iChannel, int nSentenceIndex,
 		float flVolume, ESoundLevel nSoundLevel, int nSeed, int iFlags = 0, int iPitch = PITCH_NORM,

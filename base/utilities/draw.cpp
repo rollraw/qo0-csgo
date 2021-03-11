@@ -306,7 +306,7 @@ bool ImGui::ColorEdit3(const char* szLabel, Color* pColor, ImGuiColorEditFlags f
 
 bool ImGui::ColorEdit4(const char* szLabel, Color* pColor, ImGuiColorEditFlags flags)
 {
-	ImVec4 vecColor = ImVec4{ pColor->rBase(), pColor->gBase(), pColor->bBase(), pColor->aBase() };
+	ImVec4 vecColor = ImVec4{ pColor->Base<COLOR_R>(), pColor->Base<COLOR_G>(), pColor->Base<COLOR_B>(), pColor->Base<COLOR_A>() };
 
 	if (ColorEdit4(szLabel, &vecColor.x, flags))
 	{

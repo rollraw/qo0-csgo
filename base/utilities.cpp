@@ -76,7 +76,7 @@ void U::SendClanTag(const char* szClanTag, const char* szIdentifier)
 
 bool U::PrecacheModel(const char* szModelName)
 {
-	if (auto pModelPrecache = I::StringContainer->FindTable(XorStr("modelprecache")); pModelPrecache != nullptr)
+	if (auto pModelPrecache = I::NetworkContainer->FindTable(XorStr("modelprecache")); pModelPrecache != nullptr)
 	{
 		if (I::ModelInfo->FindOrLoadModel(szModelName) == nullptr)
 			return false;

@@ -2,6 +2,14 @@
 // used: std::array
 #include <array>
 
+enum
+{
+	COLOR_R = 0,
+	COLOR_G = 1,
+	COLOR_B = 2,
+	COLOR_A = 3
+};
+
 struct ColorRGBExp32
 {
 	std::byte r, g, b;
@@ -13,36 +21,52 @@ class Color
 public:
 	Color() = default;
 
-	/* default color constructor ( 0 - 255 ) */
+	/* default color constructor (in: 0 - 255) */
 	constexpr Color(std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a = 255) :
 		arrColor({ r, g, b, a }) { }
 
 	constexpr Color(int r, int g, int b, int a = 255) :
 		arrColor({ static_cast<std::uint8_t>(r), static_cast<std::uint8_t>(g), static_cast<std::uint8_t>(b), static_cast<std::uint8_t>(a) }) { }
 
-	/* float color constructor ( 0.0 - 1.0 ) */
+	/* float color constructor (in: 0.0 - 1.0) */
 	constexpr Color(float r, float g, float b, float a = 1.0f) :
 		arrColor({ static_cast<std::uint8_t>(r * 255.f), static_cast<std::uint8_t>(g * 255.f), static_cast<std::uint8_t>(b * 255.f), static_cast<std::uint8_t>(a * 255.f) }) { }
 
 	/* output color to given variables */
 	void Get(std::uint8_t& r, std::uint8_t& g, std::uint8_t& b, std::uint8_t& a) const
 	{
-		r = arrColor.at(0);
-		g = arrColor.at(1);
-		b = arrColor.at(2);
-		a = arrColor.at(3);
+		r = arrColor.at(COLOR_R);
+		g = arrColor.at(COLOR_G);
+		b = arrColor.at(COLOR_B);
+		a = arrColor.at(COLOR_A);
 	}
 
-	/* convert color to directx rgba */
-	ImU32 GetU32() const
+	/* convert color to directx argb */
+	[[nodiscard]] D3DCOLOR GetD3D() const
 	{
-		return ImGui::GetColorU32(ImVec4(this->rBase(), this->gBase(), this->bBase(), this->aBase()));
+		return D3DCOLOR_ARGB(arrColor.at(COLOR_A), arrColor.at(COLOR_R), arrColor.at(COLOR_G), arrColor.at(COLOR_B));
+	}
+
+	/* convert color to imgui rgba */
+	[[nodiscard]] ImU32 GetU32(const float flAlphaMultiplier = 1.0f) const
+	{
+		return ImGui::GetColorU32(this->GetVec4(flAlphaMultiplier));
 	}
 
 	/* convert color to imgui vector */
-	ImVec4 GetVec4(float flAlphaMultiplier = 1.0f) const
+	[[nodiscard]] ImVec4 GetVec4(const float flAlphaMultiplier = 1.0f) const
 	{
-		return ImVec4(this->rBase(), this->gBase(), this->bBase(), this->aBase() * flAlphaMultiplier);
+		return ImVec4(this->Base<COLOR_R>(), this->Base<COLOR_G>(), this->Base<COLOR_B>(), this->Base<COLOR_A>() * flAlphaMultiplier);
+	}
+
+	std::uint8_t& operator[](const std::size_t i)
+	{
+		return this->arrColor.data()[i];
+	}
+
+	const std::uint8_t& operator[](const std::size_t i) const
+	{
+		return this->arrColor.data()[i];
 	}
 
 	bool operator==(const Color& colSecond) const
@@ -57,64 +81,103 @@ public:
 
 	Color& operator=(const Color& colFrom)
 	{
-		arrColor.at(0) = colFrom.r();
-		arrColor.at(1) = colFrom.g();
-		arrColor.at(2) = colFrom.b();
-		arrColor.at(3) = colFrom.a();
+		arrColor.at(0) = colFrom.arrColor.at(COLOR_R);
+		arrColor.at(1) = colFrom.arrColor.at(COLOR_G);
+		arrColor.at(2) = colFrom.arrColor.at(COLOR_B);
+		arrColor.at(3) = colFrom.arrColor.at(COLOR_A);
 		return *this;
 	}
 
-	inline std::uint8_t r() const { return arrColor.at(0); }
-	inline std::uint8_t g() const { return arrColor.at(1); }
-	inline std::uint8_t b() const { return arrColor.at(2); }
-	inline std::uint8_t a() const { return arrColor.at(3); }
+	/* returns certain R/G/B/A value */
+	template <std::size_t N>
+	[[nodiscard]] std::uint8_t Get() const
+	{
+		static_assert(N >= COLOR_R && N <= COLOR_A, "given index is out of range");
+		return arrColor[N];
+	}
 
-	inline float rBase() const { return arrColor.at(0) / 255.f; }
-	inline float gBase() const { return arrColor.at(1) / 255.f; }
-	inline float bBase() const { return arrColor.at(2) / 255.f; }
-	inline float aBase() const { return arrColor.at(3) / 255.f; }
+	/* returns copy of color with changed certain R/G/B/A value to given value */
+	template <std::size_t N>
+	[[nodiscard]] Color Set(const std::uint8_t nValue) const
+	{
+		static_assert(N >= COLOR_R && N <= COLOR_A, "given index is out of range");
+
+		Color colCopy = *this;
+		colCopy.arrColor[N] = nValue;
+		return colCopy;
+	}
+
+	/* returns copy of color with multiplied certain R/G/B/A value by given value */
+	template <std::size_t N>
+	[[nodiscard]] Color Multiplier(const float flValue) const
+	{
+		static_assert(N >= COLOR_R && N <= COLOR_A, "given index is out of range");
+
+		Color colCopy = *this;
+		colCopy.arrColor[N] = static_cast<std::uint8_t>(static_cast<float>(colCopy.arrColor[N]) * flValue);
+		return colCopy;
+	}
+
+	/* returns copy of color with divided certain R/G/B/A value by given value */
+	template <std::size_t N>
+	[[nodiscard]] Color Divider(const int iValue) const
+	{
+		static_assert(N >= COLOR_R && N <= COLOR_A, "given index is out of range");
+
+		Color colCopy = *this;
+		colCopy.arrColor[N] /= iValue;
+		return colCopy;
+	}
+
+	/* returns certain R/G/B/A float value (in: 0 - 255, out: 0.0 - 1.0) */
+	template <std::size_t N>
+	[[nodiscard]] float Base() const
+	{
+		static_assert(N >= COLOR_R && N <= COLOR_A, "given index is out of range");
+		return arrColor[N] / 255.f;
+	}
 
 	/* convert color to float array (in: 0 - 255, out: 0.0 - 1.0) */
-	std::array<float, 3U> Base() const
+	[[nodiscard]] std::array<float, 3U> Base() const
 	{
 		std::array<float, 3U> arrBaseColor = { };
-		arrBaseColor.at(0) = arrColor.at(0) / 255.f;
-		arrBaseColor.at(1) = arrColor.at(1) / 255.f;
-		arrBaseColor.at(2) = arrColor.at(2) / 255.f;
+		arrBaseColor.at(COLOR_R) = this->Base<COLOR_R>();
+		arrBaseColor.at(COLOR_G) = this->Base<COLOR_G>();
+		arrBaseColor.at(COLOR_B) = this->Base<COLOR_B>();
 		return arrBaseColor;
 	}
 
-	/* convert color by float array (in: 0.0 - 1.0, out: 0 - 255) */
+	/* set color from float array (in: 0.0 - 1.0, out: 0 - 255) */
 	static Color FromBase3(float arrBase[3])
 	{
 		return Color(arrBase[0], arrBase[1], arrBase[2]);
 	}
 
 	/* convert color to float array w/ alpha (in: 0 - 255, out: 0.0 - 1.0) */
-	std::array<float, 4U> BaseAlpha()
+	[[nodiscard]] std::array<float, 4U> BaseAlpha() const
 	{
 		std::array<float, 4U> arrBaseColor = { };
-		arrBaseColor.at(0) = arrColor.at(0) / 255.f;
-		arrBaseColor.at(1) = arrColor.at(1) / 255.f;
-		arrBaseColor.at(2) = arrColor.at(2) / 255.f;
-		arrBaseColor.at(3) = arrColor.at(3) / 255.f;
+		arrBaseColor.at(COLOR_R) = this->Base<COLOR_R>();
+		arrBaseColor.at(COLOR_G) = this->Base<COLOR_G>();
+		arrBaseColor.at(COLOR_B) = this->Base<COLOR_B>();
+		arrBaseColor.at(COLOR_A) = this->Base<COLOR_A>();
 		return arrBaseColor;
 	}
 
-	/* convert color by float array w/ alpha (in: 0.0 - 1.0, out: 0 - 255) */
+	/* set color from float array w/ alpha (in: 0.0 - 1.0, out: 0 - 255) */
 	static Color FromBase4(float arrBase[4])
 	{
 		return Color(arrBase[0], arrBase[1], arrBase[2], arrBase[3]);
 	}
 
-	float Hue() const
+	[[nodiscard]] float Hue() const
 	{
-		if (arrColor.at(0) == arrColor.at(1) && arrColor.at(1) == arrColor.at(2))
+		if (arrColor.at(COLOR_R) == arrColor.at(COLOR_G) && arrColor.at(COLOR_G) == arrColor.at(COLOR_B))
 			return 0.f;
 
-		const float r = this->rBase();
-		const float g = this->gBase();
-		const float b = this->bBase();
+		const float r = this->Base<COLOR_R>();
+		const float g = this->Base<COLOR_G>();
+		const float b = this->Base<COLOR_B>();
 
 		const float flMax = std::max(r, std::max(g, b)), flMin = std::min(r, std::min(g, b));
 
@@ -139,11 +202,11 @@ public:
 		return flHue / 360.f;
 	}
 
-	float Saturation() const
+	[[nodiscard]] float Saturation() const
 	{
-		const float r = this->rBase();
-		const float g = this->gBase();
-		const float b = this->bBase();
+		const float r = this->Base<COLOR_R>();
+		const float g = this->Base<COLOR_G>();
+		const float b = this->Base<COLOR_B>();
 
 		const float flMax = std::max(r, std::max(g, b)), flMin = std::min(r, std::min(g, b));
 		const float flDelta = flMax - flMin;
@@ -154,16 +217,16 @@ public:
 		return flDelta / flMax;
 	}
 
-	float Brightness() const
+	[[nodiscard]] float Brightness() const
 	{
-		const float r = this->rBase();
-		const float g = this->gBase();
-		const float b = this->bBase();
+		const float r = this->Base<COLOR_R>();
+		const float g = this->Base<COLOR_G>();
+		const float b = this->Base<COLOR_B>();
 
 		return std::max(r, std::max(g, b));
 	}
 
-	/* convert HSB/HSV color to RGB color */
+	/* return RGB color converted from HSB/HSV color */
 	static Color FromHSB(float flHue, float flSaturation, float flBrightness)
 	{
 		const float h = std::fmodf(flHue, 1.0f) / (60.0f / 360.0f);
@@ -201,6 +264,6 @@ public:
 		return Color(r, g, b);
 	}
 
-public:
+private:
 	std::array<std::uint8_t, 4U> arrColor;
 };

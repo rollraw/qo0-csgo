@@ -21,8 +21,8 @@ public:
 	{
 		void Set(Color color, int nRenderStyle = GLOWRENDERSTYLE_DEFAULT) // @note: styles not used cuz other styles doesnt have ignorez flag and needed to rebuild glow
 		{
-			this->vecColor = Vector(color.rBase(), color.gBase(), color.bBase());
-			this->flAlpha = color.aBase();
+			this->vecColor = Vector(color.Base<COLOR_R>(), color.Base<COLOR_G>(), color.Base<COLOR_B>());
+			this->flAlpha = color.Base<COLOR_A>();
 			this->flBloomAmount = 1.0f;
 			this->bRenderWhenOccluded = true;
 			this->bRenderWhenUnoccluded = false;

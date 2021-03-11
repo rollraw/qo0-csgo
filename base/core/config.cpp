@@ -83,10 +83,10 @@ bool C::Save(std::string_view szFileName)
 				nlohmann::json sub = { };
 
 				// fill node with all color values
-				sub.push_back(colVariable.r());
-				sub.push_back(colVariable.g());
-				sub.push_back(colVariable.b());
-				sub.push_back(colVariable.a());
+				sub.push_back(colVariable.Get<COLOR_R>());
+				sub.push_back(colVariable.Get<COLOR_G>());
+				sub.push_back(colVariable.Get<COLOR_B>());
+				sub.push_back(colVariable.Get<COLOR_A>());
 
 				entry[XorStr("value")] = sub.dump();
 				break;

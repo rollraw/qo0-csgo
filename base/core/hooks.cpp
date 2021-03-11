@@ -188,16 +188,6 @@ long D3DAPI H::hkEndScene(IDirect3DDevice9* pDevice)
 		if (!D::bInitialized)
 			D::Setup(pDevice);
 
-		DWORD dwColorWriteOld = 0UL, dwSRGBWriteOld = 0UL;
-
-		// save
-		pDevice->GetRenderState(D3DRS_COLORWRITEENABLE, &dwColorWriteOld);
-		pDevice->GetRenderState(D3DRS_SRGBWRITEENABLE, &dwSRGBWriteOld);
-
-		// set
-		pDevice->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE | D3DCOLORWRITEENABLE_ALPHA);
-		pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, false);
-
 		ImGui_ImplDX9_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
@@ -210,10 +200,6 @@ long D3DAPI H::hkEndScene(IDirect3DDevice9* pDevice)
 
 		// render draw lists from draw data
 		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-
-		// restore
-		pDevice->SetRenderState(D3DRS_COLORWRITEENABLE, dwColorWriteOld);
-		pDevice->SetRenderState(D3DRS_SRGBWRITEENABLE, dwSRGBWriteOld);
 	}
 
 	SEH_END
@@ -412,7 +398,7 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 	if (pLocal == nullptr)
 		return oFrameStageNotify(thisptr, edx, stage);
 
-	static QAngle angAimPunchOld = { }, angViewPunchOld = { };
+	static QAngle angOldAimPunch = { }, angOldViewPunch = { };
 
 	switch (stage)
 	{
@@ -466,8 +452,8 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 		if (pLocal->IsAlive() && C::Get<bool>(Vars.bWorld))
 		{
 			// save old values
-			angViewPunchOld = pLocal->GetViewPunch();
-			angAimPunchOld = pLocal->GetPunch();
+			angOldViewPunch = pLocal->GetViewPunch();
+			angOldAimPunch = pLocal->GetPunch();
 
 			if (C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_PUNCH))
 			{
@@ -502,8 +488,8 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 		// restore original visual punch values
 		if (pLocal->IsAlive() && C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_PUNCH))
 		{
-			pLocal->GetViewPunch() = angViewPunchOld;
-			pLocal->GetPunch() = angAimPunchOld;
+			pLocal->GetViewPunch() = angOldViewPunch;
+			pLocal->GetPunch() = angOldAimPunch;
 		}
 
 		break;
@@ -636,8 +622,8 @@ int FASTCALL H::hkSendDatagram(INetChannel* thisptr, int edx, bf_write* pDatagra
 	if (!I::Engine->IsInGame() || !C::Get<bool>(Vars.bMiscPingSpike) || pDatagram != nullptr || pNetChannelInfo == nullptr || sv_maxunlag == nullptr)
 		return oSendDatagram(thisptr, edx, pDatagram);
 
-	const int iInReliableStateOld = thisptr->iInReliableState;
-	const int iInSequenceNrOld = thisptr->iInSequenceNr;
+	const int iOldInReliableState = thisptr->iInReliableState;
+	const int iOldInSequenceNr = thisptr->iInSequenceNr;
 
 	// calculate max available fake latency with our real ping to keep it w/o real lags or delays
 	const float flMaxLatency = std::max(0.f, std::clamp(C::Get<float>(Vars.flMiscLatencyFactor), 0.f, sv_maxunlag->GetFloat()) - pNetChannelInfo->GetLatency(FLOW_OUTGOING));
@@ -645,8 +631,8 @@ int FASTCALL H::hkSendDatagram(INetChannel* thisptr, int edx, bf_write* pDatagra
 
 	const int iReturn = oSendDatagram(thisptr, edx, pDatagram);
 
-	thisptr->iInReliableState = iInReliableStateOld;
-	thisptr->iInSequenceNr = iInSequenceNrOld;
+	thisptr->iInReliableState = iOldInReliableState;
+	thisptr->iInSequenceNr = iOldInSequenceNr;
 
 	return iReturn;
 }
