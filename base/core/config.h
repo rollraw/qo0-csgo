@@ -71,21 +71,6 @@ namespace C // @credits: ducarii
 	/* get path where output files will be saved (default: "%userprofile%\documents\.qo0") */
 	std::filesystem::path GetWorkingPath();
 
-	/* returns casted variable at given index */
-	template <typename T>
-	T& Get(const std::uint32_t nIndex)
-	{
-		return vecVariables.at(nIndex).Get<T>();
-	}
-
-	// Template
-	template <typename T>
-	std::uint32_t AddVariable(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, const T pDefault)
-	{
-		vecVariables.emplace_back(uNameHash, uTypeHash, std::make_any<T>(pDefault));
-		return vecVariables.size() - 1U;
-	}
-
 	// Values
 	/* default configs path */
 	const std::filesystem::path fsPath = GetWorkingPath() / XorStr("settings");
@@ -93,4 +78,20 @@ namespace C // @credits: ducarii
 	inline std::deque<std::string> vecFileNames = { };
 	/* configuration variables */
 	inline std::vector<VariableObject_t> vecVariables = { };
+
+	// Templates
+	/* returns casted variable value at given index */
+	template <typename T>
+	T& Get(const std::uint32_t nIndex)
+	{
+		return vecVariables.at(nIndex).Get<T>();
+	}
+
+	/* add new configuration variable to massive */
+	template <typename T>
+	std::uint32_t AddVariable(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, const T pDefault)
+	{
+		vecVariables.emplace_back(uNameHash, uTypeHash, std::make_any<T>(pDefault));
+		return vecVariables.size() - 1U;
+	}
 }
