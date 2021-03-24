@@ -87,7 +87,7 @@ namespace C // @credits: ducarii
 		return vecVariables.at(nIndex).Get<T>();
 	}
 
-	/* add new configuration variable to massive */
+	/* add new configuration variable to massive, and return index of it */
 	template <typename T>
 	std::uint32_t AddVariable(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, const T pDefault)
 	{

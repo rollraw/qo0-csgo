@@ -137,7 +137,7 @@ std::optional<Vector> CBaseEntity::GetHitGroupPosition(int iHitGroup)
 	return std::nullopt;
 }
 
-void CBaseEntity::ModifyEyePosition(CBasePlayerAnimState* pAnimState, Vector* vecPosition) const
+void CBaseEntity::ModifyEyePosition(CCSGOPlayerAnimState* pAnimState, Vector* vecPosition) const
 {
 	if (I::Engine->IsHLTV() || I::Engine->IsPlayingDemo())
 		return;

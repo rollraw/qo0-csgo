@@ -214,7 +214,6 @@ bool ImGui::MultiCombo(const char* szLabel, std::vector<bool>& vecValues, const 
 	const float flActiveWidth = CalcItemWidth() - (style.ItemInnerSpacing.x + GetFrameHeight()) - 40.f;
 
 	std::vector<std::string_view> vecActiveItems = { };
-	vecActiveItems.reserve(nItemsCount);
 
 	// collect active items
 	for (int i = 0; i < nItemsCount; i++)
@@ -222,8 +221,6 @@ bool ImGui::MultiCombo(const char* szLabel, std::vector<bool>& vecValues, const 
 		if (vecValues[i])
 			vecActiveItems.push_back(arrItems[i]);
 	}
-
-	vecActiveItems.shrink_to_fit();
 
 	std::string szBuffer = fmt::format(XorStr("{}"), fmt::join(vecActiveItems, XorStr(", ")));
 	const ImVec2 vecTextSize = CalcTextSize(szBuffer.c_str());
@@ -257,10 +254,9 @@ bool ImGui::MultiCombo(const char* szLabel, std::vector<bool>& vecValues, const 
 bool ImGui::Combo(const char* szLabel, std::vector<int>& vecValues, int nIndex, const char* szItemsSeparatedByZeros, int nHeightInItems)
 {
 	int iValue = vecValues[nIndex];
-
 	const bool bValueChanged = Combo(szLabel, &iValue, szItemsSeparatedByZeros, nHeightInItems);
 
-	if (vecValues[nIndex] != iValue)
+	if (bValueChanged)
 		vecValues[nIndex] = iValue;
 
 	return bValueChanged;
@@ -271,7 +267,7 @@ bool ImGui::Checkbox(const char* szLabel, std::vector<bool>& vecValues, int nInd
 	bool bValue = vecValues[nIndex];
 	const bool bValueChanged = Checkbox(szLabel, &bValue);
 
-	if (vecValues[nIndex] != bValue)
+	if (bValueChanged)
 		vecValues[nIndex] = bValue;
 
 	return bValueChanged;
@@ -282,19 +278,19 @@ bool ImGui::SliderFloat(const char* szLabel, std::vector<float>& vecValues, int 
 	float flValue = vecValues[nIndex];
 	const bool bValueChanged = SliderFloat(szLabel, &flValue, flMin, flMax, szFormat, flPower);
 
-	if (vecValues[nIndex] != flValue)
+	if (bValueChanged)
 		vecValues[nIndex] = flValue;
 
 	return bValueChanged;
 }
 
-bool ImGui::SliderInt(const char* szLabel, std::vector<int>& v, int nIndex, int iMin, int iMax, const char* szFormat)
+bool ImGui::SliderInt(const char* szLabel, std::vector<int>& vecValues, int nIndex, int iMin, int iMax, const char* szFormat)
 {
-	int iValue = v[nIndex];
+	int iValue = vecValues[nIndex];
 	const bool bValueChanged = SliderInt(szLabel, &iValue, iMin, iMax, szFormat);
 
-	if (v[nIndex] != iValue)
-		v[nIndex] = iValue;
+	if (bValueChanged)
+		vecValues[nIndex] = iValue;
 
 	return bValueChanged;
 }
@@ -306,7 +302,7 @@ bool ImGui::ColorEdit3(const char* szLabel, Color* pColor, ImGuiColorEditFlags f
 
 bool ImGui::ColorEdit4(const char* szLabel, Color* pColor, ImGuiColorEditFlags flags)
 {
-	ImVec4 vecColor = ImVec4{ pColor->Base<COLOR_R>(), pColor->Base<COLOR_G>(), pColor->Base<COLOR_B>(), pColor->Base<COLOR_A>() };
+	ImVec4 vecColor = pColor->GetVec4();
 
 	if (ColorEdit4(szLabel, &vecColor.x, flags))
 	{
@@ -517,7 +513,7 @@ void D::RenderDrawData(ImDrawList* pDrawList)
 		case EDrawType::RECT_MULTICOLOR:
 		{
 			const auto& pObject = std::any_cast<RectMultiColorObject_t>(data.pObject);
-			pDrawList->AddRectFilledMultiColor(pObject.vecMin, pObject.vecMax, pObject.colUpperLeft, pObject.colUpperRight, pObject.colBottomLeft, pObject.colBottomRight);
+			pDrawList->AddRectFilledMultiColor(pObject.vecMin, pObject.vecMax, pObject.colUpperLeft, pObject.colUpperRight, pObject.colBottomRight, pObject.colBottomLeft);
 			break;
 		}
 		case EDrawType::CIRCLE:
@@ -604,9 +600,9 @@ void D::AddRect(const ImVec2& vecMin, const ImVec2& vecMax, const Color& colRect
 	vecDrawData.emplace_back(EDrawType::RECT, std::make_any<RectObject_t>(RectObject_t{ vecMin, vecMax, colRect.GetU32(), uFlags, colOutline.GetU32(), flRounding, roundingCorners, flThickness }));
 }
 
-void D::AddRectMultiColor(const ImVec2& vecMin, const ImVec2& vecMax, const Color& colUpperLeft, const Color& colUpperRight, const Color& colBottomLeft, const Color& colBottomRight)
+void D::AddRectMultiColor(const ImVec2& vecMin, const ImVec2& vecMax, const Color& colUpperLeft, const Color& colUpperRight, const Color& colBottomRight, const Color& colBottomLeft)
 {
-	vecDrawData.emplace_back(EDrawType::RECT_MULTICOLOR, std::make_any<RectMultiColorObject_t>(RectMultiColorObject_t{ vecMin, vecMax, colUpperLeft.GetU32(), colUpperRight.GetU32(), colBottomLeft.GetU32(), colBottomRight.GetU32() }));
+	vecDrawData.emplace_back(EDrawType::RECT_MULTICOLOR, std::make_any<RectMultiColorObject_t>(RectMultiColorObject_t{ vecMin, vecMax, colUpperLeft.GetU32(), colUpperRight.GetU32(), colBottomRight.GetU32(), colBottomLeft.GetU32() }));
 }
 
 void D::AddCircle(const ImVec2& vecCenter, float flRadius, const Color& colCircle, int nSegments, unsigned int uFlags, const Color& colOutline, float flThickness)

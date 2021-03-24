@@ -19,7 +19,6 @@
 // used: inputtext() wrappers for c++ standard library (stl) type: std::string
 #include "../../dependencies/imgui/cpp/imgui_stdlib.h"
 
-#pragma region menu_arrays
 const std::pair<const char*, std::uint32_t> arrColors[] =
 {
 	{ "[esp] box - enemies", Vars.colEspMainBoxEnemies },
@@ -44,6 +43,7 @@ const std::pair<const char*, std::uint32_t> arrColors[] =
 	{ "[screen] hitmarker - damage", Vars.colScreenHitMarkerDamage }
 };
 
+#pragma region menu_array_entries
 static constexpr std::array<std::string_view, 4U> arrVisualsFlags =
 {
 	"helmet",

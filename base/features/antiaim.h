@@ -26,11 +26,11 @@ private:
 
 	// Extra
 	/* returns max server desynchronization angle delta */
-	float GetMaxDesyncDelta(CBasePlayerAnimState* pAnimState); // @credits: sharklaser1's reversed setupvelocity
+	float GetMaxDesyncDelta(CCSGOPlayerAnimState* pAnimState); // @credits: sharklaser1's reversed setupvelocity
 
 	// Values
 	/* updated by server animstate */
-	CBasePlayerAnimState* pServerAnimState = nullptr;
+	CCSGOPlayerAnimState* pServerAnimState = nullptr;
 	/* next lower body yaw update time from server */
 	float flNextLowerBodyUpdate = 0.f;
 };

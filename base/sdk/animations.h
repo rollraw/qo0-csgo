@@ -80,7 +80,7 @@ public:
 
 class CBaseEntity;
 class CBaseCombatWeapon;
-class CBasePlayerAnimState
+class CCSGOPlayerAnimState
 {
 public:
 	void Create(CBaseEntity* pEntity)
@@ -130,7 +130,7 @@ public:
 	float		flMoveYaw; // 0x88
 	float		flLastMoveYaw; // 0x8C // changes when moving/jumping/hitting ground
 	float		flLeanAmount; // 0x90
-	std::byte	pad1[0x4]; // 0x94
+	float		flLowerBodyYawAlignTime; // 0x94
 	float		flFeetCycle; // 0x98 0 to 1
 	float		flMoveWeight; // 0x9C 0 to 1
 	float		flMoveWeightSmoothed; // 0xA0
