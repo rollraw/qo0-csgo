@@ -28,35 +28,52 @@ float CAutoWall::GetDamage(CBaseEntity* pLocal, const Vector& vecPoint, FireBull
 
 void CAutoWall::ScaleDamage(int iHitGroup, CBaseEntity* pEntity, float flWeaponArmorRatio, float& flDamage)
 {
+	if (pEntity->IsPlayer())
+		return;
+
 	const bool bHeavyArmor = pEntity->HasHeavyArmor();
 	const int iArmor = pEntity->GetArmor();
+
+	static CConVar* mp_damage_scale_ct_head = I::ConVar->FindVar(XorStr("mp_damage_scale_ct_head"));
+	static CConVar* mp_damage_scale_t_head = I::ConVar->FindVar(XorStr("mp_damage_scale_t_head"));
+
+	static CConVar* mp_damage_scale_ct_body = I::ConVar->FindVar(XorStr("mp_damage_scale_ct_body"));
+	static CConVar* mp_damage_scale_t_body = I::ConVar->FindVar(XorStr("mp_damage_scale_t_body"));
+
+	const float flHeadScale = pEntity->GetTeam() == TEAM_CT ? mp_damage_scale_ct_head->GetFloat() : pEntity->GetTeam() == TEAM_TT ? mp_damage_scale_t_head->GetFloat() : 1.0f;
+	const float flBodyScale = pEntity->GetTeam() == TEAM_CT ? mp_damage_scale_ct_body->GetFloat() : pEntity->GetTeam() == TEAM_TT ? mp_damage_scale_t_body->GetFloat() : 1.0f;
 
 	switch (iHitGroup)
 	{
 	case HITGROUP_HEAD:
-		flDamage *= bHeavyArmor ? 2.0f : 4.0f;
+		flDamage *= (bHeavyArmor ? 2.0f : 4.0f) * flHeadScale;
 		break;
 	case HITGROUP_STOMACH:
-		flDamage *= 1.25f;
+		flDamage *= 1.25f * flBodyScale;
+		break;
+	case HITGROUP_CHEST:
+	case HITGROUP_LEFTARM:
+	case HITGROUP_RIGHTARM:
+		flDamage *= flBodyScale;
 		break;
 	case HITGROUP_LEFTLEG:
 	case HITGROUP_RIGHTLEG:
-		flDamage *= 0.75f;
+		flDamage *= 0.75f * flBodyScale;
 		break;
 	default:
 		break;
 	}
 
 	// check is armored
-	if (iArmor > 0 && ((iHitGroup == HITGROUP_HEAD && pEntity->HasHelmet()) || (iHitGroup >= HITGROUP_GENERIC && iHitGroup <= HITGROUP_RIGHTARM)))
+	if (iArmor > 0 && (bHeavyArmor || (iHitGroup == HITGROUP_HEAD && pEntity->HasHelmet()) || (iHitGroup >= HITGROUP_GENERIC && iHitGroup <= HITGROUP_RIGHTARM)))
 	{
-		float flModifier = 1.0f, flArmorBonusRatio = 0.5f, flArmorRatio = flWeaponArmorRatio * 0.5f;
+		float flArmorScale = 1.0f, flArmorBonusRatio = 0.5f, flArmorRatio = flWeaponArmorRatio * 0.5f;
 
 		if (bHeavyArmor)
 		{
+			flArmorScale = 0.33f;
 			flArmorBonusRatio = 0.33f;
 			flArmorRatio *= 0.5f;
-			flModifier = 0.33f;
 		}
 
 		float flNewDamage = flDamage * flArmorRatio;
@@ -64,7 +81,7 @@ void CAutoWall::ScaleDamage(int iHitGroup, CBaseEntity* pEntity, float flWeaponA
 		if (bHeavyArmor)
 			flNewDamage *= 0.85f;
 
-		if (((flDamage - flDamage * flArmorRatio) * (flModifier * flArmorBonusRatio)) > iArmor)
+		if (((flDamage - flDamage * flArmorRatio) * (flArmorScale * flArmorBonusRatio)) > iArmor)
 			flNewDamage = flDamage - iArmor / flArmorBonusRatio;
 
 		flDamage = flNewDamage;

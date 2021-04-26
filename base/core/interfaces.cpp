@@ -97,7 +97,7 @@ bool I::Setup()
 template <typename T>
 T* I::Capture(const char* szModule, std::string_view szInterface)
 {
-	const auto GetRegisterList = [szModule]() -> CInterfaceRegister*
+	const auto GetRegisterList = [&szModule]() -> CInterfaceRegister*
 	{
 		FARPROC oCreateInterface = nullptr;
 
