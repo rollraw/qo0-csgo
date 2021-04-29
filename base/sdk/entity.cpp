@@ -179,7 +179,7 @@ int CBaseEntity::PostThink()
 	static auto oPostThinkVPhysics = reinterpret_cast<PostThinkVPhysicsFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 81 EC ? ? ? ? 53 8B D9 56 57 83 BB")));
 
 	using SimulatePlayerSimulatedEntitiesFn = void(__thiscall*)(CBaseEntity*);
-	static auto oSimulatePlayerSimulatedEntities = reinterpret_cast<SimulatePlayerSimulatedEntitiesFn>(MEM::FindPattern(CLIENT_DLL, XorStr("56 8B F1 57 8B BE ? ? ? ? 83 EF 01 78 72")));
+	static auto oSimulatePlayerSimulatedEntities = reinterpret_cast<SimulatePlayerSimulatedEntitiesFn>(MEM::FindPattern(CLIENT_DLL, XorStr("56 8B F1 8B 8E ? ? ? ? 83 F9 FF 74 23")));
 
 	// begin lock
 	MEM::CallVFunc<void>(I::MDLCache, 33);
