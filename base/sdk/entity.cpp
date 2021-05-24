@@ -207,13 +207,8 @@ bool CBaseEntity::IsEnemy(CBaseEntity* pEntity)
 {
 	// check is dangerzone
 	if (I::GameTypes->GetCurrentGameType() == GAMETYPE_FREEFORALL)
-	{
 		// check is not teammate
-		if (this->GetSurvivalTeam() != pEntity->GetSurvivalTeam())
-			return true;
-		else
-			return false;
-	}
+		return (this->GetSurvivalTeam() != pEntity->GetSurvivalTeam());
 
 	static CConVar* mp_teammates_are_enemies = I::ConVar->FindVar(XorStr("mp_teammates_are_enemies"));
 	

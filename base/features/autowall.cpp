@@ -28,9 +28,6 @@ float CAutoWall::GetDamage(CBaseEntity* pLocal, const Vector& vecPoint, FireBull
 
 void CAutoWall::ScaleDamage(int iHitGroup, CBaseEntity* pEntity, float flWeaponArmorRatio, float& flDamage)
 {
-	if (pEntity->IsPlayer())
-		return;
-
 	const bool bHeavyArmor = pEntity->HasHeavyArmor();
 	const int iArmor = pEntity->GetArmor();
 
@@ -65,7 +62,7 @@ void CAutoWall::ScaleDamage(int iHitGroup, CBaseEntity* pEntity, float flWeaponA
 	}
 
 	// check is armored
-	if (iArmor > 0 && (bHeavyArmor || (iHitGroup == HITGROUP_HEAD && pEntity->HasHelmet()) || (iHitGroup >= HITGROUP_GENERIC && iHitGroup <= HITGROUP_RIGHTARM)))
+	if (iArmor > 0 && ((iHitGroup == HITGROUP_HEAD && pEntity->HasHelmet()) || (iHitGroup >= HITGROUP_GENERIC && iHitGroup <= HITGROUP_RIGHTARM)))
 	{
 		float flArmorScale = 1.0f, flArmorBonusRatio = 0.5f, flArmorRatio = flWeaponArmorRatio * 0.5f;
 
