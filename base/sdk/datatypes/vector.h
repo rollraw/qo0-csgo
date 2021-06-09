@@ -15,7 +15,7 @@ public:
 	[[nodiscard]] bool IsZero() const
 	{
 		return (std::fpclassify(this->x) == FP_ZERO &&
-				std::fpclassify(this->y) == FP_ZERO);
+			std::fpclassify(this->y) == FP_ZERO);
 	}
 
 public:
@@ -174,18 +174,18 @@ public:
 		return Vector(this->x / flDivide, this->y / flDivide, this->z / flDivide);
 	}
 
-	[[nodiscard]] bool IsEqual(const Vector& vecEqual) const
+	[[nodiscard]] bool IsEqual(const Vector& vecEqual, const float flErrorMargin = std::numeric_limits<float>::epsilon()) const
 	{
-		return (std::fabsf(this->x - vecEqual.x) < std::numeric_limits<float>::epsilon() &&
-				std::fabsf(this->y - vecEqual.y) < std::numeric_limits<float>::epsilon() &&
-				std::fabsf(this->z - vecEqual.z) < std::numeric_limits<float>::epsilon());
+		return (std::fabsf(this->x - vecEqual.x) < flErrorMargin &&
+			std::fabsf(this->y - vecEqual.y) < flErrorMargin &&
+			std::fabsf(this->z - vecEqual.z) < flErrorMargin);
 	}
 
 	[[nodiscard]] bool IsZero() const
 	{
 		return (std::fpclassify(this->x) == FP_ZERO &&
-				std::fpclassify(this->y) == FP_ZERO &&
-				std::fpclassify(this->z) == FP_ZERO);
+			std::fpclassify(this->y) == FP_ZERO &&
+			std::fpclassify(this->z) == FP_ZERO);
 	}
 
 	[[nodiscard]] Vector2D ToVector2D() const

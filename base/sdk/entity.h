@@ -651,7 +651,7 @@ public:
 	std::optional<Vector>	GetHitboxPosition(int iHitbox);
 	std::optional<Vector>	GetHitGroupPosition(int iHitGroup);
 	void					ModifyEyePosition(CCSGOPlayerAnimState* pAnimState, Vector* vecPosition) const;
-	int						PostThink();
+	void					PostThink();
 	bool					IsEnemy(CBaseEntity* pEntity);
 	bool					IsTargetingLocal(CBaseEntity* pLocal);
 	bool					CanShoot(CWeaponCSBase* pBaseWeapon);

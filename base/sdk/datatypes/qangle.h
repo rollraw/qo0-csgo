@@ -120,22 +120,23 @@ public:
 	[[nodiscard]] bool IsEqual(const QAngle& angEqual, const float flErrorMargin = std::numeric_limits<float>::epsilon()) const
 	{
 		return (std::fabsf(this->x - angEqual.x) < flErrorMargin &&
-				std::fabsf(this->y - angEqual.y) < flErrorMargin &&
-				std::fabsf(this->z - angEqual.z) < flErrorMargin);
+			std::fabsf(this->y - angEqual.y) < flErrorMargin &&
+			std::fabsf(this->z - angEqual.z) < flErrorMargin);
 	}
 
 	[[nodiscard]] bool IsZero() const
 	{
 		return (std::fpclassify(this->x) == FP_ZERO &&
-				std::fpclassify(this->y) == FP_ZERO &&
-				std::fpclassify(this->z) == FP_ZERO);
+			std::fpclassify(this->y) == FP_ZERO &&
+			std::fpclassify(this->z) == FP_ZERO);
 	}
 
-	void Clamp()
+	QAngle Clamp()
 	{
 		this->x = std::clamp(this->x, -89.f, 89.f);
 		this->y = std::clamp(this->y, -180.f, 180.f);
 		this->z = std::clamp(this->z, -50.f, 50.f);
+		return *this;
 	}
 
 	QAngle Normalize()

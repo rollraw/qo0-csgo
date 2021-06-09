@@ -12,8 +12,8 @@ enum
 
 struct ColorRGBExp32
 {
-	std::byte r, g, b;
-	signed char exponent;
+	std::uint8_t r, g, b;
+	char exponent;
 };
 
 class Color
@@ -35,16 +35,16 @@ public:
 	/* output color to given variables */
 	void Get(std::uint8_t& r, std::uint8_t& g, std::uint8_t& b, std::uint8_t& a) const
 	{
-		r = arrColor.at(COLOR_R);
-		g = arrColor.at(COLOR_G);
-		b = arrColor.at(COLOR_B);
-		a = arrColor.at(COLOR_A);
+		r = arrColor[COLOR_R];
+		g = arrColor[COLOR_G];
+		b = arrColor[COLOR_B];
+		a = arrColor[COLOR_A];
 	}
 
 	/* convert color to directx argb */
 	[[nodiscard]] D3DCOLOR GetD3D() const
 	{
-		return D3DCOLOR_ARGB(arrColor.at(COLOR_A), arrColor.at(COLOR_R), arrColor.at(COLOR_G), arrColor.at(COLOR_B));
+		return D3DCOLOR_ARGB(arrColor[COLOR_A], arrColor[COLOR_R], arrColor[COLOR_G], arrColor[COLOR_B]);
 	}
 
 	/* convert color to imgui rgba */
@@ -61,17 +61,17 @@ public:
 
 	std::uint8_t& operator[](const std::size_t i)
 	{
-		return this->arrColor.data()[i];
+		return this->arrColor[i];
 	}
 
 	const std::uint8_t& operator[](const std::size_t i) const
 	{
-		return this->arrColor.data()[i];
+		return this->arrColor[i];
 	}
 
 	bool operator==(const Color& colSecond) const
 	{
-		return *const_cast<Color*>(this) == *const_cast<Color*>(&colSecond);
+		return this->arrColor == colSecond.arrColor;
 	}
 
 	bool operator!=(const Color& colSecond) const
@@ -81,10 +81,10 @@ public:
 
 	Color& operator=(const Color& colFrom)
 	{
-		arrColor.at(0) = colFrom.arrColor.at(COLOR_R);
-		arrColor.at(1) = colFrom.arrColor.at(COLOR_G);
-		arrColor.at(2) = colFrom.arrColor.at(COLOR_B);
-		arrColor.at(3) = colFrom.arrColor.at(COLOR_A);
+		arrColor[COLOR_R] = colFrom.arrColor[COLOR_R];
+		arrColor[COLOR_G] = colFrom.arrColor[COLOR_G];
+		arrColor[COLOR_B] = colFrom.arrColor[COLOR_B];
+		arrColor[COLOR_A] = colFrom.arrColor[COLOR_A];
 		return *this;
 	}
 
@@ -141,9 +141,9 @@ public:
 	[[nodiscard]] std::array<float, 3U> Base() const
 	{
 		std::array<float, 3U> arrBaseColor = { };
-		arrBaseColor.at(COLOR_R) = this->Base<COLOR_R>();
-		arrBaseColor.at(COLOR_G) = this->Base<COLOR_G>();
-		arrBaseColor.at(COLOR_B) = this->Base<COLOR_B>();
+		arrBaseColor[COLOR_R] = this->Base<COLOR_R>();
+		arrBaseColor[COLOR_G] = this->Base<COLOR_G>();
+		arrBaseColor[COLOR_B] = this->Base<COLOR_B>();
 		return arrBaseColor;
 	}
 
@@ -157,10 +157,10 @@ public:
 	[[nodiscard]] std::array<float, 4U> BaseAlpha() const
 	{
 		std::array<float, 4U> arrBaseColor = { };
-		arrBaseColor.at(COLOR_R) = this->Base<COLOR_R>();
-		arrBaseColor.at(COLOR_G) = this->Base<COLOR_G>();
-		arrBaseColor.at(COLOR_B) = this->Base<COLOR_B>();
-		arrBaseColor.at(COLOR_A) = this->Base<COLOR_A>();
+		arrBaseColor[COLOR_R] = this->Base<COLOR_R>();
+		arrBaseColor[COLOR_G] = this->Base<COLOR_G>();
+		arrBaseColor[COLOR_B] = this->Base<COLOR_B>();
+		arrBaseColor[COLOR_A] = this->Base<COLOR_A>();
 		return arrBaseColor;
 	}
 
@@ -172,7 +172,7 @@ public:
 
 	[[nodiscard]] float Hue() const
 	{
-		if (arrColor.at(COLOR_R) == arrColor.at(COLOR_G) && arrColor.at(COLOR_G) == arrColor.at(COLOR_B))
+		if (arrColor[COLOR_R] == arrColor[COLOR_G] && arrColor[COLOR_G] == arrColor[COLOR_B])
 			return 0.f;
 
 		const float r = this->Base<COLOR_R>();
@@ -227,7 +227,7 @@ public:
 	}
 
 	/* return RGB color converted from HSB/HSV color */
-	static Color FromHSB(float flHue, float flSaturation, float flBrightness)
+	static Color FromHSB(float flHue, float flSaturation, float flBrightness, float flAlpha = 1.0f)
 	{
 		const float h = std::fmodf(flHue, 1.0f) / (60.0f / 360.0f);
 		const int i = static_cast<int>(h);
@@ -261,7 +261,7 @@ public:
 			break;
 		}
 
-		return Color(r, g, b);
+		return Color(r, g, b, flAlpha);
 	}
 
 private:

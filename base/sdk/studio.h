@@ -1,4 +1,6 @@
 #pragma once
+// used: matrix
+#include "datatypes/matrix.h"
 
 using RadianEuler = float[3];
 using Quaternion = float[4];
@@ -8,7 +10,7 @@ using Quaternion = float[4];
 #define MAXSTUDIOPOSEPARAM			24
 #define MAXSTUDIOSKINS				32		// total textures
 #define MAXSTUDIOFLEXCTRL			96		// maximum number of flexcontrollers (input sliders)
-#define MAXSTUDIOBONES				256		// total bones actually used
+#define MAXSTUDIOBONES				128		// total bones actually used
 #define MAXSTUDIOANIMBLOCKS			256
 #define MAXSTUDIOFLEXDESC			1024	// maximum number of low level flexes (actual morph targets)
 
@@ -158,6 +160,58 @@ struct mstudiohitboxset_t
 		if (iHitBox < 0 || iHitBox >= nHitboxes) return nullptr;
 		return (mstudiobbox_t*)((std::uint8_t*)this + nHitboxIndex) + iHitBox;
 	}
+};
+
+class virtualgroup_t
+{
+public:
+	void* pCache;
+	CUtlVector<int> vecBoneMap;
+	CUtlVector<int> vecMasterBone;
+	CUtlVector<int> vecMasterSequence;
+	CUtlVector<int> vecMasterAnim;
+	CUtlVector<int> vecMasterAttachment;
+	CUtlVector<int> vecMasterPose;
+	CUtlVector<int> vecMasterNode;
+};
+
+struct virtualsequence_t
+{
+	int	nFlags;
+	int iActivity;
+	int iGroup;
+	int nIndex;
+};
+
+struct virtualgeneric_t
+{
+	int iGroup;
+	int nIndex;
+};
+
+struct virtualmodel_t
+{
+	inline virtualgroup_t* GetAnimGroup(const int iAnimation)
+	{
+		// Note: user must manage mutex for this
+		return &vecGroup[vecAnim[iAnimation].iGroup];
+	}
+
+	inline virtualgroup_t* GetSequenceGroup(const int iSequence)
+	{
+		// Note: user must manage mutex for this
+		return &vecGroup[vecSequence[iSequence].iGroup];
+	}
+
+	std::byte pad0[0x8]; // CThreadFastMutex
+	CUtlVector<virtualsequence_t> vecSequence;
+	CUtlVector<virtualgeneric_t> vecAnim;
+	CUtlVector<virtualgeneric_t> vecAttachment;
+	CUtlVector<virtualgeneric_t> vecPose;
+	CUtlVector<virtualgroup_t> vecGroup;
+	CUtlVector<virtualgeneric_t> vecNode;
+	CUtlVector<virtualgeneric_t> vecIKLock;
+	CUtlVector<unsigned short> vecAutoplaySequences;
 };
 
 struct studiohdr_t;
@@ -371,10 +425,18 @@ struct studiohdr_t
 
 	int nLocalSequences;
 	int nLocalSequenceIndex;
-	inline mstudioseqdesc_t* GetSequenceDescription(int iSequence) const
+	inline mstudioseqdesc_t* GetLocalSequenceDescription(int iSequence) const
 	{
 		if (iSequence < 0 || iSequence >= nLocalSequences) iSequence = 0;
 		return (mstudioseqdesc_t*)((std::uint8_t*)this + nLocalSequenceIndex) + iSequence;
+	}
+
+	inline mstudioseqdesc_t& GetSequenceDescription(int iSequence, virtualmodel_t* pVirtualModel = nullptr, const studiohdr_t* pStudioHdr = nullptr) const
+	{
+		if (nIncludeModels == 0 || pVirtualModel == nullptr || pStudioHdr == nullptr)
+			return *GetLocalSequenceDescription(iSequence);
+
+		return *pStudioHdr->GetLocalSequenceDescription(pVirtualModel->vecSequence[iSequence].nIndex);
 	}
 
 	mutable int miActivityListVersion;

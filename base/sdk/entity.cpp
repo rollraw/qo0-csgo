@@ -171,7 +171,7 @@ void CBaseEntity::ModifyEyePosition(CCSGOPlayerAnimState* pAnimState, Vector* ve
 	}
 }
 
-int CBaseEntity::PostThink()
+void CBaseEntity::PostThink()
 {
 	// @ida postthink: 56 8B 35 ? ? ? ? 57 8B F9 8B CE 8B 06 FF 90 ? ? ? ? 8B 07
 
@@ -182,7 +182,7 @@ int CBaseEntity::PostThink()
 	static auto oSimulatePlayerSimulatedEntities = reinterpret_cast<SimulatePlayerSimulatedEntitiesFn>(MEM::FindPattern(CLIENT_DLL, XorStr("56 8B F1 8B 8E ? ? ? ? 83 F9 FF 74 23")));
 
 	// begin lock
-	MEM::CallVFunc<void>(I::MDLCache, 33);
+	I::MDLCache->BeginLock();
 
 	if (this->IsAlive())
 	{
@@ -199,8 +199,8 @@ int CBaseEntity::PostThink()
 	}
 
 	oSimulatePlayerSimulatedEntities(this);
-	// end lock
-	return MEM::CallVFunc<int>(I::MDLCache, 34);
+
+	I::MDLCache->EndLock();
 }
 
 bool CBaseEntity::IsEnemy(CBaseEntity* pEntity)

@@ -1,6 +1,4 @@
 #pragma once
-// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/engine/IEngineTrace.h
-
 // used: std::function
 #include <functional>
 
@@ -11,8 +9,10 @@
 // used: mask, content, surf flags
 #include "../bspflags.h"
 
+// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/engine/IEngineTrace.h
+
 #pragma region enginetrace_enumerations
-enum EDispSurfFlags
+enum EDispSurfFlags : int
 {
 	DISPSURF_FLAG_SURFACE =		(1 << 0),
 	DISPSURF_FLAG_WALKABLE =	(1 << 1),
@@ -20,7 +20,8 @@ enum EDispSurfFlags
 	DISPSURF_FLAG_SURFPROP1 =	(1 << 3),
 	DISPSURF_FLAG_SURFPROP2 =	(1 << 4)
 };
-enum ETraceType
+
+enum ETraceType : int
 {
 	TRACE_EVERYTHING = 0,
 	TRACE_WORLD_ONLY,
@@ -29,7 +30,7 @@ enum ETraceType
 	TRACE_FILTERSKY
 };
 
-enum EDebugTraceCounterBehavior
+enum EDebugTraceCounterBehavior : int
 {
 	TRACE_COUNTER_SET = 0,
 	TRACE_COUNTER_INC,
@@ -87,7 +88,7 @@ public:
 	std::uint16_t		uWorldSurfaceIndex;		// index of the msurface2_t, if applicable
 	CBaseEntity*		pHitEntity;				// entity hit by trace
 	int					iHitbox;				// box hit by trace in studio
-	
+
 	inline bool DidHit() const
 	{
 		return (flFraction < 1.0f || bAllSolid || bStartSolid);
@@ -138,7 +139,7 @@ struct Ray_t
 
 		this->vecExtents = vecMaxs - vecMins;
 		this->vecExtents *= 0.5f;
-		this->bIsRay = (this->vecExtents.LengthSqr() < 1e-6);
+		this->bIsRay = (this->vecExtents.LengthSqr() < 1e-6f);
 
 		this->vecStartOffset = vecMins + vecMaxs;
 		this->vecStartOffset *= 0.5f;
@@ -182,10 +183,8 @@ public:
 		if (checkCallback != nullptr)
 			return checkCallback(pHandleEntity, fContentsMask);
 
-		assert(pSkip);
-
-		// else skip given entity
-		return !(pHandleEntity == pSkip);
+		// otherwise skip entity if given
+		return pSkip != nullptr ? pHandleEntity != pSkip : false;
 	}
 
 	ETraceType GetTraceType() const override
