@@ -181,7 +181,6 @@ void CBaseEntity::PostThink()
 	using SimulatePlayerSimulatedEntitiesFn = void(__thiscall*)(CBaseEntity*);
 	static auto oSimulatePlayerSimulatedEntities = reinterpret_cast<SimulatePlayerSimulatedEntitiesFn>(MEM::FindPattern(CLIENT_DLL, XorStr("56 8B F1 8B 8E ? ? ? ? 83 F9 FF 74 23")));
 
-	// begin lock
 	I::MDLCache->BeginLock();
 
 	if (this->IsAlive())

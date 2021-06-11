@@ -115,7 +115,7 @@ public:
 
 	CKeyValues* FindKey(const char* szKeyName, bool bCreate)
 	{
-		using FindKeyFn = CKeyValues * (__thiscall*)(void*, const char*, bool);
+		using FindKeyFn = CKeyValues*(__thiscall*)(void*, const char*, bool);
 		static auto oFindKey = reinterpret_cast<FindKeyFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 EC 1C 53 8B D9 85 DB")));
 		return oFindKey(this, szKeyName, bCreate);
 	}
