@@ -2,7 +2,7 @@
 // @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/dt_common.h
 // @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/dt_recv.h
 
-enum ESendPropType
+enum ESendPropType : int
 {
 	DPT_INT = 0,
 	DPT_FLOAT,
@@ -43,6 +43,17 @@ public:
 using RecvVarProxyFn = void(__cdecl*)(const CRecvProxyData*, void*, void*);
 using ArrayLengthProxyFn = void(__cdecl*)(void*, int, int);
 using DataTableProxyFn = void(__cdecl*)(const RecvProp_t*, void**, void*, int);
+
+class CStandartRecvProxies
+{
+public:
+	RecvVarProxyFn pInt32ToInt8;
+	RecvVarProxyFn pInt32ToInt16;
+	RecvVarProxyFn pInt32ToInt32;
+	RecvVarProxyFn pInt64ToInt64;
+	RecvVarProxyFn pFloatToFloat;
+	RecvVarProxyFn pVectorToVector;
+};
 
 // receive data table
 struct RecvTable_t

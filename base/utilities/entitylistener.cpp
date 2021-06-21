@@ -32,7 +32,7 @@ void CEntityListener::OnEntityCreated(CBaseEntity* pEntity)
 	switch (pClientClass->nClassID)
 	{
 	case EClassIndex::CCSPlayer:
-		vecEntities.emplace_back(EntityObject_t(pEntity, nIndex));
+		vecEntities.emplace_back(pEntity, nIndex);
 		break;
 	default:
 		break;
@@ -49,11 +49,6 @@ void CEntityListener::OnEntityDeleted(CBaseEntity* pEntity)
 	if (nIndex < 0)
 		return;
 
-	// get current player entry
-	const auto current = std::ranges::find_if(vecEntities, [&](const EntityObject_t& entry) { return entry.nIndex == nIndex; });
-
-	if (current == vecEntities.end())
-		return;
-
-	vecEntities.erase(current);
+	if (const auto it = std::ranges::find(vecEntities, nIndex, &EntityObject_t::nIndex); it != vecEntities.end())
+		vecEntities.erase(it);
 }

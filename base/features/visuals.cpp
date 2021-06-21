@@ -314,7 +314,7 @@ void CVisuals::Event(IGameEvent* pEvent, const FNV1A_t uNameHash)
 					return;
 
 				// add hit info
-				vecHitMarks.emplace_back(HitMarkerObject_t{ vecPosition.value(), pEvent->GetInt(XorStr("dmg_health")), flServerTime + C::Get<float>(Vars.flScreenHitMarkerTime) });
+				vecHitMarks.emplace_back(HitMarkerObject_t{ vecPosition.value(), pEvent->GetInt(XorStr("dmg_health")), flServerTime });
 			}
 		}
 	}
@@ -733,7 +733,7 @@ IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view sz
 	}})#"), fmt::arg(XorStr("shader"), szShader), fmt::arg(XorStr("texture"), szBaseTexture), fmt::arg(XorStr("envmap"), szEnvMap), fmt::arg(XorStr("ignorez"), bIgnorez ? 1 : 0), fmt::arg(XorStr("wireframe"), bWireframe ? 1 : 0), fmt::arg(XorStr("proxies"), szProxies));
 
 	// load to memory
-	CKeyValues* pKeyValues = static_cast<CKeyValues*>(CKeyValues::operator new(sizeof(CKeyValues)));
+	CKeyValues* pKeyValues = new CKeyValues;
 	pKeyValues->Init(szShader.data());
 	pKeyValues->LoadFromBuffer(szName.data(), szMaterial.c_str());
 
@@ -747,13 +747,13 @@ void CVisuals::HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color 
 		return;
 
 	// get last time delta for lines
-	const float flLastDelta = vecHitMarks.back().flTime - flServerTime;
+	const float flLastDelta = vecHitMarks.back().flTime + C::Get<float>(Vars.flScreenHitMarkerTime) - flServerTime;
 
 	if (flLastDelta <= 0.f)
 		return;
 
 	const float flMaxLinesAlpha = colLines.Base<COLOR_A>();
-	static constexpr auto arrSides = std::to_array<std::array<float, 2U>>({ { -1.0f, -1.0f }, { 1.0f, 1.0f }, { -1.0f, 1.0f }, { 1.0f, -1.0f } });
+	constexpr std::array<std::array<float, 2U>, 4U> arrSides = { { { -1.0f, -1.0f }, { 1.0f, 1.0f }, { -1.0f, 1.0f }, { 1.0f, -1.0f } } };
 
 	for (const auto& arrSide : arrSides)
 		// draw mark cross
@@ -763,29 +763,29 @@ void CVisuals::HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color 
 		return;
 
 	const float flMaxDamageAlpha = colDamage.Base<COLOR_A>();
-	for (std::size_t i = 0U; i < vecHitMarks.size(); i++)
-	{
-		const float flDelta = vecHitMarks.at(i).flTime - flServerTime;
 
-		if (flDelta <= 0.f)
+	std::erase_if(vecHitMarks, [&](const auto& hitmarkObject)
 		{
-			vecHitMarks.erase(vecHitMarks.cbegin() + i);
-			continue;
-		}
+			const float flDelta = hitmarkObject.flTime + C::Get<float>(Vars.flScreenHitMarkerTime) - I::Globals->flCurrentTime;
 
-		if (ImVec2 vecScreen = { }; D::WorldToScreen(vecHitMarks.at(i).vecPosition, vecScreen))
-		{
-			// max distance for floating damage
-			constexpr float flDistance = 40.f;
-			const float flRatio = 1.0f - (flDelta / C::Get<float>(Vars.flScreenHitMarkerTime));
+			if (flDelta <= 0.f)
+				return true;
 
-			// calculate fade out alpha
-			const int iAlpha = static_cast<int>(std::min(flMaxDamageAlpha, flDelta / C::Get<float>(Vars.flScreenHitMarkerTime)) * 255.f);
+			if (ImVec2 vecScreen = { }; D::WorldToScreen(hitmarkObject.vecPosition, vecScreen))
+			{
+				// max distance for floating damage
+				constexpr float flDistance = 40.f;
+				const float flRatio = 1.0f - (flDelta / C::Get<float>(Vars.flScreenHitMarkerTime));
 
-			// draw dealt damage
-			D::AddText(F::SmallestPixel, 24.f, ImVec2(vecScreen.x, vecScreen.y - flRatio * flDistance), std::to_string(vecHitMarks.at(i).iDamage), colDamage.Set<COLOR_A>(static_cast<std::uint8_t>(iAlpha)), DRAW_TEXT_OUTLINE, Color(0, 0, 0, iAlpha));
-		}
-	}
+				// calculate fade out alpha
+				const int iAlpha = static_cast<int>(std::min(flMaxDamageAlpha, flDelta / C::Get<float>(Vars.flScreenHitMarkerTime)) * 255.f);
+
+				// draw dealt damage
+				D::AddText(F::SmallestPixel, 24.f, ImVec2(vecScreen.x, vecScreen.y - flRatio * flDistance), std::to_string(hitmarkObject.iDamage), colDamage.Set<COLOR_A>(static_cast<std::uint8_t>(iAlpha)), DRAW_TEXT_OUTLINE, Color(0, 0, 0, iAlpha));
+			}
+
+			return false;
+		});
 }
 
 void CVisuals::NightMode(CEnvTonemapController* pController) const

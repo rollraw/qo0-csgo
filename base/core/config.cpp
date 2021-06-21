@@ -316,7 +316,7 @@ void C::Remove(const std::size_t nIndex)
 	const std::string& szFileName = vecFileNames.at(nIndex);
 
 	// unable delete default config
-	if (!szFileName.compare(XorStr("default.qo0")))
+	if (szFileName.compare(XorStr("default.qo0")) == 0)
 		return;
 
 	// get utf-8 full path to config

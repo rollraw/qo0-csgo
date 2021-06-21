@@ -184,7 +184,7 @@ public:
 			return checkCallback(pHandleEntity, fContentsMask);
 
 		// otherwise skip entity if given
-		return pSkip != nullptr ? pHandleEntity != pSkip : true;
+		return pHandleEntity != pSkip;
 	}
 
 	ETraceType GetTraceType() const override

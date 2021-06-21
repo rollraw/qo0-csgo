@@ -592,32 +592,32 @@ void D::SwapDrawData()
 #pragma region draw_render
 void D::AddLine(const ImVec2& vecStart, const ImVec2& vecEnd, const Color& colLine, float flThickness)
 {
-	vecDrawData.emplace_back(EDrawType::LINE, std::make_any<LineObject_t>(LineObject_t{ vecStart, vecEnd, colLine.GetU32(), flThickness }));
+	vecDrawData.emplace_back(EDrawType::LINE, std::make_any<LineObject_t>(vecStart, vecEnd, colLine.GetU32(), flThickness));
 }
 
 void D::AddRect(const ImVec2& vecMin, const ImVec2& vecMax, const Color& colRect, unsigned int uFlags, const Color& colOutline, float flRounding, ImDrawCornerFlags roundingCorners, float flThickness)
 {
-	vecDrawData.emplace_back(EDrawType::RECT, std::make_any<RectObject_t>(RectObject_t{ vecMin, vecMax, colRect.GetU32(), uFlags, colOutline.GetU32(), flRounding, roundingCorners, flThickness }));
+	vecDrawData.emplace_back(EDrawType::RECT, std::make_any<RectObject_t>(vecMin, vecMax, colRect.GetU32(), uFlags, colOutline.GetU32(), flRounding, roundingCorners, flThickness));
 }
 
 void D::AddRectMultiColor(const ImVec2& vecMin, const ImVec2& vecMax, const Color& colUpperLeft, const Color& colUpperRight, const Color& colBottomRight, const Color& colBottomLeft)
 {
-	vecDrawData.emplace_back(EDrawType::RECT_MULTICOLOR, std::make_any<RectMultiColorObject_t>(RectMultiColorObject_t{ vecMin, vecMax, colUpperLeft.GetU32(), colUpperRight.GetU32(), colBottomRight.GetU32(), colBottomLeft.GetU32() }));
+	vecDrawData.emplace_back(EDrawType::RECT_MULTICOLOR, std::make_any<RectMultiColorObject_t>(vecMin, vecMax, colUpperLeft.GetU32(), colUpperRight.GetU32(), colBottomRight.GetU32(), colBottomLeft.GetU32()));
 }
 
 void D::AddCircle(const ImVec2& vecCenter, float flRadius, const Color& colCircle, int nSegments, unsigned int uFlags, const Color& colOutline, float flThickness)
 {
-	vecDrawData.emplace_back(EDrawType::CIRCLE, std::make_any<CircleObject_t>(CircleObject_t{ vecCenter, flRadius, colCircle.GetU32(), nSegments, uFlags, colOutline.GetU32(), flThickness }));
+	vecDrawData.emplace_back(EDrawType::CIRCLE, std::make_any<CircleObject_t>(vecCenter, flRadius, colCircle.GetU32(), nSegments, uFlags, colOutline.GetU32(), flThickness));
 }
 
 void D::AddTriangle(const ImVec2& vecFirst, const ImVec2& vecSecond, const ImVec2& vecThird, const Color& colTriangle, unsigned int uFlags, const Color& colOutline, float flThickness)
 {
-	vecDrawData.emplace_back(EDrawType::TRIANGLE, std::make_any<TriangleObject_t>(TriangleObject_t{ vecFirst, vecSecond, vecThird, colTriangle.GetU32(), uFlags, colOutline.GetU32(), flThickness }));
+	vecDrawData.emplace_back(EDrawType::TRIANGLE, std::make_any<TriangleObject_t>(vecFirst, vecSecond, vecThird, colTriangle.GetU32(), uFlags, colOutline.GetU32(), flThickness));
 }
 
 void D::AddPolygon(std::vector<ImVec2>& vecPoints, const Color& colPolygon, unsigned int uFlags, const Color& colOutline, bool bClosed, float flThickness)
 {
-	vecDrawData.emplace_back(EDrawType::POLYGON, std::make_any<PolygonObject_t>(PolygonObject_t{ std::move(vecPoints), colPolygon.GetU32(), uFlags, colOutline.GetU32(), bClosed, flThickness }));
+	vecDrawData.emplace_back(EDrawType::POLYGON, std::make_any<PolygonObject_t>(std::move(vecPoints), colPolygon.GetU32(), uFlags, colOutline.GetU32(), bClosed, flThickness));
 }
 
 void D::AddText(const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const std::string& szText, const Color& colText, unsigned int uFlags, const Color& colOutline)
@@ -628,7 +628,7 @@ void D::AddText(const ImFont* pFont, float flFontSize, const ImVec2& vecPosition
 	// check is only one flag selected
 	IM_ASSERT(ImIsPowerOfTwo(uFlags == DRAW_TEXT_NONE || uFlags & (DRAW_TEXT_DROPSHADOW | DRAW_TEXT_OUTLINE)));
 
-	vecDrawData.emplace_back(EDrawType::TEXT, std::make_any<TextObject_t>(TextObject_t{ pFont, flFontSize, vecPosition, szText, colText.GetU32(), uFlags, colOutline.GetU32() }));
+	vecDrawData.emplace_back(EDrawType::TEXT, std::make_any<TextObject_t>(pFont, flFontSize, vecPosition, szText, colText.GetU32(), uFlags, colOutline.GetU32()));
 }
 
 void D::AddText(const ImVec2& vecPosition, const std::string& szText, const Color& colText, int iFlags, const Color& colOutline)
@@ -638,7 +638,7 @@ void D::AddText(const ImVec2& vecPosition, const std::string& szText, const Colo
 
 void D::AddImage(ImTextureID pTexture, const ImVec2& vecMin, const ImVec2& vecMax, const Color& colImage, float flRounding, ImDrawCornerFlags roundingCorners)
 {
-	vecDrawData.emplace_back(EDrawType::IMAGE, std::make_any<ImageObject_t>(ImageObject_t{ pTexture, vecMin, vecMax, colImage.GetU32(), flRounding, roundingCorners }));
+	vecDrawData.emplace_back(EDrawType::IMAGE, std::make_any<ImageObject_t>(pTexture, vecMin, vecMax, colImage.GetU32(), flRounding, roundingCorners));
 }
 #pragma endregion
 

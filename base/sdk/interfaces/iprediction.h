@@ -5,6 +5,8 @@
 #include "../datatypes/qangle.h"
 // used: usercmd
 #include "../datatypes/usercmd.h"
+// used: cbasehandle
+#include "icliententitylist.h"
 
 // @credits: https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/shared/igamemovement.h
 class CMoveData
@@ -84,13 +86,31 @@ public:
 class IPrediction
 {
 public:
-	std::byte		pad0[0x4];				// 0x0000
-	std::uintptr_t	hLastGround;			// 0x0004
-	bool			bInPrediction;			// 0x0008
-	bool			bOldCLPredictValue;		// 0x0009
-	bool			bEnginePaused;			// 0x000A
-	std::byte		pad2[0xD];				// 0x000B
-	bool			bIsFirstTimePredicted;	// 0x0018
+	std::byte		pad0[0x4];						// 0x0000
+	std::uintptr_t	hLastGround;					// 0x0004
+	bool			bInPrediction;					// 0x0008
+	bool			bIsFirstTimePredicted;			// 0x0009
+	bool			bEnginePaused;					// 0x000A
+	bool			bOldCLPredictValue;				// 0x000B
+	int				iPreviousStartFrame;			// 0x000C
+	int				nIncomingPacketNumber;			// 0x0010
+	float			flLastServerWorldTimeStamp;		// 0x0014
+
+	struct Split_t
+	{
+		bool		bIsFirstTimePredicted;			// 0x0018
+		std::byte	pad0[0x3];						// 0x0019
+		int			nCommandsPredicted;				// 0x001C
+		int			nServerCommandsAcknowledged;	// 0x0020
+		int			iPreviousAckHadErrors;			// 0x0024
+		float		flIdealPitch;					// 0x0028
+		int			iLastCommandAcknowledged;		// 0x002C
+		bool		bPreviousAckErrorTriggersFullLatchReset; // 0x0030
+		CUtlVector<CBaseHandle> vecEntitiesWithPredictionErrorsInLastAck; // 0x0031
+		bool		bPerformedTickShift;			// 0x0045
+	};
+
+	Split_t			Split[1];						// 0x0018
 
 public:
 	void Update(int iStartFrame, bool bValidFrame, int nIncomingAcknowledged, int nOutgoingCommand)

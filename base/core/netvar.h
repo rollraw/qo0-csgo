@@ -1,8 +1,8 @@
 #pragma once
-// used: std::map
-#include <map>
 // used: std::ifstream
 #include <fstream>
+// used: std::unordered_map
+#include <unordered_map>
 
 // used: winapi includes
 #include "../common.h"
@@ -37,6 +37,15 @@
 
 /* add function to get netvar variable pointer */
 #define N_ADD_PVARIABLE( Type, szFunctionName, szNetVar ) N_ADD_PVARIABLE_OFFSET( Type, szFunctionName, szNetVar, 0U )
+
+/* add function to get csplayerresource variable for entity by index from netvar offset */
+#define N_ADD_RESOURCE_VARIABLE( Type, szFunctionName, szNetVar )														\
+	[[nodiscard]] std::add_lvalue_reference_t<Type> szFunctionName(int nIndex)											\
+	{																													\
+		static constexpr FNV1A_t uHash = FNV1A::HashConst(szNetVar);													\
+		static std::uintptr_t uOffset = CNetvarManager::Get().mapProps[uHash].uOffset;									\
+		return *(std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset + nIndex * sizeof(Type));	\
+	}
 
 /* add function to get datamap variable */
 #define N_ADD_DATAFIELD( Type, szFunctionName, pMap, szDataField )											\
@@ -74,8 +83,8 @@
 class CRecvPropHook
 {
 public:
-	CRecvPropHook(RecvProp_t* pRecvProp, const RecvVarProxyFn pNewProxyFn)
-		: pRecvProp(pRecvProp), pOriginalFn(pRecvProp->oProxyFn)
+	CRecvPropHook(RecvProp_t* pRecvProp, const RecvVarProxyFn pNewProxyFn) :
+		pRecvProp(pRecvProp), pOriginalFn(pRecvProp->oProxyFn)
 	{
 		SetProxy(pNewProxyFn);
 	}
@@ -89,9 +98,10 @@ public:
 	}
 
 	/* restore original function */
-	void Restore()
+	void Restore() const
 	{
-		this->pRecvProp->oProxyFn = this->pOriginalFn;
+		if (this->pOriginalFn != nullptr)
+			this->pRecvProp->oProxyFn = this->pOriginalFn;
 	}
 
 	void SetProxy(const RecvVarProxyFn pNewProxyFn) const
@@ -108,7 +118,7 @@ private:
 	// Values
 	/* in future that is being modified and replace the original prop */
 	RecvProp_t* pRecvProp = nullptr;
-	/* original proxy function to get available restore it later */
+	/* original proxy function to make able to restore it later */
 	RecvVarProxyFn pOriginalFn = nullptr;
 };
 
@@ -117,13 +127,13 @@ class CNetvarManager : public CSingleton<CNetvarManager>
 public:
 	struct NetvarObject_t
 	{
-		RecvProp_t* pRecvProp;
-		std::uintptr_t uOffset;
+		RecvProp_t* pRecvProp = nullptr;
+		std::uintptr_t uOffset = 0U;
 	};
 
 	// Get
 	/* fill map with netvars and also dump it to given file */
-	bool Setup(std::string_view szDumpFileName);
+	bool Setup(const std::string_view szDumpFileName);
 	/*
 	 * stores the variables of objects in the hierarchy
 	 * used to iterate through an object's data descriptions from data map
@@ -135,19 +145,19 @@ public:
 	int iStoredProps = 0;
 	int iStoredTables = 0;
 	/* networkable properties map */
-	std::map<FNV1A_t, NetvarObject_t> mapProps;
+	std::unordered_map<FNV1A_t, NetvarObject_t> mapProps = { };
 
 private:
 	/*
 	 * recursively stores networked properties info from data tables in our map
 	 * and also format our dump and write values to file
 	 */
-	void StoreProps(const char* szClassName, RecvTable_t* pRecvTable, const std::uintptr_t uOffset, int nDumpTabs);
+	void StoreProps(const char* szClassName, RecvTable_t* pRecvTable, const std::uintptr_t uOffset, const int iDepth);
 
 	// Extra
-	std::string GetPropertyType(ESendPropType nPropertyType, int iElements, int nStringBufferSize) const;
+	std::string GetPropertyType(const RecvProp_t* pRecvProp) const;
 
 	// Values
 	/* output file */
-	std::ofstream fsDumpFile;
+	std::ofstream fsDumpFile = { };
 };

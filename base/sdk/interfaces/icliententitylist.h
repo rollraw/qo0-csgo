@@ -1,5 +1,5 @@
 #pragma once
-using CBaseHandle = unsigned long;
+using CBaseHandle = std::uintptr_t;
 
 // used: utlvector
 #include "../datatypes/utlvector.h"
