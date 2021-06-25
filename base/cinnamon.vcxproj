@@ -136,11 +136,26 @@
     <ClCompile Include="..\dependencies\imgui\imgui_freetype.cpp" />
     <ClCompile Include="..\dependencies\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\dependencies\imgui\win32\imgui_impl_win32.cpp" />
-    <ClCompile Include="..\dependencies\minhook\buffer.c" />
-    <ClCompile Include="..\dependencies\minhook\hde\hde32.c" />
-    <ClCompile Include="..\dependencies\minhook\hde\hde64.c" />
-    <ClCompile Include="..\dependencies\minhook\hook.c" />
-    <ClCompile Include="..\dependencies\minhook\trampoline.c" />
+    <ClCompile Include="..\dependencies\minhook\buffer.c">
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)$(TargetName)c.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)$(TargetName)c.pch</PrecompiledHeaderOutputFile>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\minhook\hde\hde32.c">
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)$(TargetName)c.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)$(TargetName)c.pch</PrecompiledHeaderOutputFile>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\minhook\hde\hde64.c">
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)$(TargetName)c.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)$(TargetName)c.pch</PrecompiledHeaderOutputFile>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\minhook\hook.c">
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)$(TargetName)c.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)$(TargetName)c.pch</PrecompiledHeaderOutputFile>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\minhook\trampoline.c">
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)$(TargetName)c.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)$(TargetName)c.pch</PrecompiledHeaderOutputFile>
+    </ClCompile>
     <ClCompile Include="core\config.cpp" />
     <ClCompile Include="core\hooks.cpp" />
     <ClCompile Include="core\interfaces.cpp" />
@@ -158,7 +173,12 @@
     <ClCompile Include="features\skinchanger.cpp" />
     <ClCompile Include="features\triggerbot.cpp" />
     <ClCompile Include="features\visuals.cpp" />
-    <ClCompile Include="pchc.c" />
+    <ClCompile Include="pchc.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)$(TargetName)c.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)$(TargetName)c.pch</PrecompiledHeaderOutputFile>
+    </ClCompile>
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pch.h</PrecompiledHeaderFile>
