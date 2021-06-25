@@ -51,6 +51,7 @@
     <ClInclude Include="features\triggerbot.h" />
     <ClInclude Include="features\visuals.h" />
     <ClInclude Include="global.h" />
+    <ClInclude Include="pch.h" />
     <ClInclude Include="sdk\animations.h" />
     <ClInclude Include="sdk\bitbuf.h" />
     <ClInclude Include="sdk\bspflags.h" />
