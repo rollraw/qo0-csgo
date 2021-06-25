@@ -158,6 +158,7 @@
     <ClCompile Include="features\skinchanger.cpp" />
     <ClCompile Include="features\triggerbot.cpp" />
     <ClCompile Include="features\visuals.cpp" />
+    <ClCompile Include="pch.cpp" />
     <ClCompile Include="sdk\convar.cpp" />
     <ClCompile Include="sdk\entity.cpp" />
     <ClCompile Include="sdk\hash\crc32.cpp" />
