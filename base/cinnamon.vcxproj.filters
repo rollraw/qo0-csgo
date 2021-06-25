@@ -548,5 +548,8 @@
     <ClCompile Include="pch.cpp">
       <Filter>source</Filter>
     </ClCompile>
+    <ClCompile Include="pchc.c">
+      <Filter>source</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
