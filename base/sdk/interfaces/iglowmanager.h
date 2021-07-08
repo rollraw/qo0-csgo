@@ -19,10 +19,9 @@ class IGlowObjectManager
 public:
 	struct GlowObject_t
 	{
-		void Set(Color color, int nRenderStyle = GLOWRENDERSTYLE_DEFAULT) // @note: styles not used cuz other styles doesnt have ignorez flag and needed to rebuild glow
+		void Set(const Color& colGlow, const int nRenderStyle = GLOWRENDERSTYLE_DEFAULT) // @note: styles not used cuz other styles doesnt have ignorez flag and needed to rebuild glow
 		{
-			this->vecColor = Vector(color.Base<COLOR_R>(), color.Base<COLOR_G>(), color.Base<COLOR_B>());
-			this->flAlpha = color.Base<COLOR_A>();
+			this->arrColor = colGlow.BaseAlpha();
 			this->flBloomAmount = 1.0f;
 			this->bRenderWhenOccluded = true;
 			this->bRenderWhenUnoccluded = false;
@@ -34,21 +33,22 @@ public:
 			return nNextFreeSlot != ENTRY_IN_USE;
 		}
 
-		CBaseEntity*	pEntity;
-		Vector			vecColor;
-		float			flAlpha;
-		std::byte		pad0[0x8];
-		float			flBloomAmount;
-		float			flLocalPlayerIsZeroPoint;
-		bool			bRenderWhenOccluded;
-		bool			bRenderWhenUnoccluded;
-		bool			bFullBloomRender;
-		std::byte		pad1[0x1];
-		int				iFullBloomStencilTestValue;
-		int				nRenderStyle;
-		int				nSplitScreenSlot;
-		int				nNextFreeSlot;
-	};
+		int						nNextFreeSlot;					// 0x00
+		CBaseEntity*			pEntity;						// 0x04
+		std::array<float, 4U>	arrColor;						// 0x08
+		bool					bAlphaCappedByRenderAlpha;		// 0x18
+		std::byte				pad0[0x3];						// 0x19 - pack 1 bool as 4 bytes
+		float					flAlphaFunctionOfMaxVelocity;	// 0x1C
+		float					flBloomAmount;					// 0x20
+		float					flPulseOverdrive;				// 0x24
+		bool					bRenderWhenOccluded;			// 0x28
+		bool					bRenderWhenUnoccluded;			// 0x29
+		bool					bFullBloomRender;				// 0x2A
+		std::byte				pad1[0x1];						// 0x2B  - pack 3 bool as 4 bytes
+		int						iFullBloomStencilTestValue;		// 0x2C
+		int						nRenderStyle;					// 0x30
+		int						nSplitScreenSlot;				// 0x34
+	}; // Size: 0x38
 
 	struct GlowBoxObject_t
 	{
