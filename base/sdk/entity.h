@@ -530,7 +530,7 @@ public:
 		arrPose.at(2U) = (flYaw + 180.f) / 360.f;
 	}
 
-	[[nodiscard]] CUtlVector<CAnimationLayer> GetAnimationOverlays()
+	[[nodiscard]] CUtlVector<CAnimationLayer>& GetAnimationOverlays()
 	{
 		static const std::uintptr_t uAnimationOverlaysOffset = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, XorStr("8B 89 ? ? ? ? 8D 0C D1")) + 0x2);
 		return *reinterpret_cast<CUtlVector<CAnimationLayer>*>(reinterpret_cast<std::uintptr_t>(this) + uAnimationOverlaysOffset);
