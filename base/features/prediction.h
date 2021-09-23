@@ -15,8 +15,8 @@ class CPrediction : public CSingleton<CPrediction>
 public:
 	CPrediction()
 	{
-		iPredictionRandomSeed = *reinterpret_cast<int**>(MEM::FindPattern(CLIENT_DLL, XorStr("8B 0D ? ? ? ? BA ? ? ? ? E8 ? ? ? ? 83 C4 04")) + 0x2); // @xref: "SelectWeightedSequence"
-		pSetPredictionEntity = *reinterpret_cast<CBaseEntity**>(MEM::FindPattern(CLIENT_DLL, XorStr("89 35 ? ? ? ? F3 0F 10 48 20")) + 0x2);
+		uPredictionRandomSeed = *reinterpret_cast<unsigned int**>(MEM::FindPattern(CLIENT_DLL, XorStr("8B 0D ? ? ? ? BA ? ? ? ? E8 ? ? ? ? 83 C4 04")) + 0x2); // @xref: "SelectWeightedSequence"
+		pSetPredictionEntity = *reinterpret_cast<CBaseEntity***>(MEM::FindPattern(CLIENT_DLL, XorStr("89 35 ? ? ? ? F3 0F 10 48 20")) + 0x2);
 	}
 
 	// Get
@@ -31,9 +31,9 @@ public:
 private:
 	// Values
 	/* prediction seed */
-	int* iPredictionRandomSeed = nullptr;
+	unsigned int* uPredictionRandomSeed = nullptr;
 	/* current predictable entity */
-	CBaseEntity* pSetPredictionEntity = nullptr;
+	CBaseEntity** pSetPredictionEntity = nullptr;
 	/* encapsulated input parameters to player movement */
 	CMoveData moveData = { };
 

@@ -144,14 +144,14 @@ void CAntiAim::UpdateServerAnimations(CUserCmd* pCmd, CBaseEntity* pLocal)
 	{
 		// backup values
 		std::array<CAnimationLayer, MAXOVERLAYS> arrNetworkedLayers;
-		std::copy(pLocal->GetAnimationOverlays(), pLocal->GetAnimationOverlays() + arrNetworkedLayers.size(), arrNetworkedLayers.data());
+		std::ranges::copy(pLocal->GetAnimationOverlays(), arrNetworkedLayers.data());
 		const QAngle angAbsViewOld = pLocal->GetAbsAngles();
 		const std::array<float, MAXSTUDIOPOSEPARAM> arrPosesOld = pLocal->GetPoseParameter();
 
 		pServerAnimState->Update(pCmd->angViewPoint);
 
 		// restore values
-		std::copy(arrNetworkedLayers.begin(), arrNetworkedLayers.end(), pLocal->GetAnimationOverlays());
+		std::ranges::copy(arrNetworkedLayers, pLocal->GetAnimationOverlays().Base());
 		pLocal->GetPoseParameter() = arrPosesOld;
 		pLocal->SetAbsAngles(angAbsViewOld);
 

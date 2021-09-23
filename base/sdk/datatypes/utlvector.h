@@ -27,6 +27,16 @@ class CUtlVector
 {
 	using CAllocator = A;
 public:
+	auto begin() noexcept
+	{
+		return pMemory.Base();
+	}
+
+	auto end() noexcept
+	{
+		return pMemory.Base() + iSize;
+	}
+
 	auto begin() const noexcept
 	{
 		return pMemory.Base();

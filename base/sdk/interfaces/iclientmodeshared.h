@@ -96,7 +96,7 @@ private:
 class CEventInfo
 {
 public:
-	short				sClassID;		// 0x00 // 0 implies not in use
+	short				nClassID;		// 0x00 // 0 implies not in use
 	float				flFireDelay;	// 0x02 // if non-zero, the delay time when the event should be fired ( fixed up on the client )
 	const void*			pSendTable;		// 0x06
 	const CBaseClient*	pClientClass;	// 0x0A // clienclass pointer

@@ -461,12 +461,14 @@ public:
 
 	#pragma region DT_CSPlayer
 	N_ADD_VARIABLE(int, GetShotsFired, "CCSPlayer->m_iShotsFired");
+	N_ADD_VARIABLE_OFFSET(float, GetSpawnTime, "CCSPlayer->m_iAddonBits", -0x4); // @ida: 89 86 ? ? ? ? E8 ? ? ? ? 80 + 0x2
 	N_ADD_VARIABLE(int, GetMoney, "CCSPlayer->m_iAccount");
 	N_ADD_VARIABLE(int, GetTotalHits, "CCSPlayer->m_totalHitsOnServer");
 	N_ADD_VARIABLE(int, GetArmor, "CCSPlayer->m_ArmorValue");
 	N_ADD_VARIABLE(QAngle, GetEyeAngles, "CCSPlayer->m_angEyeAngles");
 	N_ADD_VARIABLE(bool, IsDefusing, "CCSPlayer->m_bIsDefusing");
 	N_ADD_VARIABLE(bool, IsScoped, "CCSPlayer->m_bIsScoped");
+	N_ADD_VARIABLE_OFFSET(CCSGOPlayerAnimState*, GetAnimationState, "CCSPlayer->m_bIsScoped", -0x14); // @ida: 8B 8E ? ? ? ? F3 0F 10 48 ? E8 ? ? ? ? C7 + 0x2
 	N_ADD_VARIABLE(bool, IsGrabbingHostage, "CCSPlayer->m_bIsGrabbingHostage");
 	N_ADD_VARIABLE(bool, IsRescuing, "CCSPlayer->m_bIsRescuing");
 	N_ADD_VARIABLE(bool, HasHelmet, "CCSPlayer->m_bHasHelmet");
@@ -499,8 +501,6 @@ public:
 	N_ADD_DATAFIELD(QAngle, GetAbsRotation, this->GetDataDescMap(), "m_angAbsRotation");
 	N_ADD_DATAFIELD(const matrix3x4_t, GetCoordinateFrame, this->GetDataDescMap(), "m_rgflCoordinateFrame");
 	N_ADD_DATAFIELD(int, GetMoveType, this->GetPredictionDescMap(), "m_MoveType");
-
-	N_ADD_OFFSET(float, GetSpawnTime, 0xA370); // @ida: 89 86 ? ? ? ? E8 ? ? ? ? 80 + 0x2
 	#pragma endregion
 
 	#pragma region DT_BaseCombatCharacter
@@ -517,8 +517,6 @@ public:
 	N_ADD_VARIABLE(bool, IsClientSideAnimation, "CBaseAnimating->m_bClientSideAnimation");
 	N_ADD_VARIABLE(float, GetCycle, "CBaseAnimating->m_flCycle");
 
-	N_ADD_OFFSET(int, GetAnimationOverlaysCount, 0x298C);
-
 	[[nodiscard]] std::array<float, MAXSTUDIOPOSEPARAM>& GetPoseParameter()
 	{
 		static std::uintptr_t m_flPoseParameter = CNetvarManager::Get().mapProps[FNV1A::HashConst("CBaseAnimating->m_flPoseParameter")].uOffset;
@@ -532,46 +530,40 @@ public:
 		arrPose.at(2U) = (flYaw + 180.f) / 360.f;
 	}
 
-	[[nodiscard]] CAnimationLayer* GetAnimationOverlays()
+	[[nodiscard]] CUtlVector<CAnimationLayer> GetAnimationOverlays()
 	{
-		// @ida = 8B 89 ? ? ? ? 8D 0C D1 + 0x2
-		return *reinterpret_cast<CAnimationLayer**>(reinterpret_cast<std::uintptr_t>(this) + 0x2980);
+		static const std::uintptr_t uAnimationOverlaysOffset = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, XorStr("8B 89 ? ? ? ? 8D 0C D1")) + 0x2);
+		return *reinterpret_cast<CUtlVector<CAnimationLayer>*>(reinterpret_cast<std::uintptr_t>(this) + uAnimationOverlaysOffset);
 	}
 
-	[[nodiscard]] inline CAnimationLayer* GetAnimationLayer(int nLayer)
+	[[nodiscard]] inline CAnimationLayer* GetAnimationLayer(const int nLayer)
 	{
 		if (nLayer >= 0 && nLayer < MAXOVERLAYS)
 			return &GetAnimationOverlays()[nLayer];
 
 		return nullptr;
 	}
-
-	[[nodiscard]] CCSGOPlayerAnimState* GetAnimationState()
-	{
-		// @ida: 8B 8E ? ? ? ? F3 0F 10 48 ? E8 ? ? ? ? C7 + 0x2
-		return *reinterpret_cast<CCSGOPlayerAnimState**>(reinterpret_cast<std::uintptr_t>(this) + 0x3914);
-	}
 	#pragma endregion
 
 	// DoExtraBonesProcessing
 	// pattern @xref: "ankle_L"
 	// index @xref: "SetupBones: invalid bone array size (%d - needs %d)\n"
-
-	const char* GetClassname()
-	{
-		// @ida: 8B 01 FF 90 ? ? ? ? 90 + 0x4
-		return MEM::CallVFunc<const char*>(this, 59);
-	}
-
+	
 	int IsMaxHealth()
 	{
 		// @ida: FF 90 ? ? ? ? 85 C0 0F 8F ? ? ? ? 80 + 0x2
-		return MEM::CallVFunc<int>(this, 122);
+		return MEM::CallVFunc<int>(this, 123);
 	}
 
 	void Think()
 	{
 		MEM::CallVFunc<void>(this, 138);
+	}
+
+	const char* GetClassname()
+	{
+		// @ida: 8B 01 FF 90 ? ? ? ? 90 + 0x4
+		return MEM::CallVFunc<const char*>(this, 143);
 	}
 
 	unsigned int PhysicsSolidMaskForEntity()
@@ -609,11 +601,13 @@ public:
 
 	void SetSequence(int iSequence)
 	{
+		// @ida: FF 90 ? ? ? ? 8B 07 8B CF FF 90 ? ? ? ? 8B CF + 0x2
 		MEM::CallVFunc<void>(this, 219, iSequence);
 	}
 
 	void StudioFrameAdvance()
 	{
+		// @ida: FF 90 ? ? ? ? 8B 07 8B CF FF 90 ? ? ? ? 8B CF + 0xC
 		MEM::CallVFunc<void>(this, 220);
 	}
 

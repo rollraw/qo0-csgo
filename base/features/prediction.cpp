@@ -18,9 +18,9 @@ void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 	pLocal->GetLastCommand() = *pCmd;
 
 	// random_seed isn't generated in ClientMode::CreateMove yet, we must generate it ourselves
-	*iPredictionRandomSeed = MD5::PseudoRandom(pCmd->iCommandNumber) & std::numeric_limits<int>::max();
+	*uPredictionRandomSeed = MD5::PseudoRandom(pCmd->iCommandNumber) & std::numeric_limits<int>::max();
 	// set ourselves as a predictable entity
-	pSetPredictionEntity = pLocal;
+	*pSetPredictionEntity = pLocal;
 
 	// backup globals
 	flOldCurrentTime = I::Globals->flCurrentTime;
@@ -79,8 +79,7 @@ void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 		pLocal->PreThink();
 
 	// run think
-	int* iNextThinkTick = pLocal->GetNextThinkTick();
-	if (*iNextThinkTick > 0 && *iNextThinkTick <= GetTickbase(pCmd, pLocal))
+	if (int* iNextThinkTick = pLocal->GetNextThinkTick(); *iNextThinkTick > 0 && *iNextThinkTick <= GetTickbase(pCmd, pLocal))
 	{
 		*iNextThinkTick = TICK_NEVER_THINK;
 		pLocal->Think();
@@ -125,10 +124,10 @@ void CPrediction::End(CUserCmd* pCmd, CBaseEntity* pLocal)
 	*pLocal->GetCurrentCommand() = nullptr;
 
 	// reset prediction seed
-	*iPredictionRandomSeed = -1;
+	*uPredictionRandomSeed = -1;
 
 	// reset prediction entity
-	pSetPredictionEntity = nullptr;
+	*pSetPredictionEntity = nullptr;
 
 	// reset move
 	I::GameMovement->Reset();
