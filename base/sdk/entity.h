@@ -688,9 +688,10 @@ public:
 	std::byte pad9[0x3];			// 0x00ED
 	int iDamage;					// 0x00F0
 	float flArmorRatio;				// 0x00F4
-	int iBullets;					// 0x00F8
-	float flPenetration;			// 0x00FC
-	std::byte pad10[0xC];			// 0x0100
+	float flHeadShotMultiplier;		// 0x00F8
+	int iBullets;					// 0x00FC
+	float flPenetration;			// 0x0100
+	std::byte pad10[0x8];			// 0x0104
 	float flRange;					// 0x010C
 	float flRangeModifier;			// 0x0110
 	float flThrowVelocity;			// 0x0114
