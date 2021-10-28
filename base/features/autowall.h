@@ -4,7 +4,6 @@
 // used: baseentity, cliententity, baseweapon, weapondata classes
 #include "../sdk/entity.h"
 
-/* autowall objects structure */
 struct FireBulletData_t
 {
 	Vector			vecPosition = { };
@@ -15,21 +14,20 @@ struct FireBulletData_t
 };
 
 // @credits: outlassn
-class CAutoWall : public CSingleton<CAutoWall>
+class CAutoWall
 {
 public:
 	// Get
-	/* returns damage at point and bullet data (if given) */
-	float GetDamage(CBaseEntity* pLocal, const Vector& vecPoint, FireBulletData_t& dataOut);
+	/* returns damage at point and simulated bullet data (if given) */
+	static float GetDamage(CBaseEntity* pLocal, const Vector& vecPoint, FireBulletData_t* pDataOut = nullptr);
 	/* calculates damage factor */
-	void ScaleDamage(int iHitGroup, CBaseEntity* pEntity, float flWeaponArmorRatio, float& flDamage);
-	/* returns true if trace entity breakable */
-	bool IsBreakableEntity(CBaseEntity* pEntity) const;
+	static void ScaleDamage(const int iHitGroup, CBaseEntity* pEntity, const float flWeaponArmorRatio, const float flWeaponHeadShotMultiplier, float& flDamage);
+	/* simulates fire bullet to penetrate up to 4 walls, return true when hitting player */
+	static bool SimulateFireBullet(CBaseEntity* pLocal, CBaseCombatWeapon* pWeapon, FireBulletData_t& data);
 
 private:
 	// Main
-	void ClipTraceToPlayers(const Vector& vecAbsStart, const Vector& vecAbsEnd, unsigned int fMask, ITraceFilter* pFilter, Trace_t* pTrace);
-	bool TraceToExit(Trace_t& enterTrace, Trace_t& exitTrace, Vector vecPosition, Vector vecDirection) const;
-	bool HandleBulletPenetration(CBaseEntity* pLocal, CCSWeaponData* pWeaponData, surfacedata_t* pEnterSurfaceData, FireBulletData_t& data) const;
-	bool SimulateFireBullet(CBaseEntity* pLocal, CBaseCombatWeapon* pWeapon, FireBulletData_t& data);
+	static void ClipTraceToPlayers(const Vector& vecAbsStart, const Vector& vecAbsEnd, const unsigned int fMask, ITraceFilter* pFilter, Trace_t* pTrace, const float flMinRange = 0.0f);
+	static bool TraceToExit(Trace_t& enterTrace, Trace_t& exitTrace, const Vector& vecPosition, const Vector& vecDirection, const CBaseEntity* pClipPlayer);
+	static bool HandleBulletPenetration(CBaseEntity* pLocal, const CCSWeaponData* pWeaponData, const surfacedata_t* pEnterSurfaceData, FireBulletData_t& data);
 };

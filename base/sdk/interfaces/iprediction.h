@@ -111,6 +111,7 @@ public:
 	};
 
 	Split_t			Split[1];						// 0x0018
+	// SavedGlobals 0x4C
 
 public:
 	void Update(int iStartFrame, bool bValidFrame, int nIncomingAcknowledged, int nOutgoingCommand)

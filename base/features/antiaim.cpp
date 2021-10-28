@@ -38,7 +38,7 @@ void CAntiAim::Run(CUserCmd* pCmd, CBaseEntity* pLocal, bool& bSendPacket)
 	if (pWeaponData == nullptr)
 		return;
 
-	float flServerTime = TICKS_TO_TIME(CPrediction::Get().GetTickbase(pCmd, pLocal));
+	float flServerTime = TICKS_TO_TIME(CPrediction::Get().GetTickBase(pCmd, pLocal));
 
 	// weapon shoot check
 	if (pWeaponData->IsGun() && pLocal->CanShoot(static_cast<CWeaponCSBase*>(pWeapon)) && (pCmd->iButtons & IN_ATTACK || (nDefinitionIndex == WEAPON_REVOLVER && pCmd->iButtons & IN_SECOND_ATTACK)))
@@ -123,7 +123,7 @@ void CAntiAim::UpdateServerAnimations(CUserCmd* pCmd, CBaseEntity* pLocal)
 	}
 
 	// get accurate server time
-	float flServerTime = TICKS_TO_TIME(CPrediction::Get().GetTickbase(pCmd, pLocal));
+	float flServerTime = TICKS_TO_TIME(CPrediction::Get().GetTickBase(pCmd, pLocal));
 
 	// need to allocate or create new due to player change
 	if (bAllocate || bChange)

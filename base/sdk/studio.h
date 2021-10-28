@@ -77,8 +77,8 @@ struct mstudiobone_t
 
 	// default values
 	Vector		vecPosition;
-	Quaternion	qQuat;
-	RadianEuler radRot;
+	Quaternion	qWorld;
+	RadianEuler radRotation;
 
 	// compression scale
 	Vector		vecPositionScale;
@@ -104,7 +104,7 @@ struct mstudiobone_t
 	inline void* GetProcedure() const
 	{
 		if (!nProcedureIndex) return nullptr;
-		return (void*)((std::uint8_t*)this + nProcedureIndex);
+		return (std::uint8_t*)this + nProcedureIndex;
 	}
 
 	inline const char* GetSurfacePropName() const
@@ -117,7 +117,7 @@ struct mstudiobone_t
 struct mstudiobonecontroller_t
 {
 	int			iBone; // -1 == 0
-	int			iType; // X, Y, Z, XR, YR, ZR, M
+	int			nType; // X, Y, Z, XR, YR, ZR, M
 	float		flStart;
 	float		flEnd;
 	int			iRest; // byte index value at rest
@@ -416,11 +416,11 @@ struct studiohdr_t
 	}
 
 	int	nLocalAnimations;
-	int	nLcoalAnimationIndex;
+	int	nLocalAnimationIndex;
 	inline void* GetAnimDescription(int iAnimation) const
 	{
 		if (iAnimation < 0 || iAnimation >= nLocalAnimations) iAnimation = 0;
-		return ((std::uint8_t*)this + nLcoalAnimationIndex) + iAnimation;
+		return ((std::uint8_t*)this + nLocalAnimationIndex) + iAnimation;
 	}
 
 	int nLocalSequences;
@@ -544,7 +544,7 @@ struct studiohdr_t
 	inline const char* GetSurfaceProp() const
 	{
 		if (!nSurfacePropIndex) return nullptr;
-		return ((char*)this) + nSurfacePropIndex;
+		return (char*)this + nSurfacePropIndex;
 	}
 
 	int	nKeyValueIndex;
@@ -552,7 +552,7 @@ struct studiohdr_t
 	inline const char* KeyValueText() const
 	{
 		if (!nKeyValueSize) return nullptr;
-		return ((char*)this) + nKeyValueIndex;
+		return (char*)this + nKeyValueIndex;
 	}
 
 	int	nIkAutoplayLocks;
@@ -568,15 +568,35 @@ struct studiohdr_t
 
 	int	nIncludeModels;
 	int	nIncludeModelIndex;
+	inline void* GetModelGroup(int nIndex) const
+	{
+		if (nIndex < 0 || nIndex >= nIncludeModels) return nullptr;
+		return ((std::uint8_t*)this + nIncludeModelIndex) + nIndex;
+	}
 
 	int	iVirtualModel;
 
 	int	nAnimBlockNameIndex;
+	inline const char* GetAnimBlockName() const
+	{
+		return ((char*)this) + nAnimBlockNameIndex;
+	}
+
 	int	nAnimBlocks;
 	int	nAnimBlockIndex;
-	int	iAnimblockModel;
+	inline void* GetAnimBlock(int nIndex) const
+	{
+		if (nIndex < 0 || nIndex >= nAnimBlocks) return nullptr;
+		return (((std::uint8_t*)this) + nAnimBlockIndex) + nIndex;
+	}
+
+	int	iAnimBlockModel;
 
 	int	nBoneTableByNameIndex;
+	inline const std::uint8_t* GetBoneTableSortedByName() const
+	{
+		return (std::uint8_t*)this + nBoneTableByNameIndex;
+	}
 
 	int iVertexBase;
 	int nIndexBase;

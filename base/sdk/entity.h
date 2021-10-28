@@ -18,6 +18,8 @@
 #include "../core/netvar.h"
 // used: basehandle
 #include "interfaces/icliententitylist.h"
+// used: crefcount
+#include "interfaces/irefcount.h"
 // used: model
 #include "interfaces/ivmodelinfo.h"
 
@@ -384,14 +386,14 @@ public:
 	virtual bool					GetSoundSpatialization(struct SpatializationInfo_t& info) = 0;
 	virtual bool					IsBlurred() = 0;
 
-	void SetAbsOrigin(Vector vecOrigin)
+	void SetAbsOrigin(const Vector& vecOrigin)
 	{
 		using SetAbsOriginFn = void(__thiscall*)(void*, const Vector&);
 		static auto oSetAbsOrigin = reinterpret_cast<SetAbsOriginFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 51 53 56 57 8B F1 E8")));
 		oSetAbsOrigin(this, vecOrigin);
 	}
 
-	void SetAbsAngles(QAngle angView)
+	void SetAbsAngles(const QAngle& angView)
 	{
 		using SetAbsAngleFn = void(__thiscall*)(void*, const QAngle&);
 		static auto oSetAbsAngles = reinterpret_cast<SetAbsAngleFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 83 EC 64 53 56 57 8B F1 E8")));
@@ -422,7 +424,6 @@ public:
 	N_ADD_VARIABLE(int, GetTickBase, "CBasePlayer->m_nTickBase");
 	N_ADD_PVARIABLE(int, GetNextThinkTick, "CBasePlayer->m_nNextThinkTick");
 	N_ADD_VARIABLE(Vector, GetVelocity, "CBasePlayer->m_vecVelocity[0]");
-	N_ADD_PVARIABLE_OFFSET(CUserCmd*, GetCurrentCommand, "CBasePlayer->m_hConstraintEntity", -0xC); // @pattern = 89 BE ? ? ? ? E8 ? ? ? ? 85 FF + 0x2
 	N_ADD_PVARIABLE_OFFSET(QAngle, GetViewAngles, "CBasePlayer->deadflag", 0x4);
 	N_ADD_VARIABLE(CBaseHandle, GetGroundEntityHandle, "CBasePlayer->m_hGroundEntity");
 	N_ADD_VARIABLE(int, GetHealth, "CBasePlayer->m_iHealth");
@@ -433,6 +434,9 @@ public:
 	N_ADD_VARIABLE(CBaseHandle, GetObserverTargetHandle, "CBasePlayer->m_hObserverTarget");
 	N_ADD_VARIABLE(CBaseHandle, GetViewModelHandle, "CBasePlayer->m_hViewModel[0]");
 	N_ADD_PVARIABLE(const char, GetLastPlace, "CBasePlayer->m_szLastPlaceName");
+	N_ADD_VARIABLE_OFFSET(int, GetButtonDisabled, "CBasePlayer->m_hViewEntity", -0xC);
+	N_ADD_VARIABLE_OFFSET(int, GetButtonForced, "CBasePlayer->m_hViewEntity", -0x8);
+	N_ADD_PVARIABLE_OFFSET(CUserCmd*, GetCurrentCommand, "CBasePlayer->m_hViewEntity", -0x4); // @ida: client.dll @ [89 BE ? ? ? ? E8 ? ? ? ? 85 FF + 0x2]
 
 	N_ADD_DATAFIELD(int, GetEFlags, this->GetPredictionDescMap(), "m_iEFlags");
 	N_ADD_PDATAFIELD(int, GetButtons, this->GetPredictionDescMap(), "m_nButtons");
@@ -442,33 +446,35 @@ public:
 	N_ADD_PDATAFIELD(int, GetImpulse, this->GetPredictionDescMap(), "m_nImpulse");
 	N_ADD_DATAFIELD(float, GetSurfaceFriction, this->GetPredictionDescMap(), "m_surfaceFriction");
 
-	N_ADD_OFFSET(int, GetTakeDamage, 0x280); // @ida: 80 BE ? ? ? ? ? 75 46 8B 86 + 0x2
-	N_ADD_OFFSET(CUserCmd, GetLastCommand, 0x3288);
-	N_ADD_OFFSET(int, GetButtonDisabled, 0x3330);
-	N_ADD_OFFSET(int, GetButtonForced, 0x3334);
-
 	inline bool IsAlive()
 	{
-		/*
-		 * @note: if u have problems with lifestate check (some servers has plugin for health restore and entity lifestate doesnt switch back to the alive)
-		 * required to check for health and/or check lifestate where needed
-		 * GetHealth() > 0
-		 */
+		// @note: https://github.com/rollraw/qo0-base/issues/135
+		return (this->GetLifeState() == LIFE_ALIVE);
+	}
 
-		return (this->GetLifeState() == LIFE_ALIVE) ? true : false;
+	int& GetTakeDamage()
+	{
+		static const std::uintptr_t uTakeDamageOffset = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, XorStr("80 BE ? ? ? ? ? 75 46 8B 86")) + 0x2);
+		return *reinterpret_cast<int*>(reinterpret_cast<std::uintptr_t>(this) + uTakeDamageOffset);
+	}
+
+	CUserCmd& GetLastCommand()
+	{
+		static const std::uintptr_t uLastCommandOffset = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, XorStr("8D 8E ? ? ? ? 89 5C 24 3C")) + 0x2);
+		return *reinterpret_cast<CUserCmd*>(reinterpret_cast<std::uintptr_t>(this) + uLastCommandOffset);
 	}
 	#pragma endregion
 
 	#pragma region DT_CSPlayer
 	N_ADD_VARIABLE(int, GetShotsFired, "CCSPlayer->m_iShotsFired");
-	N_ADD_VARIABLE_OFFSET(float, GetSpawnTime, "CCSPlayer->m_iAddonBits", -0x4); // @ida: 89 86 ? ? ? ? E8 ? ? ? ? 80 + 0x2
+	N_ADD_VARIABLE_OFFSET(float, GetSpawnTime, "CCSPlayer->m_iAddonBits", -0x4); // @ida: client.dll @ [89 86 ? ? ? ? E8 ? ? ? ? 80 BE ? ? ? ? ? + 0x2]
 	N_ADD_VARIABLE(int, GetMoney, "CCSPlayer->m_iAccount");
 	N_ADD_VARIABLE(int, GetTotalHits, "CCSPlayer->m_totalHitsOnServer");
 	N_ADD_VARIABLE(int, GetArmor, "CCSPlayer->m_ArmorValue");
 	N_ADD_VARIABLE(QAngle, GetEyeAngles, "CCSPlayer->m_angEyeAngles");
 	N_ADD_VARIABLE(bool, IsDefusing, "CCSPlayer->m_bIsDefusing");
 	N_ADD_VARIABLE(bool, IsScoped, "CCSPlayer->m_bIsScoped");
-	N_ADD_VARIABLE_OFFSET(CCSGOPlayerAnimState*, GetAnimationState, "CCSPlayer->m_bIsScoped", -0x14); // @ida: 8B 8E ? ? ? ? F3 0F 10 48 ? E8 ? ? ? ? C7 + 0x2
+	N_ADD_VARIABLE_OFFSET(CCSGOPlayerAnimState*, GetAnimationState, "CCSPlayer->m_bIsScoped", -0x14); // @ida: client.dll @ [8B 8E ? ? ? ? F3 0F 10 48 ? E8 ? ? ? ? C7 + 0x2]
 	N_ADD_VARIABLE(bool, IsGrabbingHostage, "CCSPlayer->m_bIsGrabbingHostage");
 	N_ADD_VARIABLE(bool, IsRescuing, "CCSPlayer->m_bIsRescuing");
 	N_ADD_VARIABLE(bool, HasHelmet, "CCSPlayer->m_bHasHelmet");
@@ -483,6 +489,41 @@ public:
 	N_ADD_VARIABLE(float, GetLowerBodyYaw, "CCSPlayer->m_flLowerBodyYawTarget");
 	N_ADD_VARIABLE(int, GetSurvivalTeam, "CCSPlayer->m_nSurvivalTeam");
 	N_ADD_VARIABLE_OFFSET(int, IsUsedNewAnimState, "CCSPlayer->m_flLastExoJumpTime", 0x8);
+
+	inline bool IsArmored(const int iHitGroup)
+	{
+		// @ida isarmored: server.dll @ 55 8B EC 32 DC
+
+		bool bIsArmored = false;
+
+		if (this->GetArmor() > 0)
+		{
+			switch (iHitGroup)
+			{
+			case HITGROUP_GENERIC:
+			case HITGROUP_CHEST:
+			case HITGROUP_STOMACH:
+			case HITGROUP_LEFTARM:
+			case HITGROUP_RIGHTARM:
+			case HITGROUP_NECK:
+				bIsArmored = true;
+				break;
+			case HITGROUP_HEAD:
+				if (this->HasHelmet())
+					bIsArmored = true;
+				[[fallthrough]];
+			case HITGROUP_LEFTLEG:
+			case HITGROUP_RIGHTLEG:
+				if (this->HasHeavyArmor())
+					bIsArmored = true;
+				break;
+			default:
+				break;
+			}
+		}
+
+		return bIsArmored;
+	}
 	#pragma endregion
 
 	#pragma region DT_BaseEntity
@@ -551,18 +592,19 @@ public:
 	
 	int IsMaxHealth()
 	{
-		// @ida: FF 90 ? ? ? ? 85 C0 0F 8F ? ? ? ? 80 + 0x2
+		// @ida: client.dll @ [FF 90 ? ? ? ? 85 C0 0F 8F ? ? ? ? 80 + 0x2] / sizeof(std::uintptr_t)
 		return MEM::CallVFunc<int>(this, 123);
 	}
 
 	void Think()
 	{
-		MEM::CallVFunc<void>(this, 138);
+		// @ida: client.dll @ [FF 90 ? ? ? ? FF 35 ? ? ? ? 8B 4C + 0x2] / sizeof(std::uintptr_t)
+		MEM::CallVFunc<void>(this, 139);
 	}
 
 	const char* GetClassname()
 	{
-		// @ida: 8B 01 FF 90 ? ? ? ? 90 + 0x4
+		// @ida: client.dll @ [8B 01 FF 90 ? ? ? ? 90 + 0x4] / sizeof(std::uintptr_t)
 		return MEM::CallVFunc<const char*>(this, 143);
 	}
 
@@ -642,14 +684,15 @@ public:
 	int						GetMaxHealth();
 	std::optional<Vector>	GetBonePosition(int iBone);
 	int						GetBoneByHash(const FNV1A_t uBoneHash) const;
-	std::optional<Vector>	GetHitboxPosition(int iHitbox);
-	std::optional<Vector>	GetHitGroupPosition(int iHitGroup);
-	void					ModifyEyePosition(CCSGOPlayerAnimState* pAnimState, Vector* vecPosition) const;
+	std::optional<Vector>	GetHitboxPosition(const int iHitbox);
+	std::optional<Vector>	GetHitGroupPosition(const int iHitGroup);
+	void					ModifyEyePosition(const CCSGOPlayerAnimState* pAnimState, Vector* vecPosition) const;
 	void					PostThink();
 	bool					IsEnemy(CBaseEntity* pEntity);
 	bool					IsTargetingLocal(CBaseEntity* pLocal);
 	bool					CanShoot(CWeaponCSBase* pBaseWeapon);
-	bool					IsVisible(CBaseEntity* pEntity, const Vector& vecSpot, bool bSmokeCheck = false);
+	bool					IsVisible(CBaseEntity* pEntity, const Vector& vecEnd, bool bSmokeCheck = false);
+	bool					IsBreakable();
 };
 
 class CCSWeaponData
@@ -687,8 +730,8 @@ public:
 	bool bFullAuto;					// 0x00EC
 	std::byte pad9[0x3];			// 0x00ED
 	int iDamage;					// 0x00F0
-	float flArmorRatio;				// 0x00F4
-	float flHeadShotMultiplier;		// 0x00F8
+	float flHeadShotMultiplier;		// 0x00F4
+	float flArmorRatio;				// 0x00F8
 	int iBullets;					// 0x00FC
 	float flPenetration;			// 0x0100
 	std::byte pad10[0x8];			// 0x0104
@@ -717,7 +760,7 @@ public:
 	float flRecoilMagnitudeVariance[2]; // 0x01A8
 	int iSpreadSeed;				// 0x01B0
 
-	bool IsGun()
+	bool IsGun() const
 	{
 		switch (this->nWeaponType)
 		{
@@ -739,9 +782,13 @@ class CEconItemView
 {
 public:
 	N_ADD_OFFSET(CUtlVector<IRefCounted*>, GetCustomMaterials, 0x14);
-	// @ida: "8B 7C 24 34 81 C7 ? ? ? ?" + 0x2
-	// @xref: "Original material not found! Name: %s"
-	N_ADD_OFFSET(CUtlVector<IRefCounted*>, GetVisualsDataProcessors, 0x230);
+
+	CUtlVector<CRefCounted*>& GetVisualsDataProcessors()
+	{
+		// @xref: "Original material not found! Name: %s"
+		static const std::uintptr_t uVisualsDataProcessorsOffset = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, XorStr("8B 7C 24 34 81 C7 ? ? ? ?")) + 0x6);
+		return *reinterpret_cast<CUtlVector<CRefCounted*>*>(reinterpret_cast<std::uintptr_t>(this) + uVisualsDataProcessorsOffset);
+	}
 };
 
 class CBaseCombatWeapon : public IClientEntity
@@ -886,23 +933,22 @@ class CPlantedC4
 {
 public:
 	#pragma region DT_PlantedC4
+	N_ADD_VARIABLE(float, GetBlowTime, "CPlantedC4->m_flC4Blow");
 	N_ADD_VARIABLE(float, GetTimerLength, "CPlantedC4->m_flTimerLength");
 	N_ADD_VARIABLE(float, GetDefuseLength, "CPlantedC4->m_flDefuseLength");
+	N_ADD_VARIABLE(float, GetDefuseCountDown, "CPlantedC4->m_flDefuseCountDown");
 	N_ADD_VARIABLE(bool, IsPlanted, "CPlantedC4->m_bBombTicking");
 	N_ADD_VARIABLE(CBaseHandle, GetDefuserHandle, "CPlantedC4->m_hBombDefuser");
 	N_ADD_VARIABLE(bool, IsDefused, "CPlantedC4->m_bBombDefused");
 
-	inline float GetTimer(float flServerTime)
+	inline float GetTimer(const float flServerTime)
 	{
-		static std::uintptr_t m_flC4Blow = CNetvarManager::Get().mapProps[FNV1A::HashConst("CPlantedC4->m_flC4Blow")].uOffset;
-		const float flTimer = *reinterpret_cast<float*>(reinterpret_cast<std::uintptr_t>(this) + m_flC4Blow) - flServerTime;
-		return std::max(0.f, flTimer);
+		return std::clamp(this->GetBlowTime() - flServerTime, 0.0f, this->GetTimerLength());
 	}
 
-	inline float GetDefuseTimer(float flServerTime)
+	inline float GetDefuseTimer(const float flServerTime)
 	{
-		static std::uintptr_t m_flDefuseCountDown = CNetvarManager::Get().mapProps[FNV1A::HashConst("CPlantedC4->m_flDefuseCountDown")].uOffset;
-		return *reinterpret_cast<float*>(reinterpret_cast<std::uintptr_t>(this) + m_flDefuseCountDown) - flServerTime;
+		return std::clamp(this->GetDefuseCountDown() - flServerTime, 0.0f, this->GetDefuseLength());
 	}
 	#pragma endregion
 };

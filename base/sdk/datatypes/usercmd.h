@@ -41,56 +41,60 @@ enum ECommandButtons : int
 };
 #pragma endregion
 
+#pragma pack(push, 4)
 class CUserCmd
 {
 public:
-	virtual	~CUserCmd() { }
+	virtual			~CUserCmd() { }		// 0x00
+	int				iCommandNumber;		// 0x04
+	int				iTickCount;			// 0x08
+	QAngle			angViewPoint;		// 0x0C
+	Vector			vecAimDirection;	// 0x18
+	float			flForwardMove;		// 0x24
+	float			flSideMove;			// 0x28
+	float			flUpMove;			// 0x2C
+	int				iButtons;			// 0x30
+	std::uint8_t	uImpulse;			// 0x34
+	int				iWeaponSelect;		// 0x38
+	int				iWeaponSubType;		// 0x3C
+	int				iRandomSeed;		// 0x40
+	short			sMouseDeltaX;		// 0x44
+	short			sMouseDeltaY;		// 0x46
+	bool			bHasBeenPredicted;	// 0x48
+	Vector			vecHeadAngles;		// 0x4C
+	Vector			vecHeadOffset;		// 0x58
 
-	CRC32_t GetChecksum() const
+	[[nodiscard]] CRC32_t GetChecksum() const
 	{
-		CRC32_t crc = 0UL;
-		CRC32::Init(&crc);
-		CRC32::ProcessBuffer(&crc, &iCommandNumber, sizeof(iCommandNumber));
-		CRC32::ProcessBuffer(&crc, &iTickCount, sizeof(iTickCount));
-		CRC32::ProcessBuffer(&crc, &angViewPoint, sizeof(angViewPoint));
-		CRC32::ProcessBuffer(&crc, &vecAimDirection, sizeof(vecAimDirection));
-		CRC32::ProcessBuffer(&crc, &flForwardMove, sizeof(flForwardMove));
-		CRC32::ProcessBuffer(&crc, &flSideMove, sizeof(flSideMove));
-		CRC32::ProcessBuffer(&crc, &flUpMove, sizeof(flUpMove));
-		CRC32::ProcessBuffer(&crc, &iButtons, sizeof(iButtons));
-		CRC32::ProcessBuffer(&crc, &uImpulse, sizeof(uImpulse));
-		CRC32::ProcessBuffer(&crc, &iWeaponSelect, sizeof(iWeaponSelect));
-		CRC32::ProcessBuffer(&crc, &iWeaponSubType, sizeof(iWeaponSubType));
-		CRC32::ProcessBuffer(&crc, &iRandomSeed, sizeof(iRandomSeed));
-		CRC32::ProcessBuffer(&crc, &sMouseDeltaX, sizeof(sMouseDeltaX));
-		CRC32::ProcessBuffer(&crc, &sMouseDeltaY, sizeof(sMouseDeltaY));
-		CRC32::Final(&crc);
-		return crc;
-	}
+		CRC32_t uHashCRC = 0UL;
 
-public:
-	int				iCommandNumber;
-	int				iTickCount;
-	QAngle			angViewPoint;
-	Vector			vecAimDirection;
-	float			flForwardMove;
-	float			flSideMove;
-	float			flUpMove;
-	int				iButtons;
-	std::uint8_t	uImpulse;
-	int				iWeaponSelect;
-	int				iWeaponSubType;
-	int				iRandomSeed;
-	short			sMouseDeltaX;
-	short			sMouseDeltaY;
-	bool			bHasBeenPredicted;
-	Vector			vecHeadAngles;
-	Vector			vecHeadOffset;
+		CRC32::Init(&uHashCRC);
+		CRC32::ProcessBuffer(&uHashCRC, &iCommandNumber, sizeof(iCommandNumber));
+		CRC32::ProcessBuffer(&uHashCRC, &iTickCount, sizeof(iTickCount));
+		CRC32::ProcessBuffer(&uHashCRC, &angViewPoint, sizeof(angViewPoint));
+		CRC32::ProcessBuffer(&uHashCRC, &vecAimDirection, sizeof(vecAimDirection));
+		CRC32::ProcessBuffer(&uHashCRC, &flForwardMove, sizeof(flForwardMove));
+		CRC32::ProcessBuffer(&uHashCRC, &flSideMove, sizeof(flSideMove));
+		CRC32::ProcessBuffer(&uHashCRC, &flUpMove, sizeof(flUpMove));
+		CRC32::ProcessBuffer(&uHashCRC, &iButtons, sizeof(iButtons));
+		CRC32::ProcessBuffer(&uHashCRC, &uImpulse, sizeof(uImpulse));
+		CRC32::ProcessBuffer(&uHashCRC, &iWeaponSelect, sizeof(iWeaponSelect));
+		CRC32::ProcessBuffer(&uHashCRC, &iWeaponSubType, sizeof(iWeaponSubType));
+		CRC32::ProcessBuffer(&uHashCRC, &iRandomSeed, sizeof(iRandomSeed));
+		CRC32::ProcessBuffer(&uHashCRC, &sMouseDeltaX, sizeof(sMouseDeltaX));
+		CRC32::ProcessBuffer(&uHashCRC, &sMouseDeltaY, sizeof(sMouseDeltaY));
+		CRC32::Final(&uHashCRC);
+
+		return uHashCRC;
+	}
 };
+static_assert(sizeof(CUserCmd) == 0x64);
 
 class CVerifiedUserCmd
 {
 public:
-	CUserCmd	cmd;
-	CRC32_t		crc;
+	CUserCmd	userCmd;	// 0x00
+	CRC32_t		uHashCRC;	// 0x64
 };
+static_assert(sizeof(CVerifiedUserCmd) == 0x68);
+#pragma pack(pop)

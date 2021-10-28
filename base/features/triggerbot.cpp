@@ -58,11 +58,8 @@ void CTriggerBot::Run(CUserCmd* pCmd, CBaseEntity* pLocal)
 	{
 		FireBulletData_t data = { };
 
-		// get autowall damage and data from it
-		float flDamage = CAutoWall::Get().GetDamage(pLocal, vecEnd, data);
-
 		// check for minimal damage
-		if (flDamage < C::Get<int>(Vars.iTriggerMinimalDamage))
+		if (CAutoWall::GetDamage(pLocal, vecEnd, &data) < C::Get<int>(Vars.iTriggerMinimalDamage))
 			return;
 
 		// copy trace from autowall

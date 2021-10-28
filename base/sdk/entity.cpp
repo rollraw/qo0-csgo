@@ -59,7 +59,7 @@ int CBaseEntity::GetBoneByHash(const FNV1A_t uBoneHash) const
 		{
 			for (int i = 0; i < pStudioHdr->nBones; i++)
 			{
-				if (auto pBone = pStudioHdr->GetBone(i); pBone != nullptr && pBone->iFlags & BONE_USED_BY_HITBOX && FNV1A::Hash(pBone->GetName()) == uBoneHash)
+				if (const auto pBone = pStudioHdr->GetBone(i); pBone != nullptr && FNV1A::Hash(pBone->GetName()) == uBoneHash)
 					return i;
 			}
 		}
@@ -68,7 +68,7 @@ int CBaseEntity::GetBoneByHash(const FNV1A_t uBoneHash) const
 	return BONE_INVALID;
 }
 
-std::optional<Vector> CBaseEntity::GetHitboxPosition(int iHitbox)
+std::optional<Vector> CBaseEntity::GetHitboxPosition(const int iHitbox)
 {
 	assert(iHitbox > HITBOX_INVALID && iHitbox < HITBOX_MAX); // given invalid hitbox index for gethitboxposition
 
@@ -96,7 +96,7 @@ std::optional<Vector> CBaseEntity::GetHitboxPosition(int iHitbox)
 	return std::nullopt;
 }
 
-std::optional<Vector> CBaseEntity::GetHitGroupPosition(int iHitGroup)
+std::optional<Vector> CBaseEntity::GetHitGroupPosition(const int iHitGroup)
 {
 	assert(iHitGroup >= HITGROUP_GENERIC && iHitGroup <= HITGROUP_GEAR); // given invalid hitbox index for gethitgroupposition
 
@@ -137,8 +137,10 @@ std::optional<Vector> CBaseEntity::GetHitGroupPosition(int iHitGroup)
 	return std::nullopt;
 }
 
-void CBaseEntity::ModifyEyePosition(CCSGOPlayerAnimState* pAnimState, Vector* vecPosition) const
+void CBaseEntity::ModifyEyePosition(const CCSGOPlayerAnimState* pAnimState, Vector* vecPosition) const
 {
+	// @ida modifyeyeposition: client.dll @ 55 8B EC 83 E4 F8 83 EC 70 56 57 8B F9 89 7C 24 38
+
 	if (I::Engine->IsHLTV() || I::Engine->IsPlayingDemo())
 		return;
 
@@ -154,26 +156,27 @@ void CBaseEntity::ModifyEyePosition(CCSGOPlayerAnimState* pAnimState, Vector* ve
 
 	if (const auto headPosition = pBaseEntity->GetBonePosition(pBaseEntity->GetBoneByHash(FNV1A::HashConst("head_0"))); headPosition.has_value())
 	{
-		Vector vecBone = headPosition.value();
-		vecBone.z += 1.7f;
+		Vector vecHead = headPosition.value();
+		vecHead.z += 1.7f;
 
-		if (vecPosition->z > vecBone.z)
+		if (vecHead.z < vecPosition->z)
 		{
 			float flFactor = 0.f;
-			const float flDelta = vecPosition->z - vecBone.z;
+			const float flDelta = std::fabsf(vecPosition->z - vecHead.z);
 			const float flOffset = (flDelta - 4.0f) / 6.0f;
 
 			if (flOffset >= 0.f)
 				flFactor = std::min(flOffset, 1.0f);
 
-			vecPosition->z += ((vecBone.z - vecPosition->z) * (((flFactor * flFactor) * 3.0f) - (((flFactor * flFactor) * 2.0f) * flFactor)));
+			const float flFactorSquared = (flFactor * flFactor);
+			vecPosition->z += ((vecHead.z - vecPosition->z) * ((flFactorSquared * 3.0f) - ((flFactorSquared * 2.0f) * flFactor)));
 		}
 	}
 }
 
 void CBaseEntity::PostThink()
 {
-	// @ida postthink: 56 8B 35 ? ? ? ? 57 8B F9 8B CE 8B 06 FF 90 ? ? ? ? 8B 07
+	// @ida postthink: client.dll 56 8B 35 ? ? ? ? 57 8B F9 8B CE 8B 06 FF 90 ? ? ? ? 8B 07
 
 	using PostThinkVPhysicsFn = bool(__thiscall*)(CBaseEntity*);
 	static auto oPostThinkVPhysics = reinterpret_cast<PostThinkVPhysicsFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 81 EC ? ? ? ? 53 8B D9 56 57 83 BB")));
@@ -291,5 +294,65 @@ bool CBaseEntity::IsVisible(CBaseEntity* pEntity, const Vector& vecEnd, bool bSm
 		return true;
 
 	return false;
+}
+
+bool CBaseEntity::IsBreakable()
+{
+	// @ida isbreakableentity: client.dll @ 55 8B EC 51 56 8B F1 85 F6 74 68
+
+	const int iHealth = this->GetHealth();
+
+	// first check to see if it's already broken
+	if (iHealth < 0 && this->IsMaxHealth() > 0)
+		return true;
+
+	if (this->GetTakeDamage() != DAMAGE_YES)
+	{
+		const EClassIndex nClassIndex = this->GetClientClass()->nClassID;
+
+		// force pass cfuncbrush
+		if (nClassIndex != EClassIndex::CFuncBrush)
+			return false;
+	}
+
+	if (const int nCollisionGroup = this->GetCollisionGroup(); nCollisionGroup != COLLISION_GROUP_PUSHAWAY && nCollisionGroup != COLLISION_GROUP_BREAKABLE_GLASS && nCollisionGroup != COLLISION_GROUP_NONE)
+		return false;
+
+	if (iHealth > 200)
+		return false;
+
+	if (IMultiplayerPhysics* pPhysicsInterface = dynamic_cast<IMultiplayerPhysics*>(this); pPhysicsInterface != nullptr)
+	{
+		if (pPhysicsInterface->GetMultiplayerPhysicsMode() != PHYSICS_MULTIPLAYER_SOLID)
+			return false;
+	}
+	else
+	{
+		if (const char* szClassName = this->GetClassname(); !strcmp(szClassName, XorStr("func_breakable")) || !strcmp(szClassName, XorStr("func_breakable_surf")))
+		{
+			if (!strcmp(szClassName, XorStr("func_breakable_surf")))
+			{
+				CBreakableSurface* pSurface = static_cast<CBreakableSurface*>(this);
+
+				// don't try to break it if it has already been broken
+				if (pSurface->IsBroken())
+					return false;
+			}
+		}
+		else if (this->PhysicsSolidMaskForEntity() & CONTENTS_PLAYERCLIP)
+		{
+			// hostages and players use CONTENTS_PLAYERCLIP, so we can use it to ignore them
+			return false;
+		}
+	}
+
+	if (IBreakableWithPropData* pBreakableInterface = dynamic_cast<IBreakableWithPropData*>(this); pBreakableInterface != nullptr)
+	{
+		// bullets don't damage it - ignore
+		if (pBreakableInterface->GetDmgModBullet() <= 0.0f)
+			return false;
+	}
+
+	return true;
 }
 #pragma endregion

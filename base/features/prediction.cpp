@@ -20,7 +20,7 @@ void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 	// random_seed isn't generated in ClientMode::CreateMove yet, we must generate it ourselves
 	*uPredictionRandomSeed = MD5::PseudoRandom(pCmd->iCommandNumber) & std::numeric_limits<int>::max();
 	// set ourselves as a predictable entity
-	*pSetPredictionEntity = pLocal;
+	*pPredictionPlayer = pLocal;
 
 	// backup globals
 	flOldCurrentTime = I::Globals->flCurrentTime;
@@ -35,38 +35,37 @@ void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 	const bool bOldInPrediction = I::Prediction->bInPrediction;
 
 	// set corrected values
-	I::Globals->flCurrentTime = TICKS_TO_TIME(GetTickbase(pCmd, pLocal));
+	I::Globals->flCurrentTime = TICKS_TO_TIME(GetTickBase(pCmd, pLocal));
 	I::Globals->flFrameTime = I::Prediction->bEnginePaused ? 0.f : TICK_INTERVAL;
-	I::Globals->iTickCount = GetTickbase(pCmd, pLocal);
+	I::Globals->iTickCount = GetTickBase(pCmd, pLocal);
 
 	I::Prediction->bIsFirstTimePredicted = false;
 	I::Prediction->bInPrediction = true;
 
 	/* skipped weapon select and vehicle predicts */
 
-	if (pCmd->uImpulse)
-		*pLocal->GetImpulse() = pCmd->uImpulse;
-
 	// synchronize m_afButtonForced & m_afButtonDisabled
 	pCmd->iButtons |= pLocal->GetButtonForced();
 	pCmd->iButtons &= ~(pLocal->GetButtonDisabled());
 
+	I::GameMovement->StartTrackPredictionErrors(pLocal);
+
 	// update button state
 	const int iButtons = pCmd->iButtons;
-	int* nPlayerButtons = pLocal->GetButtons();
-	const int nButtonsChanged = iButtons ^ *nPlayerButtons;
+	const int nLocalButtons = *pLocal->GetButtons();
+	const int nButtonsChanged = iButtons ^ nLocalButtons;
 
 	// synchronize m_afButtonLast
-	pLocal->GetButtonLast() = *nPlayerButtons;
+	pLocal->GetButtonLast() = nLocalButtons;
 
 	// synchronize m_nButtons
 	*pLocal->GetButtons() = iButtons;
 
 	// synchronize m_afButtonPressed
-	pLocal->GetButtonPressed() = iButtons & nButtonsChanged;
+	pLocal->GetButtonPressed() = nButtonsChanged & iButtons;
 
 	// synchronize m_afButtonReleased
-	pLocal->GetButtonReleased() = nButtonsChanged & ~iButtons;
+	pLocal->GetButtonReleased() = nButtonsChanged & (~iButtons);
 
 	// check if the player is standing on a moving entity and adjusts velocity and basevelocity appropriately
 	I::Prediction->CheckMovingGround(pLocal, I::Globals->flFrameTime);
@@ -79,9 +78,44 @@ void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 		pLocal->PreThink();
 
 	// run think
-	if (int* iNextThinkTick = pLocal->GetNextThinkTick(); *iNextThinkTick > 0 && *iNextThinkTick <= GetTickbase(pCmd, pLocal))
+	if (int* iNextThinkTick = pLocal->GetNextThinkTick(); *iNextThinkTick > 0 && *iNextThinkTick <= GetTickBase(pCmd, pLocal))
 	{
 		*iNextThinkTick = TICK_NEVER_THINK;
+
+		/*
+		 * handle no think function
+		 * pseudo i guess didnt seen before but not sure, most likely unnecessary
+
+		nEFlags = pPlayer->GetEFlags();
+		result = pPlayer->GetEFlags() & EFL_NO_THINK_FUNCTION;
+		if (!result)
+		{
+			result = [&]()
+			{
+				if (pPlayer->GetNextThinkTick() > 0)
+					return 1;
+
+				v3 = *(_DWORD *)(pPlayer + 0x2BC);
+				v4 = 0;
+				if (v3 > 0)
+				{
+				v5 = (_DWORD *)(*(_DWORD *)(pPlayer + 0x2B0) + 0x14);
+				while (*v5 <= 0)
+				{
+					++v4;
+					v5 += 8;
+					if (v4 >= v3)
+						return 0;
+				}
+				return 1;
+			}();
+
+			if (!result)
+				pPlayer->GetEFlags() = nEFlags | EFL_NO_THINK_FUNCTION;
+		}
+		
+		 */
+
 		pLocal->Think();
 	}
 
@@ -107,10 +141,12 @@ void CPrediction::Start(CUserCmd* pCmd, CBaseEntity* pLocal)
 	I::Prediction->bIsFirstTimePredicted = bOldIsFirstPrediction;
 }
 
-void CPrediction::End(CUserCmd* pCmd, CBaseEntity* pLocal)
+void CPrediction::End(CUserCmd* pCmd, CBaseEntity* pLocal) const
 {
 	if (!pLocal->IsAlive() || I::MoveHelper == nullptr)
 		return;
+
+	I::GameMovement->FinishTrackPredictionErrors(pLocal);
 
 	// reset host player
 	I::MoveHelper->SetHost(nullptr);
@@ -127,19 +163,20 @@ void CPrediction::End(CUserCmd* pCmd, CBaseEntity* pLocal)
 	*uPredictionRandomSeed = -1;
 
 	// reset prediction entity
-	*pSetPredictionEntity = nullptr;
+	*pPredictionPlayer = nullptr;
 
 	// reset move
 	I::GameMovement->Reset();
 }
 
-int CPrediction::GetTickbase(CUserCmd* pCmd, CBaseEntity* pLocal)
+int CPrediction::GetTickBase(CUserCmd* pCmd, CBaseEntity* pLocal)
 {
 	static int iTick = 0;
-	static CUserCmd* pLastCmd = nullptr;
 
 	if (pCmd != nullptr)
 	{
+		static CUserCmd* pLastCmd = nullptr;
+
 		// if command was not predicted - increment tickbase
 		if (pLastCmd == nullptr || pLastCmd->bHasBeenPredicted)
 			iTick = pLocal->GetTickBase();
