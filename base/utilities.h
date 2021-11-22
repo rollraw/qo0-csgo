@@ -14,7 +14,7 @@
 class CTimer
 {
 public:
-	CTimer(bool bStart = false)
+	CTimer(const bool bStart = false)
 	{
 		if (bStart)
 			Reset();
@@ -28,7 +28,7 @@ public:
 
 	/* returns elapsed time between last time point and now in given duration type (default: milliseconds) */
 	template <class C = std::chrono::milliseconds>
-	long long Elapsed() const
+	[[nodiscard]] auto Elapsed() const
 	{
 		return std::chrono::duration_cast<C>(std::chrono::high_resolution_clock::now() - timePoint).count();
 	}

@@ -492,7 +492,7 @@ public:
 
 	inline bool IsArmored(const int iHitGroup)
 	{
-		// @ida isarmored: server.dll @ 55 8B EC 32 DC
+		// @ida isarmored: server.dll @ 55 8B EC 32 D2
 
 		bool bIsArmored = false;
 
@@ -625,15 +625,13 @@ public:
 		Vector vecPosition = { };
 
 		// get eye position
-		MEM::CallVFunc<void, Vector&>(this, 169, vecPosition);
+		MEM::CallVFunc<void>(this, 169, std::ref(vecPosition));
 
 		// correct this like it do weapon_shootpos
 		// @ida weapon_shootpos: 55 8B EC 56 8B 75 08 57 8B F9 56 8B 07 FF 90
 		if (IsUsedNewAnimState() && bShouldCorrect)
 		{
-			CCSGOPlayerAnimState* pAnimState = this->GetAnimationState();
-
-			if (pAnimState != nullptr)
+			if (CCSGOPlayerAnimState* pAnimState = this->GetAnimationState(); pAnimState != nullptr)
 				ModifyEyePosition(pAnimState, &vecPosition);
 		}
 

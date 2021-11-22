@@ -186,7 +186,7 @@ public:
 
 	void GetViewport(int& x, int& y, int& iWidth, int& iHeight)
 	{
-		MEM::CallVFunc<void, int&, int&, int&, int&>(this, 41, x, y, iWidth, iHeight);
+		MEM::CallVFunc<void>(this, 41, std::ref(x), std::ref(y), std::ref(iWidth), std::ref(iHeight));
 	}
 
 	void ClearColor3ub(unsigned char r, unsigned char g, unsigned char b)

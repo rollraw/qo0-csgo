@@ -126,7 +126,7 @@ namespace MEM
 	/*
 	 * virtual function call implementation
 	 * calls function of specified class at given index
-	 * @note: doesnt adding references automatic and needs to add it manually!
+	 * @note: references should be wrapped with std::ref call!
 	 */
 	template <typename T, typename ... args_t>
 	constexpr T CallVFunc(void* thisptr, std::size_t nIndex, args_t... argList)

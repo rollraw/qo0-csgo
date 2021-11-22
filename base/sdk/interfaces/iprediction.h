@@ -121,12 +121,12 @@ public:
 
 	void GetLocalViewAngles(QAngle& angView)
 	{
-		MEM::CallVFunc<void, QAngle&>(this, 12, angView);
+		MEM::CallVFunc<void>(this, 12, std::ref(angView));
 	}
 
 	void SetLocalViewAngles(QAngle& angView)
 	{
-		MEM::CallVFunc<void, QAngle&>(this, 13, angView);
+		MEM::CallVFunc<void>(this, 13, std::ref(angView));
 	}
 
 	void CheckMovingGround(CBaseEntity* pEntity, double dbFrametime)

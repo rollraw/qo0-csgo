@@ -38,16 +38,17 @@ enum EFontFlags
 struct Vertex_t
 {
 	Vertex_t() = default;
-	Vertex_t(const Vector2D& pos, const Vector2D& coordinate = Vector2D(0, 0))
+
+	Vertex_t(const Vector2D& vecPosition, const Vector2D& vecCoordinate = Vector2D(0, 0))
 	{
-		vecPosition = pos;
-		vecCoordinate = coordinate;
+		this->vecPosition = vecPosition;
+		this->vecCoordinate = vecCoordinate;
 	}
 
-	void Init(const Vector2D& pos, const Vector2D& coordinate = Vector2D(0, 0))
+	void Init(const Vector2D& vecPosition, const Vector2D& vecCoordinate = Vector2D(0, 0))
 	{
-		vecPosition = pos;
-		vecCoordinate = coordinate;
+		this->vecPosition = vecPosition;
+		this->vecCoordinate = vecCoordinate;
 	}
 
 	Vector2D vecPosition;
@@ -57,9 +58,9 @@ struct Vertex_t
 class ISurface
 {
 public:
-	void DrawSetColor(Color color)
+	void DrawSetColor(Color colDraw)
 	{
-		MEM::CallVFunc<void>(this, 14, color);
+		MEM::CallVFunc<void>(this, 14, colDraw);
 	}
 
 	void DrawSetColor(int r, int g, int b, int a)
@@ -112,9 +113,9 @@ public:
 		MEM::CallVFunc<void>(this, 26, x, y);
 	}
 
-	void DrawPrintText(const wchar_t* wText, int nTextLength, EFontDrawType drawType = FONT_DRAW_DEFAULT)
+	void DrawPrintText(const wchar_t* wszText, int nTextLength, EFontDrawType drawType = FONT_DRAW_DEFAULT)
 	{
-		MEM::CallVFunc<void>(this, 28, wText, nTextLength, drawType);
+		MEM::CallVFunc<void>(this, 28, wszText, nTextLength, drawType);
 	}
 
 	void DrawSetTextureRGBA(int nIndex, const unsigned char* rgba, int iWide, int iTall)
@@ -152,9 +153,9 @@ public:
 		return MEM::CallVFunc<bool>(this, 72, hFont, szWindowsFontName, iTall, iWeight, iBlur, nScanLines, iFlags, nRangeMin, nRangeMax);
 	}
 
-	void GetTextSize(HFont hFont, const wchar_t* wText, int& iWide, int& iTall)
+	void GetTextSize(HFont hFont, const wchar_t* wszText, int& iWide, int& iTall)
 	{
-		MEM::CallVFunc<void>(this, 79, hFont, wText, iWide, iTall);
+		MEM::CallVFunc<void>(this, 79, hFont, wszText, std::ref(iWide), std::ref(iTall));
 	}
 
 	void PlaySoundSurface(const char* szFileName)

@@ -86,7 +86,7 @@ class IEngineClient
 public:
 	void GetScreenSize(int& iWidth, int& iHeight)
 	{
-		MEM::CallVFunc<void, int&, int&>(this, 5, iWidth, iHeight);
+		MEM::CallVFunc<void>(this, 5, std::ref(iWidth), std::ref(iHeight));
 	}
 
 	bool GetPlayerInfo(int nEntityIndex, PlayerInfo_t* pInfo)
@@ -116,12 +116,12 @@ public:
 
 	void GetViewAngles(QAngle& angView)
 	{
-		MEM::CallVFunc<void, QAngle&>(this, 18, angView);
+		MEM::CallVFunc<void>(this, 18, std::ref(angView));
 	}
 
 	void SetViewAngles(QAngle& angView)
 	{
-		MEM::CallVFunc<void, QAngle&>(this, 19, angView);
+		MEM::CallVFunc<void>(this, 19, std::ref(angView));
 	}
 
 	int GetMaxClients()
