@@ -581,7 +581,7 @@ bool FASTCALL H::hkIsConnected(IEngineClient* thisptr, int edx)
 	// sub above the string
 	// sub in that function
 	// .text : 103A2120 84 C0		test    al, al; Logical Compare
-	static std::uintptr_t uLoadoutAllowedReturn = (MEM::FindPattern(CLIENT_DLL, XorStr("75 04 B0 01 5F")) - 0x2);
+	static const std::uintptr_t uLoadoutAllowedReturn = MEM::FindPattern(CLIENT_DLL, XorStr("84 C0 75 05 B0 01 5F"));
 
 	// @credits: gavreel
 	if (reinterpret_cast<std::uintptr_t>(_ReturnAddress()) == uLoadoutAllowedReturn && C::Get<bool>(Vars.bMiscUnlockInventory))

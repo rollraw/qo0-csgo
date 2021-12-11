@@ -7,25 +7,26 @@
 class IInput
 {
 public:
-	std::byte			pad0[0xC];				//0x00
-	bool				bTrackIRAvailable;		//0x0C
-	bool				bMouseInitialized;		//0x0D
-	bool				bMouseActive;			//0x0E
-	std::byte			pad1[0x9E];				//0x0F
-	bool				bCameraInThirdPerson;	//0xAD
-	std::byte			pad2[0x2];				//0xAE
-	Vector				vecCameraOffset;		//0xB0
-	std::byte			pad3[0x38];				//0xBC
-	CUserCmd*			pCommands;				//0xF4
-	CVerifiedUserCmd*	pVerifiedCommands;		//0xF8
+	std::byte			pad0[0xC];				//0x0000
+	bool				bTrackIRAvailable;		//0x000C
+	bool				bMouseInitialized;		//0x000D
+	bool				bMouseActive;			//0x000E
+	std::byte			pad1[0xB2];				//0x000F
+	bool				bCameraInThirdPerson;	//0x00C1
+	std::byte			pad2[0x2];				//0x00C2
+	Vector				vecCameraOffset;		//0x00C4
+	std::byte			pad3[0x38];				//0x00D0
+	CUserCmd*			pCommands;				//0x0108
+	CVerifiedUserCmd*	pVerifiedCommands;		//0x010C
 
-	CUserCmd* GetUserCmd(int nSequenceNumber)
+	CUserCmd* GetUserCmd(const int nSequenceNumber) const
 	{
 		return &pCommands[nSequenceNumber % MULTIPLAYER_BACKUP];
 	}
 
-	CVerifiedUserCmd* GetVerifiedCmd(int nSequenceNumber)
+	CVerifiedUserCmd* GetVerifiedCmd(const int nSequenceNumber) const
 	{
 		return &pVerifiedCommands[nSequenceNumber % MULTIPLAYER_BACKUP];
 	}
 };
+static_assert(sizeof(IInput) == 0x0110);
