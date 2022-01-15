@@ -19,13 +19,12 @@ public:
 	virtual void StartLoadingScreenForCommand(const char* szCommand) = 0;
 	virtual void StartLoadingScreenForKeyValues(CKeyValues* pKeyValues) = 0;
 	virtual void UpdateProgressBar(float flProgress, const char* szStatusText, bool) = 0;
-	virtual void SetShowProgressText(bool bShow) = 0;
 	virtual void UpdateSecondaryProgressBar(float flProgress, const wchar_t* wStatusText) = 0;
 	virtual void SetProgressLevelName(const char* szLevelName) = 0;
 	virtual void ShowMessageDialog(const unsigned int uType, IVPanel* pOwner) = 0;
 	virtual void ShowMessageDialog(const char*, const char*) = 0;
-	virtual void CreateCommandMsgBox(const char* szTitle, const char* szMessage, bool, bool, const char*, const char*, const char*, const char*) = 0;
-	virtual void CreateCommandMsgBoxInSlot(ECommandMsgBoxSlot messageSlot, const char* szTitle, const char* szMessage, bool, bool, const char*, const char*, const char*, const char*) = 0;
+	virtual void CreateCommandMsgBox(const char* szTitle, const char* szMessage, bool bShowOk, bool bShowCancel, const char* szOkCommand, const char* szCancelCommand, const char* szClosedCommand, const char* szLegend, const char*) = 0;
+	virtual void CreateCommandMsgBoxInSlot(ECommandMsgBoxSlot messageSlot, const char* szTitle, const char* szMessage, bool, bool, const char*, const char*, const char*, const char*, const char*) = 0;
 	virtual void SetLoadingBackgroundDialog(VPANEL uPanel) = 0;
 	virtual void OnConnectToServer2(const char* szGame, int nIP, int iConnectionPort, int iQueryPort) = 0;
 	virtual void SetProgressOnStart() = 0;
