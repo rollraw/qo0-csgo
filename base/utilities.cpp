@@ -183,9 +183,11 @@ const char8_t* U::GetWeaponIcon(short nItemDefinitionIndex)
 	case WEAPON_SMOKEGRENADE:
 		return u8"\uE02D";
 	case WEAPON_MOLOTOV:
+		[[fallthrough]];
 	case WEAPON_FIREBOMB:
 		return u8"\uE02E";
 	case WEAPON_DECOY:
+		[[fallthrough]];
 	case WEAPON_DIVERSION:
 		return u8"\uE02F";
 	case WEAPON_INCGRENADE:
@@ -195,6 +197,7 @@ const char8_t* U::GetWeaponIcon(short nItemDefinitionIndex)
 	case WEAPON_HEALTHSHOT:
 		return u8"\uE039";
 	case WEAPON_KNIFE_GG:
+		[[fallthrough]];
 	case WEAPON_KNIFE_T:
 		return u8"\uE03B";
 	case WEAPON_M4A1_SILENCER:
@@ -266,7 +269,7 @@ const char8_t* U::GetWeaponIcon(short nItemDefinitionIndex)
 #pragma region utilities_extra
 void U::FlashWindow(HWND pWindow)
 {
-	FLASHWINFO fwInfo;
+	FLASHWINFO fwInfo = { };
 	fwInfo.cbSize = sizeof(FLASHWINFO);
 	fwInfo.hwnd = pWindow;
 	fwInfo.dwFlags = FLASHW_ALL | FLASHW_TIMERNOFG;

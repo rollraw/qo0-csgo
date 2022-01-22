@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -9,6 +9,49 @@
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\dependencies\imgui\cpp\imgui_stdlib.cpp" />
+    <ClCompile Include="..\dependencies\imgui\dx9\imgui_impl_dx9.cpp" />
+    <ClCompile Include="..\dependencies\imgui\imgui.cpp" />
+    <ClCompile Include="..\dependencies\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\dependencies\imgui\imgui_freetype.cpp" />
+    <ClCompile Include="..\dependencies\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\dependencies\imgui\win32\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\dependencies\minhook\buffer.c" />
+    <ClCompile Include="..\dependencies\minhook\hde\hde32.c" />
+    <ClCompile Include="..\dependencies\minhook\hde\hde64.c" />
+    <ClCompile Include="..\dependencies\minhook\hook.c" />
+    <ClCompile Include="..\dependencies\minhook\trampoline.c" />
+    <ClCompile Include="core\config.cpp" />
+    <ClCompile Include="core\hooks.cpp" />
+    <ClCompile Include="core\interfaces.cpp" />
+    <ClCompile Include="core\menu.cpp" />
+    <ClCompile Include="core\netvar.cpp" />
+    <ClCompile Include="features\antiaim.cpp" />
+    <ClCompile Include="features\autowall.cpp" />
+    <ClCompile Include="features\lagcompensation.cpp" />
+    <ClCompile Include="features\legitbot.cpp" />
+    <ClCompile Include="features\misc.cpp" />
+    <ClCompile Include="features\prediction.cpp" />
+    <ClCompile Include="features\ragebot.cpp" />
+    <ClCompile Include="features\resolver.cpp" />
+    <ClCompile Include="features\skinchanger.cpp" />
+    <ClCompile Include="features\triggerbot.cpp" />
+    <ClCompile Include="features\visuals.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="sdk\convar.cpp" />
+    <ClCompile Include="sdk\entity.cpp" />
+    <ClCompile Include="sdk\hash\crc32.cpp" />
+    <ClCompile Include="sdk\hash\md5.cpp" />
+    <ClCompile Include="utilities.cpp" />
+    <ClCompile Include="utilities\draw.cpp" />
+    <ClCompile Include="utilities\entitylistener.cpp" />
+    <ClCompile Include="utilities\eventlistener.cpp" />
+    <ClCompile Include="utilities\inputsystem.cpp" />
+    <ClCompile Include="utilities\logging.cpp" />
+    <ClCompile Include="utilities\math.cpp" />
+    <ClCompile Include="utilities\memory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\dependencies\imgui\cpp\imgui_stdlib.h" />
@@ -51,23 +94,17 @@
     <ClInclude Include="features\triggerbot.h" />
     <ClInclude Include="features\visuals.h" />
     <ClInclude Include="global.h" />
-    <ClInclude Include="sdk\animations.h" />
-    <ClInclude Include="sdk\bitbuf.h" />
-    <ClInclude Include="sdk\bspflags.h" />
-    <ClInclude Include="sdk\convar.h" />
     <ClInclude Include="sdk\datatypes\color.h" />
+    <ClInclude Include="sdk\datatypes\datamap.h" />
     <ClInclude Include="sdk\datatypes\datatable.h" />
     <ClInclude Include="sdk\datatypes\keyvalues.h" />
-    <ClInclude Include="sdk\datatypes\usercmd.h" />
-    <ClInclude Include="sdk\datatypes\datamap.h" />
     <ClInclude Include="sdk\datatypes\matrix.h" />
     <ClInclude Include="sdk\datatypes\qangle.h" />
+    <ClInclude Include="sdk\datatypes\usercmd.h" />
     <ClInclude Include="sdk\datatypes\utlmemory.h" />
     <ClInclude Include="sdk\datatypes\utlstack.h" />
     <ClInclude Include="sdk\datatypes\utlvector.h" />
     <ClInclude Include="sdk\datatypes\vector.h" />
-    <ClInclude Include="sdk\definitions.h" />
-    <ClInclude Include="sdk\entity.h" />
     <ClInclude Include="sdk\hash\crc32.h" />
     <ClInclude Include="sdk\hash\fnv1a.h" />
     <ClInclude Include="sdk\hash\md5.h" />
@@ -86,10 +123,11 @@
     <ClInclude Include="sdk\interfaces\igameui.h" />
     <ClInclude Include="sdk\interfaces\iglobalvars.h" />
     <ClInclude Include="sdk\interfaces\iglowmanager.h" />
+    <ClInclude Include="sdk\interfaces\ihudchat.h" />
     <ClInclude Include="sdk\interfaces\iinput.h" />
     <ClInclude Include="sdk\interfaces\iinputsystem.h" />
-    <ClInclude Include="sdk\interfaces\imatchframework.h" />
     <ClInclude Include="sdk\interfaces\ilocalize.h" />
+    <ClInclude Include="sdk\interfaces\imatchframework.h" />
     <ClInclude Include="sdk\interfaces\imaterial.h" />
     <ClInclude Include="sdk\interfaces\imaterialsystem.h" />
     <ClInclude Include="sdk\interfaces\imatrendercontext.h" />
@@ -115,8 +153,8 @@
     <ClInclude Include="sdk\interfaces\ivpanel.h" />
     <ClInclude Include="sdk\interfaces\ivrenderview.h" />
     <ClInclude Include="sdk\interfaces\iweaponsystem.h" />
-    <ClInclude Include="sdk\studio.h" />
     <ClInclude Include="utilities.h" />
+    <ClInclude Include="utilities\detourhook.h" />
     <ClInclude Include="utilities\draw.h" />
     <ClInclude Include="utilities\entitylistener.h" />
     <ClInclude Include="utilities\eventlistener.h" />
@@ -124,59 +162,14 @@
     <ClInclude Include="utilities\logging.h" />
     <ClInclude Include="utilities\math.h" />
     <ClInclude Include="utilities\memory.h" />
-    <ClInclude Include="utilities\detourhook.h" />
     <ClInclude Include="utilities\xorstr.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\dependencies\imgui\cpp\imgui_stdlib.cpp" />
-    <ClCompile Include="..\dependencies\imgui\dx9\imgui_impl_dx9.cpp" />
-    <ClCompile Include="..\dependencies\imgui\imgui.cpp" />
-    <ClCompile Include="..\dependencies\imgui\imgui_draw.cpp" />
-    <ClCompile Include="..\dependencies\imgui\imgui_freetype.cpp" />
-    <ClCompile Include="..\dependencies\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="..\dependencies\imgui\win32\imgui_impl_win32.cpp" />
-    <ClCompile Include="..\dependencies\minhook\buffer.c" />
-    <ClCompile Include="..\dependencies\minhook\hde\hde32.c" />
-    <ClCompile Include="..\dependencies\minhook\hde\hde64.c" />
-    <ClCompile Include="..\dependencies\minhook\hook.c" />
-    <ClCompile Include="..\dependencies\minhook\trampoline.c" />
-    <ClCompile Include="core\config.cpp" />
-    <ClCompile Include="core\hooks.cpp" />
-    <ClCompile Include="core\interfaces.cpp" />
-    <ClCompile Include="core\menu.cpp" />
-    <ClCompile Include="core\netvar.cpp" />
-    <ClCompile Include="features\misc.cpp" />
-    <ClCompile Include="features\prediction.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="features\antiaim.cpp" />
-    <ClCompile Include="features\autowall.cpp" />
-    <ClCompile Include="features\lagcompensation.cpp" />
-    <ClCompile Include="features\legitbot.cpp" />
-    <ClCompile Include="features\ragebot.cpp" />
-    <ClCompile Include="features\resolver.cpp" />
-    <ClCompile Include="features\skinchanger.cpp" />
-    <ClCompile Include="features\triggerbot.cpp" />
-    <ClCompile Include="features\visuals.cpp" />
-    <ClCompile Include="sdk\convar.cpp" />
-    <ClCompile Include="sdk\entity.cpp" />
-    <ClCompile Include="sdk\hash\crc32.cpp" />
-    <ClCompile Include="sdk\hash\md5.cpp" />
-    <ClCompile Include="utilities.cpp" />
-    <ClCompile Include="utilities\draw.cpp" />
-    <ClCompile Include="utilities\entitylistener.cpp" />
-    <ClCompile Include="utilities\eventlistener.cpp" />
-    <ClCompile Include="utilities\inputsystem.cpp" />
-    <ClCompile Include="utilities\logging.cpp" />
-    <ClCompile Include="utilities\math.cpp" />
-    <ClCompile Include="utilities\memory.cpp" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{F422E214-4936-455B-B8B0-49BC3A106B17}</ProjectGuid>
+    <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>qo0_csgo</RootNamespace>
+    <ProjectGuid>{0ae1f3a9-87f5-4f11-9ad3-5846b76b6565}</ProjectGuid>
+    <RootNamespace>cinnamon</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>cinnamon</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -184,7 +177,6 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
-    <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -205,141 +197,67 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)build\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)log\$(ProjectName)\$(Configuration)\</IntDir>
+    <TargetName>base</TargetName>
+    <ExternalIncludePath>$(SolutionDir)dependencies\freetype\include;$(SolutionDir)dependencies\json;$(DXSDK_DIR)Include;$(IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
+    <LibraryPath>$(SolutionDir)dependencies\freetype\win32;$(DXSDK_DIR)Lib\x86;$(LibraryPath);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)dependencies\freetype\include;$(SolutionDir)dependencies\json;$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)dependencies\freetype\win32;$(DXSDK_DIR)Lib\x86;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)build\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)log\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>base</TargetName>
-    <GenerateManifest>false</GenerateManifest>
+    <ExternalIncludePath>$(SolutionDir)dependencies\freetype\include;$(SolutionDir)dependencies\json;$(DXSDK_DIR)Include;$(IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
+    <LibraryPath>$(SolutionDir)dependencies\freetype\win32;$(DXSDK_DIR)Lib\x86;$(LibraryPath);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)build\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)log\$(ProjectName)\$(Configuration)\</IntDir>
-    <TargetName>base</TargetName>
-    <IncludePath>$(SolutionDir)dependencies\freetype\include;$(SolutionDir)dependencies\json;$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)dependencies\freetype\win32;$(DXSDK_DIR)Lib\x86;$(LibraryPath)</LibraryPath>
-    <GenerateManifest>false</GenerateManifest>
-  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>DEBUG_CONSOLE;NOMINMAX;WIN32;_DEBUG;CINNAMON_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <AdditionalDependencies>d3d9.lib;d3dx9.lib;freetype_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>TurnOffAllWarnings</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>false</ConformanceMode>
-      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)</ObjectFileName>
-      <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
-      <XMLDocumentationFileName>$(IntDir)</XMLDocumentationFileName>
-      <PrecompiledHeaderOutputFile>
-      </PrecompiledHeaderOutputFile>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NOMINMAX;WIN32;NDEBUG;CINNAMON_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <BufferSecurityCheck>
-      </BufferSecurityCheck>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DebugInformationFormat>None</DebugInformationFormat>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <CompileAs>Default</CompileAs>
-      <UseFullPaths>true</UseFullPaths>
-      <DisableSpecificWarnings>4244;4307</DisableSpecificWarnings>
-      <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
-      <ManifestFile>$(IntDir)$(TargetName)$(TargetExt).intermediate.manifest</ManifestFile>
-      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
-      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
-      <ProfileGuidedDatabase>$(OutDir)$(TargetName).pgd</ProfileGuidedDatabase>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>d3d9.lib;d3dx9.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <BuildLog>
-      <Path>$(IntDir)$(MSBuildProjectName).log</Path>
-    </BuildLog>
-    <Bscmake>
-      <OutputFile>$(OutDir)$(TargetName).bsc</OutputFile>
-    </Bscmake>
-    <Xdcmake>
-      <OutputFile>$(OutDir)$(TargetName).xml</OutputFile>
-    </Xdcmake>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>DEBUG_CONSOLE;NOMINMAX;_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>false</ConformanceMode>
-      <PrecompiledHeaderOutputFile>
-      </PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)</ObjectFileName>
-      <XMLDocumentationFileName>$(IntDir)</XMLDocumentationFileName>
-      <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
-      <FunctionLevelLinking>
-      </FunctionLevelLinking>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <SupportJustMyCode>false</SupportJustMyCode>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <CompileAs>Default</CompileAs>
-      <DisableSpecificWarnings>
-      </DisableSpecificWarnings>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
-      <BufferSecurityCheck>
-      </BufferSecurityCheck>
-      <RuntimeTypeInfo>
-      </RuntimeTypeInfo>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
-      <ManifestFile>$(IntDir)$(TargetName)$(TargetExt).intermediate.manifest</ManifestFile>
-      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
-      <ProfileGuidedDatabase>$(OutDir)$(TargetName).pgd</ProfileGuidedDatabase>
-      <LinkTimeCodeGeneration>
-      </LinkTimeCodeGeneration>
-      <OptimizeReferences>false</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
-      <ImageHasSafeExceptionHandlers>true</ImageHasSafeExceptionHandlers>
-      <AdditionalOptions>%(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>d3d9.lib;d3dx9.lib;freetype_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
-    <Bscmake>
-      <OutputFile>$(OutDir)$(TargetName).bsc</OutputFile>
-    </Bscmake>
-    <Xdcmake>
-      <OutputFile>$(OutDir)$(TargetName).xml</OutputFile>
-    </Xdcmake>
-    <BuildLog>
-      <Path>$(IntDir)$(MSBuildProjectName).log</Path>
-    </BuildLog>
-    <Manifest>
-      <OutputManifestFile />
-    </Manifest>
-    <ManifestResourceCompile>
-      <ResourceOutputFileName />
-    </ManifestResourceCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -37,7 +37,8 @@ enum ECommandButtons : int
 	IN_BULLRUSH =		(1 << 22),
 	IN_FIRST_GRENADE =	(1 << 23),
 	IN_SECOND_GRENADE = (1 << 24),
-	IN_MIDDLE_ATTACK =	(1 << 25)
+	IN_MIDDLE_ATTACK =	(1 << 25),
+	IN_USE_OR_RELOAD =	(1 << 26)
 };
 #pragma endregion
 

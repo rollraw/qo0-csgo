@@ -25,7 +25,7 @@ CSpoofedConVar::~CSpoofedConVar()
 
 		// restore original name
 		CWrappedProtect protection = CWrappedProtect{ (LPVOID)pOriginalCVar->szName, 128UL, PAGE_READWRITE };
-		strcpy(const_cast<char*>(pOriginalCVar->szName), szOriginalName);
+		strcpy_s(const_cast<char*>(pOriginalCVar->szName), sizeof(szOriginalName), szOriginalName);
 
 		// unregister temporary convar
 		I::ConVar->UnregisterConCommand(pDummyCVar);
@@ -45,8 +45,8 @@ void CSpoofedConVar::Spoof()
 	{
 		// backup old values
 		iOriginalFlags = pOriginalCVar->nFlags;
-		strcpy(szOriginalName, pOriginalCVar->szName);
-		strcpy(szOriginalValue, pOriginalCVar->szDefaultValue);
+		strcpy_s(szOriginalName, pOriginalCVar->szName);
+		strcpy_s(szOriginalValue, pOriginalCVar->szDefaultValue);
 		sprintf_s(szDummyName, 128U, XorStr("qo0_%s"), szOriginalName);
 
 		// create temporary convar
@@ -63,7 +63,7 @@ void CSpoofedConVar::Spoof()
 
 		CWrappedProtect protection = CWrappedProtect{ (LPVOID)pOriginalCVar->szName, 128UL, PAGE_READWRITE };
 		// rename the convar
-		strcpy(const_cast<char*>(pOriginalCVar->szName), szDummyName);
+		strcpy_s(const_cast<char*>(pOriginalCVar->szName), sizeof(szDummyName), szDummyName);
 
 		SetFlags(FCVAR_NONE);
 	}
