@@ -13,7 +13,7 @@ bool CNetvarManager::Setup(const std::string_view szDumpFileName)
 	iStoredTables = 0;
 
 	// format time
-	const std::string szTime = fmt::format(XorStr("[{:%d-%m-%Y %X}] "), fmt::localtime(std::time(nullptr)));
+	const std::string szTime = std::format(XorStr("[{:%d-%m-%Y %X}] "), std::chrono::system_clock::now());
 
 	#ifdef _DEBUG
 	// open our dump file to write in (here is not exception handle because dump is not critical)
@@ -49,7 +49,7 @@ void CNetvarManager::StoreProps(const char* szClassName, RecvTable_t* pRecvTable
 		szDepth.append("\t");
 
 	if (fsDumpFile.good())
-		fsDumpFile << fmt::format(XorStr("{0}[{1}]\n"), szDepth, pRecvTable->szNetTableName);
+		fsDumpFile << std::format(XorStr("{0}[{1}]\n"), szDepth, pRecvTable->szNetTableName);
 	#endif
 
 	for (int i = 0; i < pRecvTable->nProps; ++i)
@@ -76,7 +76,7 @@ void CNetvarManager::StoreProps(const char* szClassName, RecvTable_t* pRecvTable
 			StoreProps(szClassName, pChildTable, static_cast<std::uintptr_t>(pCurrentProp->iOffset) + uOffset, iDepth + 1);
 
 		// make own netvar storing format
-		const FNV1A_t uHash = FNV1A::Hash(fmt::format(XorStr("{}->{}"), szClassName, pCurrentProp->szVarName).c_str());
+		const FNV1A_t uHash = FNV1A::Hash(std::format(XorStr("{}->{}"), szClassName, pCurrentProp->szVarName).c_str());
 		const std::uintptr_t uTotalOffset = static_cast<std::uintptr_t>(pCurrentProp->iOffset) + uOffset;
 
 		// check does we have already grabbed property pointer and offset
@@ -84,7 +84,7 @@ void CNetvarManager::StoreProps(const char* szClassName, RecvTable_t* pRecvTable
 		{
 			#ifdef _DEBUG
 			if (fsDumpFile.good())
-				fsDumpFile << fmt::format(XorStr("{0}\t{1} {2} = 0x{3:04X};\n"), szDepth, GetPropertyType(pCurrentProp), pCurrentProp->szVarName, uTotalOffset);
+				fsDumpFile << std::format(XorStr("{0}\t{1} {2} = 0x{3:04X};\n"), szDepth, GetPropertyType(pCurrentProp), pCurrentProp->szVarName, uTotalOffset);
 			#endif
 
 			// write values to map entry
@@ -125,9 +125,9 @@ std::string CNetvarManager::GetPropertyType(const RecvProp_t* pRecvProp) const
 	case DPT_VECTOR2D:
 		return XorStr("Vector2D");
 	case DPT_STRING:
-		return fmt::format(XorStr("char[{}]"), pRecvProp->nStringBufferSize);
+		return std::format(XorStr("char[{}]"), pRecvProp->nStringBufferSize);
 	case DPT_ARRAY:
-		return fmt::format(XorStr("array[{}]"), pRecvProp->iElements);
+		return std::format(XorStr("array[{}]"), pRecvProp->iElements);
 	case DPT_DATATABLE:
 		return XorStr("void*");
 	case DPT_INT64:

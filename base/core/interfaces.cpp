@@ -125,7 +125,7 @@ T* I::Capture(const char* szModule, std::string_view szInterface)
 			auto pInterface = pRegister->pCreateFn();
 
 			// log interface address
-			L::Print(fmt::format(XorStr("captured {} interface -> {:#08X}"), pRegister->szName, reinterpret_cast<std::uintptr_t>(pInterface)));
+			L::Print(std::format(XorStr("captured {} interface -> {:#08X}"), pRegister->szName, reinterpret_cast<std::uintptr_t>(pInterface)));
 
 			return static_cast<T*>(pInterface);
 		}
@@ -133,7 +133,7 @@ T* I::Capture(const char* szModule, std::string_view szInterface)
 
 	#ifdef DEBUG_CONSOLE
 	L::PushConsoleColor(FOREGROUND_INTENSE_RED);
-	L::Print(fmt::format(XorStr("[error] failed to find interface \"{}\" in \"{}\""), szInterface, szModule));
+	L::Print(std::format(XorStr("[error] failed to find interface \"{}\" in \"{}\""), szInterface, szModule));
 	L::PopConsoleColor();
 	#endif
 

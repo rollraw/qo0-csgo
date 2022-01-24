@@ -58,7 +58,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 		if (strcmp(I::Engine->GetProductVersionString(), XorStr("1.37.7.6")) != 0)
 		{
 			L::PushConsoleColor(FOREGROUND_YELLOW);
-			L::Print(fmt::format(XorStr("[warning] version doesnt match! current cs:go version: {}"), I::Engine->GetProductVersionString()));
+			L::Print(std::format(XorStr("[warning] version doesnt match! current cs:go version: {}"), I::Engine->GetProductVersionString()));
 			L::PopConsoleColor();
 		}
 		#endif
@@ -70,7 +70,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 		if (!CNetvarManager::Get().Setup(XorStr("netvars.qo0")))
 			throw std::runtime_error(XorStr("failed to initialize netvars"));
 
-		L::Print(fmt::format(XorStr("found [{:d}] props in [{:d}] tables"), CNetvarManager::Get().iStoredProps, CNetvarManager::Get().iStoredTables));
+		L::Print(std::format(XorStr("found [{:d}] props in [{:d}] tables"), CNetvarManager::Get().iStoredProps, CNetvarManager::Get().iStoredTables));
 
 		// export completed mathematics functions from game/steam (not always) modules
 		if (!M::Setup())
@@ -129,7 +129,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 	{
 		// print error message
 		L::PushConsoleColor(FOREGROUND_INTENSE_RED);
-		L::Print(fmt::format(XorStr("[error] {}"), ex.what()));
+		L::Print(std::format(XorStr("[error] {}"), ex.what()));
 		L::PopConsoleColor();
 
 		#ifdef _DEBUG

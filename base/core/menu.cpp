@@ -578,7 +578,7 @@ void T::Miscellaneous()
 					if (!C::Save(szConfigFile))
 					{
 						L::PushConsoleColor(FOREGROUND_RED);
-						L::Print(fmt::format(XorStr("[error] failed to create \"{}\" config"), szConfigFile));
+						L::Print(std::format(XorStr("[error] failed to create \"{}\" config"), szConfigFile));
 						L::PopConsoleColor();
 					}
 
@@ -593,7 +593,7 @@ void T::Miscellaneous()
 					if (!C::Save(szCurrentConfig))
 					{
 						L::PushConsoleColor(FOREGROUND_RED);
-						L::Print(fmt::format(XorStr("[error] failed to save \"{}\" config"), szCurrentConfig));
+						L::Print(std::format(XorStr("[error] failed to save \"{}\" config"), szCurrentConfig));
 						L::PopConsoleColor();
 					}
 				}
@@ -603,7 +603,7 @@ void T::Miscellaneous()
 					if (!C::Load(szCurrentConfig))
 					{
 						L::PushConsoleColor(FOREGROUND_RED);
-						L::Print(fmt::format(XorStr("[error] failed to load \"{}\" config"), szCurrentConfig));
+						L::Print(std::format(XorStr("[error] failed to load \"{}\" config"), szCurrentConfig));
 						L::PopConsoleColor();
 					}
 				}

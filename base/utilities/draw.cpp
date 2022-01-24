@@ -211,7 +211,8 @@ bool ImGui::MultiCombo(const char* szLabel, std::vector<bool>& vecValues, const 
 		return false;
 
 	const ImGuiStyle& style = g.Style;
-	const float flActiveWidth = CalcItemWidth() - (style.ItemInnerSpacing.x + GetFrameHeight()) - 40.f;
+	const ImVec2 vecLabelSize = CalcTextSize(szLabel, nullptr, true);
+	const float flActiveWidth = CalcItemWidth() - (vecLabelSize.x > 0.0f ? style.ItemInnerSpacing.x + GetFrameHeight() : 0.0f);
 
 	std::vector<std::string_view> vecActiveItems = { };
 
@@ -221,16 +222,29 @@ bool ImGui::MultiCombo(const char* szLabel, std::vector<bool>& vecValues, const 
 		if (vecValues[i])
 			vecActiveItems.push_back(arrItems[i]);
 	}
+	
+	// fuck it, stl still haven't boost::join, fmt::join replacement
+	std::string szBuffer = { };
+	for (std::size_t i = 0U; i < vecActiveItems.size(); i++)
+	{
+		szBuffer.append(vecActiveItems[i]);
 
-	std::string szBuffer = fmt::format(XorStr("{}"), fmt::join(vecActiveItems, XorStr(", ")));
-	const ImVec2 vecTextSize = CalcTextSize(szBuffer.c_str());
+		if (i < vecActiveItems.size() - 1U)
+			szBuffer.append(", ");
+	}
 
 	if (szBuffer.empty())
 		szBuffer.assign("none");
-	else if (vecTextSize.x > flActiveWidth)
+	else
 	{
-		szBuffer.resize(static_cast<std::size_t>(flActiveWidth * 0.26f));
-		szBuffer.append("...");
+		const char* szWrapPosition = g.Font->CalcWordWrapPositionA(GetCurrentWindow()->FontWindowScale, &szBuffer[0], szBuffer.data() + szBuffer.length(), flActiveWidth - style.FramePadding.x * 2.0f);
+		const std::size_t nWrapLength = szWrapPosition - &szBuffer[0];
+		
+		if (nWrapLength > 0U && nWrapLength < szBuffer.length())
+		{
+			szBuffer.resize(nWrapLength);
+			szBuffer.append("...");
+		}
 	}
 
 	bool bValueChanged = false;

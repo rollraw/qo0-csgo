@@ -1,4 +1,6 @@
-﻿// used: std::array
+﻿// used: _ReturnAddress, _AddressOfReturnAddress
+#include <intrin.h>
+// used: std::array
 #include <array>
 
 #include "hooks.h"
@@ -727,7 +729,7 @@ int FASTCALL H::hkSendMessage(ISteamGameCoordinator* thisptr, int edx, std::uint
 
 	#ifdef DEBUG_CONSOLE
 	L::PushConsoleColor(FOREGROUND_INTENSE_GREEN | FOREGROUND_RED);
-	L::Print(fmt::format(XorStr("[<-] Message sent to GC {:d}!"), uMessageType));
+	L::Print(std::format(XorStr("[<-] Message sent to GC {:d}!"), uMessageType));
 	L::PopConsoleColor();
 	#endif
 
@@ -746,7 +748,7 @@ int FASTCALL H::hkRetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::
 
 	#ifdef DEBUG_CONSOLE
 	L::PushConsoleColor(FOREGROUND_INTENSE_GREEN | FOREGROUND_RED);
-	L::Print(fmt::format(XorStr("[->] Message received from GC {:d}!"), uMessageType));
+	L::Print(std::format(XorStr("[->] Message received from GC {:d}!"), uMessageType));
 	L::PopConsoleColor();
 	#endif
 

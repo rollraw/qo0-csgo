@@ -1,6 +1,8 @@
 #pragma once
 // used: std::ofstream
 #include <fstream>
+// used: std::format
+#include <format>
 
 // used: winapi, fmt includes
 #include "../common.h"
@@ -31,7 +33,7 @@
 #define SEH_START try {
 #define SEH_END } catch (const std::exception& ex) {		\
 	L::PushConsoleColor(FOREGROUND_INTENSE_RED);			\
-	L::Print(fmt::format(XorStr("[error] {}"), ex.what()));	\
+	L::Print(std::format(XorStr("[error] {}"), ex.what()));	\
 	L::PopConsoleColor();									\
 	SEH_CATCH }
 #pragma endregion

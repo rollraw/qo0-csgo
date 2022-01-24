@@ -714,23 +714,23 @@ IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view sz
 	 * use "mat_texture_list 1" command to see full materials list
 	 */
 
-	const std::string szMaterial = fmt::format(XorStr(R"#("{shader}"
+	const std::string szMaterial = std::format(XorStr(R"#("{0}"
 	{{
-		"$basetexture"		"{texture}"
-		"$envmap"			"{envmap}"
+		"$basetexture"		"{1}"
+		"$envmap"			"{2}"
 		"$envmapfresnel"	"0"
 		"$model"			"1"
 		"$translucent"		"0"
-		"$ignorez"			"{ignorez}"
+		"$ignorez"			"{3}"
 		"$selfillum"		"1"
 		"$halflambert"		"1"
-		"$wireframe"		"{wireframe}"
+		"$wireframe"		"{4}"
 		"$nofog"			"1"
 		"proxies"
 		{{
-			{proxies}
+			{5}
 		}}
-	}})#"), fmt::arg(XorStr("shader"), szShader), fmt::arg(XorStr("texture"), szBaseTexture), fmt::arg(XorStr("envmap"), szEnvMap), fmt::arg(XorStr("ignorez"), bIgnorez ? 1 : 0), fmt::arg(XorStr("wireframe"), bWireframe ? 1 : 0), fmt::arg(XorStr("proxies"), szProxies));
+	}})#"), szShader, szBaseTexture, szEnvMap, bIgnorez ? 1 : 0, bWireframe ? 1 : 0, szProxies);
 
 	// load to memory
 	CKeyValues* pKeyValues = new CKeyValues;

@@ -195,7 +195,7 @@
     <ClCompile Include="..\dependencies\minhook\hde\hde64.c">
       <Filter>dependencies\minhook\hde</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="core.cpp">
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="utilities.cpp">

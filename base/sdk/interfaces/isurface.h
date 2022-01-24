@@ -51,8 +51,8 @@ struct Vertex_t
 		this->vecCoordinate = vecCoordinate;
 	}
 
-	Vector2D vecPosition;
-	Vector2D vecCoordinate;
+	Vector2D vecPosition = { };
+	Vector2D vecCoordinate = { };
 };
 
 class ISurface

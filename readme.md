@@ -111,6 +111,9 @@ int* pSomePointer = *reinterpret_cast<int**>(pSomeAddress);
 #
 
 ### :question: faq
+**how do i create a project/solution?**
+- project and solution files can be auto-generated with [premake5](https://premake.github.io/), put it into same folder where `premake5.lua` is located and execute `premake vs2019` (or `vs2019`) command
+
 **how do i open the menu?**
 - menu key is <kbd>HOME</kbd>
 
@@ -123,5 +126,4 @@ int* pSomePointer = *reinterpret_cast<int**>(pSomeAddress);
 1. [dear imgui](https://github.com/ocornut/imgui/)
 2. [json](https://github.com/nlohmann/json/)
 3. [freetype font rasterizer](https://www.freetype.org/)
-4. [{fmt} formatting](https://github.com/fmtlib/fmt/)
-5. [minhook](https://github.com/TsudaKageyu/minhook/)
+4. [minhook](https://github.com/TsudaKageyu/minhook/)

@@ -10,7 +10,7 @@ std::uintptr_t MEM::FindPattern(const char* szModuleName, const char* szPattern)
 	const HMODULE hModule = GetModuleHandle(szModuleName);
 
 	if (hModule == nullptr)
-		throw std::runtime_error(fmt::format(XorStr("failed to get handle for: {}"), szModuleName));
+		throw std::runtime_error(std::format(XorStr("failed to get handle for: {}"), szModuleName));
 
 	const auto uModuleAdress = reinterpret_cast<std::uint8_t*>(hModule);
 	const auto pDosHeader = reinterpret_cast<PIMAGE_DOS_HEADER>(hModule);
@@ -20,7 +20,7 @@ std::uintptr_t MEM::FindPattern(const char* szModuleName, const char* szPattern)
 	if (!uOffset)
 	{
 		L::PushConsoleColor(FOREGROUND_INTENSE_RED);
-		L::Print(fmt::format(XorStr("[error] failed get pattern: [{}] [{}]"), szModuleName, szPattern));
+		L::Print(std::format(XorStr("[error] failed get pattern: [{}] [{}]"), szModuleName, szPattern));
 		L::PopConsoleColor();
 	}
 
