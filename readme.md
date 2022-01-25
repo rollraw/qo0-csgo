@@ -112,7 +112,7 @@ int* pSomePointer = *reinterpret_cast<int**>(pSomeAddress);
 
 ### :question: faq
 **how do i create a project/solution?**
-- project and solution files can be auto-generated with [premake5](https://premake.github.io/), put it into same folder where `premake5.lua` is located and execute `premake vs2019` (or `vs2019`) command
+- project and solution files can be auto-generated with [premake5](https://premake.github.io/), put it into same folder where `premake5.lua` is located and execute `premake5 <ide>` (where `<ide>` is e.g. `vs2022`) command
 
 **how do i open the menu?**
 - menu key is <kbd>HOME</kbd>
