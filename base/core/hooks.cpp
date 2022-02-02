@@ -798,6 +798,39 @@ long CALLBACK H::hkWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	// return input controls to the game
 	return CallWindowProcW(IPT::pOldWndProc, hWnd, uMsg, wParam, lParam);
 }
+
+char __fastcall H::hkClientIsValidAddr(std::uintptr_t thisptr, int edx, std::uintptr_t pRetn)
+{
+	static auto oClientIsValidAddr = DTR::ClientIsValidAddr.GetOriginal<decltype(&hkClientIsValidAddr)>();
+	static auto randomAddress = std::uintptr_t(GetModuleHandleA(CLIENT_DLL)) + 0xFFF + (rand() & 0x4444);
+
+	return oClientIsValidAddr(thisptr, edx, randomAddress);
+}
+
+char __fastcall H::hkEngineIsValidAddr(std::uintptr_t thisptr, int edx, std::uintptr_t pRetn)
+{
+	static auto oEngineIsValidAddr = DTR::EngineIsValidAddr.GetOriginal<decltype(&hkEngineIsValidAddr)>();
+	static auto randomAddress = std::uintptr_t(GetModuleHandleA(ENGINE_DLL)) + 0xFFF + (rand() & 0x4444);
+
+	return oEngineIsValidAddr(thisptr, edx, randomAddress);
+}
+
+char __fastcall H::hkStudioRenderIsValidAddr(std::uintptr_t thisptr, int edx, std::uintptr_t pRetn)
+{
+	static auto oStudioRenderIsValidAddr = DTR::ClientIsValidAddr.GetOriginal<decltype(&hkStudioRenderIsValidAddr)>();
+	static auto randomAddress = std::uintptr_t(GetModuleHandleA(STUDIORENDER_DLL)) + 0xFFF + (rand() & 0x4444);
+
+	return oStudioRenderIsValidAddr(thisptr, edx, randomAddress);
+}
+
+char __fastcall H::hkMaterialSystemIsValidAddr(std::uintptr_t thisptr, int edx, std::uintptr_t pRetn)
+{
+	static auto oMaterialSystemIsValidAddr = DTR::ClientIsValidAddr.GetOriginal<decltype(&hkMaterialSystemIsValidAddr)>();
+	static auto randomAddress = std::uintptr_t(GetModuleHandleA(MATERIALSYSTEM_DLL)) + 0xFFF + (rand() & 0x4444);
+
+	return oMaterialSystemIsValidAddr(thisptr, edx, randomAddress);
+}
+
 #pragma endregion
 
 #pragma region proxies_get
