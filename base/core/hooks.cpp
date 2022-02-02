@@ -826,31 +826,34 @@ long CALLBACK H::hkWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 char __fastcall H::hkClientIsValidAddr(std::uintptr_t thisptr, int edx, std::uintptr_t pRetn)
 {
 	static auto oClientIsValidAddr = DTR::ClientIsValidAddr.GetOriginal<decltype(&hkClientIsValidAddr)>();
+	static auto pRandomAddress = std::uintptr_t(GetModuleHandleA(CLIENT_DLL)) + 0xFFF + (rand() % 0x4444);
 
-	// Return 1 here. It checks relative to module base (lol)
 	// Alternatively, return 0 here to crash whatever server you're connected to :p
-	return oClientIsValidAddr(thisptr, edx, 0x1);
+	return oClientIsValidAddr(thisptr, edx, pRandomAddress);
 }
 
 char __fastcall H::hkEngineIsValidAddr(std::uintptr_t thisptr, int edx, std::uintptr_t pRetn)
 {
 	static auto oEngineIsValidAddr = DTR::EngineIsValidAddr.GetOriginal<decltype(&hkEngineIsValidAddr)>();
+	static auto pRandomAddress = std::uintptr_t(GetModuleHandleA(CLIENT_DLL)) + 0xFFF + (rand() % 0x4444);
 
-	return oEngineIsValidAddr(thisptr, edx, 0x1);
+	return oEngineIsValidAddr(thisptr, edx, pRandomAddress);
 }
 
 char __fastcall H::hkStudioRenderIsValidAddr(std::uintptr_t thisptr, int edx, std::uintptr_t pRetn)
 {
-	static auto oStudioRenderIsValidAddr = DTR::ClientIsValidAddr.GetOriginal<decltype(&hkStudioRenderIsValidAddr)>();
+	static auto oStudioRenderIsValidAddr = DTR::StudioRenderIsValidAddr.GetOriginal<decltype(&hkStudioRenderIsValidAddr)>();
+	static auto pRandomAddress = std::uintptr_t(GetModuleHandleA(STUDIORENDER_DLL)) + 0xFFF + (rand() % 0x4444);
 
-	return oStudioRenderIsValidAddr(thisptr, edx, 0x1);
+	return oStudioRenderIsValidAddr(thisptr, edx, pRandomAddress);
 }
 
 char __fastcall H::hkMaterialSystemIsValidAddr(std::uintptr_t thisptr, int edx, std::uintptr_t pRetn)
 {
-	static auto oMaterialSystemIsValidAddr = DTR::ClientIsValidAddr.GetOriginal<decltype(&hkMaterialSystemIsValidAddr)>();
+	static auto oMaterialSystemIsValidAddr = DTR::MaterialSystemIsValidAddr.GetOriginal<decltype(&hkMaterialSystemIsValidAddr)>();
+	static auto pRandomAddress = std::uintptr_t(GetModuleHandleA(MATERIALSYSTEM_DLL)) + 0xFFF + (rand() % 0x4444);
 
-	return oMaterialSystemIsValidAddr(thisptr, edx, 0x1);
+	return oMaterialSystemIsValidAddr(thisptr, edx, pRandomAddress);
 }
 
 #pragma endregion
