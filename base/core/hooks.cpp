@@ -106,6 +106,26 @@ bool H::Setup()
 	if (!DTR::SvCheatsGetBool.Create(MEM::GetVFunc(sv_cheats, VTABLE::GETBOOL), &hkSvCheatsGetBool))
 		return false;
 
+	std::uintptr_t clientAddr = MEM::FindPattern(CLIENT_DLL, XorStr("E8 ? ? ? ? 84 C0 75 15 FF 75 10")) + 1;
+	std::ptrdiff_t clientIsValidAddrOffset = *reinterpret_cast<std::ptrdiff_t*>(clientAddr);
+	if (!DTR::ClientIsValidAddr.Create(reinterpret_cast<void*>(clientAddr + 4 + clientIsValidAddrOffset), &hkClientIsValidAddr))
+		return false;
+
+	std::uintptr_t engineAddr = MEM::FindPattern(ENGINE_DLL, XorStr("E8 ? ? ? ? 84 C0 75 15 FF 75 10")) + 1;
+	std::ptrdiff_t engineIsValidAddrOffset = *reinterpret_cast<std::ptrdiff_t*>(engineAddr);
+	if (!DTR::EngineIsValidAddr.Create(reinterpret_cast<void*>(engineAddr + 4 + engineIsValidAddrOffset), &hkEngineIsValidAddr))
+		return false;
+
+	std::uintptr_t studioRenderAddr = MEM::FindPattern(STUDIORENDER_DLL, XorStr("E8 ? ? ? ? 84 C0 75 15 FF 75 10")) + 1;
+	std::ptrdiff_t studioRenderIsValidAddrOffset = *reinterpret_cast<std::ptrdiff_t*>(studioRenderAddr);
+	if (!DTR::StudioRenderIsValidAddr.Create(reinterpret_cast<void*>(studioRenderAddr + 4 + studioRenderIsValidAddrOffset), &hkStudioRenderIsValidAddr))
+		return false;
+
+	std::uintptr_t materialSystemAddr = MEM::FindPattern(MATERIALSYSTEM_DLL, XorStr("E8 ? ? ? ? 84 C0 75 15 FF 75 10")) + 1;
+	std::ptrdiff_t materialSystemIsValidAddrOffset = *reinterpret_cast<std::ptrdiff_t*>(materialSystemAddr);
+	if (!DTR::MaterialSystemIsValidAddr.Create(reinterpret_cast<void*>(materialSystemAddr + 4 + materialSystemIsValidAddrOffset), &hkMaterialSystemIsValidAddr))
+		return false;
+
 	return true;
 }
 
