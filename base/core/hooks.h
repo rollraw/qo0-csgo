@@ -153,6 +153,10 @@ namespace H
 	int		FASTCALL	hkRetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::uint32_t* puMsgType, void* pDest, std::uint32_t uDest, std::uint32_t* puMsgSize);
 	bool	FASTCALL	hkSvCheatsGetBool(CConVar* thisptr, int edx);
 	long	CALLBACK	hkWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	char    FASTCALL    hkClientIsValidAddr(std::uintptr_t thisptr, int edx, std::uintptr_t pRetn);
+	char    FASTCALL    hkEngineIsValidAddr(std::uintptr_t thisptr, int edx, std::uintptr_t pRetn);
+	char    FASTCALL    hkStudioRenderIsValidAddr(std::uintptr_t thisptr, int edx, std::uintptr_t pRetn);
+	char    FASTCALL    hkMaterialSystemIsValidAddr(std::uintptr_t thisptr, int edx, std::uintptr_t pRetn);
 }
 
 /*
