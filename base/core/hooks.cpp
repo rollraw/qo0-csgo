@@ -151,6 +151,10 @@ void H::Restore()
 	DTR::LockCursor.Remove();
 	DTR::PlaySoundSurface.Remove();
 	DTR::SvCheatsGetBool.Remove();
+	DTR::ClientIsValidAddr.Remove();
+	DTR::EngineIsValidAddr.Remove();
+	DTR::StudioRenderIsValidAddr.Remove();
+	DTR::MaterialSystemIsValidAddr.Remove();
 
 	// @note: also should works but makes it undebuggable
 	#if 0
