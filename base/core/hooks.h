@@ -113,6 +113,10 @@ namespace DTR
 	inline CDetourHook LockCursor;
 	inline CDetourHook PlaySoundSurface;
 	inline CDetourHook SvCheatsGetBool;
+	inline CDetourHook ClientIsValidAddr;
+	inline CDetourHook EngineIsValidAddr;
+	inline CDetourHook StudioRenderIsValidAddr;
+	inline CDetourHook MaterialSystemIsValidAddr;
 }
 
 /*
