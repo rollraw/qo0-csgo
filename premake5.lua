@@ -9,8 +9,10 @@ workspace "base"
 		{
 			"base/**.cpp",
 			"base/**.h",
-			"dependencies/imgui/**",
-			"dependencies/minhook/**",
+			"dependencies/imgui/**.cpp",
+			"dependencies/imgui/**.h",
+			"dependencies/minhook/**.cpp",
+			"dependencies/minhook/**.h",
 			"resources/*.h"
 		}
 		
@@ -25,6 +27,7 @@ workspace "base"
 			{ ["source/sdk/hash/*"] = "base/sdk/hash/*.cpp" },
 			{ ["source/sdk/interfaces/*"] = "base/sdk/interfaces/*.cpp" },
 			{ ["source/utilities/*"] = "base/utilities/*.cpp" },
+			{ ["source/utilities/memory/*"] = "base/utilities/memory/*.cpp" },
 			
 			{ ["include/*"] = "base/*.h" },
 			{ ["include/core/*"] = "base/core/*.h" },
@@ -34,6 +37,7 @@ workspace "base"
 			{ ["include/sdk/hash/*"] = "base/sdk/hash/*.h" },
 			{ ["include/sdk/interfaces/*"] = "base/sdk/interfaces/*.h" },
 			{ ["include/utilities/*"] = "base/utilities/*.h" },
+			{ ["include/utilities/memory/*"] = "base/utilities/memory/*.h" },
 			
 			{ ["dependencies/imgui/*"] = "dependencies/imgui/*" },
 			{ ["dependencies/imgui/dx9/*"] = "dependencies/imgui/dx9/*" },
