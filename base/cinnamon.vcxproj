@@ -41,6 +41,7 @@
     <ClCompile Include="features\visuals.cpp" />
     <ClCompile Include="core.cpp" />
     <ClCompile Include="sdk\convar.cpp" />
+    <ClCompile Include="sdk\datatypes\keyvalues.cpp" />
     <ClCompile Include="sdk\entity.cpp" />
     <ClCompile Include="sdk\hash\crc32.cpp" />
     <ClCompile Include="sdk\hash\md5.cpp" />
@@ -123,9 +124,9 @@
     <ClInclude Include="sdk\interfaces\igameui.h" />
     <ClInclude Include="sdk\interfaces\iglobalvars.h" />
     <ClInclude Include="sdk\interfaces\iglowmanager.h" />
-    <ClInclude Include="sdk\interfaces\ihudchat.h" />
     <ClInclude Include="sdk\interfaces\iinput.h" />
     <ClInclude Include="sdk\interfaces\iinputsystem.h" />
+    <ClInclude Include="sdk\interfaces\ikeyvaluessystem.h" />
     <ClInclude Include="sdk\interfaces\ilocalize.h" />
     <ClInclude Include="sdk\interfaces\imatchframework.h" />
     <ClInclude Include="sdk\interfaces\imaterial.h" />
@@ -162,6 +163,7 @@
     <ClInclude Include="utilities\logging.h" />
     <ClInclude Include="utilities\math.h" />
     <ClInclude Include="utilities\memory.h" />
+    <ClInclude Include="utilities\memory\pe32.h" />
     <ClInclude Include="utilities\xorstr.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

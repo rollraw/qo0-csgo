@@ -5,23 +5,28 @@
 
 bool M::Setup()
 {
-	RandomSeed = reinterpret_cast<RandomSeedFn>(GetProcAddress(GetModuleHandle(VSTDLIB_DLL), XorStr("RandomSeed")));
+	const void* hVstdLib = MEM::GetModuleBaseHandle(VSTDLIB_DLL);
+
+	if (hVstdLib == nullptr)
+		return false;
+
+	RandomSeed = reinterpret_cast<RandomSeedFn>(MEM::GetExportAddress(hVstdLib, XorStr("RandomSeed")));
 	if (RandomSeed == nullptr)
 		return false;
 
-	RandomFloat = reinterpret_cast<RandomFloatFn>(GetProcAddress(GetModuleHandle(VSTDLIB_DLL), XorStr("RandomFloat")));
+	RandomFloat = reinterpret_cast<RandomFloatFn>(MEM::GetExportAddress(hVstdLib, XorStr("RandomFloat")));
 	if (RandomFloat == nullptr)
 		return false;
 
-	RandomFloatExp = reinterpret_cast<RandomFloatExpFn>(GetProcAddress(GetModuleHandle(VSTDLIB_DLL), XorStr("RandomFloatExp")));
+	RandomFloatExp = reinterpret_cast<RandomFloatExpFn>(MEM::GetExportAddress(hVstdLib, XorStr("RandomFloatExp")));
 	if (RandomFloatExp == nullptr)
 		return false;
 
-	RandomInt = reinterpret_cast<RandomIntFn>(GetProcAddress(GetModuleHandle(VSTDLIB_DLL), XorStr("RandomInt")));
+	RandomInt = reinterpret_cast<RandomIntFn>(MEM::GetExportAddress(hVstdLib, XorStr("RandomInt")));
 	if (RandomInt == nullptr)
 		return false;
 
-	RandomGaussianFloat = reinterpret_cast<RandomGaussianFloatFn>(GetProcAddress(GetModuleHandle(VSTDLIB_DLL), XorStr("RandomGaussianFloat")));
+	RandomGaussianFloat = reinterpret_cast<RandomGaussianFloatFn>(MEM::GetExportAddress(hVstdLib, XorStr("RandomGaussianFloat")));
 	if (RandomGaussianFloat == nullptr)
 		return false;
 

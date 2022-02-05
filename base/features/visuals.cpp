@@ -733,8 +733,7 @@ IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view sz
 	}})#"), szShader, szBaseTexture, szEnvMap, bIgnorez ? 1 : 0, bWireframe ? 1 : 0, szProxies);
 
 	// load to memory
-	CKeyValues* pKeyValues = new CKeyValues;
-	pKeyValues->Init(szShader.data());
+	CKeyValues* pKeyValues = new CKeyValues(szShader.data());
 	pKeyValues->LoadFromBuffer(szName.data(), szMaterial.c_str());
 
 	// create from buffer

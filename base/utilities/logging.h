@@ -1,8 +1,10 @@
 #pragma once
-// used: std::ofstream
-#include <fstream>
 // used: std::format
 #include <format>
+// used: std::ofstream
+#include <fstream>
+// used: std::cout, std::endl
+#include <iostream>
 
 // used: winapi, fmt includes
 #include "../common.h"
@@ -43,29 +45,55 @@
  */
 namespace L
 {
-	// Values
-	/* console write stream */
-	inline FILE*			pStream;
-	/* current color of console text */
-	inline std::uint16_t	wConsoleColor = FOREGROUND_WHITE;
-	/* current file used for file-logging */
-	inline std::ofstream	ofsFile;
+	/*
+	 * @section: values
+	 */
+	// console write stream
+	inline FILE* pStream;
+	// current color of console text
+	inline std::uint16_t wConsoleColor = FOREGROUND_WHITE;
+	// current file used for file-logging
+	inline std::ofstream ofsFile;
 
-	// Get
-	/* attach console to current window with write permission and given title */
+	/*
+	 * @section: get
+	 */
+	// attach console to current window with write permission and given title
 	bool Attach(const char* szConsoleTitle);
-	/* close write streams and detach console from current window */
+	// close write streams and detach console from current window
 	void Detach();
-	/* prints given text to the console/file */
-	void Print(std::string_view szText);
+	// prints given text to the console/file
+	template <typename ... Args_t>
+	void Print(const std::string_view szText, const Args_t& ... argList)
+	{
+		// format time
+		const std::string szTime = std::format(XorStr("[{:%d-%m-%Y %X}] "), std::chrono::system_clock::now());
 
-	/* set given color to console */
+		#ifdef DEBUG_CONSOLE
+		// print to console
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_INTENSE_GREEN);
+		std::cout << szTime;
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), wConsoleColor);
+		if constexpr (sizeof...(argList) > 0)
+			std::cout << std::vformat(szText, std::make_format_args(argList...)) << std::endl;
+		else
+			std::cout << szText << std::endl;
+		#else
+		// print to file
+		if (ofsFile.is_open())
+			ofsFile << szTime << szText << std::endl;
+		#endif
+	}
+
+	/*
+	 * @section: options stack
+	 */
+	// set given color to console
 	inline void PushConsoleColor(const std::uint16_t wColor)
 	{
 		wConsoleColor = wColor;
 	}
-
-	/* reset console color */
+	// restore console color
 	inline void PopConsoleColor()
 	{
 		wConsoleColor = FOREGROUND_WHITE;

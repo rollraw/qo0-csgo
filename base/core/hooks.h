@@ -18,13 +18,15 @@
 */
 namespace VTABLE
 {
-	// work with namespace cuz if use enum class need additional convert to int
 	enum
 	{
 		/* directx table */
 		RESET = 16,
 		ENDSCENE = 42,
 		RESETEX = 132,
+
+		/* keyvaluessystem table */
+		ALLOCKEYVALUESMEMORY = 1,
 
 		/* client table */
 		FRAMESTAGENOTIFY = 37,
@@ -94,6 +96,7 @@ namespace DTR
 {
 	inline CDetourHook Reset;
 	inline CDetourHook EndScene;
+	inline CDetourHook AllocKeyValuesMemory;
 	inline CDetourHook FrameStageNotify;
 	inline CDetourHook OverrideView;
 	inline CDetourHook OverrideMouseInput;
@@ -129,6 +132,7 @@ namespace H
 	/* [type][call]		hk[name] (args...) */
 	long	D3DAPI		hkReset(IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pPresentationParameters);
 	long	D3DAPI		hkEndScene(IDirect3DDevice9* pDevice);
+	void*	FASTCALL	hkAllocKeyValuesMemory(IKeyValuesSystem* thisptr, int edx, int iSize);
 	bool	FASTCALL	hkCreateMove(IClientModeShared* thisptr, int edx, float flInputSampleTime, CUserCmd* pCmd);
 	void	FASTCALL	hkPaintTraverse(ISurface* thisptr, int edx, unsigned int uPanel, bool bForceRepaint, bool bForce);
 	void	FASTCALL	hkPlaySound(ISurface* thisptr, int edx, const char* szFileName);

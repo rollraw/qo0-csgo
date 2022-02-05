@@ -42,6 +42,7 @@
 #include "../sdk/interfaces/ivmodelrender.h"
 #include "../sdk/interfaces/ivrenderview.h"
 #include "../sdk/interfaces/iweaponsystem.h"
+#include "../sdk/interfaces/ikeyvaluessystem.h"
 
 class CInterfaceRegister
 {
@@ -62,7 +63,7 @@ namespace I
 	bool Setup();
 	/* search and returns a pointer of specific interface given */
 	template <typename T>
-	T* Capture(const char* szModule, std::string_view szInterface);
+	T* Capture(const std::string_view szModuleName, const std::string_view szInterface);
 
 	// Values
 	inline IBaseClientDll*			Client;
@@ -102,6 +103,7 @@ namespace I
 	inline IClientModeShared*		ClientMode;
 	inline IGlobalVarsBase*			Globals;
 	inline IMemAlloc*				MemAlloc;
+	inline IKeyValuesSystem*		KeyValuesSystem;
 	inline IDirect3DDevice9*		DirectDevice;
 	inline IViewRender*				ViewRender;
 	inline IViewRenderBeams*		ViewRenderBeams;

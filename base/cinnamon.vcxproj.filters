@@ -76,6 +76,12 @@
     <Filter Include="dependencies\minhook\hde">
       <UniqueIdentifier>{4665e928-c425-4804-9109-8c7795acd0e0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\utilities\memory">
+      <UniqueIdentifier>{3c5a0994-81ba-42fa-90d4-74c3ea9c9898}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\utilities\memory">
+      <UniqueIdentifier>{7a8d7cc0-4654-4567-a048-64224bb1b5d4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="core\config.cpp">
@@ -144,9 +150,6 @@
     <ClCompile Include="utilities\math.cpp">
       <Filter>source\utilities</Filter>
     </ClCompile>
-    <ClCompile Include="utilities\memory.cpp">
-      <Filter>source\utilities</Filter>
-    </ClCompile>
     <ClCompile Include="sdk\hash\crc32.cpp">
       <Filter>source\sdk\hash</Filter>
     </ClCompile>
@@ -200,6 +203,12 @@
     </ClCompile>
     <ClCompile Include="utilities.cpp">
       <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="utilities\memory.cpp">
+      <Filter>source\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="sdk\datatypes\keyvalues.cpp">
+      <Filter>source\sdk\datatypes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -273,9 +282,6 @@
       <Filter>include\utilities</Filter>
     </ClInclude>
     <ClInclude Include="utilities\math.h">
-      <Filter>include\utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="utilities\memory.h">
       <Filter>include\utilities</Filter>
     </ClInclude>
     <ClInclude Include="utilities\xorstr.h">
@@ -357,9 +363,6 @@
       <Filter>include\sdk\interfaces</Filter>
     </ClInclude>
     <ClInclude Include="sdk\interfaces\iglowmanager.h">
-      <Filter>include\sdk\interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="sdk\interfaces\ihudchat.h">
       <Filter>include\sdk\interfaces</Filter>
     </ClInclude>
     <ClInclude Include="sdk\interfaces\iinput.h">
@@ -529,6 +532,15 @@
     </ClInclude>
     <ClInclude Include="utilities.h">
       <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="utilities\memory\pe32.h">
+      <Filter>include\utilities\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="utilities\memory.h">
+      <Filter>include\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="sdk\interfaces\ikeyvaluessystem.h">
+      <Filter>include\sdk\interfaces</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

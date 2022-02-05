@@ -41,6 +41,8 @@ static constexpr std::array<const char*, 3U> arrSmokeMaterials =
 #pragma region hooks_get
 bool H::Setup()
 {
+	SEH_START
+
 	if (MH_Initialize() != MH_OK)
 		throw std::runtime_error(XorStr("failed initialize minhook"));
 
@@ -48,6 +50,9 @@ bool H::Setup()
 		return false;
 
 	if (!DTR::EndScene.Create(MEM::GetVFunc(I::DirectDevice, VTABLE::ENDSCENE), &hkEndScene))
+		return false;
+
+	if (!DTR::AllocKeyValuesMemory.Create(MEM::GetVFunc(I::KeyValuesSystem, VTABLE::ALLOCKEYVALUESMEMORY), &hkAllocKeyValuesMemory))
 		return false;
 
 	if (!DTR::FrameStageNotify.Create(MEM::GetVFunc(I::Client, VTABLE::FRAMESTAGENOTIFY), &hkFrameStageNotify))
@@ -107,36 +112,16 @@ bool H::Setup()
 		return false;
 
 	return true;
+
+	SEH_END
+	
+	return false;
 }
 
 void H::Restore()
 {
-	DTR::Reset.Remove();
-	DTR::EndScene.Remove();
-	DTR::FrameStageNotify.Remove();
-	DTR::OverrideView.Remove();
-	DTR::OverrideMouseInput.Remove();
-	DTR::CreateMove.Remove();
-	DTR::SendNetMsg.Remove();
-	DTR::SendDatagram.Remove();
-	DTR::GetViewModelFOV.Remove();
-	DTR::DoPostScreenEffects.Remove();
-	DTR::IsConnected.Remove();
-	DTR::ListLeavesInBox.Remove();
-	DTR::PaintTraverse.Remove();
-	DTR::DrawModel.Remove();
-	DTR::RunCommand.Remove();
-	DTR::SendMessageGC.Remove();
-	DTR::RetrieveMessage.Remove();
-	DTR::LockCursor.Remove();
-	DTR::PlaySoundSurface.Remove();
-	DTR::SvCheatsGetBool.Remove();
-
-	// @note: also should works but makes it undebuggable
-	#if 0
 	MH_DisableHook(MH_ALL_HOOKS);
 	MH_RemoveHook(MH_ALL_HOOKS);
-	#endif
 
 	MH_Uninitialize();
 }
@@ -209,6 +194,25 @@ long D3DAPI H::hkEndScene(IDirect3DDevice9* pDevice)
 	return oEndScene(pDevice);
 }
 
+void* FASTCALL H::hkAllocKeyValuesMemory(IKeyValuesSystem* thisptr, int edx, int iSize)
+{
+	static auto oAllocKeyValuesMemory = DTR::AllocKeyValuesMemory.GetOriginal<decltype(&hkAllocKeyValuesMemory)>();
+
+	// return addresses of check function
+	// @credits: danielkrupinski
+	static const std::uintptr_t uAllocKeyValuesEngine = MEM::FindPattern(ENGINE_DLL, XorStr("FF 52 04 85 C0 74 0C 56")) + 0x3;
+	static const std::uintptr_t uAllocKeyValuesClient = MEM::FindPattern(CLIENT_DLL, XorStr("FF 52 04 85 C0 74 0C 56")) + 0x3;
+
+	// doesn't call it yet, but have checking function
+	//static const std::uintptr_t uAllocKeyValuesMaterialSystem = MEM::FindPattern(MATERIALSYSTEM_DLL, XorStr("FF 52 04 85 C0 74 0C 56")) + 0x3;
+	//static const std::uintptr_t uAllocKeyValuesStudioRender = MEM::FindPattern(STUDIORENDER_DLL, XorStr("FF 52 04 85 C0 74 0C 56")) + 0x3;
+
+	if (const std::uintptr_t uReturnAddress = reinterpret_cast<std::uintptr_t>(_ReturnAddress()); uReturnAddress == uAllocKeyValuesEngine || uReturnAddress == uAllocKeyValuesClient)
+		return nullptr;
+
+	return oAllocKeyValuesMemory(thisptr, edx, iSize);
+}
+
 bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInputSampleTime, CUserCmd* pCmd)
 {
 	static auto oCreateMove = DTR::CreateMove.GetOriginal<decltype(&hkCreateMove)>();
@@ -216,7 +220,6 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	/*
 	 * get global localplayer pointer
 	 * @note: dont forget check global localplayer for nullptr when using not in createmove
-	 * also not recommended use so far
 	 */
 	CBaseEntity* pLocal = G::pLocal = CBaseEntity::GetLocalPlayer();
 	
@@ -245,11 +248,7 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	// safe and will not break if you omitting frame pointer
 	const volatile auto vlBaseAddress = *reinterpret_cast<std::uintptr_t*>(reinterpret_cast<std::uintptr_t>(_AddressOfReturnAddress()) - sizeof(std::uintptr_t));
 
-	/*
-	 * get sendpacket pointer from stack frame
-	 * if use global sendpacket value then sendpacket applies only on next tick
-	 * im not recommend use globals anywhere
-	 */
+	// get sendpacket pointer from stack frame
 	bool& bSendPacket = *reinterpret_cast<bool*>(vlBaseAddress - 0x1C);
 
 	// save previous view angles for movement correction
@@ -318,10 +317,10 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 			DTR::SendDatagram.Create(MEM::GetVFunc(pNetChannel, VTABLE::SENDDATAGRAM), &hkSendDatagram);
 	}
 
-	// save next view angles state
+	// store next tick view angles state
 	G::angRealView = pCmd->angViewPoint;
 
-	// save next global sendpacket state
+	// store current tick send packet state
 	G::bSendPacket = bSendPacket;
 
 	// @note: i seen many times this mistake and please do not set/clamp angles here cuz u get confused with psilent aimbot later!
@@ -442,11 +441,9 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 		*pLocal->GetFlashMaxAlpha() = C::Get<bool>(Vars.bWorld) ? C::Get<int>(Vars.iWorldMaxFlash) * 2.55f : 255.f;
 
 		// no draw smoke
-		for (auto szSmokeMaterial : arrSmokeMaterials)
+		for (const auto& szSmokeMaterial : arrSmokeMaterials)
 		{
-			IMaterial* pMaterial = I::MaterialSystem->FindMaterial(szSmokeMaterial, TEXTURE_GROUP_OTHER);
-
-			if (pMaterial != nullptr && !pMaterial->IsErrorMaterial())
+			if (IMaterial* pMaterial = I::MaterialSystem->FindMaterial(szSmokeMaterial, TEXTURE_GROUP_OTHER); pMaterial != nullptr && !pMaterial->IsErrorMaterial())
 				pMaterial->SetMaterialVarFlag(MATERIAL_VAR_NO_DRAW, (C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SMOKE)) ? true : false);
 		}
 
@@ -460,8 +457,8 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 			if (C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_PUNCH))
 			{
 				// change current values
-				pLocal->GetViewPunch() = QAngle(0, 0, 0);
-				pLocal->GetPunch() = QAngle(0, 0, 0);
+				pLocal->GetViewPunch() = QAngle{ };
+				pLocal->GetPunch() = QAngle{ };
 			}
 		}
 
@@ -729,7 +726,7 @@ int FASTCALL H::hkSendMessage(ISteamGameCoordinator* thisptr, int edx, std::uint
 
 	#ifdef DEBUG_CONSOLE
 	L::PushConsoleColor(FOREGROUND_INTENSE_GREEN | FOREGROUND_RED);
-	L::Print(std::format(XorStr("[<-] Message sent to GC {:d}!"), uMessageType));
+	L::Print(XorStr("[<-] Message sent to GC {:d}!"), uMessageType);
 	L::PopConsoleColor();
 	#endif
 
@@ -744,11 +741,11 @@ int FASTCALL H::hkRetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::
 	if (iStatus != EGCResultOK)
 		return iStatus;
 
-	std::uint32_t uMessageType = *puMsgType & 0x7FFFFFFF;
+	const std::uint32_t uMessageType = *puMsgType & 0x7FFFFFFF;
 
 	#ifdef DEBUG_CONSOLE
 	L::PushConsoleColor(FOREGROUND_INTENSE_GREEN | FOREGROUND_RED);
-	L::Print(std::format(XorStr("[->] Message received from GC {:d}!"), uMessageType));
+	L::Print(XorStr("[->] Message received from GC {:d}!"), uMessageType);
 	L::PopConsoleColor();
 	#endif
 

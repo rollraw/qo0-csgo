@@ -44,10 +44,11 @@ bool I::Setup()
 	if (SteamUser == nullptr)
 		return false;
 
-	const HSteamUser hSteamUser = reinterpret_cast<std::add_pointer_t<HSteamUser()>>(GetProcAddress(GetModuleHandle(STEAM_API_DLL), XorStr("SteamAPI_GetHSteamUser")))();
-	const HSteamPipe hSteamPipe = reinterpret_cast<std::add_pointer_t<HSteamPipe()>>(GetProcAddress(GetModuleHandle(STEAM_API_DLL), XorStr("SteamAPI_GetHSteamPipe")))();
+	const void* hSteamAPI = MEM::GetModuleBaseHandle(STEAM_API_DLL);
+	const HSteamUser hSteamUser = reinterpret_cast<std::add_pointer_t<HSteamUser()>>(MEM::GetExportAddress(hSteamAPI, XorStr("SteamAPI_GetHSteamUser")))();
+	const HSteamPipe hSteamPipe = reinterpret_cast<std::add_pointer_t<HSteamPipe()>>(MEM::GetExportAddress(hSteamAPI, XorStr("SteamAPI_GetHSteamPipe")))();
 
-	SteamGameCoordinator = static_cast<ISteamGameCoordinator*>(I::SteamClient->GetISteamGenericInterface(hSteamUser, hSteamPipe, XorStr("SteamGameCoordinator001")));
+	SteamGameCoordinator = static_cast<ISteamGameCoordinator*>(SteamClient->GetISteamGenericInterface(hSteamUser, hSteamPipe, XorStr("SteamGameCoordinator001")));
 	if (SteamGameCoordinator == nullptr)
 		return false;
 
@@ -59,8 +60,12 @@ bool I::Setup()
 	if (Globals == nullptr)
 		return false;
 
-	MemAlloc = *reinterpret_cast<IMemAlloc**>(GetProcAddress(GetModuleHandle(TIER0_DLL), XorStr("g_pMemAlloc")));
+	MemAlloc = *static_cast<IMemAlloc**>(MEM::GetExportAddress(MEM::GetModuleBaseHandle(TIER0_DLL), XorStr("g_pMemAlloc")));
 	if (MemAlloc == nullptr)
+		return false;
+
+	KeyValuesSystem = reinterpret_cast<KeyValuesSystemFn>(MEM::GetExportAddress(MEM::GetModuleBaseHandle(VSTDLIB_DLL), XorStr("KeyValuesSystem")))();
+	if (KeyValuesSystem == nullptr)
 		return false;
 
 	DirectDevice = **reinterpret_cast<IDirect3DDevice9***>(MEM::FindPattern(SHADERPIDX9_DLL, XorStr("A1 ? ? ? ? 50 8B 08 FF 51 0C")) + 0x1); // @xref: "HandleLateCreation"
@@ -95,14 +100,14 @@ bool I::Setup()
 }
 
 template <typename T>
-T* I::Capture(const char* szModule, std::string_view szInterface)
+T* I::Capture(const std::string_view szModuleName, const std::string_view szInterface)
 {
-	const auto GetRegisterList = [&szModule]() -> CInterfaceRegister*
+	const auto GetRegisterList = [&szModuleName]() -> CInterfaceRegister*
 	{
-		FARPROC oCreateInterface = nullptr;
+		void* oCreateInterface = nullptr;
 
-		if (const auto hModule = GetModuleHandle(szModule); hModule != nullptr)
-			oCreateInterface = GetProcAddress(hModule, XorStr("CreateInterface"));
+		if (const auto hModule = MEM::GetModuleBaseHandle(szModuleName); hModule != nullptr)
+			oCreateInterface = MEM::GetExportAddress(hModule, XorStr("CreateInterface"));
 
 		if (oCreateInterface == nullptr)
 			throw std::runtime_error(XorStr("failed get createinterface address"));
@@ -118,14 +123,14 @@ T* I::Capture(const char* szModule, std::string_view szInterface)
 		if ((std::string_view(pRegister->szName).compare(0U, szInterface.length(), szInterface) == 0 &&
 			// and it have digits after name
 			std::atoi(pRegister->szName + szInterface.length()) > 0) ||
-			// or given full interface with hardcoded digits
+			// or given full name with hardcoded digits
 			szInterface.compare(pRegister->szName) == 0)
 		{
 			// capture our interface
 			auto pInterface = pRegister->pCreateFn();
 
 			// log interface address
-			L::Print(std::format(XorStr("captured {} interface -> {:#08X}"), pRegister->szName, reinterpret_cast<std::uintptr_t>(pInterface)));
+			L::Print(XorStr("captured {} interface -> {:#08X}"), pRegister->szName, reinterpret_cast<std::uintptr_t>(pInterface));
 
 			return static_cast<T*>(pInterface);
 		}
@@ -133,7 +138,7 @@ T* I::Capture(const char* szModule, std::string_view szInterface)
 
 	#ifdef DEBUG_CONSOLE
 	L::PushConsoleColor(FOREGROUND_INTENSE_RED);
-	L::Print(std::format(XorStr("[error] failed to find interface \"{}\" in \"{}\""), szInterface, szModule));
+	L::Print(XorStr("[error] failed to find interface \"{}\" in \"{}\""), szInterface, szModuleName);
 	L::PopConsoleColor();
 	#endif
 

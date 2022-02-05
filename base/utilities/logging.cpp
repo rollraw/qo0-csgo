@@ -1,8 +1,5 @@
 #include "logging.h"
 
-// used: std::cout, std::endl
-#include <iostream>
-
 bool L::Attach(const char* szConsoleTitle)
 {
 	// allocate memory for console
@@ -40,20 +37,3 @@ void L::Detach()
 		PostMessageW(hConsoleWnd, WM_CLOSE, 0U, 0L);
 }
 
-void L::Print(std::string_view szText)
-{
-	// format time
-	const std::string szTime = std::format(XorStr("[{:%d-%m-%Y %X}] "), std::chrono::system_clock::now());
-
-	#ifdef DEBUG_CONSOLE
-	// print to console
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_INTENSE_GREEN);
-	std::cout << szTime;
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), wConsoleColor);
-	std::cout << szText << std::endl;
-	#else
-	// print to file
-	if (ofsFile.is_open())
-		ofsFile << szTime << szText << std::endl;
-	#endif
-}

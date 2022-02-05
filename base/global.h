@@ -23,7 +23,7 @@ namespace G
 	inline CBaseEntity*		pLocal = nullptr;
 	// last cmd pointer
 	inline CUserCmd*		pCmd = nullptr;
-	// last sendpacket state
+	// last sendpacket state, read-only!
 	inline bool				bSendPacket = true;
 	// last viewangles with allowed sendpacket
 	inline QAngle			angRealView = { };

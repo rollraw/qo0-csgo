@@ -32,7 +32,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 		 * @note: serverbrowser.dll is last loaded module (u can seen it when debug)
 		 * here is check for all modules loaded
 		 */
-		while (GetModuleHandle(SERVERBROWSER_DLL) == nullptr)
+		while (MEM::GetModuleBaseHandle(SERVERBROWSER_DLL) == nullptr)
 			std::this_thread::sleep_for(200ms);
 
 		#ifdef DEBUG_CONSOLE
@@ -58,7 +58,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 		if (strcmp(I::Engine->GetProductVersionString(), XorStr("1.37.7.6")) != 0)
 		{
 			L::PushConsoleColor(FOREGROUND_YELLOW);
-			L::Print(std::format(XorStr("[warning] version doesnt match! current cs:go version: {}"), I::Engine->GetProductVersionString()));
+			L::Print(XorStr("[warning] version doesnt match! current cs:go version: {}"), I::Engine->GetProductVersionString());
 			L::PopConsoleColor();
 		}
 		#endif
@@ -70,7 +70,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 		if (!CNetvarManager::Get().Setup(XorStr("netvars.qo0")))
 			throw std::runtime_error(XorStr("failed to initialize netvars"));
 
-		L::Print(std::format(XorStr("found [{:d}] props in [{:d}] tables"), CNetvarManager::Get().iStoredProps, CNetvarManager::Get().iStoredTables));
+		L::Print(XorStr("found [{:d}] props in [{:d}] tables"), CNetvarManager::Get().iStoredProps, CNetvarManager::Get().iStoredTables);
 
 		// export completed mathematics functions from game/steam (not always) modules
 		if (!M::Setup())
@@ -129,7 +129,7 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 	{
 		// print error message
 		L::PushConsoleColor(FOREGROUND_INTENSE_RED);
-		L::Print(std::format(XorStr("[error] {}"), ex.what()));
+		L::Print(XorStr("[error] {}"), ex.what());
 		L::PopConsoleColor();
 
 		#ifdef _DEBUG
@@ -194,7 +194,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 		DisableThreadLibraryCalls(hModule);
 
 		// basic process check
-		if (GetModuleHandle(XorStr("csgo.exe")) == nullptr)
+		if (MEM::GetModuleBaseHandle(XorStr("csgo.exe")) == nullptr)
 		{
 			MessageBox(nullptr, XorStr("this cannot be injected in another process\nopen <csgo.exe> to inject"), XorStr("qo0 base"), MB_OK);
 			return FALSE;

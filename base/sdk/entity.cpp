@@ -22,6 +22,8 @@ int CBaseEntity::GetSequenceActivity(int iSequence)
 
 	using GetSequenceActivityFn = int(__fastcall*)(void*, void*, int);
 	static auto oGetSequenceActivity = reinterpret_cast<GetSequenceActivityFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 53 8B 5D 08 56 8B F1 83"))); // @xref: "Need to handle the activity %d\n"
+	assert(oGetSequenceActivity != nullptr);
+
 	return oGetSequenceActivity(this, pStudioHdr, iSequence);
 }
 
@@ -180,9 +182,11 @@ void CBaseEntity::PostThink()
 
 	using PostThinkVPhysicsFn = bool(__thiscall*)(CBaseEntity*);
 	static auto oPostThinkVPhysics = reinterpret_cast<PostThinkVPhysicsFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 81 EC ? ? ? ? 53 8B D9 56 57 83 BB")));
+	assert(oPostThinkVPhysics != nullptr);
 
 	using SimulatePlayerSimulatedEntitiesFn = void(__thiscall*)(CBaseEntity*);
 	static auto oSimulatePlayerSimulatedEntities = reinterpret_cast<SimulatePlayerSimulatedEntitiesFn>(MEM::FindPattern(CLIENT_DLL, XorStr("56 8B F1 57 8B BE ? ? ? ? 83 EF 01 78 74")));
+	assert(oSimulatePlayerSimulatedEntities != nullptr);
 
 	I::MDLCache->BeginLock();
 
