@@ -11,7 +11,7 @@ workspace "base"
 			"base/**.h",
 			"dependencies/imgui/**.cpp",
 			"dependencies/imgui/**.h",
-			"dependencies/minhook/**.cpp",
+			"dependencies/minhook/**.c",
 			"dependencies/minhook/**.h",
 			"resources/*.h"
 		}
