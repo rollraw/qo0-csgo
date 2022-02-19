@@ -28,7 +28,7 @@ public:
 		SIGNON,			// various signondata
 		PAINTMAP,		// paintmap data
 		ENCRYPTED,		// encrypted data
-		TOTAL,			// must be last and is not a real group
+		TOTAL			// must be last and is not a real group
 	};
 
 	virtual const char* GetName() const = 0;			// get channel name

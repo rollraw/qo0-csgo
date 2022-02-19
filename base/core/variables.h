@@ -202,7 +202,7 @@ struct Variables_t
 	C_ADD_VARIABLE(bool, bScreenHitMarkerSound, false);
 	C_ADD_VARIABLE(float, flScreenHitMarkerTime, 1.0f);
 	C_ADD_VARIABLE(int, iScreenHitMarkerGap, 5);
-	C_ADD_VARIABLE(int, iScreenHitMarkerLenght, 10);
+	C_ADD_VARIABLE(int, iScreenHitMarkerLength, 10);
 	C_ADD_VARIABLE(Color, colScreenHitMarker, Color(255, 255, 255, 255));
 	C_ADD_VARIABLE(Color, colScreenHitMarkerDamage, Color(200, 55, 20, 255));
 	#pragma endregion

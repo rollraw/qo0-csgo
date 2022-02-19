@@ -33,7 +33,7 @@ enum ETraceType : int
 enum EDebugTraceCounterBehavior : int
 {
 	TRACE_COUNTER_SET = 0,
-	TRACE_COUNTER_INC,
+	TRACE_COUNTER_INC
 };
 #pragma endregion
 

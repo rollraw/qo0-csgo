@@ -72,7 +72,7 @@ bool I::Setup()
 	if (DirectDevice == nullptr)
 		return false;
 
-	ViewRender = **reinterpret_cast<IViewRender***>(MEM::FindPattern(CLIENT_DLL, XorStr("8B 0D ? ? ? ? FF 75 0C 8B 45 08")) + 0x2);
+	ViewRender = **reinterpret_cast<IViewRender***>(MEM::GetVFunc<std::uintptr_t>(Client, 28) + 0x8);
 	if (ViewRender == nullptr)
 		return false;
 
@@ -80,11 +80,11 @@ bool I::Setup()
 	if (ViewRenderBeams == nullptr)
 		return false;
 
-	Input =	*reinterpret_cast<IInput**>(MEM::FindPattern(CLIENT_DLL, XorStr("B9 ? ? ? ? F3 0F 11 04 24 FF 50 10")) + 0x1); // @note: or address of some indexed input function in chlclient class (like IN_ActivateMouse, IN_DeactivateMouse, IN_Accumulate, IN_ClearStates) + 0x1 (jmp to m_pInput)
+	Input = *reinterpret_cast<IInput**>(MEM::GetVFunc<std::uintptr_t>(Client, 16) + 0x1);
 	if (Input == nullptr)
 		return false;
 
-	ClientState = **reinterpret_cast<IClientState***>(MEM::FindPattern(ENGINE_DLL, XorStr("A1 ? ? ? ? 8B 88 ? ? ? ? 85 C9 75 07")) + 0x1);
+	ClientState = **reinterpret_cast<IClientState***>(MEM::GetVFunc<std::uintptr_t>(Engine, 12) + 0x10);
 	if (ClientState == nullptr)
 		return false;
 

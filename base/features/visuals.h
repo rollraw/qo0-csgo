@@ -22,9 +22,9 @@ struct Box_t
 
 struct HitMarkerObject_t
 {
-	Vector	vecPosition;
-	int		iDamage;
-	float	flTime;
+	Vector	vecPosition = { };
+	int		iDamage = 0;
+	float	flTime = 0.f;
 };
 
 class CVisuals : public CSingleton<CVisuals>
@@ -64,7 +64,7 @@ public:
 		};
 
 		// increment references for every material only once
-		for (auto& [pFirstMaterial, pSecondMaterial] : arrMaterials)
+		for (const auto& [pFirstMaterial, pSecondMaterial] : arrMaterials)
 		{
 			if (pFirstMaterial != nullptr && !pFirstMaterial->IsErrorMaterial())
 				pFirstMaterial->IncrementReferenceCount();

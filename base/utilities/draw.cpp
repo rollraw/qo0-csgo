@@ -19,7 +19,7 @@
  *
  2	removed unused GetStyleColorName function
  *
- 3	changed sliderscale grab lenght to range from frame start pos to current value pos
+ 3	changed sliderscale grab length to range from frame start pos to current value pos
  *
  4	modified combo, slider, inputtext bounding boxes and text position
  *	also pushed frame padding to decrease frame size on menu
@@ -121,7 +121,7 @@ bool ImGui::HotKey(const char* szLabel, int* pValue)
 
 	const bool bFocusRequested = FocusableItemRegister(pWindow, nIndex);
 	const bool bClicked = bHovered && io.MouseClicked[0];
-	const bool bDoubleClicked = bHovered && g.IO.MouseDoubleClicked[0];
+	const bool bDoubleClicked = bHovered && io.MouseDoubleClicked[0];
 	if (bFocusRequested || bClicked || bDoubleClicked)
 	{
 		if (g.ActiveId != nIndex)
@@ -457,19 +457,19 @@ void D::Setup(IDirect3DDevice9* pDevice, unsigned int uFontFlags)
 	// create fonts
 	ImGuiIO& io = ImGui::GetIO();
 
-	ImFontConfig imWhitneyConfig;
+	ImFontConfig imWhitneyConfig = { };
 	imWhitneyConfig.RasterizerFlags = ImGuiFreeType::ForceAutoHint;
 	F::Whitney = io.Fonts->AddFontFromMemoryCompressedTTF(whitney_compressed_data, whitney_compressed_size, 13.f, &imWhitneyConfig, io.Fonts->GetGlyphRangesCyrillic());
 
-	ImFontConfig imVerdanaConfig;
+	ImFontConfig imVerdanaConfig = { };
 	imVerdanaConfig.RasterizerFlags = ImGuiFreeType::Bold;
 	F::Verdana = io.Fonts->AddFontFromFileTTF(XorStr("C:\\Windows\\Fonts\\Verdana.ttf"), 14.f, &imVerdanaConfig, io.Fonts->GetGlyphRangesCyrillic());
 
-	ImFontConfig imSmallestPixelConfig;
+	ImFontConfig imSmallestPixelConfig = { };
 	imSmallestPixelConfig.RasterizerFlags = ImGuiFreeType::LightHinting;
 	F::SmallestPixel = io.Fonts->AddFontFromMemoryCompressedTTF(smallest_pixel_compressed_data, smallest_pixel_compressed_size, 40.f, &imSmallestPixelConfig, io.Fonts->GetGlyphRangesCyrillic());
 
-	ImFontConfig imIconsConfig;
+	ImFontConfig imIconsConfig = { };
 	imIconsConfig.RasterizerFlags = ImGuiFreeType::LightHinting;
 	constexpr ImWchar wIconRanges[] =
 	{

@@ -142,7 +142,7 @@ public:
 	Vector		vecVelocity; // 0xC8
 	Vector		vecVelocityNormalized; // 0xD4
 	Vector		vecVelocityNormalizedNonZero; // 0xE0
-	float		flVelocityLenght2D; // 0xEC
+	float		flVelocityLength2D; // 0xEC
 	float		flJumpFallVelocity; // 0xF0
 	float		flSpeedNormalized; // 0xF4 // clamped velocity from 0 to 1 
 	float		flRunningSpeed; // 0xF8

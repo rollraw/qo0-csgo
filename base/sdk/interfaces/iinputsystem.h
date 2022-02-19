@@ -133,14 +133,14 @@ enum EButtonCode : int
 	MOUSE_WHEEL_DOWN,	// A fake button which is 'pressed' and 'released' when the wheel is moved down
 
 	MOUSE_LAST = MOUSE_WHEEL_DOWN,
-	MOUSE_COUNT = MOUSE_LAST - MOUSE_FIRST + 1,
+	MOUSE_COUNT = MOUSE_LAST - MOUSE_FIRST + 1
 };
 
 enum EMouseCodeState : int
 {
 	BUTTON_RELEASED = 0,
 	BUTTON_PRESSED,
-	BUTTON_DOUBLECLICKED,
+	BUTTON_DOUBLECLICKED
 };
 #pragma endregion
 

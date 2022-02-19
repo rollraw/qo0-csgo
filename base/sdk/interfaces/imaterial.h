@@ -11,7 +11,7 @@ enum EPreviewImageRetVal : int
 {
 	MATERIAL_PREVIEW_IMAGE_BAD = 0,
 	MATERIAL_PREVIEW_IMAGE_OK,
-	MATERIAL_NO_PREVIEW_IMAGE,
+	MATERIAL_NO_PREVIEW_IMAGE
 };
 
 enum EMaterialPropertyType : int

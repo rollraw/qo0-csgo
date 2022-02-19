@@ -33,7 +33,7 @@ enum EBeamType : unsigned int
 	FBEAM_ISACTIVE			= 0x00002000,
 	FBEAM_FOREVER			= 0x00004000,
 	FBEAM_HALOBEAM			= 0x00008000,	// when drawing a beam with a halo, don't ignore the segments and endwidth
-	FBEAM_REVERSED			= 0x00010000,
+	FBEAM_REVERSED			= 0x00010000
 };
 
 struct BeamTrail_t

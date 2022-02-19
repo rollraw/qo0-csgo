@@ -343,13 +343,13 @@ bool CAutoWall::SimulateFireBullet(CBaseEntity* pLocal, CBaseCombatWeapon* pWeap
 	// set our current damage to what our gun's initial damage reports it will do
 	data.flCurrentDamage = static_cast<float>(pWeaponData->iDamage);
 
-	float flTraceLenght = 0.0f;
+	float flTraceLength = 0.0f;
 	CTraceFilter filter(pLocal);
 
 	while (data.iPenetrateCount > 0 && data.flCurrentDamage >= 1.0f)
 	{
 		// max bullet range
-		flMaxRange -= flTraceLenght;
+		flMaxRange -= flTraceLength;
 
 		// end position of bullet
 		const Vector vecEnd = data.vecPosition + data.vecDirection * flMaxRange;
@@ -368,11 +368,11 @@ bool CAutoWall::SimulateFireBullet(CBaseEntity* pLocal, CBaseCombatWeapon* pWeap
 			break;
 
 		// calculate the damage based on the distance the bullet traveled
-		flTraceLenght += data.enterTrace.flFraction * flMaxRange;
-		data.flCurrentDamage *= std::powf(pWeaponData->flRangeModifier, flTraceLenght / MAX_DAMAGE);
+		flTraceLength += data.enterTrace.flFraction * flMaxRange;
+		data.flCurrentDamage *= std::powf(pWeaponData->flRangeModifier, flTraceLength / MAX_DAMAGE);
 
 		// check is actually can shoot through
-		if (flTraceLenght > 3000.f || flEnterPenetrationModifier < 0.1f)
+		if (flTraceLength > 3000.f || flEnterPenetrationModifier < 0.1f)
 			break;
 
 		// check is can do damage

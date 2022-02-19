@@ -756,7 +756,7 @@ void CVisuals::HitMarker(const ImVec2& vecScreenSize, float flServerTime, Color 
 
 	for (const auto& arrSide : arrSides)
 		// draw mark cross
-		D::AddLine(ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * arrSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * arrSide[1]), ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * arrSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLenght) * arrSide[1]), colLines.Set<COLOR_A>(static_cast<std::uint8_t>(std::min(flMaxLinesAlpha, flLastDelta / C::Get<float>(Vars.flScreenHitMarkerTime)) * 255.f)));
+		D::AddLine(ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * arrSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerGap) * arrSide[1]), ImVec2(vecScreenSize.x * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLength) * arrSide[0], vecScreenSize.y * 0.5f + C::Get<int>(Vars.iScreenHitMarkerLength) * arrSide[1]), colLines.Set<COLOR_A>(static_cast<std::uint8_t>(std::min(flMaxLinesAlpha, flLastDelta / C::Get<float>(Vars.flScreenHitMarkerTime)) * 255.f)));
 
 	if (!C::Get<bool>(Vars.bScreenHitMarkerDamage))
 		return;
@@ -892,7 +892,7 @@ void CVisuals::Grenade(CBaseEntity* pGrenade, EClassIndex nIndex, float flServer
 	Color colGrenade(255, 255, 255);
 
 	// get grenade model name
-	if (std::string_view szModelName = I::ModelInfo->GetModelName(pGrenade->GetModel()); !szModelName.empty())
+	if (const std::string_view szModelName = I::ModelInfo->GetModelName(pGrenade->GetModel()); !szModelName.empty())
 	{
 		// get grenade info
 		switch (nIndex)

@@ -29,7 +29,7 @@ CSpoofedConVar::~CSpoofedConVar()
 
 		// unregister temporary convar
 		I::ConVar->UnregisterConCommand(pDummyCVar);
-		free(pDummyCVar);
+		I::MemAlloc->Free(pDummyCVar);
 		pDummyCVar = nullptr;
 	}
 }

@@ -156,7 +156,7 @@ void CAntiAim::UpdateServerAnimations(CUserCmd* pCmd, CBaseEntity* pLocal)
 		pLocal->SetAbsAngles(angAbsViewOld);
 
 		// check is walking, delay next update by 0.22s
-		if (pServerAnimState->flVelocityLenght2D > 0.1f)
+		if (pServerAnimState->flVelocityLength2D > 0.1f)
 			flNextLowerBodyUpdate = flServerTime + 0.22f;
 		// check is standing, update every 1.1s
 		else if (std::fabsf(std::remainderf(pServerAnimState->flGoalFeetYaw - pServerAnimState->flEyeYaw, 360.f)) > 35.f && flServerTime > flNextLowerBodyUpdate)

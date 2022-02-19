@@ -54,7 +54,7 @@ enum ESoundLevel : int
 	SNDLVL_GUNFIRE = 140,// 0.27	// THRESHOLD OF PAIN, gunshot, jet engine
 	SNDLVL_140dB = 140,	// 0.2
 	SNDLVL_150dB = 150,	// 0.2
-	SNDLVL_180dB = 180,			// rocket launching
+	SNDLVL_180dB = 180			// rocket launching
 };
 
 enum ESoundFlags : int
