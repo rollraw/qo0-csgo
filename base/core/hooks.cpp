@@ -249,7 +249,7 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	const volatile auto vlBaseAddress = *reinterpret_cast<std::uintptr_t*>(reinterpret_cast<std::uintptr_t>(_AddressOfReturnAddress()) - sizeof(std::uintptr_t));
 
 	// get sendpacket pointer from stack frame
-	bool& bSendPacket = *reinterpret_cast<bool*>(vlBaseAddress - 0x1C);
+	bool& bSendPacket = *reinterpret_cast<bool*>(vlBaseAddress - 0x34);
 
 	// save previous view angles for movement correction
 	QAngle angOldViewPoint = pCmd->angViewPoint;
