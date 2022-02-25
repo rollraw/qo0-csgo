@@ -217,14 +217,14 @@ static void STDCALL CreateMove(int nSequenceNumber, float flInputSampleFrametime
 {
 	static auto oCreateMove = DTR::CreateMoveProxy.GetOriginal<decltype(&H::hkCreateMoveProxy)>();
 
-	// process original CHLClient::CreateMove -> IInput::CreateMove
+	// process original CHLClient::CreateMove -> CInput::CreateMove
 	oCreateMove(I::Client, 0, nSequenceNumber, flInputSampleFrametime, bIsActive);
 
 	CUserCmd* pCmd = I::Input->GetUserCmd(nSequenceNumber);
 	CVerifiedUserCmd* pVerifiedCmd = I::Input->GetVerifiedCmd(nSequenceNumber);
 
 	// check do we have valid commands, finished signing on to server and not playing back demos (where our commands are ignored)
-	if (pCmd == nullptr || pVerifiedCmd == nullptr)
+	if (pCmd == nullptr || pVerifiedCmd == nullptr || !bIsActive)
 		return;
 
 	// save global cmd pointer
