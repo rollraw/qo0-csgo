@@ -55,6 +55,9 @@ bool H::Setup()
 	if (!DTR::AllocKeyValuesMemory.Create(MEM::GetVFunc(I::KeyValuesSystem, VTABLE::ALLOCKEYVALUESMEMORY), &hkAllocKeyValuesMemory))
 		return false;
 
+	if (!DTR::CreateMoveProxy.Create(MEM::GetVFunc(I::Client, VTABLE::CREATEMOVE), &hkCreateMoveProxy))
+		return false;
+
 	if (!DTR::FrameStageNotify.Create(MEM::GetVFunc(I::Client, VTABLE::FRAMESTAGENOTIFY), &hkFrameStageNotify))
 		return false;
 
@@ -66,9 +69,6 @@ bool H::Setup()
 	if (!DTR::OverrideMouseInput.Replace(MEM::GetVFunc(I::ClientMode, VTABLE::OVERRIDEMOUSEINPUT), &hkOverrideMouseInput))
 		return false;
 	#endif
-
-	if (!DTR::CreateMove.Create(MEM::GetVFunc(I::ClientMode, VTABLE::CREATEMOVE), &hkCreateMove))
-		return false;
 
 	if (!DTR::GetViewModelFOV.Create(MEM::GetVFunc(I::ClientMode, VTABLE::GETVIEWMODELFOV), &hkGetViewModelFOV))
 		return false;
@@ -213,43 +213,31 @@ void* FASTCALL H::hkAllocKeyValuesMemory(IKeyValuesSystem* thisptr, int edx, int
 	return oAllocKeyValuesMemory(thisptr, edx, iSize);
 }
 
-bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInputSampleTime, CUserCmd* pCmd)
+static void STDCALL CreateMove(int nSequenceNumber, float flInputSampleFrametime, bool bIsActive, bool& bSendPacket)
 {
-	static auto oCreateMove = DTR::CreateMove.GetOriginal<decltype(&hkCreateMove)>();
+	static auto oCreateMove = DTR::CreateMoveProxy.GetOriginal<decltype(&H::hkCreateMoveProxy)>();
+
+	// process original CHLClient::CreateMove -> IInput::CreateMove
+	oCreateMove(I::Client, 0, nSequenceNumber, flInputSampleFrametime, bIsActive);
+
+	CUserCmd* pCmd = I::Input->GetUserCmd(nSequenceNumber);
+	CVerifiedUserCmd* pVerifiedCmd = I::Input->GetVerifiedCmd(nSequenceNumber);
+
+	// check do we have valid commands, finished signing on to server and not playing back demos (where our commands are ignored)
+	if (pCmd == nullptr || pVerifiedCmd == nullptr)
+		return;
+
+	// save global cmd pointer
+	G::pCmd = pCmd;
 
 	/*
 	 * get global localplayer pointer
 	 * @note: dont forget check global localplayer for nullptr when using not in createmove
 	 */
 	CBaseEntity* pLocal = G::pLocal = CBaseEntity::GetLocalPlayer();
-	
-	// is called from CInput::ExtraMouseSample
-	if (pCmd->iCommandNumber == 0)
-		return oCreateMove(thisptr, edx, flInputSampleTime, pCmd);
-
-	/*
-	 * check is called from CInput::CreateMove
-	 * and SetLocalViewAngles for engine/prediction at the same time
-	 * cuz SetViewAngles isn't called if return false and can cause frame stuttering
-	 */
-	if (oCreateMove(thisptr, edx, flInputSampleTime, pCmd))
-		I::Prediction->SetLocalViewAngles(pCmd->angViewPoint);
-
-	// save global cmd pointer
-	G::pCmd = pCmd;
-
-	if (I::ClientState == nullptr || I::Engine->IsPlayingDemo())
-		return oCreateMove(thisptr, edx, flInputSampleTime, pCmd);
 
 	// netchannel pointer
 	INetChannel* pNetChannel = I::ClientState->pNetChannel;
-
-	// get stack frame without asm inlines
-	// safe and will not break if you omitting frame pointer
-	const volatile auto vlBaseAddress = *reinterpret_cast<std::uintptr_t*>(reinterpret_cast<std::uintptr_t>(_AddressOfReturnAddress()) - sizeof(std::uintptr_t));
-
-	// get sendpacket pointer from stack frame
-	bool& bSendPacket = *reinterpret_cast<bool*>(vlBaseAddress - 0x1C);
 
 	// save previous view angles for movement correction
 	QAngle angOldViewPoint = pCmd->angViewPoint;
@@ -307,14 +295,14 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 	else
 		CLagCompensation::Get().ClearIncomingSequences();
 
-	// @note: doesnt need rehook cuz detours here
+	// @note: we doesnt need rehook manually cuz detours here
 	if (pNetChannel != nullptr)
 	{
 		if (!DTR::SendNetMsg.IsHooked())
-			DTR::SendNetMsg.Create(MEM::GetVFunc(pNetChannel, VTABLE::SENDNETMSG), &hkSendNetMsg);
+			DTR::SendNetMsg.Create(MEM::GetVFunc(pNetChannel, VTABLE::SENDNETMSG), &H::hkSendNetMsg);
 
 		if (!DTR::SendDatagram.IsHooked())
-			DTR::SendDatagram.Create(MEM::GetVFunc(pNetChannel, VTABLE::SENDDATAGRAM), &hkSendDatagram);
+			DTR::SendDatagram.Create(MEM::GetVFunc(pNetChannel, VTABLE::SENDDATAGRAM), &H::hkSendDatagram);
 	}
 
 	// store next tick view angles state
@@ -327,7 +315,26 @@ bool FASTCALL H::hkCreateMove(IClientModeShared* thisptr, int edx, float flInput
 
 	SEH_END
 
-	return false;
+	pVerifiedCmd->userCmd = *pCmd;
+	pVerifiedCmd->uHashCRC = pCmd->GetChecksum();
+}
+
+__declspec(naked) void FASTCALL H::hkCreateMoveProxy([[maybe_unused]] IBaseClientDll* thisptr, [[maybe_unused]] int edx, [[maybe_unused]] int nSequenceNumber, [[maybe_unused]] float flInputSampleFrametime, [[maybe_unused]] bool bIsActive)
+{
+	__asm
+	{
+		push	ebp
+		mov		ebp, esp; // store the stack
+		push	ebx; // bSendPacket
+		push	esp; // restore the stack
+		push	dword ptr[bIsActive]; // ebp + 16
+		push	dword ptr[flInputSampleFrametime]; // ebp + 12
+		push	dword ptr[nSequenceNumber]; // ebp + 8
+		call	CreateMove
+		pop		ebx
+		pop		ebp
+		retn	0Ch
+	}
 }
 
 void FASTCALL H::hkPaintTraverse(ISurface* thisptr, int edx, unsigned int uPanel, bool bForceRepaint, bool bForce)
