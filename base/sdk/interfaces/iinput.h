@@ -11,7 +11,7 @@ public:
 	bool				bTrackIRAvailable;		//0x0C
 	bool				bMouseInitialized;		//0x0D
 	bool				bMouseActive;			//0x0E
-	std::byte			pad1[0x9E];				//0x0F
+	std::byte			pad1[0x9A];				//0x0F
 	bool				bCameraInThirdPerson;	//0xAD
 	std::byte			pad2[0x2];				//0xAE
 	Vector				vecCameraOffset;		//0xB0
