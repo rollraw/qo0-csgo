@@ -105,7 +105,7 @@ void CAntiAim::UpdateServerAnimations(CUserCmd* pCmd, CBaseEntity* pLocal)
 	static CBaseHandle hOldLocal = pLocal->GetRefEHandle();
 	static float flOldSpawnTime = pLocal->GetSpawnTime();
 
-	bool bAllocate = (pServerAnimState == nullptr);
+	bool bAllocate = (pServerAnimState == nullptr || pServerAnimState->pEntity != pLocal);
 	bool bChange = (!bAllocate && pLocal->GetRefEHandle() != hOldLocal);
 	bool bReset = (!bAllocate && !bChange && pLocal->GetSpawnTime() != flOldSpawnTime);
 

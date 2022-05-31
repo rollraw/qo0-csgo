@@ -714,7 +714,7 @@ IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view sz
 	 * use "mat_texture_list 1" command to see full materials list
 	 */
 
-	const std::string szMaterial = std::format(XorStr(R"#("{0}"
+	const std::string szMaterial = std::vformat(XorStr(R"#("{0}"
 	{{
 		"$basetexture"		"{1}"
 		"$envmap"			"{2}"
@@ -730,7 +730,7 @@ IMaterial* CVisuals::CreateMaterial(std::string_view szName, std::string_view sz
 		{{
 			{5}
 		}}
-	}})#"), szShader, szBaseTexture, szEnvMap, bIgnorez ? 1 : 0, bWireframe ? 1 : 0, szProxies);
+	}})#"), std::make_format_args(szShader, szBaseTexture, szEnvMap, bIgnorez ? 1 : 0, bWireframe ? 1 : 0, szProxies));
 
 	// load to memory
 	CKeyValues* pKeyValues = new CKeyValues(szShader.data());

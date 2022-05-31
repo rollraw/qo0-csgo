@@ -33,7 +33,7 @@ public:
 		const MH_STATUS status = MH_CreateHook(pBaseFn, pReplaceFn, &pOriginalFn);
 
 		if (status != MH_OK)
-			throw std::runtime_error(std::format(XorStr("failed to create hook function, status: {}\nbase function -> {:#08X}"), MH_StatusToString(status), reinterpret_cast<std::uintptr_t>(pBaseFn)));
+			throw std::runtime_error(std::vformat(XorStr("failed to create hook function, status: {}\nbase function -> {:#08X}"), std::make_format_args(MH_StatusToString(status), reinterpret_cast<std::uintptr_t>(pBaseFn))));
 
 		if (!this->Replace())
 			return false;
@@ -55,7 +55,7 @@ public:
 		const MH_STATUS status = MH_EnableHook(pBaseFn);
 
 		if (status != MH_OK)
-			throw std::runtime_error(std::format(XorStr("failed to enable hook function, status: {}\nbase function -> {:#08X} address"), MH_StatusToString(status), reinterpret_cast<std::uintptr_t>(pBaseFn)));
+			throw std::runtime_error(std::vformat(XorStr("failed to enable hook function, status: {}\nbase function -> {:#08X} address"), std::make_format_args(MH_StatusToString(status), reinterpret_cast<std::uintptr_t>(pBaseFn))));
 
 		// switch hook state
 		bIsHooked = true;
@@ -72,7 +72,7 @@ public:
 		const MH_STATUS status = MH_RemoveHook(pBaseFn);
 
 		if (status != MH_OK)
-			throw std::runtime_error(std::format(XorStr("failed to remove hook, status: {}\n base function -> {:#08X} address"), MH_StatusToString(status), reinterpret_cast<std::uintptr_t>(pBaseFn)));
+			throw std::runtime_error(std::vformat(XorStr("failed to remove hook, status: {}\n base function -> {:#08X} address"), std::make_format_args(MH_StatusToString(status), reinterpret_cast<std::uintptr_t>(pBaseFn))));
 
 		return true;
 	}
@@ -87,7 +87,7 @@ public:
 		const MH_STATUS status = MH_DisableHook(pBaseFn);
 
 		if (status != MH_OK)
-			throw std::runtime_error(std::format(XorStr("failed to restore hook, status: {}\n base function -> {:#08X} address"), MH_StatusToString(status), reinterpret_cast<std::uintptr_t>(pBaseFn)));
+			throw std::runtime_error(std::vformat(XorStr("failed to restore hook, status: {}\n base function -> {:#08X} address"), std::make_format_args(MH_StatusToString(status), reinterpret_cast<std::uintptr_t>(pBaseFn))));
 
 		// switch hook state
 		bIsHooked = false;

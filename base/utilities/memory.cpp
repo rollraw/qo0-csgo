@@ -13,7 +13,7 @@ std::uintptr_t MEM::FindPattern(const std::string_view szModuleName, const std::
 	void* hModule = GetModuleBaseHandle(szModuleName);
 
 	if (hModule == nullptr)
-		throw std::runtime_error(std::format(XorStr("failed to get handle for: {}"), szModuleName));
+		throw std::runtime_error(std::vformat(XorStr("failed to get handle for: {}"), std::make_format_args(szModuleName)));
 
 	const std::uint8_t* uModuleAddress = static_cast<std::uint8_t*>(hModule);
 	const IMAGE_DOS_HEADER* pDosHeader = static_cast<IMAGE_DOS_HEADER*>(hModule);

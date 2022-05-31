@@ -33,10 +33,10 @@
 #endif
 
 #define SEH_START try {
-#define SEH_END } catch (const std::exception& ex) {		\
-	L::PushConsoleColor(FOREGROUND_INTENSE_RED);			\
-	L::Print(std::format(XorStr("[error] {}"), ex.what()));	\
-	L::PopConsoleColor();									\
+#define SEH_END } catch (const std::exception& ex) {	\
+	L::PushConsoleColor(FOREGROUND_INTENSE_RED);		\
+	L::Print(XorStr("[error] {}"), ex.what());			\
+	L::PopConsoleColor();								\
 	SEH_CATCH }
 #pragma endregion
 
@@ -67,7 +67,7 @@ namespace L
 	void Print(const std::string_view szText, const Args_t& ... argList)
 	{
 		// format time
-		const std::string szTime = std::format(XorStr("[{:%d-%m-%Y %X}] "), std::chrono::system_clock::now());
+		const std::string szTime = std::vformat(XorStr("[{:%d-%m-%Y %X}] "), std::make_format_args(std::chrono::system_clock::now()));
 
 		#ifdef DEBUG_CONSOLE
 		// print to console

@@ -51,7 +51,7 @@ workspace "base"
 		
 		-- common
 		language "C++"
-		cppdialect "c++latest"
+		cppdialect "c++20"
 		kind "SharedLib"
 		location "base"
 		targetname "base"

@@ -13,7 +13,7 @@ bool CNetvarManager::Setup(const std::string_view szDumpFileName)
 	iStoredTables = 0;
 
 	// format time
-	const std::string szTime = std::format(XorStr("[{:%d-%m-%Y %X}] "), std::chrono::system_clock::now());
+	const std::string szTime = std::vformat(XorStr("[{:%d-%m-%Y %X}] "), std::make_format_args(std::chrono::system_clock::now()));
 
 	#ifdef _DEBUG
 	// open our dump file to write in (here is not exception handle because dump is not critical)
@@ -49,8 +49,12 @@ void CNetvarManager::StoreProps(const char* szClassName, RecvTable_t* pRecvTable
 		szDepth.append("\t");
 
 	if (fsDumpFile.good())
-		fsDumpFile << std::format(XorStr("{0}[{1}]\n"), szDepth, pRecvTable->szNetTableName);
+		fsDumpFile << std::format("{0}[{1}]\n", szDepth, pRecvTable->szNetTableName);
 	#endif
+
+	const FNV1A_t uClassHash = FNV1A::Hash(szClassName);
+	const FNV1A_t uDelimiterHash = FNV1A::Hash("->", uClassHash);
+	const FNV1A_t uBaseClassHash = FNV1A::Hash("baseclass", uDelimiterHash);
 
 	for (int i = 0; i < pRecvTable->nProps; ++i)
 	{
@@ -60,8 +64,11 @@ void CNetvarManager::StoreProps(const char* szClassName, RecvTable_t* pRecvTable
 		if (pCurrentProp == nullptr || isdigit(pCurrentProp->szVarName[0]))
 			continue;
 
+		// concat to our netvar format just by hash
+		const FNV1A_t uTotalHash = FNV1A::Hash(pCurrentProp->szVarName, uDelimiterHash);
+
 		// skip baseclass
-		if (FNV1A::Hash(pCurrentProp->szVarName) == FNV1A::HashConst("baseclass"))
+		if (uTotalHash == uBaseClassHash)
 			continue;
 
 		// has child table
@@ -75,20 +82,18 @@ void CNetvarManager::StoreProps(const char* szClassName, RecvTable_t* pRecvTable
 			// recursively get props in all child tables
 			StoreProps(szClassName, pChildTable, static_cast<std::uintptr_t>(pCurrentProp->iOffset) + uOffset, iDepth + 1);
 
-		// make own netvar storing format
-		const FNV1A_t uHash = FNV1A::Hash(std::format(XorStr("{}->{}"), szClassName, pCurrentProp->szVarName).c_str());
 		const std::uintptr_t uTotalOffset = static_cast<std::uintptr_t>(pCurrentProp->iOffset) + uOffset;
 
-		// check does we have already grabbed property pointer and offset
-		if (!mapProps[uHash].uOffset)
+		// check if we have already grabbed property
+		if (!mapProps[uTotalHash].uOffset)
 		{
 			#ifdef _DEBUG
 			if (fsDumpFile.good())
-				fsDumpFile << std::format(XorStr("{0}\t{1} {2} = 0x{3:04X};\n"), szDepth, GetPropertyType(pCurrentProp), pCurrentProp->szVarName, uTotalOffset);
+				fsDumpFile << std::format("{0}\t{1} {2} = 0x{3:04X};\n", szDepth, GetPropertyType(pCurrentProp), pCurrentProp->szVarName, uTotalOffset);
 			#endif
 
 			// write values to map entry
-			mapProps[uHash] = { pCurrentProp, uTotalOffset };
+			mapProps[uTotalHash] = { pCurrentProp, uTotalOffset };
 
 			// count total stored props
 			iStoredProps++;
@@ -125,9 +130,9 @@ std::string CNetvarManager::GetPropertyType(const RecvProp_t* pRecvProp) const
 	case DPT_VECTOR2D:
 		return XorStr("Vector2D");
 	case DPT_STRING:
-		return std::format(XorStr("char[{}]"), pRecvProp->nStringBufferSize);
+		return std::vformat(XorStr("char[{:d}]"), std::make_format_args(pRecvProp->nStringBufferSize));
 	case DPT_ARRAY:
-		return std::format(XorStr("array[{}]"), pRecvProp->iElements);
+		return std::vformat(XorStr("array[{:d}]"), std::make_format_args(pRecvProp->iElements));
 	case DPT_DATATABLE:
 		return XorStr("void*");
 	case DPT_INT64:

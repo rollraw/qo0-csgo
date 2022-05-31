@@ -701,7 +701,7 @@ int FASTCALL H::hkDoPostScreenEffects(IClientModeShared* thisptr, int edx, CView
 	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
 		return oDoPostScreenEffects(thisptr, edx, pSetup);
 
-	if (G::pLocal != nullptr && C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspGlow))
+	if (G::pLocal != nullptr && !G::pLocal->IsDormant() && C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspGlow))
 		CVisuals::Get().Glow(G::pLocal);
 
 	return oDoPostScreenEffects(thisptr, edx, pSetup);
