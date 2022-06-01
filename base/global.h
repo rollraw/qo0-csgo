@@ -19,9 +19,9 @@ namespace G
 {
 	// current module
 	inline HMODULE			hDll = nullptr;
-	// last localplayer pointer
+	// last localplayer pointer, being valid only after 'CreateMove()' call!
 	inline CBaseEntity*		pLocal = nullptr;
-	// last cmd pointer
+	// last cmd pointer, being valid only during 'CreateMove()' call!
 	inline CUserCmd*		pCmd = nullptr;
 	// last sendpacket state, read-only!
 	inline bool				bSendPacket = true;
