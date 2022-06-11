@@ -28,6 +28,11 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 {
 	try
 	{
+		/* add cheat module to the trusted modules */
+		static auto oInitSafeModule = reinterpret_cast<void(__fastcall*)(void*, void*)>(MEM::FindPattern("client.dll", "56 8B 71 3C B8"));
+		if (oInitSafeModule != nullptr)
+			oInitSafeModule(static_cast<void*>(G::hDll), nullptr);
+
 		/*
 		 * @note: serverbrowser.dll is last loaded module (u can seen it when debug)
 		 * here is check for all modules loaded
