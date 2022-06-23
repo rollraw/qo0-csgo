@@ -183,7 +183,7 @@ DWORD WINAPI OnDllDetach(LPVOID lpParameter)
 	#endif
 
 	 // free our library memory from process and exit from our thread
-	FreeLibraryAndExitThread((HMODULE)lpParameter, EXIT_SUCCESS);
+	FreeLibraryAndExitThread(static_cast<HMODULE>(lpParameter), EXIT_SUCCESS);
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
