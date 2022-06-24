@@ -112,6 +112,11 @@ namespace MEM
 		std::fill(vecTemp.begin(), vecTemp.begin() + S, fill);
 		return vecTemp;
 	}
+	/// @returns : absolute address from relative address
+	inline std::uintptr_t GetAbsoluteAddress(const std::uintptr_t uRelativeAddress)
+	{
+		return uRelativeAddress + 0x4 + *reinterpret_cast<std::int32_t*>(uRelativeAddress);
+	}
 	/// @returns : virtual function pointer of specified class at given index
 	template <typename T = void*>
 	constexpr T GetVFunc(void* thisptr, std::size_t nIndex)

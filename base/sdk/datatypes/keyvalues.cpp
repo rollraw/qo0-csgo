@@ -1,15 +1,20 @@
 #include "keyvalues.h"
 
-// used: findpattern, callvfunc, getmodulebasehandle
+// used: keyvaluessystem, findpattern, callvfunc
 #include "../../core/interfaces.h"
 
-CKeyValues::CKeyValues(const char* szKeyName)
+CKeyValues::CKeyValues(const char* szKeyName, void* pUnknown1, HKeySymbol hCaseInsensitiveKeyName)
 {
-	using InitKeyValuesFn = void(__thiscall*)(void*, const char*);
-	static auto oInitKeyValues = reinterpret_cast<InitKeyValuesFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 51 33 C0 C7 45"))); // @xref: "OldParticleSystem_Destroy"
-	assert(oInitKeyValues != nullptr);
+	using CKeyValuesConstructorFn = void(__thiscall*)(void*, const char*, void*, HKeySymbol);
+	static CKeyValuesConstructorFn oConstructor = reinterpret_cast<CKeyValuesConstructorFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 56 8B F1 33 C0 8B 4D 0C 81"))); // @xref: client.dll -> "OldParticleSystem_Destroy"
+	oConstructor(this, szKeyName, pUnknown1, hCaseInsensitiveKeyName);
+}
 
-	oInitKeyValues(this, szKeyName);
+CKeyValues::~CKeyValues()
+{
+	using CKeyValuesDestructorFn = void(__thiscall*)(void*, int);
+	static CKeyValuesDestructorFn oDestructor = reinterpret_cast<CKeyValuesDestructorFn>(MEM::FindPattern(CLIENT_DLL, XorStr("56 8B F1 E8 ? ? ? ? 8B 4E 14")));
+	oDestructor(this, 1);
 }
 
 void* CKeyValues::operator new(std::size_t nAllocSize)
@@ -77,53 +82,53 @@ CKeyValues* CKeyValues::FindKey(const char* szKeyName, const bool bCreate)
 
 int CKeyValues::GetInt(const char* szKeyName, const int iDefaultValue)
 {
-	if (CKeyValues* pSubKey = FindKey(szKeyName, false); pSubKey != nullptr)
+	CKeyValues* pSubKey = this->FindKey(szKeyName, false);
+
+	if (pSubKey == nullptr)
+		return iDefaultValue;
+
+	switch (pSubKey->iDataType)
 	{
-		switch (pSubKey->chType)
-		{
-		case TYPE_STRING:
-			return std::atoi(pSubKey->szValue);
-		case TYPE_WSTRING:
-			return _wtoi(pSubKey->wszValue);
-		case TYPE_FLOAT:
-			return static_cast<int>(pSubKey->flValue);
-		case TYPE_UINT64:
-			// can't convert, since it would lose data
-			assert(0);
-			return 0;
-		case TYPE_INT:
-		case TYPE_PTR:
-		default:
-			return pSubKey->iValue;
-		}
+	case TYPE_STRING:
+		return std::atoi(pSubKey->szValue);
+	case TYPE_WSTRING:
+		return _wtoi(pSubKey->wszValue);
+	case TYPE_FLOAT:
+		return static_cast<int>(pSubKey->flValue);
+	case TYPE_UINT64:
+		// can't convert, since it would lose data
+		assert(false);
+		return 0;
+	default:
+		break;
 	}
 
-	return iDefaultValue;
+	return pSubKey->iValue;
 }
 
 float CKeyValues::GetFloat(const char* szKeyName, const float flDefaultValue)
 {
-	if (CKeyValues* pSubKey = FindKey(szKeyName, false); pSubKey != nullptr)
-	{
-		switch (pSubKey->chType)
-		{
-		case TYPE_STRING:
-			return static_cast<float>(std::atof(pSubKey->szValue));
-		case TYPE_WSTRING:
-			return std::wcstof(pSubKey->wszValue, nullptr);
-		case TYPE_FLOAT:
-			return pSubKey->flValue;
-		case TYPE_INT:
-			return static_cast<float>(pSubKey->iValue);
-		case TYPE_UINT64:
-			return static_cast<float>(*reinterpret_cast<std::uint64_t*>(pSubKey->szValue));
-		case TYPE_PTR:
-		default:
-			return 0.0f;
-		}
-	}
+	CKeyValues* pSubKey = this->FindKey(szKeyName, false);
 
-	return flDefaultValue;
+	if (pSubKey == nullptr)
+		return flDefaultValue;
+
+	switch (pSubKey->iDataType)
+	{
+	case TYPE_STRING:
+		return static_cast<float>(std::atof(pSubKey->szValue));
+	case TYPE_WSTRING:
+		return std::wcstof(pSubKey->wszValue, nullptr);
+	case TYPE_FLOAT:
+		return pSubKey->flValue;
+	case TYPE_INT:
+		return static_cast<float>(pSubKey->iValue);
+	case TYPE_UINT64:
+		return static_cast<float>(*reinterpret_cast<std::uint64_t*>(pSubKey->szValue));
+	case TYPE_PTR:
+	default:
+		return 0.0f;
+	}
 }
 
 const char* CKeyValues::GetString(const char* szKeyName, const char* szDefaultValue)
@@ -157,7 +162,7 @@ void CKeyValues::SetInt(const char* szKeyName, const int iValue)
 		return;
 
 	pSubKey->iValue = iValue;
-	pSubKey->chType = TYPE_INT;
+	pSubKey->iDataType = TYPE_INT;
 }
 
 void CKeyValues::SetUint64(const char* szKeyName, const int nLowValue, const int nHighValue)
@@ -176,5 +181,5 @@ void CKeyValues::SetUint64(const char* szKeyName, const int nLowValue, const int
 
 	pSubKey->szValue = new char[sizeof(std::uint64_t)];
 	*reinterpret_cast<std::uint64_t*>(pSubKey->szValue) = static_cast<std::uint64_t>(nHighValue) << 32ULL | nLowValue;
-	pSubKey->chType = TYPE_UINT64;
+	pSubKey->iDataType = TYPE_UINT64;
 }

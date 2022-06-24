@@ -25,7 +25,7 @@ namespace VTABLE
 		RESETEX = 132,
 
 		/* keyvaluessystem table */
-		ALLOCKEYVALUESMEMORY = 1,
+		ALLOCKEYVALUESMEMORY = 2,
 
 		/* client table */
 		CREATEMOVE = 22,

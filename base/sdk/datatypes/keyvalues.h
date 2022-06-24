@@ -4,6 +4,9 @@
 // used: std::uint16_t
 #include <cstdint>
 
+// used: hkeysymbol, ikeyvaluessytem
+#include "../interfaces/ikeyvaluessystem.h"
+
 using GetSymbolProcFn = bool(__cdecl*)(const char*);
 
 class CKeyValues
@@ -25,7 +28,8 @@ public:
 		TYPE_NUMTYPES
 	};
 
-	CKeyValues(const char* szKeyName);
+	CKeyValues(const char* szKeyName, void* pUnknown1 = nullptr, HKeySymbol hCaseInsensitiveKeyName = INVALID_KEY_SYMBOL);
+	~CKeyValues();
 
 	void* operator new(std::size_t nAllocSize);
 	void operator delete(void* pMemory);
@@ -54,8 +58,8 @@ public:
 private:
 	std::uint32_t uKeyName : 24; // 0x00
 	std::uint32_t uKeyNameCaseSensitive1 : 8; // 0x3 // byte, explicitly specify bits due to packing
-	char* szValue;	// 0x04
-	wchar_t* wszValue;	// 0x08
+	char* szValue; // 0x04
+	wchar_t* wszValue; // 0x08
 
 	union
 	{
@@ -65,12 +69,14 @@ private:
 		unsigned char arrColor[4];
 	}; // 0x0C
 
-	char chType; // 0x10
+	std::int8_t iDataType; // 0x10
 	bool bHasEscapeSequences; // 0x11
 	std::uint16_t uKeyNameCaseSensitive2; // 0x12
-	CKeyValues* pPeer; // 0x14
-	CKeyValues* pSub;	// 0x18
-	CKeyValues* pChain;// 0x1C
-	GetSymbolProcFn	pExpressionGetSymbolProc; // 0x20
+	void* pUnknown14; // 0x14 // seems like IKeyValuesSystem*, but why do they need it here? also calling smth on destructor and cleans up
+	bool bHasCaseInsensitiveKeySymbol; // 0x18
+	CKeyValues* pPeer; // 0x1C
+	CKeyValues* pSub; // 0x20
+	CKeyValues* pChain; // 0x24
+	GetSymbolProcFn	pExpressionGetSymbolProc; // 0x28
 };
-static_assert(sizeof(CKeyValues) == 0x24);
+static_assert(sizeof(CKeyValues) == 0x2C);

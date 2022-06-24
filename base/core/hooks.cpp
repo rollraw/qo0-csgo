@@ -200,13 +200,9 @@ void* FASTCALL H::hkAllocKeyValuesMemory(IKeyValuesSystem* thisptr, int edx, int
 
 	// return addresses of check function
 	// @credits: danielkrupinski
-	static const std::uintptr_t uAllocKeyValuesEngine = MEM::FindPattern(ENGINE_DLL, XorStr("FF 52 04 85 C0 74 0C 56")) + 0x3;
-	static const std::uintptr_t uAllocKeyValuesClient = MEM::FindPattern(CLIENT_DLL, XorStr("FF 52 04 85 C0 74 0C 56")) + 0x3;
-
-	// doesn't call it yet, but have checking function
-	//static const std::uintptr_t uAllocKeyValuesMaterialSystem = MEM::FindPattern(MATERIALSYSTEM_DLL, XorStr("FF 52 04 85 C0 74 0C 56")) + 0x3;
-	//static const std::uintptr_t uAllocKeyValuesStudioRender = MEM::FindPattern(STUDIORENDER_DLL, XorStr("FF 52 04 85 C0 74 0C 56")) + 0x3;
-
+	static const std::uintptr_t uAllocKeyValuesEngine = MEM::GetAbsoluteAddress(MEM::FindPattern(ENGINE_DLL, XorStr("E8 ? ? ? ? 83 C4 08 84 C0 75 10 FF 75 0C")) + 0x1) + 0x4A;
+	static const std::uintptr_t uAllocKeyValuesClient = MEM::GetAbsoluteAddress(MEM::FindPattern(CLIENT_DLL, XorStr("E8 ? ? ? ? 83 C4 08 84 C0 75 10")) + 0x1) + 0x3E;
+	
 	if (const std::uintptr_t uReturnAddress = reinterpret_cast<std::uintptr_t>(_ReturnAddress()); uReturnAddress == uAllocKeyValuesEngine || uReturnAddress == uAllocKeyValuesClient)
 		return nullptr;
 
@@ -654,7 +650,7 @@ void FASTCALL H::hkOverrideView(IClientModeShared* thisptr, int edx, CViewSetup*
 
 	// get camera origin
 	G::vecCamera = pSetup->vecOrigin;
-	
+
 	if (pLocal == nullptr || !pLocal->IsAlive())
 		return oOverrideView(thisptr, edx, pSetup);
 
