@@ -5,11 +5,11 @@
 
 CKeyValues::CKeyValues(const char* szKeyName)
 {
-	using InitKeyValuesFn = void(__thiscall*)(void*, const char*);
+	using InitKeyValuesFn = void(__thiscall*)(void*, const char*, int, int);
 	static auto oInitKeyValues = reinterpret_cast<InitKeyValuesFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 51 33 C0 C7 45"))); // @xref: "OldParticleSystem_Destroy"
 	assert(oInitKeyValues != nullptr);
 
-	oInitKeyValues(this, szKeyName);
+	oInitKeyValues(this, szKeyName, 0, 0);
 }
 
 void* CKeyValues::operator new(std::size_t nAllocSize)
