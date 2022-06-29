@@ -784,7 +784,7 @@ public:
 	CUtlVector<CRefCounted*>& GetVisualsDataProcessors()
 	{
 		// @xref: "Original material not found! Name: %s"
-		static const std::uintptr_t uVisualsDataProcessorsOffset = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, XorStr("8B 7C 24 34 81 C7 ? ? ? ?")) + 0x6);
+		static const std::uintptr_t uVisualsDataProcessorsOffset = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, XorStr("81 C7 ? ? ? ? 8B 4F 0C 8B 57 04 89 4C")) + 0x2);
 		return *reinterpret_cast<CUtlVector<CRefCounted*>*>(reinterpret_cast<std::uintptr_t>(this) + uVisualsDataProcessorsOffset);
 	}
 };

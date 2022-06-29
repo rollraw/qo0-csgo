@@ -19,12 +19,15 @@ CKeyValues::~CKeyValues()
 
 void* CKeyValues::operator new(std::size_t nAllocSize)
 {
+	// manually allocate memory, because game constructor doesn't call it automatically
 	return I::KeyValuesSystem->AllocKeyValuesMemory(nAllocSize);
 }
 
 void CKeyValues::operator delete(void* pMemory)
 {
-	I::KeyValuesSystem->FreeKeyValuesMemory(pMemory);
+	// do nothing, because game destructor will automatically free memory
+	// I::KeyValuesSystem->FreeKeyValuesMemory(pMemory);
+	(void)pMemory;
 }
 
 const char* CKeyValues::GetName()
