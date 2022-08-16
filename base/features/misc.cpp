@@ -157,7 +157,7 @@ void CMiscellaneous::BunnyHop(CUserCmd* pCmd, CBaseEntity* pLocal) const
 
 	std::random_device randomDevice;
 	std::mt19937 generate(randomDevice());
-	const std::uniform_int_distribution<> chance(0, 100);
+	std::uniform_int_distribution<> chance(0, 100);
 
 	if (chance(generate) > C::Get<int>(Vars.iMiscBunnyHopChance))
 		return;
