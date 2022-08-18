@@ -24,8 +24,10 @@
 // used: hooks setup/destroy
 #include "core/hooks.h"
 
-DWORD WINAPI OnDllAttach(LPVOID lpParameter)
+DWORD WINAPI MainThread(LPVOID lpParameter)
 {
+  const auto loadHelper = reinterpret_cast<CLoadHelper*>(lpParameter);
+
 	try
 	{
     // basic process check
@@ -144,17 +146,12 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 		_RPT0(_CRT_ERROR, ex.what());
 		#else
 		// unload
-		FreeLibraryAndExitThread(static_cast<HMODULE>(lpParameter), EXIT_FAILURE);
+		FreeLibraryAndExitThread(G::hDll, EXIT_FAILURE);
 		#endif
 	}
 
-	return 1UL;
-}
-
-DWORD WINAPI OnDllDetach(LPVOID lpParameter)
-{
-	// unload cheat if pressed specified key
-	while (!IPT::IsKeyReleased(C::Get<int>(Vars.iPanicKey)))
+	// unload cheat if pressed specified key or if loadhelper requests it
+	while (!IPT::IsKeyReleased(C::Get<int>(Vars.iPanicKey)) && !loadHelper->bUnloadRequested)
 		std::this_thread::sleep_for(500ms);
 
 	#if 0
@@ -189,27 +186,42 @@ DWORD WINAPI OnDllDetach(LPVOID lpParameter)
 		L::ofsFile.close();
 	#endif
 
-	 // free our library memory from process and exit from our thread
-	FreeLibraryAndExitThread((HMODULE)lpParameter, EXIT_SUCCESS);
+  // We should only free the library if the loadhelper DIDNT request it. If it did, then it will do it itself.
+  if (!loadHelper->bUnloadRequested)
+    FreeLibraryAndExitThread(G::hDll, EXIT_SUCCESS);
+
+  // Signal that thread has exited
+  loadHelper->bThreadExited = true;
+
+  // Return success
+  return EXIT_SUCCESS;  
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
+  static auto loadHelper = CLoadHelper();
+
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
 		// save our module
 		G::hDll = hModule;
 
-		// create main thread
-		if (auto hThread = CreateThread(nullptr, 0U, OnDllAttach, hModule, 0UL, nullptr); hThread != nullptr)
-			CloseHandle(hThread);
+    const auto hThread = CreateThread(nullptr, 0U, MainThread, &loadHelper, 0U, nullptr);
+    if (hThread == nullptr)
+      return FALSE;
+  
+    CloseHandle(hThread);
+	} else if (dwReason == DLL_PROCESS_DETACH)
+  {
+    // Signal to the other thread to exit using loadhelper
+    loadHelper.bUnloadRequested = true;
 
-		// create detach thread
-		if (auto hThread = CreateThread(nullptr, 0U, OnDllDetach, hModule, 0UL, nullptr); hThread != nullptr)
-			CloseHandle(hThread);
+    // Wait for the other thread to exit
+    while (!loadHelper.bThreadExited)
+      Sleep(100);
 
-		return TRUE;
-	}
+    // At this point, the other thread has exited and we are free to return.
+  }
 
 	return FALSE;
 }
