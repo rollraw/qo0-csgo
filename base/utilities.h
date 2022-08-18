@@ -15,7 +15,7 @@ struct LoadHelper_t
 {
   volatile bool bUnloadRequested : 1;
   volatile bool bThreadExited : 1;
-}
+};
 
 /* internal implementation for measuring specific time intervals */
 class CTimer
