@@ -10,6 +10,13 @@
 // used: entity listerner setup
 #include "utilities/entitylistener.h"
 
+/* used to signal between dllmain and our thread */
+struct LoadHelper_t
+{
+  volatile bool bUnloadRequested : 1;
+  volatile bool bThreadExited : 1;
+};
+
 /* internal implementation for measuring specific time intervals */
 class CTimer
 {
