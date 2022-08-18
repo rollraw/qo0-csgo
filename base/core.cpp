@@ -28,6 +28,13 @@ DWORD WINAPI OnDllAttach(LPVOID lpParameter)
 {
 	try
 	{
+    // basic process check
+		if (MEM::GetModuleBaseHandle(XorStr("csgo.exe")) == nullptr)
+		{
+			MessageBox(nullptr, XorStr("this cannot be injected in another process\nopen <csgo.exe> to inject"), XorStr("qo0 base"), MB_OK);
+			return FALSE;
+		}
+
 		/*
 		 * @note: serverbrowser.dll is last loaded module (u can seen it when debug)
 		 * here is check for all modules loaded
@@ -192,13 +199,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 	{
 		// disable DLL_THREAD_ATTACH and DLL_THREAD_DETACH reasons to call
 		DisableThreadLibraryCalls(hModule);
-
-		// basic process check
-		if (MEM::GetModuleBaseHandle(XorStr("csgo.exe")) == nullptr)
-		{
-			MessageBox(nullptr, XorStr("this cannot be injected in another process\nopen <csgo.exe> to inject"), XorStr("qo0 base"), MB_OK);
-			return FALSE;
-		}
 
 		// save our module
 		G::hDll = hModule;
