@@ -199,7 +199,7 @@ DWORD WINAPI MainThread(LPVOID lpParameter)
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
-  static auto loadHelper = CLoadHelper();
+  static auto loadHelper = LoadHelper_t();
 
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{

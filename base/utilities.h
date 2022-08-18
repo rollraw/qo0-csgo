@@ -11,7 +11,7 @@
 #include "utilities/entitylistener.h"
 
 /* used to signal between dllmain and our thread */
-struct CLoadHelper 
+struct LoadHelper_t
 {
   volatile bool bUnloadRequested : 1;
   volatile bool bThreadExited : 1;
