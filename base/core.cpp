@@ -26,7 +26,7 @@
 
 DWORD WINAPI MainThread(LPVOID lpParameter)
 {
-  const auto loadHelper = reinterpret_cast<CLoadHelper*>(lpParameter);
+  const auto loadHelper = reinterpret_cast<LoadHelper_t*>(lpParameter);
 
 	try
 	{
