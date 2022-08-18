@@ -197,9 +197,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
-		// disable DLL_THREAD_ATTACH and DLL_THREAD_DETACH reasons to call
-		DisableThreadLibraryCalls(hModule);
-
 		// save our module
 		G::hDll = hModule;
 
