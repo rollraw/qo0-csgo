@@ -37,7 +37,7 @@ const char* CKeyValues::GetName()
 
 CKeyValues* CKeyValues::FromString(const char* szName, const char* szValue)
 {
-	static auto oFromString = MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 81 EC ? ? ? ? 85 D2 53")); // @xref: "#empty#", "#int#"
+	static auto oFromString = MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 81 EC 0C 05")); // @xref: "#empty#", "#int#"
 	CKeyValues* pKeyValues = nullptr;
 
 	if (oFromString == 0U)
