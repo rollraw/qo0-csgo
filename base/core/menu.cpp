@@ -231,7 +231,7 @@ void T::RageBot()
 			ImGui::Combo(XorStr("yaw"), &C::Get<int>(Vars.iAntiAimYaw), XorStr("none\0desync\0\0"));
 
 			if (C::Get<int>(Vars.iAntiAimYaw) == (int)EAntiAimYawType::DESYNC)
-				ImGui::HotKey(XorStr("desync switch"), &C::Get<int>(Vars.iAntiAimDesyncKey));
+				ImGui::HotKey(XorStr("desync switch"), &C::Get<CKeyBind>(Vars.iAntiAimDesyncKey));
 			ImGui::PopStyleVar();
 
 			ImGui::EndChild();
@@ -287,7 +287,7 @@ void T::LegitBot()
 			}
 
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
-			ImGui::HotKey(XorStr("activation key"), &C::Get<int>(Vars.iTriggerKey));
+			ImGui::HotKey(XorStr("activation key"), &C::Get<CKeyBind>(Vars.iTriggerKey));
 			ImGui::Separator();
 
 			ImGui::SliderInt(XorStr("reaction delay##trigger"), &C::Get<int>(Vars.iTriggerDelay), 0, 500, "%dms");
@@ -455,7 +455,7 @@ void T::Visuals()
 			ImGui::MultiCombo(XorStr("removals"), C::Get<std::vector<bool>>(Vars.vecWorldRemovals), arrVisualsRemovals.data(), arrVisualsRemovals.size());
 			ImGui::Separator();
 
-			ImGui::HotKey(XorStr("thirdperson"), &C::Get<int>(Vars.iWorldThirdPersonKey));
+			ImGui::HotKey(XorStr("thirdperson"), &C::Get<CKeyBind>(Vars.iWorldThirdPersonKey));
 			ImGui::SliderFloat(XorStr("camera offset"), &C::Get<float>(Vars.flWorldThirdPersonOffset), 50.f, 300.f, "%.1f units");
 			ImGui::PopStyleVar();
 
@@ -484,6 +484,7 @@ void T::Visuals()
 			ImGui::SliderFloat(XorStr("time"), &C::Get<float>(Vars.flScreenHitMarkerTime), 0.5f, 5.f, "%.1fsec");
 			ImGui::SliderInt(XorStr("gap"), &C::Get<int>(Vars.iScreenHitMarkerGap), 1, 20, "%d pixels");
 			ImGui::SliderInt(XorStr("length"), &C::Get<int>(Vars.iScreenHitMarkerLenght), 1, 20, "%d pixels");
+			//ImGui::Checkbox(XorStr("key-bind list"), &C::Get<bool>(Vars.bKeyBindList));
 			ImGui::PopStyleVar();
 
 			ImGui::EndChild();
@@ -537,7 +538,6 @@ void T::Miscellaneous()
 			ImGui::Checkbox(XorStr("reveal ranks"), &C::Get<bool>(Vars.bMiscRevealRanks));
 			ImGui::Checkbox(XorStr("unlock inventory"), &C::Get<bool>(Vars.bMiscUnlockInventory));
 			ImGui::Checkbox(XorStr("anti-untrusted"), &C::Get<bool>(Vars.bMiscAntiUntrusted));
-			ImGui::HotKey(XorStr( "test key bind" ), &C::Get<CKeyBind>( Vars.iTestKey ));
 			ImGui::PopStyleVar();
 
 			ImGui::EndChild();

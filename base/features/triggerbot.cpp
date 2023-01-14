@@ -35,7 +35,7 @@ void CTriggerBot::Run(CUserCmd* pCmd, CBaseEntity* pLocal)
 		return;
 
 	// check is using key activation and key is held
-	if (C::Get<int>(Vars.iTriggerKey) > 0 && !IPT::IsKeyDown(C::Get<int>(Vars.iTriggerKey)))
+	if (C::Get<CKeyBind>(Vars.iTriggerKey).IsActive())
 	{
 		timerDelay.Reset();
 		return;

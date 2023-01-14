@@ -466,16 +466,11 @@ void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFra
 		}
 
 		// thirdperson
-		if (C::Get<bool>(Vars.bWorld) && C::Get<int>(Vars.iWorldThirdPersonKey) > 0)
+		if (C::Get<bool>(Vars.bWorld))
 		{
-			static bool bThirdPerson = false;
-
-			if (!I::Engine->IsConsoleVisible() && IPT::IsKeyReleased(C::Get<int>(Vars.iWorldThirdPersonKey)))
-				bThirdPerson = !bThirdPerson;
-
 			// my solution is here cuz camera offset is dynamically by standard functions without any garbage in overrideview hook
-			I::Input->bCameraInThirdPerson = bThirdPerson && pLocal->IsAlive() && !I::Engine->IsTakingScreenshot();
-			I::Input->vecCameraOffset.z = bThirdPerson ? C::Get<float>(Vars.flWorldThirdPersonOffset) : 150.f;
+			I::Input->bCameraInThirdPerson = C::Get<CKeyBind>( Vars.iWorldThirdPersonKey ).IsActive( ) && pLocal->IsAlive( ) && !I::Engine->IsTakingScreenshot( );
+			I::Input->vecCameraOffset.z = C::Get<CKeyBind>( Vars.iWorldThirdPersonKey ).IsActive( ) ? C::Get<float>(Vars.flWorldThirdPersonOffset) : 150.f;
 		}
 
 		break;
@@ -770,7 +765,7 @@ bool FASTCALL H::hkSvCheatsGetBool(CConVar* thisptr, int edx)
 	static auto oSvCheatsGetBool = DTR::SvCheatsGetBool.GetOriginal<decltype(&hkSvCheatsGetBool)>();
 	static std::uintptr_t uCAM_ThinkReturn = (MEM::FindPattern(CLIENT_DLL, XorStr("85 C0 75 30 38 87"))); // @xref: "Pitch: %6.1f   Yaw: %6.1f   Dist: %6.1f %16s"
 
-	if (reinterpret_cast<std::uintptr_t>(_ReturnAddress()) == uCAM_ThinkReturn && C::Get<bool>(Vars.bWorld) && C::Get<int>(Vars.iWorldThirdPersonKey) > 0)
+	if (reinterpret_cast<std::uintptr_t>(_ReturnAddress()) == uCAM_ThinkReturn && C::Get<bool>(Vars.bWorld) && C::Get<CKeyBind>(Vars.iWorldThirdPersonKey).IsActive())
 		return true;
 
 	return oSvCheatsGetBool(thisptr, edx);

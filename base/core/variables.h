@@ -81,7 +81,7 @@ struct Variables_t
 	C_ADD_VARIABLE(bool, bAntiAim, false);
 	C_ADD_VARIABLE(int, iAntiAimPitch, 0);
 	C_ADD_VARIABLE(int, iAntiAimYaw, 0);
-	C_ADD_VARIABLE(int, iAntiAimDesyncKey, VK_XBUTTON1);
+	C_ADD_VARIABLE(CKeyBind, iAntiAimDesyncKey, CKeyBind("aa desync"));
 	#pragma endregion
 
 	#pragma region variables_legit
@@ -90,7 +90,7 @@ struct Variables_t
 
 	// trigger
 	C_ADD_VARIABLE(bool, bTrigger, false);
-	C_ADD_VARIABLE(int, iTriggerKey, 0);
+	C_ADD_VARIABLE(CKeyBind, iTriggerKey, CKeyBind("triggerbot"));
 	C_ADD_VARIABLE(int, iTriggerDelay, 0);
 	C_ADD_VARIABLE(bool, bTriggerAutoWall, false);
 	C_ADD_VARIABLE(int, iTriggerMinimalDamage, 70);
@@ -189,7 +189,7 @@ struct Variables_t
 	C_ADD_VARIABLE(bool, bWorld, false);
 	C_ADD_VARIABLE(bool, bWorldNightMode, false);
 	C_ADD_VARIABLE(int, iWorldMaxFlash, 100);
-	C_ADD_VARIABLE(int, iWorldThirdPersonKey, 0);
+	C_ADD_VARIABLE( CKeyBind, iWorldThirdPersonKey, CKeyBind("thirdperson"));
 	C_ADD_VARIABLE(float, flWorldThirdPersonOffset, 150.f);
 	C_ADD_VARIABLE_VECTOR(bool, REMOVAL_MAX, vecWorldRemovals, false);
 
@@ -205,6 +205,7 @@ struct Variables_t
 	C_ADD_VARIABLE(int, iScreenHitMarkerLenght, 10);
 	C_ADD_VARIABLE(Color, colScreenHitMarker, Color(255, 255, 255, 255));
 	C_ADD_VARIABLE(Color, colScreenHitMarkerDamage, Color(200, 55, 20, 255));
+	C_ADD_VARIABLE(bool, bKeyBindList, 0.0f);
 	#pragma endregion
 
 	#pragma region variables_misc
@@ -229,10 +230,6 @@ struct Variables_t
 	#pragma region variables_menu
 	C_ADD_VARIABLE(int, iMenuKey, VK_HOME);
 	C_ADD_VARIABLE(int, iPanicKey, VK_END);
-	#pragma endregion
-
-	#pragma region variables_test
-	C_ADD_VARIABLE( CKeyBind, iTestKey, CKeyBind( "test" ) );
 	#pragma endregion
 };
 

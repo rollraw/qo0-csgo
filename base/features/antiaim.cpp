@@ -196,14 +196,11 @@ void CAntiAim::Yaw(CUserCmd* pCmd, CBaseEntity* pLocal, float flServerTime, bool
 		break;
 	case (int)EAntiAimYawType::DESYNC:
 	{
-		static float flSide = 1.0f;
-
 		/*
 		 * manually change the side
 		 * @note: to visually seen that - make desync chams by saving matrix or draw direction arrows
 		 */
-		if (C::Get<int>(Vars.iAntiAimDesyncKey) > 0 && IPT::IsKeyReleased(C::Get<int>(Vars.iAntiAimDesyncKey)))
-			flSide = -flSide;
+		static float flSide = C::Get<CKeyBind>( Vars.iAntiAimDesyncKey ).IsActive( ) ? 1.0f : -1.0f;
 
 		// check is lowerbody updated
 		if (flServerTime >= flNextLowerBodyUpdate)
