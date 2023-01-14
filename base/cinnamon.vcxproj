@@ -50,6 +50,7 @@
     <ClCompile Include="utilities\entitylistener.cpp" />
     <ClCompile Include="utilities\eventlistener.cpp" />
     <ClCompile Include="utilities\inputsystem.cpp" />
+    <ClCompile Include="utilities\keybind.cpp" />
     <ClCompile Include="utilities\logging.cpp" />
     <ClCompile Include="utilities\math.cpp" />
     <ClCompile Include="utilities\memory.cpp" />
@@ -160,6 +161,7 @@
     <ClInclude Include="utilities\entitylistener.h" />
     <ClInclude Include="utilities\eventlistener.h" />
     <ClInclude Include="utilities\inputsystem.h" />
+    <ClInclude Include="utilities\keybind.h" />
     <ClInclude Include="utilities\logging.h" />
     <ClInclude Include="utilities\math.h" />
     <ClInclude Include="utilities\memory.h" />

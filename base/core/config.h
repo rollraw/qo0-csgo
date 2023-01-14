@@ -13,7 +13,7 @@
 // used: color
 #include "../sdk/datatypes/color.h"
 // used: keybind
-#include "../utilities/key_bind.h"
+#include "../utilities/keybind.h"
 // used: fnv1a hashing for variables
 #include "../sdk/hash/fnv1a.h"
 

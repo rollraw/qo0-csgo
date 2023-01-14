@@ -210,6 +210,9 @@
     <ClCompile Include="sdk\datatypes\keyvalues.cpp">
       <Filter>source\sdk\datatypes</Filter>
     </ClCompile>
+    <ClCompile Include="utilities\keybind.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="core\config.h">
@@ -541,6 +544,9 @@
     </ClInclude>
     <ClInclude Include="sdk\interfaces\ikeyvaluessystem.h">
       <Filter>include\sdk\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="utilities\keybind.h">
+      <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
