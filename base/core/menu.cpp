@@ -537,6 +537,7 @@ void T::Miscellaneous()
 			ImGui::Checkbox(XorStr("reveal ranks"), &C::Get<bool>(Vars.bMiscRevealRanks));
 			ImGui::Checkbox(XorStr("unlock inventory"), &C::Get<bool>(Vars.bMiscUnlockInventory));
 			ImGui::Checkbox(XorStr("anti-untrusted"), &C::Get<bool>(Vars.bMiscAntiUntrusted));
+			ImGui::HotKey(XorStr( "test key bind" ), &C::Get<CKeyBind>( Vars.iTestKey ));
 			ImGui::PopStyleVar();
 
 			ImGui::EndChild();

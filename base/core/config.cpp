@@ -91,6 +91,20 @@ bool C::Save(std::string_view szFileName)
 				entry[XorStr("value")] = sub.dump();
 				break;
 			}
+			case FNV1A::HashConst("CKeyBind"):
+			{
+				const auto& keyBindVariable = variable.Get<CKeyBind>();
+
+				// store key, state as sub note
+				nlohmann::json sub = {};
+
+				sub.push_back(keyBindVariable.iKey);
+				sub.push_back(keyBindVariable.iState);
+
+				entry[XorStr("value")] = sub.dump();
+
+				break;
+			}
 			case FNV1A::HashConst("std::vector<bool>"):
 			{
 				const auto& vecBools = variable.Get<std::vector<bool>>();
@@ -249,6 +263,14 @@ bool C::Load(std::string_view szFileName)
 					vector.at(2).get<std::uint8_t>(),
 					vector.at(3).get<std::uint8_t>()
 				));
+
+				break;
+			}
+			case FNV1A::HashConst("CKeyBind"):
+			{
+				const nlohmann::json vector = nlohmann::json::parse(variable[XorStr("value")].get<std::string>());
+
+				entry.Set<CKeyBind>(CKeyBind(vector.at(0).get<int>(), static_cast<EKeyStateType>(vector.at(1).get<int>())));
 
 				break;
 			}

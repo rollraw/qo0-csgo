@@ -202,6 +202,139 @@ bool ImGui::HotKey(const char* szLabel, int* pValue)
 	return bValueChanged;
 }
 
+bool ImGui::HotKey(const char* szLabel, CKeyBind* pValue)
+{
+	ImGuiContext& g = *GImGui;
+	ImGuiWindow* pWindow = g.CurrentWindow;
+
+	if (pWindow->SkipItems)
+		return false;
+
+	ImGuiIO& io = g.IO;
+	const ImGuiStyle& style = g.Style;
+	const ImGuiID nIndex = pWindow->GetID(szLabel);
+
+	const float flWidth = CalcItemWidth();
+	const ImVec2 vecLabelSize = CalcTextSize(szLabel, nullptr, true);
+
+	const ImRect rectFrame(pWindow->DC.CursorPos + ImVec2(vecLabelSize.x > 0.0f ? style.ItemInnerSpacing.x + GetFrameHeight() : 0.0f, 0.0f), pWindow->DC.CursorPos + ImVec2(flWidth, vecLabelSize.x > 0.0f ? vecLabelSize.y + style.FramePadding.y : 0.f));
+	const ImRect rectTotal(rectFrame.Min, rectFrame.Max);
+
+	ItemSize(rectTotal, style.FramePadding.y);
+	if (!ItemAdd(rectTotal, nIndex, &rectFrame))
+		return false;
+
+	const bool bHovered = ItemHoverable(rectFrame, nIndex);
+	if (bHovered)
+	{
+		SetHoveredID(nIndex);
+		g.MouseCursor = ImGuiMouseCursor_TextInput;
+	}
+
+	const bool bFocusRequested = FocusableItemRegister(pWindow, nIndex);
+	const bool bClicked = bHovered && io.MouseClicked[0];
+	const bool bDoubleClicked = bHovered && g.IO.MouseDoubleClicked[0];
+	if (bFocusRequested || bClicked || bDoubleClicked)
+	{
+		if (g.ActiveId != nIndex)
+		{
+			memset( io.MouseDown, 0, sizeof( io.MouseDown ) );
+			memset( io.KeysDown, 0, sizeof( io.KeysDown ) );
+			pValue->iKey = 0;
+		}
+
+		SetActiveID( nIndex, pWindow );
+		FocusWindow( pWindow );
+	}
+
+	bool bValueChanged = false;
+	if (int nKey = pValue->iKey; g.ActiveId == nIndex)
+	{
+		for (int n = 0; n < IM_ARRAYSIZE(io.MouseDown); n++)
+		{
+			if (IsMouseDown(n))
+			{
+				switch (n)
+				{
+				case 0:
+					nKey = VK_LBUTTON;
+					break;
+				case 1:
+					nKey = VK_RBUTTON;
+					break;
+				case 2:
+					nKey = VK_MBUTTON;
+					break;
+				case 3:
+					nKey = VK_XBUTTON1;
+					break;
+				case 4:
+					nKey = VK_XBUTTON2;
+					break;
+				}
+
+				bValueChanged = true;
+				ClearActiveID( );
+			}
+		}
+
+		if (!bValueChanged)
+		{
+			for (int n = VK_BACK; n <= VK_RMENU; n++)
+			{
+				if (IsKeyDown(n))
+				{
+					nKey = n;
+					bValueChanged = true;
+					ClearActiveID();
+				}
+			}
+		}
+
+		if (IsKeyPressed(io.KeyMap[ ImGuiKey_Escape] ))
+		{
+			pValue->iKey = 0;
+			ClearActiveID();
+		}
+		else
+			pValue->iKey = nKey;
+	}
+
+	auto szPopupLabel = std::string( szLabel );
+	szPopupLabel.insert(0, "StatePopup");
+	if (bFocusRequested || bHovered && g.IO.MouseClicked[1] || bHovered && g.IO.MouseDoubleClicked[1])
+	{
+		OpenPopup( szPopupLabel.c_str());
+	}
+
+	if (BeginPopup( szPopupLabel.c_str()))
+	{
+		if (ImGui::Selectable("Hold", pValue->iState == KeyStateHold))
+			pValue->iState = KeyStateHold;
+
+		if (ImGui::Selectable("Toggle", pValue->iState == KeyStateToggle))
+			pValue->iState = KeyStateToggle;
+
+		if (ImGui::Selectable("Always-on", pValue->iState == KeyStateAlwaysOn))
+			pValue->iState = KeyStateAlwaysOn;
+		EndPopup( );
+	}
+
+
+	char chBuffer[64] = {};
+	sprintf_s(chBuffer, sizeof(chBuffer), XorStr("[ %s ]"), pValue->iKey != 0 && g.ActiveId != nIndex ? arrKeyNames.at(pValue->iKey) : g.ActiveId == nIndex ? XorStr("press") : XorStr("none") );
+
+	// modified by qo0
+	PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
+	pWindow->DrawList->AddText(ImVec2(rectFrame.Max.x - CalcTextSize(chBuffer).x, rectTotal.Min.y + style.FramePadding.y), GetColorU32(g.ActiveId == nIndex ? ImGuiCol_Text : ImGuiCol_TextDisabled), chBuffer);
+
+	if (vecLabelSize.x > 0.f)
+		RenderText( ImVec2(rectTotal.Min.x, rectTotal.Min.y + style.FramePadding.y ), szLabel);
+
+	PopStyleVar();
+	return bValueChanged;
+}
+
 bool ImGui::MultiCombo(const char* szLabel, std::vector<bool>& vecValues, const std::string_view* arrItems, int nItemsCount)
 {
 	ImGuiContext& g = *GImGui;

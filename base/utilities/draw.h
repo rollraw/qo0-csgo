@@ -16,6 +16,8 @@
 #include "../sdk/datatypes/color.h"
 // used: vector
 #include "../sdk/datatypes/vector.h"
+// used: keybind
+#include "../utilities/key_bind.h"
 
 // types of thread-safe render objects
 enum class EDrawType : int
@@ -190,6 +192,7 @@ namespace ImGui
 	void HelpMarker(const char* szDescription);
 	bool ListBox(const char* szLabel, int* iCurrentItem, std::function<const char* (int)> pLambda, int nItemsCount, int iHeightInItems);
 	bool HotKey(const char* szLabel, int* pValue);
+	bool HotKey(const char* szLabel, CKeyBind* pValue);
 	bool MultiCombo(const char* szLabel, std::vector<bool>& vecValues, const std::string_view* arrItems, int nItemsCount);
 
 	// Wrappers

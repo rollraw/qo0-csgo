@@ -230,6 +230,10 @@ struct Variables_t
 	C_ADD_VARIABLE(int, iMenuKey, VK_HOME);
 	C_ADD_VARIABLE(int, iPanicKey, VK_END);
 	#pragma endregion
+
+	#pragma region variables_test
+	C_ADD_VARIABLE( CKeyBind, iTestKey, CKeyBind( "test" ) );
+	#pragma endregion
 };
 
 inline Variables_t Vars;
