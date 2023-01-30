@@ -77,18 +77,21 @@ bool C::Save(std::string_view szFileName)
 			}
 			case FNV1A::HashConst("Color"):
 			{
-				const auto& colVariable = variable.Get<Color>();
-
-				// store RGBA as sub-node
+				entry[XorStr("value")] = variable.Get<Color>().GetHex();
+				break;
+			}
+			case FNV1A::HashConst("std::vector<Color>"):
+			{
+				const auto vecColors = variable.Get<std::vector<Color>>();
+				// store vector values as sub-node
 				nlohmann::json sub = { };
 
-				// fill node with all color values
-				sub.push_back(colVariable.Get<COLOR_R>());
-				sub.push_back(colVariable.Get<COLOR_G>());
-				sub.push_back(colVariable.Get<COLOR_B>());
-				sub.push_back(colVariable.Get<COLOR_A>());
+				// fill node with all vector values
+				for (const auto& colValue : vecColors)
+					sub.push_back(colValue.GetHex());
 
 				entry[XorStr("value")] = sub.dump();
+
 				break;
 			}
 			case FNV1A::HashConst("std::vector<bool>"):
@@ -241,14 +244,20 @@ bool C::Load(std::string_view szFileName)
 			}
 			case FNV1A::HashConst("Color"):
 			{
-				const nlohmann::json vector = nlohmann::json::parse(variable[XorStr("value")].get<std::string>());
+				entry.Set<Color>( Color::FromHex(variable[ XorStr( "value" ) ].get<unsigned>( )));
+				break;
+			}
+			case FNV1A::HashConst( "std::vector<Color>" ):
+			{
+				const nlohmann::json vector = nlohmann::json::parse(variable[ XorStr("value")].get<std::string>());
+				auto& vecColors = entry.Get<std::vector<Color>>();
 
-				entry.Set<Color>(Color(
-					vector.at(0).get<std::uint8_t>(),
-					vector.at(1).get<std::uint8_t>(),
-					vector.at(2).get<std::uint8_t>(),
-					vector.at(3).get<std::uint8_t>()
-				));
+				for (std::size_t i = 0U; i < vector.size(); i++)
+				{
+					// check is item out of bounds
+					if (i < vecColors.size())
+						vecColors.at(i) = Color::FromHex(vector.at(i).get<unsigned>());
+				}
 
 				break;
 			}

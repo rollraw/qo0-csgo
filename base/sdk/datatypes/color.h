@@ -264,6 +264,23 @@ public:
 		return Color(r, g, b, flAlpha);
 	}
 
+	/* return RGB color converted from heximal input */
+	static Color FromHex(unsigned uHexValue)
+	{
+		int iR = (uHexValue >> 24) & 0xFF;
+		int iG = (uHexValue >> 16) & 0xFF;
+		int iB = (uHexValue >> 8) & 0xFF;
+		int iA = (uHexValue) & 0xFF;
+
+		return Color( iR, iG, iB, iA );
+	}
+
+	/* convert color to heximal value */
+	[[nodiscard]] unsigned GetHex() const
+	{
+		return (((arrColor[COLOR_R]) << 24) | ((arrColor[COLOR_G]) << 16) | ((arrColor[ COLOR_B ]) << 8) | ((arrColor[COLOR_A])));
+	}
+
 private:
 	std::array<std::uint8_t, 4U> arrColor;
 };
