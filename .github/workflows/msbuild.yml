@@ -1,0 +1,24 @@
+name: msbuild
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        toolset: [v143, ClangCL]
+        configuration: [Debug, Release]
+    steps:
+    - name: setup actions
+      uses: actions/checkout@v3
+    - name: setup environment
+      uses: microsoft/setup-msbuild@v1.1
+    - name: build
+      shell: cmd
+      run: msbuild base.sln /p:Configuration=${{matrix.configuration}} /p:Platform=Win32 /p:PlatformToolset=${{ matrix.toolset }}
