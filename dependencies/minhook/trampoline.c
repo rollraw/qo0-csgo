@@ -27,6 +27,7 @@
  */
 
 #include <windows.h>
+#include <intrin.h>
 
 #ifndef ARRAYSIZE
 #define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
