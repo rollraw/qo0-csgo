@@ -1,114 +1,118 @@
 #pragma once
-// used: iconvar forward declaration
-#include "../sdk/convar.h"
+// used: [d3d] idirect3ddevice9
+#include <d3d9.h>
 
-#include "../sdk/interfaces/ibaseclientdll.h"
-#include "../sdk/interfaces/icliententitylist.h"
-#include "../sdk/interfaces/isurface.h"
-#include "../sdk/interfaces/iclientmodeshared.h"
-#include "../sdk/interfaces/iconvar.h"
-#include "../sdk/interfaces/ieffects.h"
-#include "../sdk/interfaces/inetchannel.h"
-#include "../sdk/interfaces/iengineclient.h"
-#include "../sdk/interfaces/ienginetrace.h"
-#include "../sdk/interfaces/ienginevgui.h"
-#include "../sdk/interfaces/ienginesound.h"
-#include "../sdk/interfaces/igameconsole.h"
-#include "../sdk/interfaces/igameeventmanager.h"
-#include "../sdk/interfaces/ivpanel.h"
-#include "../sdk/interfaces/igameui.h"
-#include "../sdk/interfaces/iglobalvars.h"
-#include "../sdk/interfaces/iservergamedll.h"
-#include "../sdk/interfaces/iinput.h"
-#include "../sdk/interfaces/iinputsystem.h"
-#include "../sdk/interfaces/ilocalize.h"
-#include "../sdk/interfaces/imatchframework.h"
-#include "../sdk/interfaces/igametypes.h"
-#include "../sdk/interfaces/imaterialsystem.h"
-#include "../sdk/interfaces/imdlcache.h"
-#include "../sdk/interfaces/imemalloc.h"
-#include "../sdk/interfaces/inetworkstring.h"
-#include "../sdk/interfaces/iphysicssurfaceprops.h"
-#include "../sdk/interfaces/iprediction.h"
-#include "../sdk/interfaces/isteamclient.h"
-#include "../sdk/interfaces/isteamgamecoordinator.h"
-#include "../sdk/interfaces/istudiorender.h"
-#include "../sdk/interfaces/ivdebugoverlay.h"
-#include "../sdk/interfaces/ivengineeffects.h"
-#include "../sdk/interfaces/iglowmanager.h"
-#include "../sdk/interfaces/iviewrender.h"
-#include "../sdk/interfaces/iviewrenderbeams.h"
-#include "../sdk/interfaces/ivmodelinfo.h"
-#include "../sdk/interfaces/ivmodelrender.h"
-#include "../sdk/interfaces/ivrenderview.h"
-#include "../sdk/interfaces/iweaponsystem.h"
-#include "../sdk/interfaces/ikeyvaluessystem.h"
+// used: cinterfaceregister
+#include "../sdk/interfaces/ibaseinterface.h"
 
-class CInterfaceRegister
-{
-public:
-	InstantiateInterfaceFn	pCreateFn;		//0x0
-	const char*				szName;			//0x4
-	CInterfaceRegister*		pNext;			//0x8
-};
+// forward declarations
+class IBaseClientDll;
+class IClientEntityList;
+class IClientLeafSystem;
+class IEffects;
+class IGameMovement;
+class IMoveHelper;
+class IPrediction;
+class IEngineClient;
+class IEngineVGui;
+class IEngineTrace;
+class IEngineSound;
+class INetworkStringTableContainer;
+class IGameEventManager2;
+class IVRenderView;
+class IVDebugOverlay;
+class IVEngineEffects;
+class IVModelInfo;
+class IVModelRender;
+class IServerGameDLL;
+class IMDLCache;
+class IStudioRender;
+class IConVar;
+class IPhysicsSurfaceProps;
+class IMaterialSystem;
+class ISurface;
+class IPanel;
+class IInputSystem;
+class ILocalize;
+class IBaseFileSystem;
+class IFileSystem;
+class IMatchFramework;
+class ISteamClient;
+class ISteamUser;
+class ISteamGameCoordinator;
+class IMemAlloc;
+class IKeyValuesSystem;
+class IClientModeShared;
+class IGlobalVarsBase;
+class IViewRender;
+class IViewRenderBeams;
+class IInput;
+class IClientState;
+class IWeaponSystem;
+class IGlowObjectManager;
+class IHud;
+class IEconItemSystem;
 
 /*
  * INTERFACES
- * global pointers of source-sdk interfaces declared in game libraries
- * have different functions which we can call and/or hook
+ * - pointers to commonly-used valve source-sdk interfaces,
+ *   interfaces are virtual classes (tables) that have various virtual functions declared by game engine, that we can either call or hook
  */
 namespace I
 {
-	// Get
 	bool Setup();
-	/* search and returns a pointer of specific interface given */
-	template <typename T>
-	T* Capture(const std::string_view szModuleName, const std::string_view szInterface);
 
-	// Values
-	inline IBaseClientDll*			Client;
-	inline IClientEntityList*		ClientEntityList;
-	inline IEffects*				Effects;
-	inline IGameMovement*			GameMovement;
-	inline IMoveHelper*				MoveHelper;
-	inline IPrediction*				Prediction;
-	inline IGameConsole*			GameConsole;
-	inline IGameUI*					GameUI;
-	inline IEngineClient*			Engine;
-	inline IEngineVGui*				EngineVGui;
-	inline IEngineTrace*			EngineTrace;
-	inline IEngineSound*			EngineSound;
-	inline INetworkContainer*		NetworkContainer;
-	inline IGameEventManager2*		GameEvent;
-	inline IVRenderView*			RenderView;
-	inline IVDebugOverlay*			DebugOverlay;
-	inline IVEngineEffects*			EngineEffects;
-	inline IVModelInfo*				ModelInfo;
-	inline IVModelRender*			ModelRender;
-	inline IMDLCache*				MDLCache;
-	inline IStudioRender*			StudioRender;
-	inline IConVar*					ConVar;
-	inline IPhysicsSurfaceProps*	PhysicsProps;
-	inline IMaterialSystem*			MaterialSystem;
-	inline ISurface*				Surface;
-	inline IVPanel*					Panel;
-	inline IInputSystem*			InputSystem;
-	inline ILocalize*				Localize;
-	inline IMatchFramework*			MatchFramework;
-	inline IGameTypes*				GameTypes;
-	inline IServerGameDLL*			Server;
-	inline ISteamClient*			SteamClient;
-	inline ISteamUser*				SteamUser;
-	inline ISteamGameCoordinator*	SteamGameCoordinator;
-	inline IClientModeShared*		ClientMode;
-	inline IGlobalVarsBase*			Globals;
-	inline IMemAlloc*				MemAlloc;
-	inline IKeyValuesSystem*		KeyValuesSystem;
-	inline IDirect3DDevice9*		DirectDevice;
-	inline IViewRender*				ViewRender;
-	inline IViewRenderBeams*		ViewRenderBeams;
-	inline IInput*					Input;
-	inline IClientState*			ClientState;
-	inline IWeaponSystem*			WeaponSystem;
-	inline IGlowObjectManager*		GlowManager;
+	/* @section: get */
+	// search for a specific interface with given name in given module
+	template <class T>
+	T* Capture(const CInterfaceRegister* pModuleRegister, const char* szInterfaceName);
+
+	/* @section: handles */
+	inline IBaseClientDll* Client;
+	inline IClientEntityList* ClientEntityList;
+	inline IClientLeafSystem* ClientLeafSystem;
+	inline IEffects* Effects;
+	inline IGameMovement* GameMovement;
+	inline IMoveHelper* MoveHelper;
+	inline IPrediction* Prediction;
+	inline IEngineClient* Engine;
+	inline IEngineVGui* EngineVGui;
+	inline IEngineTrace* EngineTrace;
+	inline IEngineSound* EngineSound;
+	inline INetworkStringTableContainer* NetworkStringTable;
+	inline IGameEventManager2* EventManager;
+	inline IVRenderView* RenderView;
+	inline IVDebugOverlay* DebugOverlay;
+	inline IVEngineEffects* EngineEffects;
+	inline IVModelInfo* ModelInfo;
+	inline IVModelRender* ModelRender;
+	inline IServerGameDLL* Server;
+	inline IMDLCache* MDLCache;
+	inline IStudioRender* StudioRender;
+	inline IConVar* ConVar;
+	inline IPhysicsSurfaceProps* PhysicsProps;
+	inline IMaterialSystem* MaterialSystem;
+	inline ISurface* Surface;
+	inline IPanel* Panel;
+	inline IInputSystem* InputSystem;
+	inline ILocalize* Localize;
+	inline IBaseFileSystem* BaseFileSystem;
+	inline IFileSystem* FileSystem;
+	inline IMatchFramework* MatchFramework;
+	inline ISteamClient* SteamClient;
+	inline ISteamUser* SteamUser;
+	inline ISteamGameCoordinator* SteamGameCoordinator;
+	inline IMemAlloc* MemAlloc;
+	inline IKeyValuesSystem* KeyValuesSystem;
+	inline IClientModeShared* ClientMode;
+	inline IGlobalVarsBase* Globals;
+	inline IDirect3DDevice9* DirectDevice;
+	inline IViewRender* ViewRender;
+	inline IViewRenderBeams* ViewRenderBeams;
+	inline IInput* Input;
+	inline IClientState* ClientState;
+	inline IWeaponSystem* WeaponSystem;
+	inline IGlowObjectManager* GlowManager;
+	inline IHud* Hud;
+	inline IEconItemSystem* ItemSystem;
 }

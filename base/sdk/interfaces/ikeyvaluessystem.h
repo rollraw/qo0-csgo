@@ -1,24 +1,67 @@
 #pragma once
+// used: callvfunc
+#include "../../utilities/memory.h"
 
 #define INVALID_KEY_SYMBOL (-1)
 using HKeySymbol = int;
 
-class IKeyValuesSystem
+// forward declarations
+class IKeyValuesSystem;
+
+using KeyValuesSystemFn_t = IKeyValuesSystem*(Q_CDECL*)();
+
+class IKeyValuesSystem : ROP::VirtualCallable_t<ROP::ClientGadget_t>
 {
 public:
-	virtual void RegisterSizeofKeyValues(int iSize) = 0;
-private:
-	virtual void function0() = 0;
-public:
-	virtual void* AllocKeyValuesMemory(int iSize) = 0;
-	virtual void FreeKeyValuesMemory(void* pMemory) = 0;
-	virtual HKeySymbol GetSymbolForString(const char* szName, bool bCreate = true) = 0;
-	virtual const char* GetStringForSymbol(HKeySymbol hSymbol) = 0;
-	virtual void AddKeyValuesToMemoryLeakList(void* pMemory, HKeySymbol hSymbolName) = 0;
-	virtual void RemoveKeyValuesFromMemoryLeakList(void* pMemory) = 0;
-	virtual void SetKeyValuesExpressionSymbol(const char* szName, bool bValue) = 0;
-	virtual bool GetKeyValuesExpressionSymbol(const char* szName) = 0;
-	virtual HKeySymbol GetSymbolForStringCaseSensitive(HKeySymbol& hCaseInsensitiveSymbol, const char* szName, bool bCreate = true) = 0;
-};
+	virtual ~IKeyValuesSystem() { }
 
-using KeyValuesSystemFn = IKeyValuesSystem*(__cdecl*)();
+	void RegisterSizeofKeyValues(int iSize)
+	{
+		CallVFunc<void, 1U>(this, iSize);
+	}
+
+	void* AllocKeyValuesMemory(int iSize)
+	{
+		return CallVFunc<void*, 2U>(this, iSize);
+	}
+
+	void FreeKeyValuesMemory(void* pMemory)
+	{
+		CallVFunc<void, 3U>(this, pMemory);
+	}
+
+	HKeySymbol GetSymbolForString(const char* szName, bool bCreate = true)
+	{
+		return CallVFunc<HKeySymbol, 4U>(this, szName, bCreate);
+	}
+
+	const char* GetStringForSymbol(HKeySymbol hSymbol)
+	{
+		return CallVFunc<const char*, 5U>(this, hSymbol);
+	}
+
+	void AddKeyValuesToMemoryLeakList(void* pMemory, HKeySymbol hSymbolName)
+	{
+		CallVFunc<void, 6U>(this, pMemory, hSymbolName);
+	}
+
+	void RemoveKeyValuesFromMemoryLeakList(void* pMemory)
+	{
+		CallVFunc<void, 7U>(this, pMemory);
+	}
+
+	void SetKeyValuesExpressionSymbol(const char* szName, bool bValue)
+	{
+		CallVFunc<void, 8U>(this, szName, bValue);
+	}
+
+	bool GetKeyValuesExpressionSymbol(const char* szName)
+	{
+		return CallVFunc<bool, 9U>(this, szName);
+	}
+
+	HKeySymbol GetSymbolForStringCaseSensitive(HKeySymbol& hCaseInsensitiveSymbol, const char* szName, bool bCreate = true)
+	{
+		return CallVFunc<HKeySymbol, 10U>(this, &hCaseInsensitiveSymbol, szName, bCreate);
+	}
+};

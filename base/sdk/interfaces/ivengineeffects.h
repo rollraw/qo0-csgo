@@ -1,9 +1,14 @@
 #pragma once
-#define MAX_DLIGHTS 1000
+#include "../datatypes/color.h"
+#include "../datatypes/vector.h"
+#include "../datatypes/qangle.h"
 
-struct color32;
-struct Model_t;
+// used: callvfunc
+#include "../../utilities/memory.h"
 
+#define MAX_DLIGHTS 32
+
+#pragma region engineeffects_enumerations
 enum
 {
 	DLIGHT_NO_WORLD_ILLUMINATION = 0x1,
@@ -12,48 +17,44 @@ enum
 	DLIGHT_SUBTRACT_DISPLACEMENT_ALPHA = 0x8,
 	DLIGHT_DISPLACEMENT_MASK = (DLIGHT_ADD_DISPLACEMENT_ALPHA | DLIGHT_SUBTRACT_DISPLACEMENT_ALPHA)
 };
+#pragma endregion
 
-struct dlight_t
+// forward declarations
+class IMaterial;
+struct Model_t;
+
+struct DLight_t
 {
-	int				iFlags;
-	Vector			vecOrigin;
-	float			flRadius;
-	ColorRGBExp32	color;
-	float			flDie;
-	float			flDecay;
-	float			dlMinLight;
-	int				iKey;
-	int				iStyle;
-	Vector			vecDirection;
-	float			flInnerAngle;
-	float			flOuterAngle;
-
-	float GetRadius() const
-	{
-		return flRadius;
-	}
-
-	float GetRadiusSquared() const
-	{
-		return flRadius * flRadius;
-	}
-
-	float IsRadiusGreaterThanZero() const
-	{
-		return flRadius > 0.0f;
-	}
+	int iFlags; // 0x00
+	Vector_t vecOrigin; // 0x04
+	float flRadius; // 0x10
+	ColorRGBExp32 color; // 0x14
+	float flDie; // 0x18
+	float flDecay; // 0x1C
+	float flMinLight; // 0x20
+	int iKey; // 0x24
+	int iStyle; // 0x28
+	Vector_t vecDirection; // 0x2C
+	float flInnerAngle; // 0x38
+	float flOuterAngle; // 0x3C
 };
+static_assert(sizeof(DLight_t) == 0x40);
 
-class IVEngineEffects
+class IVEngineEffects : ROP::VirtualCallable_t<ROP::EngineGadget_t>
 {
 public:
-	virtual int Draw_DecalIndexFromName(char* szName) = 0;
-	virtual void DecalShoot(int iTexture, int nEntity, const Model_t* pModel, const Vector& vecModelOrigin, const QAngle& angModelView, const Vector& vecPosition, const Vector* saxis, int iFlags) = 0;
-	virtual void DecalColorShoot(int iTexture, int nEntity, const Model_t* pModel, const Vector& vecModelOrigin, const QAngle& angModelView, const Vector& vecPosition, const Vector* saxis, int iFlags, const color32& color32) = 0;
-	virtual void PlayerDecalShoot(IMaterial* pMaterial, void* pUserdata, int nEntity, const Model_t* pModel, const Vector& vecModelOrigin, const QAngle& angModelView, const Vector& vecPosition, const Vector* saxis, int iFlags, const color32& color32) = 0;
-	virtual dlight_t* CL_AllocDlight(int iKey) = 0;
-	virtual dlight_t* CL_AllocElight(int iKey) = 0;
-	virtual int CL_GetActiveDLights(dlight_t* pList[MAX_DLIGHTS]) = 0;
-	virtual const char* Draw_DecalNameFromIndex(int nIndex) = 0;
-	virtual dlight_t* GetElightByKey(int iKey) = 0;
+	[[nodiscard]] DLight_t* CL_AllocDlight(int nKeyIndex)
+	{
+		return CallVFunc<DLight_t*, 4U>(this, nKeyIndex);
+	}
+
+	[[nodiscard]] DLight_t* CL_AllocElight(int nKeyIndex)
+	{
+		return CallVFunc<DLight_t*, 5U>(this, nKeyIndex);
+	}
+
+	[[nodiscard]] int CL_GetActiveDLights(DLight_t* pList[MAX_DLIGHTS])
+	{
+		return CallVFunc<int, 6U>(this, pList);
+	}
 };

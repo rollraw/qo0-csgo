@@ -1,6 +1,19 @@
 #pragma once
-// used: InterlockedDecrement
-#include <windows.h>
+// used: [win] _interlockedincrement, _interlockeddecrement
+#include <intrin0.h>
+// @todo: instead include / compiler dependent
+/*
+extern "C"
+{
+	long Q_CDECL _InterlockedIncrement(volatile long*);
+	long Q_CDECL _InterlockedDecrement(volatile long*);
+}
+
+#pragma intrinsic(_InterlockedIncrement)
+#pragma intrinsic(_InterlockedDecrement)*/
+
+// @source: master/public/tier1/refcount.h
+// master/public/tier0/threadtools.h
 
 class IRefCounted
 {
@@ -12,18 +25,29 @@ public:
 class CRefCounted
 {
 public:
-	virtual void Destructor(char bDelete) = 0;
+	virtual ~CRefCounted() { }
 	virtual bool OnFinalRelease() = 0;
 
-	void Release()
+	int AddReference()
 	{
-		if (InterlockedDecrement(&vlRefCount) == 0 && OnFinalRelease())
-			Destructor(1);
+		return /*__sync_fetch_and_add(viReferenceCount, 1) + 1*/ static_cast<int>(_InterlockedIncrement(reinterpret_cast<volatile long*>(&viReferenceCount)));
+	}
+
+	int Release()
+	{
+		if (const int iResult = /*__sync_fetch_and_add(viReferenceCount, -1) - 1*/ static_cast<int>(_InterlockedDecrement(reinterpret_cast<volatile long*>(&viReferenceCount))); iResult > 0)
+			return iResult;
+
+		if (this->OnFinalRelease())
+			/*delete this;*/this->~CRefCounted();
+
+		return 0;
 	}
 
 private:
-	volatile long vlRefCount;
+	volatile int viReferenceCount;
 };
+static_assert(sizeof(CRefCounted) == 0x8);
 
 template <class T>
 class CBaseAutoPtr
@@ -35,27 +59,27 @@ public:
 	CBaseAutoPtr(T* pObject) :
 		pObject(pObject) { }
 
-	operator const void* () const
+	operator const void*() const
 	{
 		return pObject;
 	}
 
-	operator void* () const
+	operator void*() const
 	{
 		return pObject;
 	}
 
-	operator const T* () const
+	operator const T*() const
 	{
 		return pObject;
 	}
 
-	operator const T* ()
+	operator const T*()
 	{
 		return pObject;
 	}
 
-	operator T* ()
+	operator T*()
 	{
 		return pObject;
 	}
@@ -74,7 +98,7 @@ public:
 
 	bool operator!() const
 	{
-		return (!pObject);
+		return (pObject == nullptr);
 	}
 
 	bool operator==(const void* pSecondObject) const
@@ -156,11 +180,11 @@ class CRefPtr : public CBaseAutoPtr<T>
 public:
 	CRefPtr() { }
 
-	CRefPtr(T* pInit)
-		: CBaseClass(pInit) { }
+	CRefPtr(T* pInit) :
+		CBaseClass(pInit) { }
 
-	CRefPtr(const CRefPtr<T>& pRefPtr)
-		: CBaseClass(pRefPtr) { }
+	CRefPtr(const CRefPtr<T>& pRefPtr) :
+		CBaseClass(pRefPtr) { }
 
 	~CRefPtr()
 	{

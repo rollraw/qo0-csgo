@@ -1,17 +1,13 @@
 #pragma once
-// used: std::array
-#include <array>
+// used: [win] winapi
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
 
-// used: winapi includes
 #include "../common.h"
-
-enum class EKeyState : int
-{
-	NONE,
-	DOWN,
-	UP,
-	RELEASED
-};
+// used: keybind_t
+#include "../core/config.h"
 
 /*
  * INPUT SYSTEM
@@ -19,34 +15,47 @@ enum class EKeyState : int
  */
 namespace IPT
 {
-	// Values
-	/* current window */
+	using KeyState_t = std::uint8_t;
+
+	enum EKeyState : KeyState_t
+	{
+		KEY_STATE_NONE,
+		KEY_STATE_DOWN,
+		KEY_STATE_UP,
+		KEY_STATE_RELEASED
+	};
+
+	/* @section: values */
+	// current window
 	inline HWND	hWindow = nullptr;
-	/* saved window messages handler */
+	// saved window messages handler
 	inline WNDPROC pOldWndProc = nullptr;
-	/* last processed key states */
-	inline std::array<EKeyState, 256U> arrKeyState = { };
+	// last processed key states
+	inline KeyState_t arrKeyState[256] = { };
 
-	// Get
-	/* set our window messages proccesor */
+	// replace game window messages processor with our
 	bool Setup();
-	/* restore window messages processor and clear saved pointer */
-	void Restore();
-	/* process input window message and save keys states in array */
-	bool Process(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	// restore window messages processor to original
+	void Destroy();
 
-	/* is given key being held */
+	/* @section: callbacks */
+	// process input window message and save keys states in array
+	bool OnWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+	/* @section: get */
+	/// @returns: true if keybind is active, false otherwise
+	bool GetBindState(KeyBind_t& keyBind);
+	/// @returns: true if key is being held, false otherwise
 	inline bool IsKeyDown(const std::uint32_t uButtonCode)
 	{
-		return arrKeyState.at(uButtonCode) == EKeyState::DOWN;
+		return arrKeyState[uButtonCode] == KEY_STATE_DOWN;
 	}
-
-	/* was given key released */
+	/// @returns: true if key has been just released, false otherwise
 	inline bool IsKeyReleased(const std::uint32_t uButtonCode)
 	{
-		if (arrKeyState.at(uButtonCode) == EKeyState::RELEASED)
+		if (arrKeyState[uButtonCode] == KEY_STATE_RELEASED)
 		{
-			arrKeyState.at(uButtonCode) = EKeyState::UP;
+			arrKeyState[uButtonCode] = KEY_STATE_UP;
 			return true;
 		}
 

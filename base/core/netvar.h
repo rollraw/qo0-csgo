@@ -1,163 +1,129 @@
 #pragma once
-// used: std::ifstream
-#include <fstream>
-// used: std::unordered_map
-#include <unordered_map>
-
-// used: winapi includes
 #include "../common.h"
-// used: fnv1a hashing
 #include "../sdk/hash/fnv1a.h"
-// used: data table, prop, data type
+
+// used: recvtable_t, recvprop_t
 #include "../sdk/datatypes/datatable.h"
-// used: datamap struct
+// used: datamap_t
 #include "../sdk/datatypes/datamap.h"
 
 #pragma region netvar_definitions
-/* add function to get variable with additional offset from netvar offset */
-#define N_ADD_VARIABLE_OFFSET( Type, szFunctionName, szNetVar, uAdditional )								\
-	[[nodiscard]] std::add_lvalue_reference_t<Type> szFunctionName()										\
-	{																										\
-		static constexpr FNV1A_t uHash = FNV1A::HashConst(szNetVar);										\
-		static std::uintptr_t uOffset = CNetvarManager::Get().mapProps[uHash].uOffset;						\
-		return *(std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset + uAdditional);	\
-	}
+// add function to get variable by straight offset
+#define N_ADD_OFFSET(TYPE, NAME, OFFSET)																	\
+[[nodiscard]] Q_INLINE std::add_lvalue_reference_t<TYPE> NAME()												\
+{																											\
+	return *reinterpret_cast<std::add_pointer_t<TYPE>>(reinterpret_cast<std::uint8_t*>(this) + (OFFSET));	\
+}
 
-/* add function to get netvar variable */
-#define N_ADD_VARIABLE( Type, szFunctionName, szNetVar ) N_ADD_VARIABLE_OFFSET( Type, szFunctionName, szNetVar, 0U )
+// add function to get variable pointer by straight offset
+#define N_ADD_POFFSET(TYPE, NAME, OFFSET)																	\
+[[nodiscard]] Q_INLINE std::add_pointer_t<TYPE> NAME()														\
+{																											\
+	return reinterpret_cast<std::add_pointer_t<TYPE>>(reinterpret_cast<std::uint8_t*>(this) + (OFFSET));	\
+}
 
-/* add function to get variable pointer with additional offset from netvar offset */
-#define N_ADD_PVARIABLE_OFFSET( Type, szFunctionName, szNetVar, uAdditional )								\
-	[[nodiscard]] std::add_pointer_t<Type> szFunctionName()													\
-	{																										\
-		static constexpr FNV1A_t uHash = FNV1A::HashConst(szNetVar);										\
-		static std::uintptr_t uOffset = CNetvarManager::Get().mapProps[uHash].uOffset;						\
-		return (std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset + uAdditional);	\
-	}
+// add function to get networkable variable with additional offset
+#define N_ADD_VARIABLE_OFFSET(TYPE, NAME, VARIABLE, ADDITIONAL) N_ADD_OFFSET(TYPE, NAME, NETVAR::GetOffset(FNV1A::HashConst(VARIABLE)) + (ADDITIONAL))
 
-/* add function to get netvar variable pointer */
-#define N_ADD_PVARIABLE( Type, szFunctionName, szNetVar ) N_ADD_PVARIABLE_OFFSET( Type, szFunctionName, szNetVar, 0U )
+// add function to get networkable variable
+#define N_ADD_VARIABLE(TYPE, NAME, VARIABLE) N_ADD_VARIABLE_OFFSET(TYPE, NAME, VARIABLE, 0U)
 
-/* add function to get csplayerresource variable for entity by index from netvar offset */
-#define N_ADD_RESOURCE_VARIABLE( Type, szFunctionName, szNetVar )														\
-	[[nodiscard]] std::add_lvalue_reference_t<Type> szFunctionName(int nIndex)											\
-	{																													\
-		static constexpr FNV1A_t uHash = FNV1A::HashConst(szNetVar);													\
-		static std::uintptr_t uOffset = CNetvarManager::Get().mapProps[uHash].uOffset;									\
-		return *(std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset + nIndex * sizeof(Type));	\
-	}
+// add function to get variable pointer with additional offset from netvar offset
+#define N_ADD_PVARIABLE_OFFSET(TYPE, NAME, VARIABLE, ADDITIONAL) N_ADD_POFFSET(TYPE, NAME, NETVAR::GetOffset(FNV1A::HashConst(VARIABLE)) + (ADDITIONAL))
 
-/* add function to get datamap variable */
-#define N_ADD_DATAFIELD( Type, szFunctionName, pMap, szDataField )											\
-	[[nodiscard]] std::add_lvalue_reference_t<Type> szFunctionName()										\
-	{																										\
-		static constexpr FNV1A_t uHash = FNV1A::HashConst(szDataField);										\
-		static std::uintptr_t uOffset = CNetvarManager::Get().FindInDataMap(pMap, uHash);					\
-		return *(std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset);				\
-	}
+// add function to get networkable variable pointer
+#define N_ADD_PVARIABLE(TYPE, NAME, VARIABLE) N_ADD_PVARIABLE_OFFSET(TYPE, NAME, VARIABLE, 0U)
 
-/* add function to get datamap variable pointer */
-#define N_ADD_PDATAFIELD( Type, szFunctionName, pMap, szDataField )											\
-	[[nodiscard]] std::add_pointer_t<Type> szFunctionName()													\
-	{																										\
-		static constexpr FNV1A_t uHash = FNV1A::HashConst(szDataField);										\
-		static std::uintptr_t uOffset = CNetvarManager::Get().FindInDataMap(pMap, uHash);					\
-		return (std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset);				\
-	}
+// add function to get datamap field variable
+#define N_ADD_DATAFIELD(TYPE, NAME, DATAMAP, DATAFIELD)														\
+[[nodiscard]] std::add_lvalue_reference_t<TYPE> NAME()														\
+{																											\
+	static std::uintptr_t uOffset = NETVAR::FindInDataMap(DATAMAP, FNV1A::HashConst(DATAFIELD));			\
+	return *reinterpret_cast<std::add_pointer_t<TYPE>>(reinterpret_cast<std::uint8_t*>(this) + uOffset);	\
+}
 
-/* add function to get variable by offset */
-#define N_ADD_OFFSET( Type, szFunctionName, uOffset )														\
-	[[nodiscard]] std::add_lvalue_reference_t<Type> szFunctionName()										\
-	{																										\
-		return *(std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset);				\
-	}
-
-/* add function to get variable pointer by offset */
-#define N_ADD_POFFSET( Type, szFunctionName, uOffset )														\
-	[[nodiscard]] std::add_pointer_t<Type> szFunctionName()													\
-	{																										\
-		return (std::add_pointer_t<Type>)(reinterpret_cast<std::uintptr_t>(this) + uOffset);				\
-	}
+// add function to get datamap field variable pointer
+#define N_ADD_PDATAFIELD(TYPE, NAME, DATAMAP, DATAFIELD)													\
+[[nodiscard]] std::add_pointer_t<TYPE> NAME()																\
+{																											\
+	static std::uintptr_t uOffset = NETVAR::FindInDataMap(DATAMAP, FNV1A::HashConst(DATAFIELD));			\
+	return reinterpret_cast<std::add_pointer_t<TYPE>>(reinterpret_cast<std::uint8_t*>(this) + uOffset);		\
+}
 #pragma endregion
 
 class CRecvPropHook
 {
 public:
-	CRecvPropHook(RecvProp_t* pRecvProp, const RecvVarProxyFn pNewProxyFn) :
-		pRecvProp(pRecvProp), pOriginalFn(pRecvProp->oProxyFn)
+	bool Create(RecvProp_t* pRecvProp, const RecvVarProxyFn_t pNewProxyFn)
 	{
-		SetProxy(pNewProxyFn);
+		if (pRecvProp == nullptr)
+			return false;
+
+		pProperty = pRecvProp;
+		fnOriginal = pRecvProp->fnProxy;
+
+		Replace(pNewProxyFn);
+		return true;
 	}
 
-	// Get
-	/* replace with our function */
-	void Replace(RecvProp_t* pRecvProp)
+	// replace property proxy with our function
+	void Replace(const RecvVarProxyFn_t pNewProxyFn) const
 	{
-		this->pRecvProp = pRecvProp;
-		this->pOriginalFn = pRecvProp->oProxyFn;
+		pProperty->fnProxy = pNewProxyFn;
 	}
 
-	/* restore original function */
+	// restore original property proxy function
 	void Restore() const
 	{
-		if (this->pOriginalFn != nullptr)
-			this->pRecvProp->oProxyFn = this->pOriginalFn;
+		if (fnOriginal != nullptr)
+			pProperty->fnProxy = fnOriginal;
 	}
 
-	void SetProxy(const RecvVarProxyFn pNewProxyFn) const
+	/// @returns: original property proxy function
+	[[nodiscard]] RecvVarProxyFn_t GetOriginal() const
 	{
-		this->pRecvProp->oProxyFn = pNewProxyFn;
-	}
-
-	RecvVarProxyFn GetOriginal() const
-	{
-		return this->pOriginalFn;
+		return this->fnOriginal;
 	}
 
 private:
-	// Values
-	/* in future that is being modified and replace the original prop */
-	RecvProp_t* pRecvProp = nullptr;
-	/* original proxy function to make able to restore it later */
-	RecvVarProxyFn pOriginalFn = nullptr;
+	// current property
+	RecvProp_t* pProperty = nullptr;
+	// original proxy function to have ability to restore it later
+	RecvVarProxyFn_t fnOriginal = nullptr;
 };
 
-class CNetvarManager : public CSingleton<CNetvarManager>
+/*
+ * NETVAR MANAGER
+ * - game networkable variables
+ *
+ * use command "cl_pdump 1" to see prediction dump for local player:
+ *    [color]      [meaning]
+ * 255, 255, 255 - nothing of below
+ * 180, 180, 225 - networked, error checked
+ * 150, 180, 150 - networked, not error checked
+ * 255, 255,   0 - differs, within tolerance
+ * 255,   0,   0 - differs, with no tolerance, networked
+ * 180, 180, 100 - differs, with no tolerance, not networked
+ */
+namespace NETVAR
 {
-public:
-	struct NetvarObject_t
-	{
-		RecvProp_t* pRecvProp = nullptr;
-		std::uintptr_t uOffset = 0U;
-	};
+	/// store networkable properties and their offsets
+	/// @returns: true if the properties were successfully stored, false otherwise
+	bool Setup();
+	void Dump(const wchar_t* wszFileName);
 
-	// Get
-	/* fill map with netvars and also dump it to given file */
-	bool Setup(const std::string_view szDumpFileName);
-	/*
-	 * stores the variables of objects in the hierarchy
-	 * used to iterate through an object's data descriptions from data map
-	 */
-	std::uintptr_t FindInDataMap(DataMap_t* pMap, const FNV1A_t uFieldHash);
-
-	// Values
-	/* logging counters */
-	int iStoredProps = 0;
-	int iStoredTables = 0;
-	/* networkable properties map */
-	std::unordered_map<FNV1A_t, NetvarObject_t> mapProps = { };
-
-private:
-	/*
-	 * recursively stores networked properties info from data tables in our map
-	 * and also format our dump and write values to file
-	 */
-	void StoreProps(const char* szClassName, RecvTable_t* pRecvTable, const std::uintptr_t uOffset, const int iDepth);
-
-	// Extra
-	std::string GetPropertyType(const RecvProp_t* pRecvProp) const;
-
-	// Values
-	/* output file */
-	std::ofstream fsDumpFile = { };
-};
+	/* @section: get */
+	/// search for the field offset of object in the data map hierarchy
+	/// @returns: offset of the field matched to given hash on success, null otherwise
+	std::uintptr_t FindInDataMap(const DataMap_t* pMap, const FNV1A_t uFieldHash);
+	// format property type to string
+	void GetPropertyType(const RecvProp_t* pRecvProp, char* szOutBuffer);
+	/// @returns: property of variable matched to given hash if it exist, null otherwise
+	RecvProp_t* GetProperty(const FNV1A_t uFieldHash);
+	/// @returns: offset of variable matched to given hash if it exist, null otherwise
+	std::uintptr_t GetOffset(const FNV1A_t uFieldHash);
+	/// @returns: count of stored tables during setup
+	std::size_t GetTablesCount();
+	/// @returns: count of stored properties during setup
+	std::size_t GetPropertiesCount();
+}

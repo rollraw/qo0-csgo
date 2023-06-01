@@ -9809,7 +9809,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
 {
     if (!ImGui::Begin("Dear ImGui Metrics", p_open))
     {
-        ImGui::End();
+        ImGui::OnTickEnd();
         return;
     }
 
@@ -10209,7 +10209,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
     }
 #endif // #define IMGUI_HAS_DOCK
 
-    ImGui::End();
+    ImGui::OnTickEnd();
 }
 
 #else

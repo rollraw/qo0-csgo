@@ -1,33 +1,40 @@
 #pragma once
-// used: surfacedata
+// used: ccsweapondata
+#include "../sdk/interfaces/iweaponsystem.h"
+// used: surfacedata_t
 #include "../sdk/interfaces/iphysicssurfaceprops.h"
-// used: baseentity, cliententity, baseweapon, weapondata classes
+// used: ccsplayer, cbasecombatweapon
 #include "../sdk/entity.h"
 
-struct FireBulletData_t
+struct SimulateBulletObject_t
 {
-	Vector			vecPosition = { };
-	Vector			vecDirection = { };
-	Trace_t			enterTrace = { };
-	float			flCurrentDamage = 0.0f;
-	int				iPenetrateCount = 0;
+	Vector_t vecPosition = { };
+	Vector_t vecDirection = { };
+	Trace_t enterTrace = { };
+	float flCurrentDamage = 0.0f;
+	int iPenetrateCount = 0;
 };
 
 // @credits: outlassn
-class CAutoWall
+namespace F::AUTOWALL
 {
-public:
-	// Get
-	/* returns damage at point and simulated bullet data (if given) */
-	static float GetDamage(CBaseEntity* pLocal, const Vector& vecPoint, FireBulletData_t* pDataOut = nullptr);
-	/* calculates damage factor */
-	static void ScaleDamage(const int iHitGroup, CBaseEntity* pEntity, const float flWeaponArmorRatio, const float flWeaponHeadShotMultiplier, float& flDamage);
-	/* simulates fire bullet to penetrate up to 4 walls, return true when hitting player */
-	static bool SimulateFireBullet(CBaseEntity* pLocal, CBaseCombatWeapon* pWeapon, FireBulletData_t& data);
+	/* @section: get */
+	/// @param[in] vecPoint another player's point to get damage on
+	/// @param[out] pDataOut [optional] simulated fire bullet data output
+	/// @returns: damage at given point from given player shoot position
+	float GetDamage(CCSPlayer* pAttacker, const Vector_t& vecPoint, SimulateBulletObject_t* pDataOut = nullptr);
+	/// scales given damage by various dependent factors
+	/// @param[in,out] pflDamageToScale damage value that being scaled
+	void ScaleDamage(const int iHitGroup, CCSPlayer* pCSPlayer, const float flWeaponArmorRatio, const float flWeaponHeadShotMultiplier, float* pflDamageToScale);
+	/// simulates fire bullet to penetrate up to 4 walls
+	/// @returns: true if simulated bullet hit the player, false otherwise
+	bool SimulateFireBullet(CCSPlayer* pAttacker, CBaseCombatWeapon* pWeapon, SimulateBulletObject_t& data);
 
-private:
-	// Main
-	static void ClipTraceToPlayers(const Vector& vecAbsStart, const Vector& vecAbsEnd, const unsigned int fMask, ITraceFilter* pFilter, Trace_t* pTrace, const float flMinRange = 0.0f);
-	static bool TraceToExit(Trace_t& enterTrace, Trace_t& exitTrace, const Vector& vecPosition, const Vector& vecDirection, const CBaseEntity* pClipPlayer);
-	static bool HandleBulletPenetration(CBaseEntity* pLocal, const CCSWeaponData* pWeaponData, const surfacedata_t* pEnterSurfaceData, FireBulletData_t& data);
-};
+	/* @section: main */
+	/// find exact penetration exit
+	/// @returns: true if successfully got penetration exit for current object, false otherwise
+	bool TraceToExit(const Trace_t& enterTrace, Trace_t& exitTrace, const Vector_t& vecPosition, const Vector_t& vecDirection, const IHandleEntity* pClipPlayer);
+	/// process bullet penetration to count penetrated objects it hits
+	/// @returns: true if bullet stopped and we should stop processing penetration, false otherwise
+	bool HandleBulletPenetration(CCSPlayer* pLocal, const CCSWeaponData* pWeaponData, const surfacedata_t* pEnterSurfaceData, SimulateBulletObject_t& data);
+}

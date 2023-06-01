@@ -1,15 +1,11 @@
 #pragma once
-// used: std::function
-#include <functional>
-
-// used: matrix3x4_t
 #include "../datatypes/matrix.h"
-// used: utlvector
 #include "../datatypes/utlvector.h"
+
 // used: mask, content, surf flags
 #include "../bspflags.h"
 
-// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/engine/IEngineTrace.h
+// @credits: master/public/engine/IEngineTrace.h
 
 #pragma region enginetrace_enumerations
 enum EDispSurfFlags : int
@@ -30,71 +26,104 @@ enum ETraceType : int
 	TRACE_FILTERSKY
 };
 
-enum EDebugTraceCounterBehavior : int
+enum ECollisionGroup : int
 {
-	TRACE_COUNTER_SET = 0,
-	TRACE_COUNTER_INC,
+	COLLISION_GROUP_NONE = 0,
+	COLLISION_GROUP_DEBRIS,						// collides with nothing but world and static stuff
+	COLLISION_GROUP_DEBRIS_TRIGGER,				// same as debris, but hits triggers
+	COLLISION_GROUP_INTERACTIVE_DEBRIS,			// collides with everything except other interactive debris or debris
+	COLLISION_GROUP_INTERACTIVE,				// collides with everything except interactive debris or debris
+	COLLISION_GROUP_PLAYER,
+	COLLISION_GROUP_BREAKABLE_GLASS,
+	COLLISION_GROUP_VEHICLE,
+	COLLISION_GROUP_PLAYER_MOVEMENT,			// for HL2, same as Collision_Group_Player, for / TF2, this filters out other players and CBaseObjects
+	COLLISION_GROUP_NPC,						// generic NPC group
+	COLLISION_GROUP_IN_VEHICLE,					// for any entity inside a vehicle
+	COLLISION_GROUP_WEAPON,						// for any weapons that need collision detection
+	COLLISION_GROUP_VEHICLE_CLIP,				// vehicle clip brush to restrict vehicle movement
+	COLLISION_GROUP_PROJECTILE,					// projectiles!
+	COLLISION_GROUP_DOOR_BLOCKER,				// blocks entities not permitted to get near moving doors
+	COLLISION_GROUP_PASSABLE_DOOR,				// doors that the player shouldn't collide with
+	COLLISION_GROUP_DISSOLVING,					// things that are dissolving are in this group
+	COLLISION_GROUP_PUSHAWAY,					// nonsolid on client and server, pushaway in player code
+	COLLISION_GROUP_NPC_ACTOR,					// used so NPCs in scripts ignore the player.
+	COLLISION_GROUP_NPC_SCRIPTED,				// used for NPCs in scripts that should not collide with each other
+	COLLISION_GROUP_PZ_CLIP,
+	COLLISION_GROUP_DEBRIS_BLOCK_PROJECTILE,	// only collides with bullets
+	COLLISION_GROUP_LAST_SHARED
 };
 #pragma endregion
 
+// forward declarations
+class ICollideable;
+class IHandleEntity;
+class CBaseEntity;
+
+#pragma pack(push, 4)
 struct BrushSideInfo_t
 {
-	VectorAligned	vecPlane;	// the plane of the brush side
-	std::uint16_t	uBevel;		// bevel plane?
-	std::uint16_t	uThin;		// thin?
+	VectorAligned_t vecPlane; // 0x00
+	std::uint16_t uBevel; // 0x1C
+	std::uint16_t uThin; // 0x1E
 };
+static_assert(sizeof(BrushSideInfo_t) == 0x20);
 
-struct cplane_t
+struct CPlane_t
 {
-	Vector		vecNormal;
-	float		flDistance;
-	std::byte	dType;
-	std::byte	dSignBits;
-	std::byte	pad[0x2];
-};
+	CPlane_t() = default;
 
-struct csurface_t
-{
-	const char*		szName;
-	short			nSurfaceProps;
-	std::uint16_t	uFlags;
+	Vector_t vecNormal = { }; // 0x00
+	float flDistance = 0.0f; // 0x0C
+	std::uint8_t nType = 0U; // 0x10
+	std::uint8_t uSignBits = 0U; // 0x11
 };
+static_assert(sizeof(CPlane_t) == 0x14);
+
+struct CSurface_t
+{
+	CSurface_t() = default;
+
+	const char* szName = nullptr; // 0x00
+	short nSurfaceProps = 0; // 0x04
+	std::uint16_t uFlags = 0U; // 0x06
+};
+static_assert(sizeof(CSurface_t) == 0x8);
 
 class CBaseTrace
 {
 public:
-	CBaseTrace() { }
+	CBaseTrace() = default;
 
-	Vector			vecStart;		// start position
-	Vector			vecEnd;			// final position
-	cplane_t		plane;			// surface normal at impact
-	float			flFraction;		// time completed, 1.0 = didn't hit anything
-	int				iContents;		// contents on other side of surface hit
-	std::uint16_t	fDispFlags;		// displacement flags for marking surfaces with data
-	bool			bAllSolid;		// if true, plane is not valid
-	bool			bStartSolid;	// if true, the initial point was in a solid area
+	Vector_t vecStart = { }; // 0x00 // start position
+	Vector_t vecEnd = { }; // 0x0C // final position
+	CPlane_t plane = { }; // 0x18 // surface normal at impact
+	float flFraction = 0.0f; // 0x2C // time completed, 1.0 = didn't hit anything
+	int iContents = 0; // 0x30 // contents on other side of surface hit
+	std::uint16_t uDispFlags = 0U; // 0x34 // displacement flags for marking surfaces with data
+	bool bAllSolid = false; // 0x36 // if true, plane is not valid
+	bool bStartSolid = false; // 0x37 // if true, the initial point was in a solid area
 };
+static_assert(sizeof(CBaseTrace) == 0x38);
 
-class CBaseEntity;
 class CGameTrace : public CBaseTrace
 {
 public:
-	CGameTrace() : pHitEntity(nullptr) { }
+	CGameTrace() = default;
 
-	float				flFractionLeftSolid;	// time we left a solid, only valid if we started in solid
-	csurface_t			surface;				// surface hit (impact surface)
-	int					iHitGroup;				// 0 == generic, non-zero is specific body part
-	short				sPhysicsBone;			// physics bone hit by trace in studio
-	std::uint16_t		uWorldSurfaceIndex;		// index of the msurface2_t, if applicable
-	CBaseEntity*		pHitEntity;				// entity hit by trace
-	int					iHitbox;				// box hit by trace in studio
+	float flTimeFractionLeftSolid = 0.0f; // 0x00
+	CSurface_t surface = { }; // 0x04
+	int iHitGroup = 0; // 0x0C
+	short shPhysicsBoneHit = 0; // 0x10
+	std::uint16_t nWorldSurfaceIndex = 0U; // 0x12
+	CBaseEntity* pHitEntity = nullptr; // 0x14
+	int iHitBox = 0; // 0x18
 
-	inline bool DidHit() const
+	Q_INLINE bool DidHit() const
 	{
 		return (flFraction < 1.0f || bAllSolid || bStartSolid);
 	}
 
-	inline bool IsVisible() const
+	Q_INLINE bool IsVisible() const
 	{
 		return (flFraction > 0.97f);
 	}
@@ -107,30 +136,30 @@ private:
 		this->plane = other.plane;
 		this->flFraction = other.flFraction;
 		this->iContents = other.iContents;
-		this->fDispFlags = other.fDispFlags;
+		this->uDispFlags = other.uDispFlags;
 		this->bAllSolid = other.bAllSolid;
 		this->bStartSolid = other.bStartSolid;
-		this->flFractionLeftSolid = other.flFractionLeftSolid;
+
+		this->flTimeFractionLeftSolid = other.flTimeFractionLeftSolid;
 		this->surface = other.surface;
 		this->iHitGroup = other.iHitGroup;
-		this->sPhysicsBone = other.sPhysicsBone;
-		this->uWorldSurfaceIndex = other.uWorldSurfaceIndex;
+		this->shPhysicsBoneHit = other.shPhysicsBoneHit;
+		this->nWorldSurfaceIndex = other.nWorldSurfaceIndex;
 		this->pHitEntity = other.pHitEntity;
-		this->iHitbox = other.iHitbox;
+		this->iHitBox = other.iHitBox;
 	}
 };
-
+static_assert(sizeof(CGameTrace) == sizeof(CBaseTrace) + 0x1C);
 using Trace_t = CGameTrace;
 
+// functions used to verify offsets:
+// @ida IEngineTrace::TraceRay(): engine.dll -> "55 8B EC 83 E4 F0 B8 ? ? ? ? E8 ? ? ? ? A1 ? ? ? ? 56 8B F1" @xref: "TraceRay"
 struct Ray_t
 {
-	Ray_t(const Vector& vecStart, const Vector& vecEnd) :
-		vecStart(vecStart), vecDelta(vecEnd - vecStart), matWorldAxisTransform(nullptr), bIsRay(true)
-	{
-		this->bIsSwept = (this->vecDelta.LengthSqr() != 0.f);
-	}
+	Ray_t(const Vector_t& vecStart, const Vector_t& vecEnd) :
+		vecStart(vecStart), vecDelta(vecEnd - vecStart), vecStartOffset(), vecExtents(), matWorldAxisTransform(nullptr), bIsRay(true), bIsSwept(vecDelta.LengthSqr() != 0.f) { }
 
-	Ray_t(const Vector& vecStart, const Vector& vecEnd, const Vector& vecMins, const Vector& vecMaxs)
+	Ray_t(const Vector_t& vecStart, const Vector_t& vecEnd, const Vector_t& vecMins, const Vector_t& vecMaxs)
 	{
 		this->vecDelta = vecEnd - vecStart;
 
@@ -147,109 +176,157 @@ struct Ray_t
 		this->vecStartOffset *= -1.0f;
 	}
 
-	VectorAligned		vecStart;
-	VectorAligned		vecDelta;
-	VectorAligned		vecStartOffset;
-	VectorAligned		vecExtents;
-	const matrix3x4_t*	matWorldAxisTransform;
-	bool				bIsRay;
-	bool				bIsSwept;
+	VectorAligned_t vecStart; // 0x00
+	VectorAligned_t vecDelta; // 0x10
+	VectorAligned_t vecStartOffset; // 0x20
+	VectorAligned_t vecExtents; // 0x30
+	const Matrix3x4_t* matWorldAxisTransform; // 0x40
+	bool bIsRay; // 0x44 // @ida: engine.dll -> U8["F3 0F 11 47 ? 80 78 ? 00 75 32" + 0x8]
+	bool bIsSwept; // 0x45
 };
+static_assert(sizeof(Ray_t) == 0x50);
+#pragma pack(pop)
 
-class IHandleEntity;
 class ITraceFilter
 {
 public:
-	virtual bool ShouldHitEntity(IHandleEntity* pEntity, int fContentsMask) = 0;
-	virtual ETraceType GetTraceType() const = 0;
+	virtual bool ShouldHitEntity(IHandleEntity* pEntity, int iContentsMask) = 0;
+	[[nodiscard]] virtual ETraceType GetTraceType() const = 0;
 };
 
 class CTraceFilter : public ITraceFilter
 {
-	using FilterCallbackFn = std::function<bool(IHandleEntity*, int)>;
-
 public:
-	// @todo: sig ctracefiltersimple constructor and use it
-
-	CTraceFilter(const IHandleEntity* pSkipEntity, ETraceType iTraceType = TRACE_EVERYTHING)
-		: pSkip(pSkipEntity), iTraceType(iTraceType) { }
-
-	CTraceFilter(FilterCallbackFn&& checkCallback, ETraceType iTraceType = TRACE_EVERYTHING)
-		: checkCallback(std::move(checkCallback)), iTraceType(iTraceType) { }
-
-	bool ShouldHitEntity(IHandleEntity* pHandleEntity, int fContentsMask) override
+	[[nodiscard]] ETraceType GetTraceType() const override
 	{
-		// if given user defined callback - check it
-		if (checkCallback != nullptr)
-			return checkCallback(pHandleEntity, fContentsMask);
+		return TRACE_EVERYTHING;
+	}
+};
 
-		// otherwise skip entity if given
-		return pHandleEntity != pSkip;
+class CTraceFilterEntitiesOnly : public ITraceFilter
+{
+public:
+	[[nodiscard]] ETraceType GetTraceType() const override
+	{
+		return TRACE_ENTITIES_ONLY;
+	}
+};
+
+class CTraceFilterWorldOnly : public ITraceFilter
+{
+public:
+	bool ShouldHitEntity(IHandleEntity* pEntity, int iContentsMask) override
+	{
+		return false;
 	}
 
-	ETraceType GetTraceType() const override
+	[[nodiscard]] ETraceType GetTraceType() const override
 	{
-		return iTraceType;
+		return TRACE_WORLD_ONLY;
+	}
+};
+
+class CTraceFilterWorldAndPropsOnly : public ITraceFilter
+{
+public:
+	bool ShouldHitEntity(IHandleEntity* pEntity, int iContentsMask) override
+	{
+		return false;
+	}
+
+	[[nodiscard]] ETraceType GetTraceType() const override
+	{
+		return TRACE_EVERYTHING;
+	}
+};
+
+// @source: master/game/shared/util_shared.h
+using ShouldHitCallbackFn_t = bool(Q_CDECL*)(IHandleEntity* pHandleEntity, int iContentsMask);
+class CTraceFilterSimple : public CTraceFilter
+{
+public:
+	CTraceFilterSimple(const IHandleEntity* pSkipEntity, int nCollisionGroup = COLLISION_GROUP_NONE, ShouldHitCallbackFn_t pShouldHitCallback = nullptr) :
+		pSkipEntity(pSkipEntity), nCollisionGroup(nCollisionGroup), pShouldHitCallback(pShouldHitCallback)
+	{
+		// @ida CTraceFilterSimple::_VTable: client.dll -> ["C7 45 ? ? ? ? ? F3 0F 59 D8 F3" + 0x3] @xref: 'sv_clip_penetration_traces_to_players'
+	}
+
+	bool ShouldHitEntity(IHandleEntity* pHandleEntity, int iContentsMask) override
+	{
+		static auto fnShouldHitEntity = reinterpret_cast<bool(Q_THISCALL*)(CTraceFilterSimple*, const IHandleEntity*, int)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 8B 55 0C 56 8B 75 08 57")));
+		return fnShouldHitEntity(this, pHandleEntity, iContentsMask);
+	}
+
+	[[nodiscard]] Q_INLINE const IHandleEntity* GetSkipEntity() const
+	{
+		return pSkipEntity;
+	}
+
+	[[nodiscard]] Q_INLINE int GetCollisionGroup() const
+	{
+		return nCollisionGroup;
 	}
 
 private:
-	const IHandleEntity* pSkip = nullptr;
-	FilterCallbackFn checkCallback = nullptr;
-	ETraceType iTraceType = TRACE_EVERYTHING;
+	const IHandleEntity* pSkipEntity; // 0x00
+	int nCollisionGroup; // 0x04
+	ShouldHitCallbackFn_t pShouldHitCallback; // 0x08
 };
 
-class ITraceListData
+class CTraceFilterSkipTwoEntities : public CTraceFilterSimple
 {
 public:
-	virtual			~ITraceListData() { }
-	virtual void	Reset() = 0;
-	virtual bool	IsEmpty() = 0;
-	virtual bool	CanTraceRay(const Ray_t& ray) = 0;
+	CTraceFilterSkipTwoEntities(const IHandleEntity* pSkipEntity = nullptr, const IHandleEntity* pSkipEntity2 = nullptr, int nCollisionGroup = COLLISION_GROUP_NONE) :
+		CTraceFilterSimple(pSkipEntity, nCollisionGroup), pSkipEntity2(pSkipEntity2)
+	{
+		// @ida CTraceFilterSkipTwoEntities::_VTable: client.dll -> ["C7 45 ? ? ? ? ? F3 0F 59 D8 F3" + 0x3] @xref: 'sv_clip_penetration_traces_to_players'
+	}
+
+	bool ShouldHitEntity(IHandleEntity* pHandleEntity, int iContentsMask) override
+	{
+		static auto fnShouldHitEntity = reinterpret_cast<bool(Q_THISCALL*)(CTraceFilterSkipTwoEntities*, const IHandleEntity*, int)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 53 8B D9 56 57 8B 7D 08 8B 73 10")));
+		return fnShouldHitEntity(this, pHandleEntity, iContentsMask);
+	}
+
+private:
+	const IHandleEntity* pSkipEntity2;
 };
 
-class IEntityEnumerator
+class IEngineTrace : ROP::VirtualCallable_t<ROP::EngineGadget_t>
 {
 public:
-	// this gets called with each handle
-	virtual bool EnumEntity(IHandleEntity* pHandleEntity) = 0;
-};
+	int GetPointContents(const Vector_t& vecAbsPosition, int uContentsMask = MASK_ALL, IHandleEntity** ppEntity = nullptr)
+	{
+		return CallVFunc<int, 0U>(this, &vecAbsPosition, uContentsMask, ppEntity);
+	}
 
-struct virtualmeshlist_t;
-struct AABB_t;
-class ICollideable;
-class CPhysCollide;
-class CBrushQuery;
-class IEngineTrace
-{
-public:
-	virtual int GetPointContents(const Vector& vecAbsPosition, int fContentsMask = MASK_ALL, IHandleEntity** ppEntity = nullptr) = 0;
-	virtual int GetPointContents_WorldOnly(const Vector& vecAbsPosition, int fContentsMask = MASK_ALL) = 0;
-	virtual int GetPointContents_Collideable(ICollideable* pCollide, const Vector& vecAbsPosition) = 0;
-	virtual void ClipRayToEntity(const Ray_t& ray, unsigned int fMask, IHandleEntity* pEntity, Trace_t* pTrace) = 0;
-	virtual void ClipRayToCollideable(const Ray_t& ray, unsigned int fMask, ICollideable* pCollide, Trace_t* pTrace) = 0;
-	virtual void TraceRay(const Ray_t& ray, unsigned int fMask, ITraceFilter* pTraceFilter, Trace_t* pTrace) = 0;
-	virtual void SetupLeafAndEntityListRay(const Ray_t& ray, ITraceListData* pTraceData) = 0;
-	virtual void SetupLeafAndEntityListBox(const Vector& vecBoxMin, const Vector& vecBoxMax, ITraceListData* pTraceData) = 0;
-	virtual void TraceRayAgainstLeafAndEntityList(const Ray_t& ray, ITraceListData* pTraceData, unsigned int fMask, ITraceFilter* pTraceFilter, Trace_t* pTrace) = 0;
-	virtual void SweepCollideable(ICollideable* pCollide, const Vector& vecAbsStart, const Vector& vecAbsEnd, const Vector& vecAngles, unsigned int fMask, ITraceFilter* pTraceFilter, Trace_t* pTrace) = 0;
-	virtual void EnumerateEntities(const Ray_t& ray, bool bTriggers, IEntityEnumerator* pEnumerator) = 0;
-	virtual void EnumerateEntities(const Vector& vecAbsMins, const Vector& vecAbsMaxs, IEntityEnumerator* pEnumerator) = 0;
-	virtual ICollideable* GetCollideable(IHandleEntity* pEntity) = 0;
-	virtual int GetStatByIndex(int nIndex, bool bClear) = 0;
-	virtual void GetBrushesInAABB(const Vector& vecMins, const Vector& vecMaxs, CUtlVector<int>* pOutput, int fContentsMask = MASK_ALL) = 0;
-	virtual CPhysCollide* GetCollidableFromDisplacementsInAABB(const Vector& vecMins, const Vector& vecMaxs) = 0;
-	virtual int GetNumDisplacements() = 0;
-	virtual void GetDisplacementMesh(int nIndex, virtualmeshlist_t* pMeshTriList) = 0;
-	virtual bool GetBrushInfo(int iBrush, CUtlVector<BrushSideInfo_t>* pBrushSideInfoOut, int* pContentsOut) = 0;
-	virtual bool PointOutsideWorld(const Vector& vecPoint) = 0;
-	virtual int GetLeafContainingPoint(const Vector& vecPoint) = 0;
-	virtual ITraceListData* AllocTraceListData() = 0;
-	virtual void FreeTraceListData(ITraceListData* pListData) = 0;
-	virtual int GetSetDebugTraceCounter(int iValue, EDebugTraceCounterBehavior behavior) = 0;
-	virtual int GetMeshesFromDisplacementsInAABB(const Vector& vecMins, const Vector& vecMaxs, virtualmeshlist_t* pOutputMeshes, int nMaxOutputMeshes) = 0;
-	virtual void GetBrushesInCollideable(ICollideable* pCollideable, CBrushQuery& BrushQuery) = 0;
-	virtual bool IsFullyOccluded(int nOcclusionKey, const AABB_t& aabb1, const AABB_t& aabb2, const Vector& vecShadow) = 0;
-	virtual void SuspendOcclusionTests() = 0;
-	virtual void ResumeOcclusionTests() = 0;
-	virtual void FlushOcclusionQueries() = 0;
+	int GetPointContents_WorldOnly(const Vector_t& vecAbsPosition, int uContentsMask = MASK_ALL)
+	{
+		return CallVFunc<int, 1U>(this, &vecAbsPosition, uContentsMask);
+	}
+
+	int GetPointContents_Collideable(ICollideable* pCollide, const Vector_t& vecAbsPosition)
+	{
+		return CallVFunc<int, 2U>(this, pCollide, &vecAbsPosition);
+	}
+
+	void ClipRayToEntity(const Ray_t& ray, unsigned int uMask, IHandleEntity* pEntity, Trace_t* pTrace)
+	{
+		CallVFunc<void, 3U>(this, &ray, uMask, pEntity, pTrace);
+	}
+
+	void ClipRayToCollideable(const Ray_t& ray, unsigned int uMask, ICollideable* pCollide, Trace_t* pTrace)
+	{
+		CallVFunc<void, 4U>(this, &ray, uMask, pCollide, pTrace);
+	}
+
+	void TraceRay(const Ray_t& ray, unsigned int uMask, ITraceFilter* pTraceFilter, Trace_t* pTrace)
+	{
+		CallVFunc<void, 5U>(this, &ray, uMask, pTraceFilter, pTrace);
+	}
+
+	bool GetBrushInfo(int iBrush, CUtlVector<BrushSideInfo_t>* pBrushSideInfoOut, int* pContentsOut)
+	{
+		return CallVFunc<bool, 18U>(this, iBrush, pBrushSideInfoOut, pContentsOut);
+	}
 };

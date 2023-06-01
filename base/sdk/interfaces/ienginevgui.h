@@ -1,7 +1,11 @@
 #pragma once
-// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/ienginevgui.h
+// used: callvfunc
+#include "../../utilities/memory.h"
+
+// @source: master/public/ienginevgui.h
 
 using VPANEL = unsigned int;
+
 #define INVALID_PANEL 0xFFFFFFFF
 
 enum EVGuiPanel
@@ -17,15 +21,16 @@ enum EVGuiPanel
 
 enum EPaintMode
 {
-	PAINT_UIPANELS = (1 << 0),
-	PAINT_INGAMEPANELS = (1 << 1),
-	PAINT_CURSOR = (1 << 2)
+	PAINT_UIPANELS =		(1 << 0),
+	PAINT_INGAMEPANELS =	(1 << 1),
+	PAINT_CURSOR =			(1 << 2)
 };
 
-class IEngineVGui
+class IEngineVGui : ROP::VirtualCallable_t<ROP::EngineGadget_t>
 {
 public:
-	virtual			~IEngineVGui() { }
-	virtual VPANEL	GetPanel(EVGuiPanel type) = 0;
-	virtual bool	IsGameUIVisible() = 0;
+	VPANEL GetPanel(EVGuiPanel nType)
+	{
+		return CallVFunc<VPANEL, 1U>(this, nType);
+	}
 };

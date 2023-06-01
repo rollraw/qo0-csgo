@@ -1,6 +1,7 @@
 #pragma once
-// used: utlmemory
 #include "utlmemory.h"
+
+// @source: master/public/tier1/utlstack.h
 
 /*
  * a growable stack class which doubles in size by default
@@ -13,53 +14,108 @@ template <class T, class M = CUtlMemory<T>>
 class CUtlStack
 {
 public:
-	T& operator[](int i)
+	T& operator[](const int nIndex)
 	{
-		return pMemory[i];
+		return memory[nIndex];
 	}
 
-	const T& operator[](int i) const
+	const T& operator[](const int nIndex) const
 	{
-		return pMemory[i];
+		return memory[nIndex];
 	}
 
-	T& Element(int i)
+	[[nodiscard]] T& Element(const int nIndex)
 	{
-		return pMemory[i];
+		return memory[nIndex];
 	}
 
-	const T& Element(int i) const
+	[[nodiscard]] const T& Element(const int nIndex) const
 	{
-		return pMemory[i];
+		return memory[nIndex];
 	}
 
-	T* Base()
+	[[nodiscard]] T* Base()
 	{
-		return pMemory.Base();
+		return memory.Base();
 	}
 
-	const T* Base() const
+	[[nodiscard]] const T* Base() const
 	{
-		return pMemory.Base();
+		return memory.Base();
 	}
 
-	T& Top()
+	[[nodiscard]] T& Top()
 	{
-		return Element(iSize - 1);
+		return Element(nSize - 1);
 	}
 
-	const T& Top() const
+	[[nodiscard]] const T& Top() const
 	{
-		return Element(iSize - 1);
+		return Element(nSize - 1);
 	}
 
-	int Count() const
+	[[nodiscard]] int Count() const
 	{
-		return iSize;
+		return nSize;
+	}
+
+	int Push()
+	{
+		GrowStack();
+		Construct(&Element(nSize - 1));
+		return nSize - 1;
+	}
+
+	int Push(const T& source)
+	{
+		GrowStack();
+		new (&Element(nSize - 1)) T(source);
+		return nSize - 1;
+	}
+
+	void Pop()
+	{
+		Q_ASSERT(nSize > 0);
+		(&Element(nSize - 1))->~T();
+		--nSize;
+	}
+
+	void Pop(T& oldTop)
+	{
+		Q_ASSERT(nSize > 0);
+		oldTop = Top();
+		Pop();
+	}
+
+	void EnsureCapacity(const int nCapacity)
+	{
+		memory.EnsureCapacity(nCapacity);
+	}
+
+	void Clear()
+	{
+		for (int i = nSize; --i >= 0;)
+			(&Element(i))->~T();
+
+		nSize = 0;
+	}
+
+	void Purge()
+	{
+		Clear();
+		memory.Purge();
 	}
 
 private:
-	M	pMemory;
-	int	iSize;
-	T*	pElements;
+	void GrowStack()
+	{
+		if (nSize >= memory.AllocationCount())
+			memory.Grow();
+
+		++nSize;
+	}
+
+	M memory;
+	int	nSize;
+	T* pElements;
 };

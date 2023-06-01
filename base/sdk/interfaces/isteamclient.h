@@ -5,7 +5,7 @@ using HSteamPipe = std::int32_t;
 using HSteamUser = std::int32_t;
 using HSteamAPICall = std::int64_t;
 
-enum EAccountType
+enum EAccountType : int
 {
 	EAccountTypeInvalid = 0,
 	EAccountTypeIndividual = 1,		// single user account
@@ -19,6 +19,42 @@ enum EAccountType
 	EAccountTypeConsoleUser = 9,	// Fake SteamID for local PSN account on PS3 or Live account on 360, etc.
 	EAccountTypeAnonUser = 10,
 	EAccountTypeMax
+};
+
+class CSteamID
+{
+public:
+	CSteamID()
+	{
+		steamID.component.uAccountID = 0;
+		steamID.component.uAccountInstance = 0;
+		steamID.component.nAccountType = 0;
+		steamID.component.nUniverse = 0;
+	}
+
+	explicit CSteamID(const std::uint64_t ullSteamID)
+	{
+		steamID.ullAll64Bits = ullSteamID;
+	}
+
+	[[nodiscard]] std::uint32_t GetAccountID() const
+	{
+		return steamID.component.uAccountID;
+	}
+
+private:
+	union SteamID_t
+	{
+		struct SteamIDComponent_t
+		{
+			std::uint32_t uAccountID : 32; // unique account identifier
+			unsigned int uAccountInstance : 20; // dynamic instance ID (used for multiseat type accounts only)
+			unsigned int nAccountType : 4; // type of account - can't show as EAccountType, due to signed / unsigned difference
+			int nUniverse : 8; // universe this account belongs to
+		} component;
+
+		std::uint64_t ullAll64Bits;
+	} steamID;
 };
 
 class ISteamClient;
@@ -51,34 +87,34 @@ class ISteamInput;
 
 struct SteamAPIContext_t
 {
-	ISteamClient*				pSteamClient;
-	ISteamUser*					pSteamUser;
-	ISteamFriends*				pSteamFriends;
-	ISteamUtils*				pSteamUtils;
-	ISteamMatchmaking*			pSteamMatchmaking;
-	ISteamGameSearch*			pSteamGameSearch;
-	ISteamMatchmakingServers*	pSteamMatchmakingServers;
-	ISteamUserStats*			pSteamUserStats;
-	ISteamApps*					pSteamApps;
-	ISteamNetworking*			pSteamNetworking;
-	ISteamRemoteStorage*		pSteamRemoteStorage;
-	ISteamScreenshots*			pSteamScreenshots;
-	ISteamHTTP*					pSteamHTTP;
-	ISteamController*			pController;
-	ISteamUGC*					pSteamUGC;
-	ISteamAppList*				pSteamAppList;
-	ISteamMusic*				pSteamMusic;
-	ISteamMusicRemote*			pSteamMusicRemote;
-	ISteamHTMLSurface*			pSteamHTMLSurface;
-	ISteamInventory*			pSteamInventory;
-	ISteamVideo*				pSteamVideo;
-	ISteamParentalSettings*		pSteamParentalSettings;
-	ISteamInput*				pSteamInput;
+	ISteamClient* pSteamClient;
+	ISteamUser* pSteamUser;
+	ISteamFriends* pSteamFriends;
+	ISteamUtils* pSteamUtils;
+	ISteamMatchmaking* pSteamMatchmaking;
+	ISteamGameSearch* pSteamGameSearch;
+	ISteamMatchmakingServers* pSteamMatchmakingServers;
+	ISteamUserStats* pSteamUserStats;
+	ISteamApps* pSteamApps;
+	ISteamNetworking* pSteamNetworking;
+	ISteamRemoteStorage* pSteamRemoteStorage;
+	ISteamScreenshots* pSteamScreenshots;
+	ISteamHTTP* pSteamHTTP;
+	ISteamController* pController;
+	ISteamUGC* pSteamUGC;
+	ISteamAppList* pSteamAppList;
+	ISteamMusic* pSteamMusic;
+	ISteamMusicRemote* pSteamMusicRemote;
+	ISteamHTMLSurface* pSteamHTMLSurface;
+	ISteamInventory* pSteamInventory;
+	ISteamVideo* pSteamVideo;
+	ISteamParentalSettings* pSteamParentalSettings;
+	ISteamInput* pSteamInput;
 };
 
-using SteamAPIWarningMessageHook_t = void(__cdecl*)(int, const char*);
-using SteamAPI_PostAPIResultInProcess_t = void(__cdecl*)(HSteamAPICall hCall, void*, std::uint32_t unCallbackSize, int nCallbacks);
-using SteamAPI_CheckCallbackRegistered_t = std::uint32_t(__cdecl*)(int nCallbacks);
+using SteamAPIWarningMessageHook_t = void(Q_CDECL*)(int, const char*);
+using SteamAPI_PostAPIResultInProcess_t = void(Q_CDECL*)(HSteamAPICall hCall, void*, std::uint32_t unCallbackSize, int nCallbacks);
+using SteamAPI_CheckCallbackRegistered_t = std::uint32_t(Q_CDECL*)(int nCallbacks);
 
 class ISteamClient
 {
@@ -88,35 +124,35 @@ public:
 	virtual HSteamUser ConnectToGlobalUser(HSteamPipe hSteamPipe) = 0;
 	virtual HSteamUser CreateLocalUser(HSteamPipe* phSteamPipe, EAccountType eAccountType) = 0;
 	virtual void ReleaseUser(HSteamPipe hSteamPipe, HSteamUser hUser) = 0;
-	virtual ISteamUser* GetISteamUser(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamGameServer* GetISteamGameServer(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
+	virtual ISteamUser* GetISteamUser(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamGameServer* GetISteamGameServer(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
 	virtual void SetLocalIPBinding(uint32_t unIP, uint16_t usPort) = 0;
-	virtual ISteamFriends* GetISteamFriends(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamUtils* GetISteamUtils(HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamMatchmaking* GetISteamMatchmaking(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamMatchmakingServers* GetISteamMatchmakingServers(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual void* GetISteamGenericInterface(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamUserStats* GetISteamUserStats(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamGameServerStats* GetISteamGameServerStats(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamApps* GetISteamApps(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamNetworking* GetISteamNetworking(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamRemoteStorage* GetISteamRemoteStorage(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamScreenshots* GetISteamScreenshots(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
+	virtual ISteamFriends* GetISteamFriends(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamUtils* GetISteamUtils(HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamMatchmaking* GetISteamMatchmaking(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamMatchmakingServers* GetISteamMatchmakingServers(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual void* GetISteamGenericInterface(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamUserStats* GetISteamUserStats(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamGameServerStats* GetISteamGameServerStats(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamApps* GetISteamApps(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamNetworking* GetISteamNetworking(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamRemoteStorage* GetISteamRemoteStorage(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamScreenshots* GetISteamScreenshots(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
 	virtual void RunFrame() = 0;
 	virtual uint32_t GetIPCCallCount() = 0;
 	virtual void SetWarningMessageHook(SteamAPIWarningMessageHook_t pFunction) = 0;
 	virtual bool ShutdownIfAllPipesClosed() = 0;
-	virtual ISteamHTTP* GetISteamHTTP(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamUnifiedMessages* GetISteamUnifiedMessages(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamController* GetISteamController(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamUGC* GetISteamUGC(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamAppList* GetISteamAppList(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamMusic* GetISteamMusic(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamMusicRemote* GetISteamMusicRemote(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamHTMLSurface* GetISteamHTMLSurface(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
+	virtual ISteamHTTP* GetISteamHTTP(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamUnifiedMessages* GetISteamUnifiedMessages(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamController* GetISteamController(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamUGC* GetISteamUGC(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamAppList* GetISteamAppList(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamMusic* GetISteamMusic(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamMusicRemote* GetISteamMusicRemote(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamHTMLSurface* GetISteamHTMLSurface(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
 	virtual void Set_SteamAPI_CPostAPIResultInProcess(SteamAPI_PostAPIResultInProcess_t func) = 0;
 	virtual void Remove_SteamAPI_CPostAPIResultInProcess(SteamAPI_PostAPIResultInProcess_t func) = 0;
 	virtual void Set_SteamAPI_CCheckCallbackRegisteredInProcess(SteamAPI_CheckCallbackRegistered_t func) = 0;
-	virtual ISteamInventory* GetISteamInventory(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
-	virtual ISteamVideo* GetISteamVideo(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* pchVersion) = 0;
+	virtual ISteamInventory* GetISteamInventory(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
+	virtual ISteamVideo* GetISteamVideo(HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char* szVersion) = 0;
 };

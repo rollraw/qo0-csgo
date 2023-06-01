@@ -1,146 +1,85 @@
 #pragma once
-// used: vector
-#include "../datatypes/vector.h"
-// used: angle
-#include "../datatypes/qangle.h"
-// used: usercmd
-#include "../datatypes/usercmd.h"
-// used: cbasehandle
-#include "icliententitylist.h"
+// used: iglobalvarsbase
+#include "iglobalvars.h"
+// used: cmovedata
+#include "igamemovement.h"
 
-// @credits: https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/shared/igamemovement.h
-class CMoveData
+// forward declarations
+class CBasePlayer;
+struct TypeDescription_t;
+
+#pragma pack(push, 4)
+// functions used to verify offsets:
+// @ida: CPrediction::Init: client.dll -> "A1 ? ? ? ? 56 8B F1 B9 ? ? ? ? 8B 40 54 FF D0 68" @xref: "CPDumpPanel"
+// @ida: CPrediction::Update: client.dll -> "55 8B EC 83 EC 08 53 56 8B F1 8B 0D ? ? ? ? 57 8B" @xref: "CPrediction::Update"
+// @ida: CPrediction::CheckError: client.dll -> "55 8B EC 83 E4 F0 83 EC 48 56 57 8B F9 8B 0D" @xref: "m_vecNetworkOrigin", "%d len(%6.3f) (%6.3f %6.3f %6.3f)"
+class IPrediction : ROP::VirtualCallable_t<ROP::EngineGadget_t>
 {
 public:
-	bool			bFirstRunOfFunctions : 1;
-	bool			bGameCodeMovedPlayer : 1;
-	bool			bNoAirControl : 1;
-	std::uintptr_t	hPlayerHandle;		// edict index on server, client entity handle on client=
-	int				nImpulseCommand;	// impulse command issued.
-	QAngle			angViewAngles;		// command view angles (local space)
-	QAngle			angAbsViewAngles;	// command view angles (world space)
-	int				nButtons;			// attack buttons.
-	int				nOldButtons;		// from host_client->oldbuttons;
-	float			flForwardMove;
-	float			flSideMove;
-	float			flUpMove;
-	float			flMaxSpeed;
-	float			flClientMaxSpeed;
-	Vector			vecVelocity;		// edict::velocity	// current movement direction.
-	Vector			vecTrailingVelocity;
-	float			flTrailingVelocityTime;
-	Vector			vecAngles;			// edict::angles
-	Vector			vecOldAngles;
-	float			flOutStepHeight;	// how much you climbed this move
-	Vector			vecOutWishVel;		// this is where you tried 
-	Vector			vecOutJumpVel;		// this is your jump velocity
-	Vector			vecConstraintCenter;
-	float			flConstraintRadius;
-	float			flConstraintWidth;
-	float			flConstraintSpeedFactor;
-	bool			bConstraintPastRadius;
-	Vector			vecAbsOrigin;
-};
+	virtual ~IPrediction() { }
 
-// @credits: https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/shared/imovehelper.h
-class CBaseEntity;
-class IPhysicsSurfaceProps;
-class CGameTrace;
-enum ESoundLevel;
-class IMoveHelper
-{
-public:
-	virtual	const char*			GetName(void* hEntity) const = 0;
-	virtual void				SetHost(CBaseEntity* pHost) = 0;
-	virtual void				ResetTouchList() = 0;
-	virtual bool				AddToTouched(const CGameTrace& trace, const Vector& vecImpactVelocity) = 0;
-	virtual void				ProcessImpacts() = 0;
-	virtual void				Con_NPrintf(int nIndex, char const* fmt, ...) = 0;
-	virtual void				StartSound(const Vector& vecOrigin, int iChannel, char const* szSample, float flVolume, ESoundLevel soundlevel, int fFlags, int iPitch) = 0;
-	virtual void				StartSound(const Vector& vecOrigin, const char* soundname) = 0;
-	virtual void				PlaybackEventFull(int fFlags, int nClientIndex, unsigned short uEventIndex, float flDelay, Vector& vecOrigin, Vector& vecAngles, float flParam1, float flParam2, int iParam1, int iParam2, int bParam1, int bParam2) = 0;
-	virtual bool				PlayerFallingDamage() = 0;
-	virtual void				PlayerSetAnimation(int playerAnimation) = 0;
-	virtual IPhysicsSurfaceProps* GetSurfaceProps() = 0;
-	virtual bool				IsWorldEntity(const unsigned long& hEntity) = 0;
-};
-
-class IGameMovement
-{
-public:
-	virtual						~IGameMovement() { }
-	virtual void				ProcessMovement(CBaseEntity* pEntity, CMoveData* pMove) = 0;
-	virtual void				Reset() = 0;
-	virtual void				StartTrackPredictionErrors(CBaseEntity* pEntity) = 0;
-	virtual void				FinishTrackPredictionErrors(CBaseEntity* pEntity) = 0;
-	virtual void				DiffPrint(char const* fmt, ...) = 0;
-	virtual Vector const&		GetPlayerMins(bool bDucked) const = 0;
-	virtual Vector const&		GetPlayerMaxs(bool bDucked) const = 0;
-	virtual Vector const&		GetPlayerViewOffset(bool bDucked) const = 0;
-	virtual bool				IsMovingPlayerStuck() const = 0;
-	virtual CBaseEntity*		GetMovingPlayer() const = 0;
-	virtual void				UnblockPusher(CBaseEntity* pEntity, CBaseEntity* pPusher) = 0;
-	virtual void				SetupMovementBounds(CMoveData* pMove) = 0;
-};
-
-class IPrediction
-{
-public:
-	std::byte		pad0[0x4];						// 0x0000
-	std::uintptr_t	hLastGround;					// 0x0004
-	bool			bInPrediction;					// 0x0008
-	bool			bIsFirstTimePredicted;			// 0x0009
-	bool			bEnginePaused;					// 0x000A
-	bool			bOldCLPredictValue;				// 0x000B
-	int				iPreviousStartFrame;			// 0x000C
-	int				nIncomingPacketNumber;			// 0x0010
-	float			flLastServerWorldTimeStamp;		// 0x0014
-
-	struct Split_t
-	{
-		bool		bIsFirstTimePredicted;			// 0x0018
-		std::byte	pad0[0x3];						// 0x0019
-		int			nCommandsPredicted;				// 0x001C
-		int			nServerCommandsAcknowledged;	// 0x0020
-		int			iPreviousAckHadErrors;			// 0x0024
-		float		flIdealPitch;					// 0x0028
-		int			iLastCommandAcknowledged;		// 0x002C
-		bool		bPreviousAckErrorTriggersFullLatchReset; // 0x0030
-		CUtlVector<CBaseHandle> vecEntitiesWithPredictionErrorsInLastAck; // 0x0031
-		bool		bPerformedTickShift;			// 0x0045
-	};
-
-	Split_t			Split[1];						// 0x0018
-	// SavedGlobals 0x4C
-
-public:
 	void Update(int iStartFrame, bool bValidFrame, int nIncomingAcknowledged, int nOutgoingCommand)
 	{
-		MEM::CallVFunc<void>(this, 3, iStartFrame, bValidFrame, nIncomingAcknowledged, nOutgoingCommand);
+		CallVFunc<void, 3U>(this, iStartFrame, bValidFrame, nIncomingAcknowledged, nOutgoingCommand);
 	}
 
-	void GetLocalViewAngles(QAngle& angView)
+	// get the view angles for the local player
+	void GetLocalViewAngles(QAngle_t& angView)
 	{
-		MEM::CallVFunc<void>(this, 12, std::ref(angView));
+		CallVFunc<void, 12U>(this, &angView);
 	}
 
-	void SetLocalViewAngles(QAngle& angView)
+	// set the view angles for the local player
+	void SetLocalViewAngles(QAngle_t& angView)
 	{
-		MEM::CallVFunc<void>(this, 13, std::ref(angView));
+		CallVFunc<void, 13U>(this, &angView);
 	}
 
-	void CheckMovingGround(CBaseEntity* pEntity, double dbFrametime)
+	// check if the player is standing on a moving entity and adjust velocity and basevelocity appropriately
+	void CheckMovingGround(CBasePlayer* pPlayer, double dbFrametime)
 	{
-		MEM::CallVFunc<void>(this, 18, pEntity, dbFrametime);
+		CallVFunc<void, 18U>(this, pPlayer, dbFrametime);
 	}
 
-	void SetupMove(CBaseEntity* pEntity, CUserCmd* pCmd, IMoveHelper* pHelper, CMoveData* pMoveData)
+	// run a movement command from the player
+	void RunCommand(CBasePlayer* pPlayer, CUserCmd* pCmd, IMoveHelper* pMoveHelper)
 	{
-		MEM::CallVFunc<void>(this, 20, pEntity, pCmd, pHelper, pMoveData);
+		CallVFunc<void, 19U>(this, pPlayer, pCmd, pMoveHelper);
 	}
 
-	void FinishMove(CBaseEntity* pEntity, CUserCmd* pCmd, CMoveData* pMoveData)
+	// prepare for running prediction, update move data for the given player with his and command data
+	void SetupMove(CBasePlayer* pPlayer, CUserCmd* pCmd, IMoveHelper* pMoveHelper, CMoveData* pMoveData)
 	{
-		MEM::CallVFunc<void>(this, 21, pEntity, pCmd, pMoveData);
+		CallVFunc<void, 20U>(this, pPlayer, pCmd, pMoveHelper, pMoveData);
 	}
+
+	// finish running prediction, update player data with command and move data
+	void FinishMove(CBasePlayer* pPlayer, CUserCmd* pCmd, CMoveData* pMoveData)
+	{
+		CallVFunc<void, 21U>(this, pPlayer, pCmd, pMoveData);
+	}
+
+public:
+	CBaseHandle hLastGround; // 0x04
+	bool bInPrediction; // 0x08
+	bool bOldCLPredictValue; // 0x09 // @ida: client.dll -> U8["88 46 ? E8 9C" + 0x2]
+	bool bEnginePaused; // 0x0A // @ida: client.dll -> U8["B7 01 88 46 ? 88 7D FC" + 0x4]
+	int iPreviousStartFrame; // 0x0C
+	int nIncomingPacketNumber; // 0x10
+	float flLastServerWorldTimeStamp; // 0x14
+	bool bIsFirstTimePredicted; // 0x18
+	int nCommandsPredicted; // 0x1C
+	int nServerCommandsAcknowledged; // 0x20
+	int bPreviousAckHadErrors; // 0x24
+	float flIdealPitch; // 0x28
+	int iLastCommandAcknowledged; // 0x2C
+	bool bPreviousAckErrorTriggersFullLatchReset; // 0x30
+	CUtlVector<CBaseHandle> vecEntitiesWithPredictionErrorsInLastAck; // 0x34
+	bool bPerformedTickShift; // 0x48
+	IGlobalVarsBase savedGlobalVarsBase; // 0x4C
+	bool bPlayerOriginTypeDescSearched; // 0x8C // @ida: client.dll -> ["80 BF ? ? ? ? ? 75 4D" + 0x2]
+	CUtlVector<const TypeDescription_t*> vecPlayerOriginTypeDescription; // 0x90 // a vector in cases where the .x, .y, and .z are separately listed
+	void* pPDumpPanel; // 0xA4
 };
+static_assert(sizeof(IPrediction) == 0xA8); // size verify @ida: client.dll -> ["68 ? ? ? ? 56 E8 ? ? ? ? 83 C4 08 8B C6 5E 5D C2 04 00 A1" + 0x1]
+#pragma pack(pop)

@@ -1,261 +1,152 @@
 #pragma once
-// used: std::array
-#include <array>
-// used: std::vector
-#include <vector>
-// used: std::optional
-#include <optional>
+#include "../common.h"
 
-// used: animation state
-#include "animations.h"
-// used: baseentity lifestate
-#include "definitions.h"
-// used: bf_read
-#include "bitbuf.h"
-// used: usercmd
+#include "datatypes/basehandle.h"
 #include "datatypes/usercmd.h"
-// used: netvars
+
+// used: n_add_offset, n_add_poffset, n_add_variable, n_add_pvariable, n_add_datafield, n_add_pdatafield
 #include "../core/netvar.h"
-// used: basehandle
-#include "interfaces/icliententitylist.h"
-// used: crefcount
-#include "interfaces/irefcount.h"
-// used: model
+// used: m_lerp
+#include "../utilities/math.h"
+// used: ccsgoplayeranimstate
+#include "animation.h"
+// used: ehitgroup, elifestate
+#include "const.h"
+// used: bf_read_t
+#include "bitbuf.h"
+// used: studiohdr_t, maxstudioposeparam
+#include "studio.h"
+// used: bonevector_t, bonequaternionaligned_t
+#include "bonesetup.h"
+// used: max_item_custom_name_database_size
+#include "econitem.h"
+// used: ray_t, trace_t
+#include "interfaces/ienginetrace.h"
+// used: model_t, mdlhandle_t
 #include "interfaces/ivmodelinfo.h"
+// used: ccustommaterialowner, ivisualsdataprocessor
+#include "interfaces/imaterialsystem.h"
 
-// @note: all clasees values arranged in order similar to the tables! keep it like that
-
-#pragma region entities_definitions
-#define INVALID_EHANDLE_INDEX		0xFFFFFFFF
-#define NUM_ENT_ENTRY_BITS			(11 + 2)
-#define NUM_ENT_ENTRIES				(1 << NUM_ENT_ENTRY_BITS)
-#define NUM_SERIAL_NUM_BITS			16
-#define NUM_SERIAL_NUM_SHIFT_BITS	(32 - NUM_SERIAL_NUM_BITS)
-#define ENT_ENTRY_MASK				((1 << NUM_SERIAL_NUM_BITS) - 1)
-#pragma endregion
-
-#pragma region entities_enumerations
+#pragma region entity_enumerations
 enum EDataUpdateType : int
 {
 	DATA_UPDATE_CREATED = 0,
 	DATA_UPDATE_DATATABLE_CHANGED,
 };
 
-enum ETeamID : int
-{
-	TEAM_UNASSIGNED = 0,
-	TEAM_SPECTATOR,
-	TEAM_TT,
-	TEAM_CT
-};
-
-enum EThinkMethods : int
+enum EThinkMethod : int
 {
 	THINK_FIRE_ALL_FUNCTIONS = 0,
 	THINK_FIRE_BASE_ONLY,
 	THINK_FIRE_ALL_BUT_BASE,
 };
 
-enum EItemDefinitionIndex : short
+// @credits: https://tf2b.com/itemlist.php?gid=730
+using ItemDefinitionIndex_t = std::uint16_t;
+enum EItemDefinitionIndex : ItemDefinitionIndex_t
 {
-	WEAPON_NONE = 0,
-	WEAPON_DEAGLE = 1,
-	WEAPON_ELITE = 2,
-	WEAPON_FIVESEVEN = 3,
-	WEAPON_GLOCK = 4,
-	WEAPON_AK47 = 7,
-	WEAPON_AUG = 8,
-	WEAPON_AWP = 9,
-	WEAPON_FAMAS = 10,
-	WEAPON_G3SG1 = 11,
-	WEAPON_GALILAR = 13,
-	WEAPON_M249 = 14,
-	WEAPON_M4A1 = 16,
-	WEAPON_MAC10 = 17,
-	WEAPON_P90 = 19,
-	WEAPON_ZONE_REPULSOR = 20,
-	WEAPON_MP5SD = 23,
-	WEAPON_UMP45 = 24,
-	WEAPON_XM1014 = 25,
-	WEAPON_BIZON = 26,
-	WEAPON_MAG7 = 27,
-	WEAPON_NEGEV = 28,
-	WEAPON_SAWEDOFF = 29,
-	WEAPON_TEC9 = 30,
-	WEAPON_TASER = 31,
-	WEAPON_HKP2000 = 32,
-	WEAPON_MP7 = 33,
-	WEAPON_MP9 = 34,
-	WEAPON_NOVA = 35,
-	WEAPON_P250 = 36,
-	WEAPON_SHIELD = 37,
-	WEAPON_SCAR20 = 38,
-	WEAPON_SG556 = 39,
-	WEAPON_SSG08 = 40,
-	WEAPON_KNIFE_GG = 41,
-	WEAPON_KNIFE = 42,
-	WEAPON_FLASHBANG = 43,
-	WEAPON_HEGRENADE = 44,
-	WEAPON_SMOKEGRENADE = 45,
-	WEAPON_MOLOTOV = 46,
-	WEAPON_DECOY = 47,
-	WEAPON_INCGRENADE = 48,
-	WEAPON_C4 = 49,
-	WEAPON_HEALTHSHOT = 57,
-	WEAPON_KNIFE_T = 59,
-	WEAPON_M4A1_SILENCER = 60,
-	WEAPON_USP_SILENCER = 61,
-	WEAPON_CZ75A = 63,
-	WEAPON_REVOLVER = 64,
-	WEAPON_TAGRENADE = 68,
-	WEAPON_FISTS = 69,
-	WEAPON_BREACHCHARGE = 70,
-	WEAPON_TABLET = 72,
-	WEAPON_MELEE = 74,
-	WEAPON_AXE = 75,
-	WEAPON_HAMMER = 76,
-	WEAPON_SPANNER = 78,
-	WEAPON_KNIFE_GHOST = 80,
-	WEAPON_FIREBOMB = 81,
-	WEAPON_DIVERSION = 82,
-	WEAPON_FRAG_GRENADE = 83,
-	WEAPON_SNOWBALL = 84,
-	WEAPON_BUMPMINE = 85,
-	WEAPON_KNIFE_BAYONET = 500,
-	WEAPON_KNIFE_CSS = 503,
-	WEAPON_KNIFE_FLIP = 505,
-	WEAPON_KNIFE_GUT = 506,
-	WEAPON_KNIFE_KARAMBIT = 507,
-	WEAPON_KNIFE_M9_BAYONET = 508,
-	WEAPON_KNIFE_TACTICAL = 509,
-	WEAPON_KNIFE_FALCHION = 512,
-	WEAPON_KNIFE_SURVIVAL_BOWIE = 514,
-	WEAPON_KNIFE_BUTTERFLY = 515,
-	WEAPON_KNIFE_PUSH = 516,
-	WEAPON_KNIFE_CORD = 517,
-	WEAPON_KNIFE_CANIS = 518,
-	WEAPON_KNIFE_URSUS = 519,
-	WEAPON_KNIFE_GYPSY_JACKKNIFE = 520,
-	WEAPON_KNIFE_OUTDOOR = 521,
-	WEAPON_KNIFE_STILETTO = 522,
-	WEAPON_KNIFE_WIDOWMAKER = 523,
-	WEAPON_KNIFE_SKELETON = 525,
-	GLOVE_STUDDED_BROKENFANG = 4725,
-	GLOVE_STUDDED_BLOODHOUND = 5027,
-	GLOVE_T = 5028,
-	GLOVE_CT = 5029,
-	GLOVE_SPORTY = 5030,
-	GLOVE_SLICK = 5031,
-	GLOVE_LEATHER_HANDWRAPS = 5032,
-	GLOVE_MOTORCYCLE = 5033,
-	GLOVE_SPECIALIST = 5034,
-	GLOVE_STUDDED_HYDRA = 5035,
-	SPECIAL_AGENT_BLUEBERRIES_BUCKSHOT = 4619,
-	SPECIAL_AGENT_TWO_TIMES_MCCOY_TACP = 4680,
-	SPECIAL_AGENT_COMMANDOR_MAE_JAMISON = 4711,
-	SPECIAL_AGENT_1ST_LIEUTENANT_FARLOW,
-	SPECIAL_AGENT_JOHN_KASK,
-	SPECIAL_AGENT_BIO_HAZ_SPECIALIST,
-	SPECIAL_AGENT_SERGEANT_BOMBSON,
-	SPECIAL_AGENT_CHEM_HAZ_SPECIALIST,
-	SPECIAL_AGENT_REZAN_THE_REDSHIRT = 4718,
-	SPECIAL_AGENT_SIR_BLOODY_MIAMI_DARRYL = 4726,
-	SPECIAL_AGENT_SAFECRACKER_VOLTZMANN,
-	SPECIAL_AGENT_LITTLE_KEV,
-	SPECIAL_AGENT_GETAWAY_SALLY = 4730,
-	SPECIAL_AGENT_NUMBER_K = 4732,
-	SPECIAL_AGENT_SIR_BLOODY_SILENT_DARRYL = 4733,
-	SPECIAL_AGENT_SIR_BLOODY_SKULLHEAD_DARRYL,
-	SPECIAL_AGENT_SIR_BLOODY_DARRYL_ROYALE,
-	SPECIAL_AGENT_SIR_BLOODY_LOUDMOUTH_DARRYL,
-	SPECIAL_AGENT_T = 5036,
-	SPECIAL_AGENT_CT = 5037,
-	SPECIAL_AGENT_GROUND_REBEL = 5105,
-	SPECIAL_AGENT_OSIRIS,
-	SPECIAL_AGENT_SHAHMAT,
-	SPECIAL_AGENT_MUHLIK,
-	SPECIAL_AGENT_SOLDIER = 5205,
-	SPECIAL_AGENT_ENFORCER,
-	SPECIAL_AGENT_SLINGSHOT,
-	SPECIAL_AGENT_STREET_SOLDIER,
-	SPECIAL_AGENT_OPERATOR = 5305,
-	SPECIAL_AGENT_MARKUS_DELROW,
-	SPECIAL_AGENT_MICHAEL_SYFERS,
-	SPECIAL_AGENT_AVA,
-	SPECIAL_AGENT_3RD_COMMANDO_COMPANY = 5400,
-	SPECIAL_AGENT_SEAL_TEAM_6_SOLDIER,
-	SPECIAL_AGENT_BUCKSHOT,
-	SPECIAL_AGENT_TWO_TIMES_MCCOY_USAF,
-	SPECIAL_AGENT_RICKSAW,
-	SPECIAL_AGENT_DRAGOMIR = 5500,
-	SPECIAL_AGENT_MAXIMUS,
-	SPECIAL_AGENT_REZAN_THE_READY,
-	SPECIAL_AGENT_BLACKWOLF = 5503,
-	SPECIAL_AGENT_THE_DOCTOR,
-	SPECIAL_AGENT_DRAGOMIR_FOOTSOLDIERS,
-	SPECIAL_AGENT_B_SQUADRON_OFFICER = 5601
+	ITEM_MUSIC_KIT = 58U,
+
+	ITEM_KNIFE_BAYONET = 500U,
+	ITEM_KNIFE_CLASSIC = 503U,
+	ITEM_KNIFE_FLIP = 505U,
+	ITEM_KNIFE_GUT = 506U,
+	ITEM_KNIFE_KARAMBIT = 507U,
+	ITEM_KNIFE_M9_BAYONET = 508U,
+	ITEM_KNIFE_TACTICAL = 509U,
+	ITEM_KNIFE_FALCHION = 512U,
+	ITEM_KNIFE_SURVIVAL_BOWIE = 514U,
+	ITEM_KNIFE_BUTTERFLY = 515U,
+	ITEM_KNIFE_PUSH = 516U,
+	ITEM_KNIFE_CORD = 517U,
+	ITEM_KNIFE_CANIS = 518U,
+	ITEM_KNIFE_URSUS = 519U,
+	ITEM_KNIFE_GYPSY_JACKKNIFE = 520U,
+	ITEM_KNIFE_OUTDOOR = 521U,
+	ITEM_KNIFE_STILETTO = 522U,
+	ITEM_KNIFE_WIDOWMAKER = 523U,
+	ITEM_KNIFE_SKELETON = 525U,
+
+	ITEM_STICKER = 1209U,
+
+	ITEM_PATCH = 4609U,
+
+	ITEM_GLOVE_STUDDED_BROKENFANG = 4725U,
+	ITEM_GLOVE_STUDDED_BLOODHOUND = 5027U,
+	ITEM_GLOVE_T = 5028U,
+	ITEM_GLOVE_CT = 5029U,
+	ITEM_GLOVE_SPORTY = 5030U,
+	ITEM_GLOVE_SLICK = 5031U,
+	ITEM_GLOVE_LEATHER_HANDWRAPS = 5032U,
+	ITEM_GLOVE_MOTORCYCLE = 5033U,
+	ITEM_GLOVE_SPECIALIST = 5034U,
+	ITEM_GLOVE_STUDDED_HYDRA = 5035U,
+
+	ITEM_AGENT_T = 5036U,
+	ITEM_AGENT_CT = 5037U
 };
 
-enum EWeaponType : int
+enum EWeaponHoldsPlayerAnimationCapability : int
 {
-	WEAPONTYPE_KNIFE = 0,
-	WEAPONTYPE_PISTOL = 1,
-	WEAPONTYPE_SUBMACHINEGUN = 2,
-	WEAPONTYPE_RIFLE = 3,
-	WEAPONTYPE_SHOTGUN = 4,
-	WEAPONTYPE_SNIPER = 5,
-	WEAPONTYPE_MACHINEGUN = 6,
-	WEAPONTYPE_C4 = 7,
-	WEAPONTYPE_PLACEHOLDER = 8,
-	WEAPONTYPE_GRENADE = 9,
-	WEAPONTYPE_HEALTHSHOT = 11,
-	WEAPONTYPE_FISTS = 12,
-	WEAPONTYPE_BREACHCHARGE = 13,
-	WEAPONTYPE_BUMPMINE = 14,
-	WEAPONTYPE_TABLET = 15,
-	WEAPONTYPE_MELEE = 16
+	WEAPON_PLAYER_ANIMS_UNKNOWN = 0,
+	WEAPON_PLAYER_ANIMS_AVAILABLE,
+	WEAPON_PLAYER_ANIMS_NOT_AVAILABLE
 };
 #pragma endregion
 
+// forward declarations
+struct SpatializationInfo_t; // not implemented
+class IClientUnknown;
+class IClientRenderable;
+class IClientNetworkable;
+class IClientThinkable;
+class IClientEntity;
+class CClientClass;
+class CIKContext;
+class CBoneMergeCache;
+class CBaseCombatWeapon;
+class CWeaponCSBaseGun;
+class CEconItemView;
+
+using ClientShadowHandle_t = std::uint16_t;
+using ClientRenderHandle_t = std::uint16_t;
+using ModelInstanceHandle_t = std::uint16_t;
+
+// @source: master/public/ihandleentity.h
 class IHandleEntity
 {
 public:
-	virtual							~IHandleEntity() { }
-	virtual void					SetRefEHandle(const CBaseHandle& hRef) = 0;
-	virtual const CBaseHandle&		GetRefEHandle() const = 0;
+	virtual ~IHandleEntity() { }
+	virtual void SetRefEHandle(const CBaseHandle& hRef) = 0;
+	virtual const CBaseHandle& GetRefEHandle() const = 0;
 };
 
-class IClientUnknown;
+// @source: master/public/engine/ICollideable.h
 class ICollideable
 {
 public:
-	virtual IHandleEntity*			GetEntityHandle() = 0;
-	virtual const Vector&			OBBMins() const = 0;
-	virtual const Vector&			OBBMaxs() const = 0;
-	virtual void					WorldSpaceTriggerBounds(Vector* pVecWorldMins, Vector* pVecWorldMaxs) const = 0;
-	virtual bool					TestCollision(const Ray_t& ray, unsigned int fContentsMask, Trace_t& tr) = 0;
-	virtual bool					TestHitboxes(const Ray_t& ray, unsigned int fContentsMask, Trace_t& tr) = 0;
-	virtual int						GetCollisionModelIndex() = 0;
-	virtual const Model_t*			GetCollisionModel() = 0;
-	virtual Vector&					GetCollisionOrigin() const = 0;
-	virtual QAngle&					GetCollisionAngles() const = 0;
-	virtual const matrix3x4_t&		CollisionToWorldTransform() const = 0;
-	virtual ESolidType				GetSolid() const = 0;
-	virtual int						GetSolidFlags() const = 0;
-	virtual IClientUnknown*			GetIClientUnknown() = 0;
-	virtual int						GetCollisionGroup() const = 0;
-
-	/*
-	 * @note: should be equivalent to C_BaseAnimating::ComputeHitboxSurroundingBox
-	 * DOESNT NEEDED TRANSORMATION!
-	 * and bugged when trying to get non-player entity box
-	 */
-	virtual void					WorldSpaceSurroundingBounds(Vector* pVecMins, Vector* pVecMaxs) = 0;
-	virtual unsigned int			GetRequiredTriggerFlags() const = 0;
-	virtual const matrix3x4_t*		GetRootParentToWorldTransform() const = 0;
-	virtual void*					GetVPhysicsObject() const = 0;
+	virtual IHandleEntity* GetEntityHandle() = 0;
+	virtual const Vector_t& OBBMins() const = 0;
+	virtual const Vector_t& OBBMaxs() const = 0;
+	virtual void WorldSpaceTriggerBounds(Vector_t* pvecWorldMins, Vector_t* pvecWorldMaxs) const = 0;
+	virtual bool TestCollision(const Ray_t& ray, unsigned int nContentsMask, Trace_t& trace) = 0;
+	virtual bool TestHitboxes(const Ray_t& ray, unsigned int nContentsMask, Trace_t& trace) = 0;
+	virtual int GetCollisionModelIndex() = 0;
+	virtual const Model_t* GetCollisionModel() = 0;
+	virtual Vector_t& GetCollisionOrigin() const = 0;
+	virtual QAngle_t& GetCollisionAngles() const = 0;
+	virtual const Matrix3x4_t& CollisionToWorldTransform() const = 0;
+	virtual ESolidType GetSolid() const = 0;
+	virtual int GetSolidFlags() const = 0;
+	virtual IClientUnknown* GetIClientUnknown() = 0;
+	virtual int GetCollisionGroup() const = 0;
+	virtual void WorldSpaceSurroundingBounds(Vector_t* pvecMins, Vector_t* pvecMaxs) = 0;
+	virtual unsigned int GetRequiredTriggerFlags() const = 0;
+	virtual const Matrix3x4_t* GetRootParentToWorldTransform() const = 0;
+	virtual void* GetVPhysicsObject() const = 0;
 };
 
+// @source: master/public/iclientalphaproperty.h
 class IClientAlphaProperty
 {
 public:
@@ -269,21 +160,17 @@ public:
 	virtual void SetDistanceFadeMode(int nFadeMode) = 0;
 };
 
-class IClientNetworkable;
-class IClientRenderable;
-class IClientEntity;
-class CBaseEntity;
-class IClientThinkable;
+// @source: master/public/iclientunknown.h
 class IClientUnknown : public IHandleEntity
 {
 public:
-	virtual ICollideable*			GetCollideable() = 0;
-	virtual IClientNetworkable*		GetClientNetworkable() = 0;
-	virtual IClientRenderable*		GetClientRenderable() = 0;
-	virtual IClientEntity*			GetIClientEntity() = 0;
-	virtual CBaseEntity*			GetBaseEntity() = 0;
-	virtual IClientThinkable*		GetClientThinkable() = 0;
-	virtual IClientAlphaProperty*	GetClientAlphaProperty() = 0;
+	virtual ICollideable* GetCollideable() = 0;
+	virtual IClientNetworkable* GetClientNetworkable() = 0;
+	virtual IClientRenderable* GetClientRenderable() = 0;
+	virtual IClientEntity* GetIClientEntity() = 0;
+	virtual CBaseEntity* GetBaseEntity() = 0;
+	virtual IClientThinkable* GetClientThinkable() = 0;
+	virtual IClientAlphaProperty* GetClientAlphaProperty() = 0;
 };
 
 struct RenderableInstance_t
@@ -291,707 +178,1051 @@ struct RenderableInstance_t
 	std::uint8_t uAlpha;
 };
 
-using ClientShadowHandle_t = std::uint16_t;
-using ClientRenderHandle_t = std::uint16_t;
-using ModelInstanceHandle_t = std::uint16_t;
+class IClientModelRenderable
+{
+public:
+	virtual bool GetRenderData(void* pData, int nModelDataCategory) = 0;
+};
+
+// @source: master/public/iclientrenderable.h
 class IClientRenderable
 {
 public:
-	virtual IClientUnknown*			GetIClientUnknown() = 0;
-	virtual Vector&					GetRenderOrigin() = 0;
-	virtual QAngle&					GetRenderAngles() = 0;
-	virtual bool					ShouldDraw() = 0;
-	virtual int						GetRenderFlags() = 0;
-	virtual bool					IsTransparent() = 0;
-	virtual ClientShadowHandle_t	GetShadowHandle() const = 0;
-	virtual ClientRenderHandle_t&	RenderHandle() = 0;
-	virtual const Model_t*			GetModel() const = 0;
-	virtual int						DrawModel(int nFlags, const RenderableInstance_t& uInstance) = 0;
-	virtual int						GetBody() = 0;
-	virtual void					GetColorModulation(float* pColor) = 0;
-	virtual bool					LODTest() = 0;
-	virtual bool					SetupBones(matrix3x4_t* matBoneToWorldOut, int nMaxBones, int fBoneMask, float flCurrentTime) = 0;
-	virtual void					SetupWeights(const matrix3x4_t* matBoneToWorld, int nFlexWeightCount, float* flFlexWeights, float* flFlexDelayedWeights) = 0;
-	virtual void					DoAnimationEvents() = 0;
-	virtual void*					GetPVSNotifyInterface() = 0;
-	virtual void					GetRenderBounds(Vector& vecMins, Vector& vecMaxs) = 0;
-	virtual void					GetRenderBoundsWorldspace(Vector& vecMins, Vector& vecMaxs) = 0;
-	virtual void					GetShadowRenderBounds(Vector& vecMins, Vector& vecMaxs, int iShadowType) = 0;
-	virtual bool					ShouldReceiveProjectedTextures(int nFlags) = 0;
-	virtual bool					GetShadowCastDistance(float* pDistance, int iShadowType) const = 0;
-	virtual bool					GetShadowCastDirection(Vector* vecDirection, int iShadowType) const = 0;
-	virtual bool					IsShadowDirty() = 0;
-	virtual void					MarkShadowDirty(bool bDirty) = 0;
-	virtual IClientRenderable*		GetShadowParent() = 0;
-	virtual IClientRenderable*		FirstShadowChild() = 0;
-	virtual IClientRenderable*		NextShadowPeer() = 0;
-	virtual int						ShadowCastType() = 0;
-	virtual void					unused2() {}
-	virtual void					CreateModelInstance() = 0;
-	virtual ModelInstanceHandle_t	GetModelInstance() = 0;
-	virtual const matrix3x4_t&		RenderableToWorldTransform() = 0;
-	virtual int						LookupAttachment(const char* pAttachmentName) = 0;
-	virtual bool					GetAttachment(int nIndex, Vector& vecOrigin, QAngle& angView) = 0;
-	virtual bool					GetAttachment(int nIndex, matrix3x4_t& matAttachment) = 0;
-	virtual bool					ComputeLightingOrigin(int nAttachmentIndex, Vector vecModelLightingCenter, const matrix3x4_t& matrix, Vector& vecTransformedLightingCenter) = 0;
-	virtual float*					GetRenderClipPlane() = 0;
-	virtual int						GetSkin() = 0;
-	virtual void					OnThreadedDrawSetup() = 0;
-	virtual bool					UsesFlexDelayedWeights() = 0;
-	virtual void					RecordToolMessage() = 0;
-	virtual bool					ShouldDrawForSplitScreenUser(int nSlot) = 0;
-	virtual std::uint8_t			OverrideAlphaModulation(std::uint8_t uAlpha) = 0;
-	virtual std::uint8_t			OverrideShadowAlphaModulation(std::uint8_t uAlpha) = 0;
-	virtual void*					GetClientModelRenderable() = 0;
+	virtual IClientUnknown* GetIClientUnknown() = 0;
+	virtual Vector_t& GetRenderOrigin() = 0;
+	virtual QAngle_t& GetRenderAngles() = 0;
+	virtual bool ShouldDraw() = 0;
+	virtual int GetRenderFlags() = 0;
+	virtual bool IsTransparent() = 0;
+	virtual ClientShadowHandle_t GetShadowHandle() const = 0;
+	virtual ClientRenderHandle_t& RenderHandle() = 0;
+	virtual const Model_t* GetModel() const = 0;
+	virtual int DrawModel(int nFlags, const RenderableInstance_t& instance) = 0;
+	virtual int GetBody() = 0;
+	virtual void GetColorModulation(float* arrColor) = 0;
+	virtual bool LODTest() = 0;
+	virtual bool SetupBones(Matrix3x4a_t* arrBonesToWorld, int iMaxBones, int nBoneMask, float flCurrentTime) = 0;
+	virtual void SetupWeights(const Matrix3x4_t* arrBonesToWorld, int nFlexWeightCount, float* arrFlexWeight, float* arrFlexDelayedWeight) = 0;
+	virtual void DoAnimationEvents() = 0;
+	virtual void* GetPVSNotifyInterface() = 0;
+	virtual void GetRenderBounds(Vector_t& vecMins, Vector_t& vecMaxs) = 0;
+	virtual void GetRenderBoundsWorldspace(Vector_t& vecMins, Vector_t& vecMaxs) = 0;
+	virtual void GetShadowRenderBounds(Vector_t& vecMins, Vector_t& vecMaxs, int nShadowType) = 0;
+	virtual bool ShouldReceiveProjectedTextures(int nFlags) = 0;
+	virtual bool GetShadowCastDistance(float* pflDistance, int iShadowType) const = 0;
+	virtual bool GetShadowCastDirection(Vector_t* vecDirection, int iShadowType) const = 0;
+	virtual bool IsShadowDirty() = 0;
+	virtual void MarkShadowDirty(bool bDirty) = 0;
+	virtual IClientRenderable* GetShadowParent() = 0;
+	virtual IClientRenderable* FirstShadowChild() = 0;
+	virtual IClientRenderable* NextShadowPeer() = 0;
+	virtual int ShadowCastType() = 0;
+	virtual void unused2() { }
+	virtual void CreateModelInstance() = 0;
+	virtual ModelInstanceHandle_t GetModelInstance() = 0;
+	virtual const Matrix3x4_t& RenderableToWorldTransform() = 0;
+	virtual int LookupAttachment(const char* szAttachmentName) = 0;
+	virtual bool GetAttachment(int nIndex, Vector_t& vecOrigin, QAngle_t& angView) = 0;
+	virtual bool GetAttachment(int nIndex, Matrix3x4_t& matAttachment) = 0;
+	virtual bool ComputeLightingOrigin(int nAttachmentIndex, Vector_t vecModelLightingCenter, const Matrix3x4_t& matrix, Vector_t& vecTransformedLightingCenter) = 0;
+	virtual float* GetRenderClipPlane() = 0;
+	virtual int GetSkin() = 0;
+	virtual void OnThreadedDrawSetup() = 0;
+	virtual bool UsesFlexDelayedWeights() = 0;
+	virtual void RecordToolMessage() = 0;
+	virtual bool ShouldDrawForSplitScreenUser(int nSlot) = 0;
+	virtual std::uint8_t OverrideAlphaModulation(std::uint8_t uAlpha) = 0;
+	virtual std::uint8_t OverrideShadowAlphaModulation(std::uint8_t uAlpha) = 0;
+	virtual IClientModelRenderable* GetClientModelRenderable() = 0;
 };
 
-class CBaseClient;
+// @source: master/public/iclientnetworkable.h
 class IClientNetworkable
 {
 public:
-	virtual IClientUnknown*			GetIClientUnknown() = 0;
-	virtual void					Release() = 0;
-	virtual CBaseClient*			GetClientClass() = 0;
-	virtual void					NotifyShouldTransmit(int iState) = 0;
-	virtual void					OnPreDataChanged(EDataUpdateType updateType) = 0;
-	virtual void					OnDataChanged(EDataUpdateType updateType) = 0;
-	virtual void					PreDataUpdate(EDataUpdateType updateType) = 0;
-	virtual void					PostDataUpdate(EDataUpdateType updateType) = 0;
-	virtual void					OnDataUnchangedInPVS() = 0;
-	virtual bool					IsDormant() const = 0;
-	virtual int						GetIndex() const = 0;
-	virtual void					ReceiveMessage(EClassIndex classIndex, bf_read& msg) = 0;
-	virtual void*					GetDataTableBasePtr() = 0;
-	virtual void					SetDestroyedOnRecreateEntities() = 0;
+	virtual IClientUnknown* GetIClientUnknown() = 0;
+	virtual void Release() = 0;
+	virtual CClientClass* GetClientClass() = 0;
+	virtual void NotifyShouldTransmit(int iState) = 0;
+	virtual void OnPreDataChanged(EDataUpdateType nUpdateType) = 0;
+	virtual void OnDataChanged(EDataUpdateType nUpdateType) = 0;
+	virtual void PreDataUpdate(EDataUpdateType nUpdateType) = 0;
+	virtual void PostDataUpdate(EDataUpdateType nUpdateType) = 0;
+	virtual void OnDataUnchangedInPVS() = 0;
+	virtual bool IsDormant() const = 0;
+	virtual int GetIndex() const = 0;
+	virtual void ReceiveMessage(EClassIndex nClassIndex, bf_read& msg) = 0;
+	virtual void* GetDataTableBasePtr() = 0;
+	virtual void SetDestroyedOnRecreateEntities() = 0;
 };
 
-class CClientThinkHandle;
-using ClientThinkHandle_t = CClientThinkHandle*;
+// @source: master/public/iclientthinkable.h
 class IClientThinkable
 {
 public:
-	virtual IClientUnknown*			GetIClientUnknown() = 0;
-	virtual void					ClientThink() = 0;
-	virtual ClientThinkHandle_t		GetThinkHandle() = 0;
-	virtual void					SetThinkHandle(ClientThinkHandle_t hThink) = 0;
-	virtual void					Release() = 0;
+	virtual IClientUnknown* GetIClientUnknown() = 0;
+	virtual void ClientThink() = 0;
+	virtual void* GetThinkHandle() = 0;
+	virtual void SetThinkHandle(void* hThink) = 0;
+	virtual void Release() = 0;
 };
 
+// @source: master/public/icliententity.h
 class IClientEntity : public IClientUnknown, public IClientRenderable, public IClientNetworkable, public IClientThinkable
 {
 public:
-	virtual const Vector&			GetAbsOrigin() const = 0;
-	virtual const QAngle&			GetAbsAngles() const = 0;
-	virtual void*					GetMouth() = 0;
-	virtual bool					GetSoundSpatialization(struct SpatializationInfo_t& info) = 0;
-	virtual bool					IsBlurred() = 0;
+	virtual const Vector_t& GetAbsOrigin() const = 0;
+	virtual const QAngle_t& GetAbsAngles() const = 0;
+	virtual void* GetMouth() = 0;
+	virtual bool GetSoundSpatialization(SpatializationInfo_t& info) = 0;
+	virtual bool IsBlurred() = 0;
+};
 
-	void SetAbsOrigin(const Vector& vecOrigin)
-	{
-		using SetAbsOriginFn = void(__thiscall*)(void*, const Vector&);
-		static auto oSetAbsOrigin = reinterpret_cast<SetAbsOriginFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 51 53 56 57 8B F1 E8")));
-		oSetAbsOrigin(this, vecOrigin);
-	}
+class CDefaultClientRenderable : public IClientUnknown, public IClientRenderable
+{
+public:
+	ClientRenderHandle_t hRenderHandle; // 0x08
+};
+static_assert(sizeof(CDefaultClientRenderable) == 0xC);
 
-	void SetAbsAngles(const QAngle& angView)
-	{
-		using SetAbsAngleFn = void(__thiscall*)(void*, const QAngle&);
-		static auto oSetAbsAngles = reinterpret_cast<SetAbsAngleFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 E4 F8 83 EC 64 53 56 57 8B F1 E8")));
-		oSetAbsAngles(this, angView);
-	}
+// @source: master/game/shared/collisionproperty.h
+class CCollisionProperty : public ICollideable
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CCollisionProperty);
 
-	DataMap_t* GetDataDescMap()
-	{
-		return MEM::CallVFunc<DataMap_t*>(this, 15);
-	}
+	N_ADD_VARIABLE(Vector_t, GetPropertyMins, "DT_CollisionProperty::m_vecMins");
+	N_ADD_VARIABLE(Vector_t, GetPropertyMaxs, "DT_CollisionProperty::m_vecMaxs");
+	N_ADD_VARIABLE(unsigned short, GetPropertySolidFlags, "DT_CollisionProperty::m_usSolidFlags"); // ESolidFlags
+	N_ADD_VARIABLE(unsigned char, GetPropertySolidType, "DT_CollisionProperty::m_nSolidType"); // ESolidType
+	N_ADD_VARIABLE(unsigned char, GetPropertyTriggerBloat, "DT_CollisionProperty::m_triggerBloat");
+	N_ADD_VARIABLE(unsigned char, GetPropertySurroundType, "DT_CollisionProperty::m_nSurroundType");
+	N_ADD_VARIABLE(Vector_t, GetPropertySpecifiedSurroundingMins, "DT_CollisionProperty::m_vecSpecifiedSurroundingMins");
+	N_ADD_VARIABLE(Vector_t, GetPropertySpecifiedSurroundingMaxs, "DT_CollisionProperty::m_vecSpecifiedSurroundingMaxs");
 
-	DataMap_t* GetPredictionDescMap()
+	[[nodiscard]] Q_INLINE Vector_t OBBCenter()
 	{
-		return MEM::CallVFunc<DataMap_t*>(this, 17);
+		return M_LERP(this->GetPropertyMins(), this->GetPropertyMaxs(), 0.5f);
 	}
 };
 
-class CWeaponCSBase;
-class CBaseEntity : public IClientEntity
+// @source: master/game/client/c_baseentity.h
+class CBaseEntity : public IClientEntity, public IClientModelRenderable, protected ROP::VirtualCallable_t<ROP::ClientGadget_t>
 {
 public:
-	#pragma region DT_BasePlayer
-	N_ADD_PVARIABLE(float, GetFallVelocity, "CBasePlayer->m_flFallVelocity");
-	N_ADD_VARIABLE(QAngle, GetViewPunch, "CBasePlayer->m_viewPunchAngle");
-	N_ADD_VARIABLE(QAngle, GetPunch, "CBasePlayer->m_aimPunchAngle");
-	N_ADD_VARIABLE(Vector, GetViewOffset, "CBasePlayer->m_vecViewOffset[0]");
-	N_ADD_VARIABLE(float, GetFriction, "CBasePlayer->m_flFriction");
-	N_ADD_VARIABLE(int, GetTickBase, "CBasePlayer->m_nTickBase");
-	N_ADD_PVARIABLE(int, GetNextThinkTick, "CBasePlayer->m_nNextThinkTick");
-	N_ADD_VARIABLE(Vector, GetVelocity, "CBasePlayer->m_vecVelocity[0]");
-	N_ADD_PVARIABLE_OFFSET(QAngle, GetViewAngles, "CBasePlayer->deadflag", 0x4);
-	N_ADD_VARIABLE(CBaseHandle, GetGroundEntityHandle, "CBasePlayer->m_hGroundEntity");
-	N_ADD_VARIABLE(int, GetHealth, "CBasePlayer->m_iHealth");
-	N_ADD_VARIABLE(int, GetLifeState, "CBasePlayer->m_lifeState");
-	N_ADD_VARIABLE(float, GetMaxSpeed, "CBasePlayer->m_flMaxspeed");
-	N_ADD_VARIABLE(int, GetFlags, "CBasePlayer->m_fFlags");
-	N_ADD_PVARIABLE(int, GetObserverMode, "CBasePlayer->m_iObserverMode");
-	N_ADD_VARIABLE(CBaseHandle, GetObserverTargetHandle, "CBasePlayer->m_hObserverTarget");
-	N_ADD_VARIABLE(CBaseHandle, GetViewModelHandle, "CBasePlayer->m_hViewModel[0]");
-	N_ADD_PVARIABLE(const char, GetLastPlace, "CBasePlayer->m_szLastPlaceName");
-	N_ADD_VARIABLE_OFFSET(int, GetButtonDisabled, "CBasePlayer->m_hViewEntity", -0xC);
-	N_ADD_VARIABLE_OFFSET(int, GetButtonForced, "CBasePlayer->m_hViewEntity", -0x8);
-	N_ADD_PVARIABLE_OFFSET(CUserCmd*, GetCurrentCommand, "CBasePlayer->m_hViewEntity", -0x4); // @ida: client.dll @ [89 BE ? ? ? ? E8 ? ? ? ? 85 FF + 0x2]
+	Q_CLASS_NO_INITIALIZER(CBaseEntity);
 
+	N_ADD_VARIABLE(int, GetEffects, "DT_BaseEntity::m_fEffects");
+	N_ADD_VARIABLE(int, GetTeam, "DT_BaseEntity::m_iTeamNum");
+	N_ADD_VARIABLE(QAngle_t, GetRotation, "DT_BaseEntity::m_angRotation");
+	N_ADD_VARIABLE(Vector_t, GetOrigin, "DT_BaseEntity::m_vecOrigin");
+	N_ADD_VARIABLE(CBaseHandle, GetOwnerEntityHandle, "DT_BaseEntity::m_hOwnerEntity");
+	N_ADD_VARIABLE(short, GetModelIndex, "DT_BaseEntity::m_nModelIndex");
+	N_ADD_VARIABLE(float, GetAnimationTime, "DT_BaseEntity::m_flAnimTime");
+	N_ADD_VARIABLE_OFFSET(float, GetOldAnimationTime, "DT_BaseEntity::m_flAnimTime", 0x4);
+	N_ADD_VARIABLE(float, GetSimulationTime, "DT_BaseEntity::m_flSimulationTime");
+	N_ADD_VARIABLE_OFFSET(float, GetOldSimulationTime, "DT_BaseEntity::m_flSimulationTime", 0x4);
+	N_ADD_VARIABLE_OFFSET(float, GetSimulationTick, "DT_BaseEntity::m_flUseLookAtAngle", -0x20); // @ida C_BaseEntity::m_nSimulationTick: (C_BasePlayer::PhysicsSimulate) client.dll -> ["8B 40 1C 39 86" + 0x5]
+	N_ADD_VARIABLE_OFFSET(float, GetSpawnTime, "DT_BaseEntity::m_flUseLookAtAngle", 0xC); // @ida C_BaseEntity::m_flSpawnTime: (C_BaseEntity::GetTextureAnimationStartTime) client.dll -> ["D9 81 ? ? ? ? C3 CC CC CC CC CC CC CC CC CC 55 8B EC 83 EC 1C" + 0x2]
+	N_ADD_VARIABLE_OFFSET(CBaseHandle, GetMoveParentHandle, "DT_BaseEntity::m_flFadeScale", 0xC); // @ida C_BaseEntity::m_pMoveParent: (C_BaseEntity::UnlinkFromHierarchy) client.dll -> ["83 BF ? ? ? ? ? 74 2F 8B" + 0x2] @xref: "C_BaseEntity::UnlinkFromHierarchy(): Entity has a child with the wrong parent!\n"
+	N_ADD_PVARIABLE(CCollisionProperty, GetCollisionProperty, "DT_BaseEntity::m_Collision");
+	N_ADD_VARIABLE(int, GetCollisionGroup, "DT_BaseEntity::m_CollisionGroup");
+	N_ADD_VARIABLE(bool, IsSpotted, "DT_BaseEntity::m_bSpotted");
+
+	N_ADD_DATAFIELD(unsigned char, GetMoveType, this->GetPredictionDescMap(), "m_MoveType");
 	N_ADD_DATAFIELD(int, GetEFlags, this->GetPredictionDescMap(), "m_iEFlags");
-	N_ADD_PDATAFIELD(int, GetButtons, this->GetPredictionDescMap(), "m_nButtons");
-	N_ADD_DATAFIELD(int, GetButtonLast, this->GetPredictionDescMap(), "m_afButtonLast");
-	N_ADD_DATAFIELD(int, GetButtonPressed, this->GetPredictionDescMap(), "m_afButtonPressed");
-	N_ADD_DATAFIELD(int, GetButtonReleased, this->GetPredictionDescMap(), "m_afButtonReleased");
-	N_ADD_PDATAFIELD(int, GetImpulse, this->GetPredictionDescMap(), "m_nImpulse");
-	N_ADD_DATAFIELD(float, GetSurfaceFriction, this->GetPredictionDescMap(), "m_surfaceFriction");
+	N_ADD_DATAFIELD(QAngle_t, GetAbsRotation, this->GetPredictionDescMap(), "m_angAbsRotation");
+	N_ADD_DATAFIELD(Vector_t, GetAbsVelocity, this->GetPredictionDescMap(), "m_vecAbsVelocity");
+	N_ADD_DATAFIELD(const Matrix3x4_t&, GetCoordinateFrame, this->GetDataDescMap(), "m_rgflCoordinateFrame");
 
-	inline bool IsAlive()
+	[[nodiscard]] char& GetTakeDamage()
 	{
-		// @note: https://github.com/rollraw/qo0-base/issues/135
-		return (this->GetLifeState() == LIFE_ALIVE);
+		static const auto uTakeDamageOffset = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, Q_XOR("80 BE ? ? ? ? ? 75 46 8B 86")) + 0x2);
+		return *reinterpret_cast<char*>(reinterpret_cast<std::uint8_t*>(this) + uTakeDamageOffset);
 	}
 
-	int& GetTakeDamage()
+	[[nodiscard]] Q_INLINE DataMap_t* GetDataDescMap()
 	{
-		static const std::uintptr_t uTakeDamageOffset = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, XorStr("80 BE ? ? ? ? ? 75 46 8B 86")) + 0x2);
-		return *reinterpret_cast<int*>(reinterpret_cast<std::uintptr_t>(this) + uTakeDamageOffset);
+		return CallVFunc<DataMap_t*, 15U>(this);
 	}
 
-	CUserCmd& GetLastCommand()
+	[[nodiscard]] Q_INLINE DataMap_t* GetPredictionDescMap()
 	{
-		static const std::uintptr_t uLastCommandOffset = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, XorStr("8D 8E ? ? ? ? 89 5C 24 3C")) + 0x2);
-		return *reinterpret_cast<CUserCmd*>(reinterpret_cast<std::uintptr_t>(this) + uLastCommandOffset);
-	}
-	#pragma endregion
-
-	#pragma region DT_CSPlayer
-	N_ADD_VARIABLE(int, GetShotsFired, "CCSPlayer->m_iShotsFired");
-	N_ADD_VARIABLE_OFFSET(float, GetSpawnTime, "CCSPlayer->m_iAddonBits", -0x4); // @ida: client.dll @ [89 86 ? ? ? ? E8 ? ? ? ? 80 BE ? ? ? ? ? + 0x2]
-	N_ADD_VARIABLE(int, GetMoney, "CCSPlayer->m_iAccount");
-	N_ADD_VARIABLE(int, GetTotalHits, "CCSPlayer->m_totalHitsOnServer");
-	N_ADD_VARIABLE(int, GetArmor, "CCSPlayer->m_ArmorValue");
-	N_ADD_VARIABLE(QAngle, GetEyeAngles, "CCSPlayer->m_angEyeAngles");
-	N_ADD_VARIABLE(bool, IsDefusing, "CCSPlayer->m_bIsDefusing");
-	N_ADD_VARIABLE(bool, IsScoped, "CCSPlayer->m_bIsScoped");
-	N_ADD_VARIABLE_OFFSET(CCSGOPlayerAnimState*, GetAnimationState, "CCSPlayer->m_bIsScoped", -0x14); // @ida: client.dll @ [8B 8E ? ? ? ? F3 0F 10 48 ? E8 ? ? ? ? C7 + 0x2]
-	N_ADD_VARIABLE(bool, IsGrabbingHostage, "CCSPlayer->m_bIsGrabbingHostage");
-	N_ADD_VARIABLE(bool, IsRescuing, "CCSPlayer->m_bIsRescuing");
-	N_ADD_VARIABLE(bool, HasHelmet, "CCSPlayer->m_bHasHelmet");
-	N_ADD_VARIABLE(bool, HasHeavyArmor, "CCSPlayer->m_bHasHeavyArmor");
-	N_ADD_VARIABLE(bool, HasDefuser, "CCSPlayer->m_bHasDefuser");
-	N_ADD_VARIABLE(bool, HasImmunity, "CCSPlayer->m_bGunGameImmunity");
-	N_ADD_VARIABLE(bool, IsInBuyZone, "CCSPlayer->m_bInBuyZone");
-	N_ADD_PVARIABLE(float, GetFlashMaxAlpha, "CCSPlayer->m_flFlashMaxAlpha");
-	N_ADD_VARIABLE_OFFSET(float, GetFlashAlpha, "CCSPlayer->m_flFlashMaxAlpha", -0x8);
-	N_ADD_VARIABLE(float, GetFlashDuration, "CCSPlayer->m_flFlashDuration");
-	N_ADD_VARIABLE_OFFSET(int, GetGlowIndex, "CCSPlayer->m_flFlashDuration", 0x18);
-	N_ADD_VARIABLE(float, GetLowerBodyYaw, "CCSPlayer->m_flLowerBodyYawTarget");
-	N_ADD_VARIABLE(int, GetSurvivalTeam, "CCSPlayer->m_nSurvivalTeam");
-	N_ADD_VARIABLE_OFFSET(int, IsUsedNewAnimState, "CCSPlayer->m_flLastExoJumpTime", 0x8);
-
-	inline bool IsArmored(const int iHitGroup)
-	{
-		// @ida isarmored: server.dll @ 55 8B EC 32 D2
-
-		bool bIsArmored = false;
-
-		if (this->GetArmor() > 0)
-		{
-			switch (iHitGroup)
-			{
-			case HITGROUP_GENERIC:
-			case HITGROUP_CHEST:
-			case HITGROUP_STOMACH:
-			case HITGROUP_LEFTARM:
-			case HITGROUP_RIGHTARM:
-			case HITGROUP_NECK:
-				bIsArmored = true;
-				break;
-			case HITGROUP_HEAD:
-				if (this->HasHelmet())
-					bIsArmored = true;
-				[[fallthrough]];
-			case HITGROUP_LEFTLEG:
-			case HITGROUP_RIGHTLEG:
-				if (this->HasHeavyArmor())
-					bIsArmored = true;
-				break;
-			default:
-				break;
-			}
-		}
-
-		return bIsArmored;
-	}
-	#pragma endregion
-
-	#pragma region DT_BaseEntity
-	N_ADD_VARIABLE(float, GetAnimationTime, "CBaseEntity->m_flAnimTime");
-	N_ADD_VARIABLE(float, GetSimulationTime, "CBaseEntity->m_flSimulationTime");
-	N_ADD_VARIABLE_OFFSET(float, GetOldSimulationTime, "CBaseEntity->m_flSimulationTime", 0x4);
-	N_ADD_VARIABLE(Vector, GetOrigin, "CBaseEntity->m_vecOrigin");
-	N_ADD_VARIABLE(QAngle, GetRotation, "CBaseEntity->m_angRotation");
-	N_ADD_VARIABLE(int, GetEffects, "CBaseEntity->m_fEffects");
-	N_ADD_VARIABLE(int, GetTeam, "CBaseEntity->m_iTeamNum");
-	N_ADD_VARIABLE(CBaseHandle, GetOwnerEntityHandle, "CBaseEntity->m_hOwnerEntity");
-	N_ADD_PVARIABLE(ICollideable, GetCollision, "CBaseEntity->m_Collision");
-	N_ADD_VARIABLE(int, GetCollisionGroup, "CBaseEntity->m_CollisionGroup");
-	N_ADD_PVARIABLE(bool, IsSpotted, "CBaseEntity->m_bSpotted");
-
-	N_ADD_DATAFIELD(QAngle, GetAbsRotation, this->GetDataDescMap(), "m_angAbsRotation");
-	N_ADD_DATAFIELD(const matrix3x4_t, GetCoordinateFrame, this->GetDataDescMap(), "m_rgflCoordinateFrame");
-	N_ADD_DATAFIELD(int, GetMoveType, this->GetPredictionDescMap(), "m_MoveType");
-	#pragma endregion
-
-	#pragma region DT_BaseCombatCharacter
-	N_ADD_VARIABLE(float, GetNextAttack, "CBaseCombatCharacter->m_flNextAttack");
-	N_ADD_VARIABLE(CBaseHandle, GetActiveWeaponHandle, "CBaseCombatCharacter->m_hActiveWeapon");
-	N_ADD_PVARIABLE(CBaseHandle, GetWeaponsHandle, "CBaseCombatCharacter->m_hMyWeapons");
-	N_ADD_PVARIABLE(CBaseHandle, GetWearablesHandle, "CBaseCombatCharacter->m_hMyWearables");
-	#pragma endregion
-
-	#pragma region DT_BaseAnimating
-	N_ADD_VARIABLE(int, GetSequence, "CBaseAnimating->m_nSequence");
-	N_ADD_PVARIABLE_OFFSET(CBoneAccessor, GetBoneAccessor, "CBaseAnimating->m_nForceBone", 0x1C);
-	N_ADD_VARIABLE(int, GetHitboxSet, "CBaseAnimating->m_nHitboxSet");
-	N_ADD_VARIABLE(bool, IsClientSideAnimation, "CBaseAnimating->m_bClientSideAnimation");
-	N_ADD_VARIABLE(float, GetCycle, "CBaseAnimating->m_flCycle");
-
-	[[nodiscard]] std::array<float, MAXSTUDIOPOSEPARAM>& GetPoseParameter()
-	{
-		static std::uintptr_t m_flPoseParameter = CNetvarManager::Get().mapProps[FNV1A::HashConst("CBaseAnimating->m_flPoseParameter")].uOffset;
-		return *reinterpret_cast<std::array<float, MAXSTUDIOPOSEPARAM>*>(reinterpret_cast<std::uintptr_t>(this) + m_flPoseParameter);
+		// @ida: U8["FF 50 ? 50 8B 43 08 8D 4B 08 FF" + 0x2] / sizeof(std::uintptr_t) @xref: "C_BaseEntity::RestoreData", "C_BaseEntity::SaveData"
+		return CallVFunc<DataMap_t*, 17U>(this);
 	}
 
-	inline void SetPoseAngles(float flYaw, float flPitch)
+	Q_INLINE CBaseAnimating* GetBaseAnimating()
 	{
-		auto& arrPose = this->GetPoseParameter();
-		arrPose.at(11U) = (flPitch + 90.f) / 180.f;
-		arrPose.at(2U) = (flYaw + 180.f) / 360.f;
+		// @ida: (C_BaseViewModel::UpdateParticles) client.dll -> ["FF 90 ? ? ? ? 68 ? ? ? ? 8D 48" + 0x2] / sizeof(std::uintptr_t) @xref: "Wick"
+		return CallVFunc<CBaseAnimating*, 44U>(this);
 	}
 
-	[[nodiscard]] CUtlVector<CAnimationLayer>& GetAnimationOverlays()
+	Q_INLINE CBaseAnimatingOverlay* GetBaseAnimatingOverlay()
 	{
-		static const std::uintptr_t uAnimationOverlaysOffset = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, XorStr("8B 89 ? ? ? ? 8D 0C D1")) + 0x2);
-		return *reinterpret_cast<CUtlVector<CAnimationLayer>*>(reinterpret_cast<std::uintptr_t>(this) + uAnimationOverlaysOffset);
+		// @ida: client.dll -> ["8B 80 ? ? ? ? FF D0 F3 0F 10 0D ? ? ? ? 8B 88" + 0x2] / sizeof(std::uintptr_t) @xref: "death_yaw"
+		return CallVFunc<CBaseAnimatingOverlay*, 45U>(this);
 	}
 
-	[[nodiscard]] inline CAnimationLayer* GetAnimationLayer(const int nLayer)
+	Q_INLINE void SetModelIndex(int nModelIndex)
 	{
-		if (nLayer >= 0 && nLayer < MAXOVERLAYS)
-			return &GetAnimationOverlays()[nLayer];
-
-		return nullptr;
-	}
-	#pragma endregion
-
-	// DoExtraBonesProcessing
-	// pattern @xref: "ankle_L"
-	// index @xref: "SetupBones: invalid bone array size (%d - needs %d)\n"
-	
-	int IsMaxHealth()
-	{
-		// @ida: client.dll @ [FF 90 ? ? ? ? 85 C0 0F 8F ? ? ? ? 80 + 0x2] / sizeof(std::uintptr_t)
-		return MEM::CallVFunc<int>(this, 123);
+		CallVFunc<void, 75U>(this, nModelIndex);
 	}
 
-	void Think()
+	[[nodiscard]] Q_INLINE const Vector_t& WorldSpaceCenter()
 	{
-		// @ida: client.dll @ [FF 90 ? ? ? ? FF 35 ? ? ? ? 8B 4C + 0x2] / sizeof(std::uintptr_t)
-		MEM::CallVFunc<void>(this, 139);
+		// @ida CCollisionProperty::WorldSpaceCenter(): client.dll -> "56 57 8D B9 20 03 00 00 E8 ? ? ? ? 8B F0"
+
+		// @ida: client.dll -> ["8B 80 ? ? ? ? FF D0 8B 4D E8" + 0x2] / sizeof(std::uintptr_t)
+		return CallVFunc<const Vector_t&, 79U>(this);
 	}
 
-	const char* GetClassname()
+	[[nodiscard]] Q_INLINE int GetMaxHealth()
 	{
-		// @ida: client.dll @ [8B 01 FF 90 ? ? ? ? 90 + 0x4] / sizeof(std::uintptr_t)
-		return MEM::CallVFunc<const char*>(this, 143);
+		// @ida: client.dll -> ["8B 80 ? ? ? ? FF D0 66 0F 6E C0 0F 5B C0 0F" + 0x2] / sizeof(std::uintptr_t)
+		return CallVFunc<int, 123U>(this);
 	}
 
-	unsigned int PhysicsSolidMaskForEntity()
+	Q_INLINE void Think()
+	{
+		// @ida: client.dll -> ["FF 90 ? ? ? ? FF 35 ? ? ? ? 8B 4C" + 0x2] / sizeof(std::uintptr_t)
+		CallVFunc<void, 139U>(this);
+	}
+
+	[[nodiscard]] Q_INLINE const char* GetClassname()
+	{
+		// @ida C_BaseEntity::GetClassname(): client.dll -> "56 8B F1 C6 05 ? ? ? ? ? 8B 46"
+
+		// @ida: client.dll -> ["8B 01 FF 90 ? ? ? ? 90" + 0x4] / sizeof(std::uintptr_t)
+		return CallVFunc<const char*, 143U>(this);
+	}
+
+	[[nodiscard]] Q_INLINE unsigned int PhysicsSolidMaskForEntity()
 	{
 		// @xref: "func_breakable", "func_breakable_surf"
-		return MEM::CallVFunc<unsigned int>(this, 152);
+		return CallVFunc<unsigned int, 152U>(this);
 	}
 
-	bool IsPlayer()
+	[[nodiscard]] Q_INLINE bool IsAlive()
 	{
-		// @xref: "effects/nightvision"
-		return MEM::CallVFunc<bool>(this, 158);
+		// @ida: client.dll -> ["8B 80 ? ? ? ? FF D0 84 C0 75 08 38 87 ? ? ? ? 74 72" + 0x2] / sizeof(std::uintptr_t)
+		return CallVFunc<bool, 156U>(this);
 	}
 
-	[[nodiscard]] Vector GetEyePosition(bool bShouldCorrect = true)
+	[[nodiscard]] Q_INLINE bool IsPlayer() const
 	{
-		Vector vecPosition = { };
+		// @ida: client.dll -> ["8B 80 ? ? ? ? FF D0 84 C0 0F 84 ? ? ? ? 8B 44" + 0x2] / sizeof(std::uintptr_t)
+		return CallVFunc<bool, 158U>(this);
+	}
 
-		// get eye position
-		MEM::CallVFunc<void>(this, 169, std::ref(vecPosition));
+	[[nodiscard]] Q_INLINE bool IsWeaponWorldModel() const
+	{
+		return CallVFunc<bool, 159U>(this);
+	}
 
-		// correct this like it do weapon_shootpos
-		// @ida weapon_shootpos: 55 8B EC 56 8B 75 08 57 8B F9 56 8B 07 FF 90
-		if (IsUsedNewAnimState() && bShouldCorrect)
-		{
-			if (CCSGOPlayerAnimState* pAnimState = this->GetAnimationState(); pAnimState != nullptr)
-				ModifyEyePosition(pAnimState, &vecPosition);
-		}
+	[[nodiscard]] Q_INLINE bool IsWeapon() const
+	{
+		// C_BaseEntity::IsBaseCombatWeapon
+		return CallVFunc<bool, 166U>(this);
+	}
 
-		// return corrected position
+	[[nodiscard]] Q_INLINE Vector_t GetEyePosition()
+	{
+		Vector_t vecPosition = { };
+		CallVFunc<void, 169U>(this, &vecPosition);
 		return vecPosition;
 	}
 
-	void SetSequence(int iSequence)
+	void SetAbsOrigin(const Vector_t& vecAbsOrigin)
 	{
-		// @ida: FF 90 ? ? ? ? 8B 07 8B CF FF 90 ? ? ? ? 8B CF + 0x2
-		MEM::CallVFunc<void>(this, 219, iSequence);
+		static auto fnSetAbsOrigin = reinterpret_cast<void(Q_THISCALL*)(CBaseEntity*, const Vector_t&)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 E4 F8 51 53 56 57 8B F1 E8 ? ? ? ? 8B 7D")));
+		fnSetAbsOrigin(this, vecAbsOrigin);
 	}
 
-	void StudioFrameAdvance()
+	void SetAbsAngles(const QAngle_t& angAbsView)
 	{
-		// @ida: FF 90 ? ? ? ? 8B 07 8B CF FF 90 ? ? ? ? 8B CF + 0xC
-		MEM::CallVFunc<void>(this, 220);
+		static auto fnSetAbsAngles = reinterpret_cast<void(Q_THISCALL*)(CBaseEntity*, const QAngle_t&)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 E4 F8 83 EC 64 53 56 57 8B F1")));
+		fnSetAbsAngles(this, angAbsView);
 	}
 
-	void UpdateClientSideAnimations()
+	void SetAbsVelocity(const Vector_t& vecAbsVelocity)
 	{
-		// @xref: "UpdateClientSideAnimations"
-		// @ida updateclientsideanimations: 55 8B EC 51 56 8B F1 80 BE ? ? ? ? 00 74 ? 8B 06 FF
-		MEM::CallVFunc<void>(this, 224);
+		static auto fnSetAbsVelocity = reinterpret_cast<void(Q_THISCALL*)(CBaseEntity*, const Vector_t&)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 E4 F8 83 EC 0C 53 56 57 8B 7D 08 8B F1 F3")));
+		fnSetAbsVelocity(this, vecAbsVelocity);
 	}
 
-	void PreThink()
+	[[nodiscard]] bool PhysicsRunThink(EThinkMethod nThinkMethod = THINK_FIRE_ALL_FUNCTIONS)
 	{
-		MEM::CallVFunc<void>(this, 318);
+		static auto fnPhysicsRunThink = reinterpret_cast<bool(Q_THISCALL*)(CBaseEntity*, EThinkMethod)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 EC 10 53 56 57 8B F9 8B 87")));
+		return fnPhysicsRunThink(this, nThinkMethod);
 	}
 
-	void UpdateCollisionBounds()
-	{
-		MEM::CallVFunc<void>(this, 340);
-	}
-
-	bool PhysicsRunThink(int nThinkMethod)
-	{
-		// @xref: from sub with "CLIENT:  %s(%s) thinking for %.02f ms!!!\n"
-		using PhysicsRunThinkFn = bool(__thiscall*)(void*, int);
-		static auto oPhysicsRunThink = reinterpret_cast<PhysicsRunThinkFn>(MEM::FindPattern(CLIENT_DLL, XorStr("55 8B EC 83 EC 10 53 56 57 8B F9 8B 87")));
-		return oPhysicsRunThink(this, nThinkMethod);
-	}
-
-	static CBaseEntity*		GetLocalPlayer();
-	int						GetSequenceActivity(int iSequence);
-	CBaseCombatWeapon*		GetWeapon();
-	int						GetMaxHealth();
-	std::optional<Vector>	GetBonePosition(int iBone);
-	int						GetBoneByHash(const FNV1A_t uBoneHash) const;
-	std::optional<Vector>	GetHitboxPosition(const int iHitbox);
-	std::optional<Vector>	GetHitGroupPosition(const int iHitGroup);
-	void					ModifyEyePosition(const CCSGOPlayerAnimState* pAnimState, Vector* vecPosition) const;
-	void					PostThink();
-	bool					IsEnemy(CBaseEntity* pEntity);
-	bool					IsTargetingLocal(CBaseEntity* pLocal);
-	bool					CanShoot(CWeaponCSBase* pBaseWeapon);
-	bool					IsVisible(CBaseEntity* pEntity, const Vector& vecEnd, bool bSmokeCheck = false);
-	bool					IsBreakable();
+	[[nodiscard]] bool IsBreakable();
 };
 
-class CCSWeaponData
+// @source: master/game/client/c_baseanimating.h
+class CBaseAnimating : public CBaseEntity
 {
 public:
-	std::byte pad0[0x14];			// 0x0000
-	int iMaxClip1;					// 0x0014
-	int iMaxClip2;					// 0x0018
-	int iDefaultClip1;				// 0x001C
-	int iDefaultClip2;				// 0x0020
-	int iPrimaryMaxReserveAmmo;		// 0x0024
-	int iSecondaryMaxReserveAmmo;	// 0x0028
-	const char* szWorldModel;		// 0x002C
-	const char* szViewModel;		// 0x0030
-	const char* szDroppedModel;		// 0x0034
-	std::byte pad1[0x50];			// 0x0038
-	const char* szHudName;			// 0x0088
-	const char* szWeaponName;		// 0x008C
-	std::byte pad2[0x2];			// 0x0090
-	bool bIsMeleeWeapon;			// 0x0092
-	std::byte pad3[0x9];			// 0x0093
-	float flWeaponWeight;			// 0x009C
-	std::byte pad4[0x4];			// 0x00A0
-	int iSlot;						// 0x00A4
-	int iPosition;					// 0x00A8
-	std::byte pad5[0x1C];			// 0x00AC
-	int nWeaponType;				// 0x00C8
-	std::byte pad6[0x4];			// 0x00CC
-	int iWeaponPrice;				// 0x00D0
-	int iKillAward;					// 0x00D4
-	const char* szAnimationPrefix;	// 0x00D8
-	float flCycleTime;				// 0x00DC
-	float flCycleTimeAlt;			// 0x00E0
-	std::byte pad8[0x8];			// 0x00E4
-	bool bFullAuto;					// 0x00EC
-	std::byte pad9[0x3];			// 0x00ED
-	int iDamage;					// 0x00F0
-	float flHeadShotMultiplier;		// 0x00F4
-	float flArmorRatio;				// 0x00F8
-	int iBullets;					// 0x00FC
-	float flPenetration;			// 0x0100
-	std::byte pad10[0x8];			// 0x0104
-	float flRange;					// 0x010C
-	float flRangeModifier;			// 0x0110
-	float flThrowVelocity;			// 0x0114
-	std::byte pad11[0xC];			// 0x0118
-	bool bHasSilencer;				// 0x0124
-	std::byte pad12[0xF];			// 0x0125
-	float flMaxSpeed[2];			// 0x0134
-	std::byte pad13[0x4];			// 0x013C
-	float flSpread[2];				// 0x0140
-	float flInaccuracyCrouch[2];	// 0x0148
-	float flInaccuracyStand[2];		// 0x0150
-	std::byte pad14[0x8];			// 0x0158
-	float flInaccuracyJump[2];		// 0x0160
-	float flInaccuracyLand[2];		// 0x0168
-	float flInaccuracyLadder[2];	// 0x0170
-	float flInaccuracyFire[2];		// 0x0178
-	float flInaccuracyMove[2];		// 0x0180
-	float flInaccuracyReload;		// 0x0188
-	int iRecoilSeed;				// 0x018C
-	float flRecoilAngle[2];			// 0x0190
-	float flRecoilAngleVariance[2];	// 0x0198
-	float flRecoilMagnitude[2];		// 0x01A0
-	float flRecoilMagnitudeVariance[2]; // 0x01A8
-	int iSpreadSeed;				// 0x01B0
+	Q_CLASS_NO_INITIALIZER(CBaseAnimating);
 
-	bool IsGun() const
+	N_ADD_VARIABLE(int, IsRagdoll, "DT_BaseAnimating::m_bClientSideRagdoll");
+	N_ADD_VARIABLE(int, GetHitboxSet, "DT_BaseAnimating::m_nHitboxSet");
+	N_ADD_VARIABLE(float, GetCycle, "DT_BaseAnimating::m_flCycle");
+	N_ADD_VARIABLE_OFFSET(int, GetCustomBlendingRuleMask, "DT_BaseAnimating::m_nBody", 0x4);
+	N_ADD_VARIABLE_OFFSET(unsigned int, GetAnimationLODFlags, "DT_BaseAnimating::m_nBody", 0x8);
+	N_ADD_VARIABLE_OFFSET(unsigned int, GetOldAnimationLODFlags, "DT_BaseAnimating::m_nBody", 0xC);
+	N_ADD_VARIABLE_OFFSET(int, GetComputedAnimationLODFrame, "DT_BaseAnimating::m_nBody", 0x10); // @ida C_BaseAnimating::m_nComputedLODframe: client.dll -> ["8B B7 ? ? ? ? 89 75 F8" + 0x2]
+	N_ADD_VARIABLE(float[MAXSTUDIOBONECTRLS], GetEncodedControllerArray, "DT_BaseAnimating::m_flEncodedController");
+	N_ADD_VARIABLE_OFFSET(BoneVector_t[MAXSTUDIOBONES], GetCachedBonesPosition, "DT_BaseAnimating::m_nMuzzleFlashParity", 0x4); // @ida: C_BaseAnimating::m_pos_cached: client.dll -> ["8D 87 ? ? ? ? 50 E8 ? ? ? ? 8B 06 83 C4" + 0x2]
+	N_ADD_VARIABLE_OFFSET(BoneQuaternionAligned_t[MAXSTUDIOBONES], GetCachedBonesRotation, "DT_BaseAnimating::m_nMuzzleFlashParity", 0x4 + sizeof(BoneVector_t[MAXSTUDIOBONES])); // @ida: C_BaseAnimating::m_q_cached: client.dll -> ["8D 87 ? ? ? ? 50 E8 ? ? ? ? 83 C4 0C F7" + 0x2]
+	N_ADD_VARIABLE_OFFSET(CIKContext*, GetIKContext, "DT_BaseAnimating::m_vecForce", -0x14); // @ida C_BaseAnimating::m_pIk: client.dll -> ["89 87 ? ? ? ? 8D 47 FC 8B" + 0x2]
+	N_ADD_VARIABLE(Vector_t, GetForce, "DT_BaseAnimating::m_vecForce");
+	N_ADD_VARIABLE(int, GetForceBone, "DT_BaseAnimating::m_nForceBone");
+	N_ADD_VARIABLE_OFFSET(unsigned long, GetMostRecentModelBoneCounter, "DT_BaseAnimating::m_nForceBone", 0x4); // @ida C_BaseAnimating::m_iMostRecentModelBoneCounter: client.dll -> ["89 87 ? ? ? ? 8B 8F ? ? ? ? 85 C9 74 10" + 0x2] @xref: "Model '%s' has skin but thinks it can render fastpath\n"
+	N_ADD_VARIABLE_OFFSET(int, GetPreviousBoneMask, "DT_BaseAnimating::m_nForceBone", 0x10); // @ida C_BaseAnimating::m_iPrevBoneMask: (C_BaseAnimating::SetupBones) client.dll -> ["8B 87 ? ? ? ? 89 87 ? ? ? ? 8D 47" + 0x2]
+	N_ADD_VARIABLE_OFFSET(int, GetAccumulatedBoneMask, "DT_BaseAnimating::m_nForceBone", 0x14); // @ida C_BaseAnimating::m_iAccumulatedBoneMask: (C_BaseAnimating::SetupBones) client.dll -> ["89 87 ? ? ? ? 8D 47 FC C7" + 0x2]
+	N_ADD_VARIABLE_OFFSET(CBoneAccessor, GetBoneAccessor, "DT_BaseAnimating::m_nForceBone", 0x18); // @ida C_BaseAnimating::m_BoneAccessor: client.dll -> ["89 BF ? ? ? ? 89 87" + 0x2]
+	N_ADD_VARIABLE_OFFSET(CUtlVector<CBaseHandle>, GetBoneAttachments, "DT_BaseAnimating::m_nForceBone", 0x3C); // @ida C_BaseAnimating::m_BoneAttachments: client.dll -> ["8D 8F ? ? ? ? 8B 00" + 0x2]
+	N_ADD_VARIABLE(float, GetModelScale, "DT_BaseAnimating::m_flModelScale");
+	N_ADD_VARIABLE(int, GetModelScaleType, "DT_BaseAnimating::m_ScaleType");
+	N_ADD_VARIABLE(float[MAXSTUDIOPOSEPARAM], GetPoseParameterArray, "DT_BaseAnimating::m_flPoseParameter");
+	N_ADD_VARIABLE(bool, IsClientSideAnimation, "DT_BaseAnimating::m_bClientSideAnimation");
+	N_ADD_VARIABLE(int, GetSequence, "DT_BaseAnimating::m_nSequence");
+	N_ADD_VARIABLE_OFFSET(CBoneMergeCache*, GetBoneMergeCache, "DT_BaseAnimating::m_hLightingOrigin", -0x38); // @ida C_BaseAnimating::m_pBoneMergeCache: (C_BaseAnimating::CalcBoneMerge) client.dll -> ["89 86 ? ? ? ? E8 ? ? ? ? FF 75 08" + 0x2]
+	N_ADD_VARIABLE_OFFSET(CUtlVectorAligned<Matrix3x4a_t>, GetCachedBonesData, "DT_BaseAnimating::m_hLightingOrigin", -0x34); // @ida C_BaseAnimating::m_CachedBoneData: client.dll -> ["8B 87 ? ? ? ? 89 BF" + 0x2]
+	N_ADD_VARIABLE_OFFSET(float, GetLastBoneSetupTime, "DT_BaseAnimating::m_hLightingOrigin", -0x20); // @ida C_BaseAnimating::m_flLastBoneSetupTime: client.dll -> ["C7 87 ? ? ? ? ? ? ? ? 89 87 ? ? ? ? 8B 8F" + 0x2] @xref: "Model '%s' has skin but thinks it can render fastpath\n"
+	N_ADD_VARIABLE_OFFSET(bool, IsJiggleBonesAllowed, "DT_BaseAnimating::m_hLightingOrigin", -0x18); // @ida C_BaseAnimating::m_isJiggleBonesEnabled: client.dll -> ["80 BF ? ? ? ? ? 0F 84 ? ? ? ? 8B 74 24 14" + 0x2] @xref: r_jiggle_bones
+	N_ADD_VARIABLE_OFFSET(CStudioHdr*, GetStudioHdr, "DT_BaseAnimating::m_hLightingOrigin", 0x8); // @ida C_BaseAnimating::m_pStudioHdr: client.dll -> ["8B 8E ? ? ? ? 85 C9 0F 84 ? ? ? ? 83 39" + 0x2] @xref: "Bip01_Head", "head_0", "L_Hand", "hand_L", "R_Hand", "hand_R", "weapon_bone"
+	N_ADD_VARIABLE_OFFSET(MDLHandle_t, GetStudioHdrHandle, "DT_BaseAnimating::m_hLightingOrigin", 0xC); // @ida: C_BaseAnimating::m_hStudioHdr: (C_BaseAnimating::LockStudioHdr) client.dll -> ["66 89 83 ? ? ? ? EB 2F" + 0x3]
+
+	// incremented each frame in 'InvalidateModelBones()'. models compare this value to what it was last time they setup their bones to determine if they need to re-setup their bones
+	[[nodiscard]] static unsigned long& GetModelBoneCounter()
 	{
-		switch (this->nWeaponType)
+		static std::uint8_t* uModelBoneCounterOffset = MEM::FindPattern(CLIENT_DLL, Q_XOR("3B 05 ? ? ? ? 0F 84 ? ? ? ? 8B 47")) + 0x2;
+		return *reinterpret_cast<unsigned long*>(uModelBoneCounterOffset);
+	}
+
+	// update latched IK contacts if they're in a moving reference frame
+	Q_INLINE void UpdateIKLocks(float flCurrentTime)
+	{
+		// @ida C_BaseAnimating::UpdateIKLocks(): client.dll -> "55 8B EC 83 EC 08 8B C1 53 89"
+		CallVFunc<void, 192U>(this, flCurrentTime);
+	}
+
+	// find the ground or external attachment points needed by IK rules
+	Q_INLINE void CalculateIKLocks(float flCurrentTime)
+	{
+		/*
+		 * the only meaningful difference of client to server version is handling of attachments
+		 *
+		 * @ida C_BaseAnimating::CalculateIKLocks(): client.dll -> "55 8B EC 83 E4 F8 81 EC ? ? ? ? 56 57 8B F9 89 7C 24 18"
+		 * @ida CBaseAnimating::CalculateIKLocks(): server.dll -> "55 8B EC 83 E4 F0 81 EC ? ? ? ? 56 57 8B F9 83"
+		 */
+		CallVFunc<void, 193U>(this, flCurrentTime);
+	}
+
+	Q_INLINE void SetSequence(int iSequence)
+	{
+		// @ida: client.dll -> ["FF 90 ? ? ? ? 8B 07 8B CF FF 90 ? ? ? ? 8B CF" + 0x2] / sizeof(std::uintptr_t)
+		CallVFunc<void, 219U>(this, iSequence);
+	}
+
+	Q_INLINE void StudioFrameAdvance()
+	{
+		// @ida: client.dll -> ["FF 90 ? ? ? ? 8B 07 8B CF FF 90 ? ? ? ? 8B CF" + 0xC] / sizeof(std::uintptr_t)
+		CallVFunc<void, 220U>(this);
+	}
+
+	Q_INLINE void UpdateClientSideAnimation()
+	{
+		// @ida C_CSPlayer::UpdateClientSideAnimation(): client.dll -> "55 8B EC 51 56 8B F1 80 BE ? ? ? ? ? 74 36"
+		// @ida: client.dll -> ["FF 90 ? ? ? ? 46 3B F7 7C E4 8B" + 0x2] / sizeof(std::uintptr_t) @xref: "UpdateClientSideAnimations"
+		CallVFunc<void, 224U>(this);
+	}
+
+	[[nodiscard]] Q_INLINE bool IsViewModel() const
+	{
+		return CallVFunc<bool, 234U>(this);
+	}
+
+	void SetupBones_AttachmentHelper(CStudioHdr* pStudioHdr)
+	{
+		static auto fnSetupBones_AttachmentHelper = reinterpret_cast<void(Q_THISCALL*)(CBaseAnimating*, CStudioHdr*)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 EC 48 53 8B 5D")));
+		fnSetupBones_AttachmentHelper(this, pStudioHdr);
+	}
+
+	void LockStudioHdr()
+	{
+		static auto fnLockStudioHdr = reinterpret_cast<void(Q_THISCALL*)(CBaseAnimating*)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 51 53 8B D9 56 57 8D B3 ? ? ? ? FF")));
+		fnLockStudioHdr(this);
+	}
+
+	void UnlockStudioHdr()
+	{
+		static auto fnUnlockStudioHdr = reinterpret_cast<void(Q_THISCALL*)(CBaseAnimating*)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("56 57 8B F9 8B B7 ? ? ? ? 85 F6 0F 84 ? ? ? ? 8B 4E")));
+		fnUnlockStudioHdr(this);
+	}
+
+	[[nodiscard]] Q_INLINE CStudioHdr* GetModelPtr()
+	{
+		// @ida C_BaseAnimating::GetModelPtr(): client.dll -> ABS["E8 ? ? ? ? 8B 55 38" + 0x1]
+
+		if (CStudioHdr* pStudioHdr = this->GetStudioHdr(); pStudioHdr == nullptr)
 		{
-		case WEAPONTYPE_PISTOL:
-		case WEAPONTYPE_SUBMACHINEGUN:
-		case WEAPONTYPE_RIFLE:
-		case WEAPONTYPE_SHOTGUN:
-		case WEAPONTYPE_SNIPER:
-		case WEAPONTYPE_MACHINEGUN:
-			return true;
+			if (this->GetModel() != nullptr)
+				this->LockStudioHdr();
+			else
+				return nullptr;
 		}
+		else if (pStudioHdr->IsValid())
+			return pStudioHdr;
 
-		return false;
+		return nullptr;
 	}
-};
 
-class IRefCounted;
-class CEconItemView
-{
-public:
-	N_ADD_OFFSET(CUtlVector<IRefCounted*>, GetCustomMaterials, 0x14);
-
-	CUtlVector<CRefCounted*>& GetVisualsDataProcessors()
+	[[nodiscard]] int GetSequenceActivity(const int iSequence)
 	{
-		// @xref: "Original material not found! Name: %s"
-		static const std::uintptr_t uVisualsDataProcessorsOffset = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, XorStr("81 C7 ? ? ? ? 8B 4F 0C 8B 57 04 89 4C")) + 0x2);
-		return *reinterpret_cast<CUtlVector<CRefCounted*>*>(reinterpret_cast<std::uintptr_t>(this) + uVisualsDataProcessorsOffset);
+		if (iSequence == -1)
+			return ACT_INVALID;
+
+		CStudioHdr* pStudioHdr = this->GetModelPtr();
+
+		if (pStudioHdr == nullptr)
+			return ACT_INVALID;
+
+		static auto fnGetSequenceActivity = reinterpret_cast<int(Q_FASTCALL*)(CBaseAnimating*, CStudioHdr*, int)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 53 8B 5D 08 56 8B F1 83"))); // @xref: "Need to handle the activity %d\n"
+		return fnGetSequenceActivity(this, pStudioHdr, iSequence);
+	}
+
+	[[nodiscard]] Q_INLINE float GetModelHierarchyScale()
+	{
+		if (this->GetModelScaleType() == HIERARCHICAL_MODEL_SCALE)
+			return this->GetModelScale();
+
+		const CStudioHdr* pStudioHdr = this->GetModelPtr();
+		return (pStudioHdr != nullptr && pStudioHdr->GetBoneCount() == 1) ? this->GetModelScale() : 1.0f;
+	}
+
+	Q_INLINE void InvalidateBoneCache()
+	{
+		// @ida C_BaseAnimating::InvalidateBoneCache() [inlined]: client.dll -> "48 C7 87 ? ? ? ? ? ? ? ? 89 87 ? ? ? ? 8B 8F" - 0x14 @xref: "Model '%s' has skin but thinks it can render fastpath\n"
+
+		this->GetMostRecentModelBoneCounter() = GetModelBoneCounter() - 1;
+		this->GetLastBoneSetupTime() = -FLT_MAX;
+	}
+
+	[[nodiscard]] Q_INLINE bool IsBoneCacheValid()
+	{
+		return (this->GetMostRecentModelBoneCounter() == GetModelBoneCounter());
+	}
+
+	[[nodiscard]] float GetPoseParameter(const CStudioHdr* pStudioHdr, int iParameter);
+	float SetPoseParameter(const CStudioHdr* pStudioHdr, int iParameter, float flValue);
+	[[nodiscard]] int GetBoneByHash(const FNV1A_t uBoneHash);
+	[[nodiscard]] Vector_t GetBonePosition(int nBoneIndex);
+	[[nodiscard]] Vector_t GetHitboxPosition(const int nHitboxIndex);
+	[[nodiscard]] Vector_t GetHitGroupPosition(const int iHitGroup);
+	void GetSkeleton(CStudioHdr* pStudioHdr, BoneVector_t* arrBonesPosition, BoneQuaternionAligned_t* arrBonesRotation, int nBoneMask);
+};
+
+// @source: master/game/client/c_baseanimatingoverlay.h
+class CBaseAnimatingOverlay : public CBaseAnimating
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CBaseAnimatingOverlay);
+
+	[[nodiscard]] CUtlVector<CAnimationLayer>& GetAnimationOverlays()
+	{
+		// @ida C_BaseAnimatingOverlay::GetAnimOverlay(): client.dll -> "55 8B EC 51 53 8B 5D 08 33 C0"
+		static const std::uintptr_t uAnimationOverlaysOffset = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, Q_XOR("8B 89 ? ? ? ? 8D 0C D1")) + 0x2);
+		return *reinterpret_cast<CUtlVector<CAnimationLayer>*>(reinterpret_cast<std::uint8_t*>(this) + uAnimationOverlaysOffset);
+	}
+
+	Q_INLINE bool UpdateDispatchLayer(CAnimationLayer* pLayer, CStudioHdr* pWeaponStudioHdr, int iSequence)
+	{
+		// @ida C_BaseAnimatingOverlay::UpdateDispatchLayer(): client.dll | server.dll -> "55 8B EC 56 57 8B 7D 0C 8B D1"
+		return CallVFunc<bool, 247U>(this, pLayer, pWeaponStudioHdr, iSequence);
+	}
+
+	void GetSkeleton(CStudioHdr* pStudioHdr, BoneVector_t* arrBonesPosition, BoneQuaternionAligned_t* arrBonesRotation, int nBoneMask);
+};
+
+// @source: master/game/client/c_baseflex.h
+class CBaseFlex : public CBaseAnimatingOverlay
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CBaseFlex);
+};
+
+// @source: master/game/client/c_basecombatcharacter.h
+class CBaseCombatCharacter : public CBaseFlex
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CBaseCombatCharacter);
+
+	N_ADD_VARIABLE(float, GetNextAttack, "DT_BaseCombatCharacter::m_flNextAttack");
+	N_ADD_VARIABLE(CBaseHandle, GetActiveWeaponHandle, "DT_BaseCombatCharacter::m_hActiveWeapon");
+	N_ADD_VARIABLE(CBaseHandle[MAX_WEAPONS], GetWeaponsHandle, "DT_BaseCombatCharacter::m_hMyWeapons");
+	N_ADD_VARIABLE(CBaseHandle[MAX_WEARABLES], GetWearablesHandle, "DT_BaseCombatCharacter::m_hMyWearables");
+
+	[[nodiscard]] CBaseCombatWeapon* GetActiveWeapon();
+};
+
+// @source: master/public/PlayerState.h
+class CPlayerState
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CPlayerState);
+
+	N_ADD_VARIABLE_OFFSET(QAngle_t, GetViewAngles, "DT_PlayerState::deadflag", 0x4);
+};
+
+// @source: master/game/client/c_playerlocaldata.h
+class CPlayerLocalData
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CPlayerLocalData);
+
+	N_ADD_VARIABLE(float, GetFallVelocity, "DT_Local::m_flFallVelocity");
+	N_ADD_VARIABLE(QAngle_t, GetViewPunch, "DT_Local::m_viewPunchAngle");
+	N_ADD_VARIABLE(QAngle_t, GetAimPunch, "DT_Local::m_aimPunchAngle");
+};
+
+// @source: master/game/client/c_baseplayer.h
+class CCommandContext
+{
+public:
+	bool bNeedsProcessing; // 0x00
+	CUserCmd command; // 0x04
+	int nCommandNumber; // 0x68
+};
+static_assert(sizeof(CCommandContext) == 0x6C);
+
+class CBasePlayer : public CBaseCombatCharacter
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CBasePlayer);
+
+	N_ADD_VARIABLE(int, GetNextThinkTick, "DT_BasePlayer::m_nNextThinkTick");
+	N_ADD_VARIABLE(int, GetHealth, "DT_BasePlayer::m_iHealth");
+	N_ADD_VARIABLE(int, GetFlags, "DT_BasePlayer::m_fFlags");
+	N_ADD_VARIABLE(Vector_t, GetViewOffset, "DT_BasePlayer::m_vecViewOffset[0]");
+	N_ADD_VARIABLE(Vector_t, GetBaseVelocity, "DT_BasePlayer::m_vecBaseVelocity");
+	N_ADD_VARIABLE(float, GetFriction, "DT_BasePlayer::m_flFriction");
+	N_ADD_VARIABLE(CBaseHandle, GetGroundEntityHandle, "DT_BasePlayer::m_hGroundEntity");
+	N_ADD_VARIABLE(std::uint8_t, GetWaterLevel, "DT_BasePlayer::m_nWaterLevel");
+	N_ADD_VARIABLE(std::int8_t, GetLifeState, "DT_BasePlayer::m_lifeState");
+	N_ADD_VARIABLE(int, GetCoachingTeam, "DT_BasePlayer::m_iCoachingTeam");
+	N_ADD_VARIABLE(float, GetDuckAmount, "DT_BasePlayer::m_flDuckAmount");
+	N_ADD_VARIABLE(float, GetDuckSpeed, "DT_BasePlayer::m_flDuckSpeed");
+	N_ADD_PVARIABLE(CPlayerLocalData, GetLocalData, "DT_BasePlayer::m_Local");
+	N_ADD_VARIABLE(Vector_t, GetVelocity, "DT_BasePlayer::m_vecVelocity[0]");
+	N_ADD_PVARIABLE(CPlayerState, GetPlayerState, "DT_BasePlayer::pl");
+	N_ADD_VARIABLE(float, GetMaxSpeed, "DT_BasePlayer::m_flMaxspeed");
+	N_ADD_VARIABLE(CBaseHandle, GetVehicleHandle, "DT_BasePlayer::m_hVehicle");
+	N_ADD_VARIABLE(CBaseHandle, GetViewModelHandle, "DT_BasePlayer::m_hViewModel[0]");
+	N_ADD_VARIABLE_OFFSET(int, GetButtonDisabled, "DT_BasePlayer::m_hViewEntity", -0xC);
+	N_ADD_VARIABLE_OFFSET(int, GetButtonForced, "DT_BasePlayer::m_hViewEntity", -0x8);
+	N_ADD_VARIABLE_OFFSET(CUserCmd*, GetCurrentCommand, "DT_BasePlayer::m_hViewEntity", -0x4); // @ida: client.dll -> ["89 BE ? ? ? ? E8 ? ? ? ? 85 FF" + 0x2]
+	N_ADD_VARIABLE(int, GetObserverMode, "DT_BasePlayer::m_iObserverMode");
+	N_ADD_VARIABLE(CBaseHandle, GetObserverTargetHandle, "DT_BasePlayer::m_hObserverTarget");
+	N_ADD_VARIABLE(char[MAX_PLACE_NAME_LENGTH], GetLastPlaceName, "DT_BasePlayer::m_szLastPlaceName");
+	N_ADD_VARIABLE(int, GetTickBase, "DT_BasePlayer::m_nTickBase");
+	N_ADD_VARIABLE_OFFSET(int, GetFinalPredictedTick, "DT_BasePlayer::m_nTickBase", 0x4);
+	N_ADD_VARIABLE_OFFSET(CCommandContext, GetCommandContext, "DT_BasePlayer::m_flLaggedMovementValue", -0x98); // @ida: client.dll -> ["C6 86 ? ? ? ? ? F6 86" + 0x2]
+
+	N_ADD_DATAFIELD(int, GetButtons, this->GetPredictionDescMap(), "m_nButtons");
+	N_ADD_PDATAFIELD(int, GetImpulse, this->GetPredictionDescMap(), "m_nImpulse");
+	N_ADD_DATAFIELD(int, GetButtonLast, this->GetPredictionDescMap(), "m_afButtonLast");
+	N_ADD_DATAFIELD(int, GetButtonPressed, this->GetPredictionDescMap(), "m_afButtonPressed");
+	N_ADD_DATAFIELD(int, GetButtonReleased, this->GetPredictionDescMap(), "m_afButtonReleased");
+	N_ADD_DATAFIELD(float, GetWaterJumpTime, this->GetPredictionDescMap(), "m_flWaterJumpTime");
+	N_ADD_DATAFIELD(float, GetSurfaceFriction, this->GetPredictionDescMap(), "m_surfaceFriction");
+
+	[[nodiscard]] CUserCmd& GetLastCommand()
+	{
+		static const std::uintptr_t uLastCommandOffset = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, Q_XOR("8D 8E ? ? ? ? 89 5C 24 3C")) + 0x2);
+		return *reinterpret_cast<CUserCmd*>(reinterpret_cast<std::uint8_t*>(this) + uLastCommandOffset);
+	}
+
+	Q_INLINE void PreThink()
+	{
+		CallVFunc<void, 318U>(this);
+	}
+
+	Q_INLINE void UpdateCollisionBounds()
+	{
+		// @ida: client.dll -> ["FF 90 ? ? ? ? 83 3D ? ? ? ? ? 7E" + 0x2] / sizeof(std::uintptr_t)
+		CallVFunc<void, 340U>(this);
+	}
+
+	void PostThink();
+	/// @returns: the player's team or, if coach, coaching team
+	[[nodiscard]] int GetAssociatedTeam();
+	/// @param[in] bSmokeCheck if true, also check if the trace goes through smoke
+	/// @returns: true if @a'pOtherPlayer' is visible to this player at @a'vecEnd' point, false otherwise
+	[[nodiscard]] bool IsOtherVisible(const CBasePlayer* pOtherPlayer, const Vector_t& vecEnd, const bool bSmokeCheck = false);
+};
+
+// @source: master/game/client/cstrike15/c_cs_player.h
+class CCSPlayer : public CBasePlayer
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CCSPlayer);
+
+	// @todo: rem? @ida customplayer offset: client.dll -> ["80 BF ? ? ? ? ? 0F 84 ? ? ? ? 83 BF ? ? ? ? ? 74 7A" + 0x2]
+	N_ADD_VARIABLE_OFFSET(CCSGOPlayerAnimState*, GetAnimationState, "DT_CSPlayer::m_bIsScoped", -0x14); // @ida: client.dll -> ["8B 8E ? ? ? ? F3 0F 10 48 ? E8 ? ? ? ? C7" + 0x2]
+	N_ADD_VARIABLE(bool, IsScoped, "DT_CSPlayer::m_bIsScoped");
+	N_ADD_VARIABLE(bool, IsDefusing, "DT_CSPlayer::m_bIsDefusing");
+	N_ADD_VARIABLE(bool, IsGrabbingHostage, "DT_CSPlayer::m_bIsGrabbingHostage");
+	N_ADD_VARIABLE(bool, IsRescuing, "DT_CSPlayer::m_bIsRescuing");
+	N_ADD_VARIABLE(bool, HasImmunity, "DT_CSPlayer::m_bGunGameImmunity");
+	N_ADD_VARIABLE(bool, IsInBuyZone, "DT_CSPlayer::m_bInBuyZone");
+	N_ADD_VARIABLE(bool, IsWaitForNoAttack, "DT_CSPlayer::m_bWaitForNoAttack");
+	N_ADD_VARIABLE(float, GetLowerBodyYaw, "DT_CSPlayer::m_flLowerBodyYawTarget");
+	N_ADD_VARIABLE(bool, IsGhost, "DT_CSPlayer::m_bIsPlayerGhost");
+	N_ADD_VARIABLE_OFFSET(bool, IsUsingNewAnimState, "DT_CSPlayer::m_flLastExoJumpTime", 0x8); // @xref: "custom_player"
+	N_ADD_VARIABLE_OFFSET(float, GetLastSpawnTimeIndex, "DT_CSPlayer::m_iAddonBits", -0x4); // @ida C_CSPlayer::m_flLastSpawnTimeIndex: (C_CSPlayer::Spawn) client.dll -> ["89 86 ? ? ? ? E8 ? ? ? ? 80 BE" + 0x2]
+	N_ADD_VARIABLE(int, GetShotsFired, "DT_CSPlayer::m_iShotsFired");
+	N_ADD_VARIABLE(int, GetTotalHits, "DT_CSPlayer::m_totalHitsOnServer");
+	N_ADD_VARIABLE(int, GetSurvivalTeam, "DT_CSPlayer::m_nSurvivalTeam");
+	N_ADD_VARIABLE(CBaseHandle, GetRagdollHandle, "DT_CSPlayer::m_hRagdoll");
+	N_ADD_VARIABLE_OFFSET(float, GetFlashAlpha, "DT_CSPlayer::m_flFlashMaxAlpha", -0x8);
+	N_ADD_VARIABLE(float, GetFlashMaxAlpha, "DT_CSPlayer::m_flFlashMaxAlpha");
+	N_ADD_VARIABLE(float, GetFlashDuration, "DT_CSPlayer::m_flFlashDuration");
+	N_ADD_VARIABLE_OFFSET(int, GetGlowIndex, "DT_CSPlayer::m_flFlashDuration", 0x18);
+	N_ADD_VARIABLE(int, GetMoney, "DT_CSPlayer::m_iAccount");
+	N_ADD_VARIABLE(bool, HasHelmet, "DT_CSPlayer::m_bHasHelmet");
+	N_ADD_VARIABLE(bool, HasHeavyArmor, "DT_CSPlayer::m_bHasHeavyArmor");
+	N_ADD_VARIABLE(int, GetArmor, "DT_CSPlayer::m_ArmorValue");
+	N_ADD_VARIABLE(QAngle_t, GetEyeAngles, "DT_CSPlayer::m_angEyeAngles");
+	N_ADD_VARIABLE(bool, HasDefuser, "DT_CSPlayer::m_bHasDefuser");
+
+	// adjust bones outside of bounding box @note: pseudo name, added since 22.09.2021 (version 1.38.0.2, build 1345)
+	void AdjustBonesToBBox(Matrix3x4_t* arrBonesToWorld, int nBoneMask)
+	{
+		/*
+		 * mostly no difference between client-server, uses not networked variables
+		 *
+		 * @ida C_CSPlayer::AdjustBonesToBBox(): client.dll -> "55 8B EC 83 E4 F8 83 EC 70 56 57 8B F9 89 7C 24 38"
+		 * @ida CCSPlayer::AdjustBonesToBBox(): server.dll -> "55 8B EC 83 E4 F8 83 EC 70 56 57 8B F9 89"
+		 */
+
+		static auto fnAdjustBonesToBBox = reinterpret_cast<void(Q_THISCALL*)(CCSPlayer*, Matrix3x4_t*, int)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 E4 F8 83 EC 70 56 57 8B F9 89 7C 24 38")));
+		fnAdjustBonesToBBox(this, arrBonesToWorld, nBoneMask);
+	}
+
+	[[nodiscard]] Vector_t GetWeaponShootPosition();
+	[[nodiscard]] static CCSPlayer* GetLocalPlayer();
+	[[nodiscard]] int GetMaxHealth(); // @todo: find a game way doing this
+	/// @returns: true if given @a'iHitGroup' is armored, false otherwise
+	[[nodiscard]] bool IsArmored(const int iHitGroup);
+	/// @returns: true if @a'pOtherPlayer' is enemy to this player, false otherwise
+	[[nodiscard]] bool IsOtherEnemy(CCSPlayer* pOtherPlayer);
+	/// @returns: true if player is ready to attack, false otherwise
+	[[nodiscard]] bool CanAttack(const float flServerTime);
+};
+
+class CCSRagdoll : public CBaseAnimatingOverlay
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CCSRagdoll);
+
+	N_ADD_VARIABLE(CBaseHandle, GetOwnerHandle, "DT_CSRagdoll::m_hPlayer");
+};
+
+// @source: master/game/shared/econ/attribute_manager.h
+class CAttributeManager
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CAttributeManager);
+
+	N_ADD_PVARIABLE(CEconItemView, GetItem, "DT_AttributeContainer::m_Item");
+};
+
+// @source: master/game/shared/econ/econ_entity.h
+class CEconEntity : public CBaseFlex
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CEconEntity);
+
+	N_ADD_PVARIABLE(CAttributeManager, GetAttributeManager, "DT_EconEntity::m_AttributeManager");
+	N_ADD_VARIABLE(std::uint32_t, GetOriginalOwnerXuidLow, "DT_EconEntity::m_OriginalOwnerXuidLow");
+	N_ADD_VARIABLE(std::uint32_t, GetOriginalOwnerXuidHigh, "DT_EconEntity::m_OriginalOwnerXuidHigh");
+	N_ADD_VARIABLE(int, GetFallbackPaintKit, "DT_EconEntity::m_nFallbackPaintKit");
+	N_ADD_VARIABLE(int, GetFallbackSeed, "DT_EconEntity::m_nFallbackSeed");
+	N_ADD_VARIABLE(float, GetFallbackWear, "DT_EconEntity::m_flFallbackWear");
+	N_ADD_VARIABLE(int, GetFallbackStatTrak, "DT_EconEntity::m_nFallbackStatTrak");
+
+	[[nodiscard]] std::uint64_t GetOriginalOwnerXuid()
+	{
+		return (static_cast<std::uint64_t>(this->GetOriginalOwnerXuidHigh()) << 32ULL) | this->GetOriginalOwnerXuidLow();
 	}
 };
 
-class CBaseCombatWeapon : public IClientEntity
+class CBaseAttributableItem : public CEconEntity
+{
+	Q_CLASS_NO_INITIALIZER(CBaseAttributableItem);
+};
+
+// @source: master/game/shared/basecombatweapon_shared.h
+class CBaseCombatWeapon : public CBaseAnimating
 {
 public:
-	#pragma region DT_BaseCombatWeapon
-	N_ADD_VARIABLE(float, GetNextPrimaryAttack, "CBaseCombatWeapon->m_flNextPrimaryAttack");
-	N_ADD_VARIABLE(float, GetNextSecondaryAttack, "CBaseCombatWeapon->m_flNextSecondaryAttack");
-	N_ADD_VARIABLE(int, GetAmmo, "CBaseCombatWeapon->m_iClip1");
-	N_ADD_VARIABLE(int, GetAmmoReserve, "CBaseCombatWeapon->m_iPrimaryReserveAmmoCount");
-	N_ADD_VARIABLE(int, GetViewModelIndex, "CBaseCombatWeapon->m_iViewModelIndex");
-	N_ADD_VARIABLE(int, GetWorldModelIndex, "CBaseCombatWeapon->m_iWorldModelIndex");
-	N_ADD_VARIABLE(CBaseHandle, GetWorldModelHandle, "CBaseCombatWeapon->m_hWeaponWorldModel");
+	Q_CLASS_NO_INITIALIZER(CBaseCombatWeapon);
+
+	N_ADD_VARIABLE(float, GetNextPrimaryAttack, "DT_BaseCombatWeapon::m_flNextPrimaryAttack");
+	N_ADD_VARIABLE(float, GetNextSecondaryAttack, "DT_BaseCombatWeapon::m_flNextSecondaryAttack");
+	N_ADD_VARIABLE(int, GetAmmo, "DT_BaseCombatWeapon::m_iClip1");
+	N_ADD_VARIABLE(int, GetAmmoReserve, "DT_BaseCombatWeapon::m_iPrimaryReserveAmmoCount");
+	N_ADD_VARIABLE(int, GetViewModelIndex, "DT_BaseCombatWeapon::m_iViewModelIndex");
+	N_ADD_VARIABLE(int, GetWorldModelIndex, "DT_BaseCombatWeapon::m_iWorldModelIndex");
+	N_ADD_VARIABLE(CBaseHandle, GetWorldModelHandle, "DT_BaseCombatWeapon::m_hWeaponWorldModel");
 
 	N_ADD_DATAFIELD(bool, IsReloading, this->GetPredictionDescMap(), "m_bInReload");
-	#pragma endregion
+	N_ADD_DATAFIELD(int, GetSubType, this->GetPredictionDescMap(), "m_iSubType");
 
-	#pragma region DT_BaseAttributableItem
-	N_ADD_VARIABLE(short, GetItemDefinitionIndex, "CBaseAttributableItem->m_iItemDefinitionIndex");
-	N_ADD_VARIABLE(int, GetItemIDHigh, "CBaseAttributableItem->m_iItemIDHigh");
-	N_ADD_VARIABLE(int, GetItemIDLow, "CBaseAttributableItem->m_iItemIDLow");
-	N_ADD_VARIABLE(int, GetAccountID, "CBaseAttributableItem->m_iAccountID");
-	N_ADD_VARIABLE(int, GetEntityQuality, "CBaseAttributableItem->m_iEntityQuality");
-	N_ADD_PVARIABLE(char, GetCustomName, "CBaseAttributableItem->m_szCustomName");
-	N_ADD_VARIABLE(int, GetOwnerXuidLow, "CBaseAttributableItem->m_OriginalOwnerXuidLow");
-	N_ADD_VARIABLE(int, GetOwnerXuidHigh, "CBaseAttributableItem->m_OriginalOwnerXuidHigh");
-	N_ADD_VARIABLE(int, GetFallbackPaintKit, "CBaseAttributableItem->m_nFallbackPaintKit");
-	N_ADD_VARIABLE(int, GetFallbackSeed, "CBaseAttributableItem->m_nFallbackSeed");
-	N_ADD_VARIABLE(float, GetFallbackWear, "CBaseAttributableItem->m_flFallbackWear");
-	N_ADD_VARIABLE(int, GetFallbackStatTrak, "CBaseAttributableItem->m_nFallbackStatTrak");
-	N_ADD_PVARIABLE(CEconItemView, GetEconItemView, "CBaseAttributableItem->m_Item");
-	#pragma endregion
-
-	void SetModelIndex(int nModelIndex)
+	CEconItemView* GetEconItemView()
 	{
-		MEM::CallVFunc<void>(this, 75, nModelIndex);
+		return reinterpret_cast<CEconEntity*>(this)->GetAttributeManager()->GetItem();
+	}
+};
+
+// @source: master/game/shared/cstrike15/weapon_csbase.h
+class CWeaponCSBase : public CBaseCombatWeapon
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CWeaponCSBase);
+
+	N_ADD_VARIABLE(int, GetWeaponMode, "DT_WeaponCSBase::m_weaponMode");
+	N_ADD_VARIABLE(float, GetAccuracyPenalty, "DT_WeaponCSBase::m_fAccuracyPenalty");
+	N_ADD_VARIABLE(float, GetRecoilIndex, "DT_WeaponCSBase::m_flRecoilIndex");
+	N_ADD_VARIABLE(bool, IsBurstMode, "DT_WeaponCSBase::m_bBurstMode");
+	N_ADD_VARIABLE(float, GetPostponeFireReadyTime, "DT_WeaponCSBase::m_flPostponeFireReadyTime");
+	N_ADD_VARIABLE(float, GetLastShotTime, "DT_WeaponCSBase::m_fLastShotTime");
+
+	[[nodiscard]] CUtlVector<IRefCounted*>& GetCustomMaterials()
+	{
+		static const std::uintptr_t uAddress = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, Q_XOR("83 BE ? ? ? ? ? 7F 67")) + 0x2) - 0xC;
+		return *reinterpret_cast<CUtlVector<IRefCounted*>*>(reinterpret_cast<std::uint8_t*>(this) + uAddress);
 	}
 
-	bool IsWeapon()
+	[[nodiscard]] bool& IsCustomMaterialInitialized()
 	{
-		return MEM::CallVFunc<bool>(this, 166);
+		static const std::uintptr_t uAddress = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, Q_XOR("C6 86 ? ? ? ? ? FF 50 04")) + 0x2);
+		return *reinterpret_cast<bool*>(reinterpret_cast<std::uint8_t*>(this) + uAddress);
 	}
 
-	[[nodiscard]] float GetSpread()
+	[[nodiscard]] Q_INLINE float GetInaccuracy() const
 	{
-		return MEM::CallVFunc<float>(this, 453);
+		// @ida C_WeaponCSBase::GetInaccuracy(): client.dll -> "55 8B EC 83 E4 F8 83 EC 18 56 8B F1 57" @xref: 'weapon_accuracy_forcespread', 'weapon_accuracy_nospread'
+		return CallVFunc<float, 483U>(this);
 	}
 
-	[[nodiscard]] float GetInaccuracy()
+	Q_INLINE void UpdateAccuracyPenalty()
 	{
-		return MEM::CallVFunc<float>(this, 483);
+		// @ida C_WeaponCSBase::UpdateAccuracyPenalty(): client.dll -> "55 8B EC 83 E4 F8 83 EC 18 56 57 8B F9 8B 8F" @xref: 'weapon_recoil_decay_coefficient'
+		return CallVFunc<void, 484U>(this);
 	}
+};
+
+// @source: master/game/shared/cstrike15/weapon_csbasegun.h
+class CWeaponCSBaseGun : public CWeaponCSBase
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CWeaponCSBaseGun);
+
+	N_ADD_VARIABLE(int, GetZoomLevel, "DT_WeaponCSBaseGun::m_zoomLevel");
+	N_ADD_VARIABLE(int, GetBurstShotsRemaining, "DT_WeaponCSBaseGun::m_iBurstShotsRemaining");
+
+	N_ADD_DATAFIELD(float, GetNextBurstShotTime, GetPredictionDescMap(), "m_fNextBurstShot");
+
+	/// @returns: true if weapon can primary attack this tick, false otherwise
+	[[nodiscard]] bool CanPrimaryAttack(const int nWeaponType, const float flServerTime);
+	/// @returns: true if weapon can alternative attack this tick, false otherwise
+	[[nodiscard]] bool CanSecondaryAttack(const int nWeaponType, const float flServerTime);
 };
 
 class CTEFireBullets
 {
 public:
-	std::byte	pad0[0x10];				//0x0000
-	int			nPlayer;				//0x0010
-	int			nItemDefinitionIndex;	//0x0014
-	Vector		vecOrigin;				//0x0018
-	Vector		vecAngles;				//0x0024
-	int			iWeapon;				//0x0030
-	int			nWeaponID;				//0x0034
-	int			iMode;					//0x0038
-	int			nSeed;					//0x003C
-	float		flInaccuracy;			//0x0040
-	float		flRecoilIndex;			//0x0044
-	float		flSpread;				//0x0048
-	int			nSoundType;				//0x004C
-}; // Size: 0x0050
+	Q_CLASS_NO_INITIALIZER(CTEFireBullets);
 
-class CWeaponCSBase : public CBaseCombatWeapon
+	N_ADD_VARIABLE(int, GetPlayer, "DT_TEFireBullets::m_iPlayer");
+	N_ADD_VARIABLE(std::uint16_t, GetItemDefinitionIndex, "DT_TEFireBullets::m_nItemDefIndex");
+	N_ADD_VARIABLE(Vector_t, GetOrigin, "DT_TEFireBullets::m_vecOrigin");
+	N_ADD_VARIABLE(QAngle_t, GetAngles, "DT_TEFireBullets::m_vecAngles[0]");
+	N_ADD_VARIABLE(int, GetWeapon, "DT_TEFireBullets::m_weapon");
+	N_ADD_VARIABLE(int, GetWeaponID, "DT_TEFireBullets::m_iWeaponID");
+	N_ADD_VARIABLE(int, GetMode, "DT_TEFireBullets::m_iMode");
+	N_ADD_VARIABLE(int, GetSeed, "DT_TEFireBullets::m_iSeed");
+	N_ADD_VARIABLE(float, GetInaccuracy, "DT_TEFireBullets::m_fInaccuracy");
+	N_ADD_VARIABLE(float, GetRecoilIndex, "DT_TEFireBullets::m_flRecoilIndex");
+	N_ADD_VARIABLE(float, GetSpread, "DT_TEFireBullets::m_fSpread");
+	N_ADD_VARIABLE(int, GetSoundType, "DT_TEFireBullets::m_iSoundType");
+};
+
+// @source: master/game/shared/basegrenade_shared.h
+class CBaseGrenade : public CBaseAnimating
 {
 public:
-	#pragma region DT_WeaponCSBaseGun
-	N_ADD_VARIABLE(int, GetZoomLevel, "CWeaponCSBaseGun->m_zoomLevel");
-	N_ADD_VARIABLE(int, GetBurstShotsRemaining, "CWeaponCSBaseGun->m_iBurstShotsRemaining");
-	#pragma endregion
+	Q_CLASS_NO_INITIALIZER(CBaseGrenade);
 
-	#pragma region DT_WeaponCSBase
-	N_ADD_VARIABLE(bool, IsBurstMode, "CWeaponCSBase->m_bBurstMode");
-	N_ADD_VARIABLE(float, GetAccuracyPenalty, "CWeaponCSBase->m_fAccuracyPenalty");
-	N_ADD_VARIABLE(float, GetFireReadyTime, "CWeaponCSBase->m_flPostponeFireReadyTime");
-	#pragma endregion
-
-	CUtlVector<IRefCounted*>& GetCustomMaterials()
-	{
-		static auto uAddress = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, XorStr("83 BE ? ? ? ? ? 7F 67")) + 0x2) - 0xC;
-		return *reinterpret_cast<CUtlVector<IRefCounted*>*>(reinterpret_cast<std::uintptr_t>(this) + uAddress);
-	}
-
-	bool& IsCustomMaterialInitialized()
-	{
-		static auto uAddress = *reinterpret_cast<std::uintptr_t*>(MEM::FindPattern(CLIENT_DLL, XorStr("C6 86 ? ? ? ? ? FF 50 04")) + 0x2);
-		return *reinterpret_cast<bool*>(reinterpret_cast<std::uintptr_t>(this) + uAddress);
-	}
+	N_ADD_VARIABLE(int, GetFlags, "DT_BaseGrenade::m_fFlags");
+	N_ADD_VARIABLE(Vector_t, GetVelocity, "DT_BaseGrenade::m_vecVelocity");
+	N_ADD_VARIABLE(bool, IsLive, "DT_BaseGrenade::m_bIsLive");
+	N_ADD_VARIABLE(float, GetDamageRadius, "DT_BaseGrenade::m_DmgRadius");
+	N_ADD_VARIABLE(float, GetDamage, "DT_BaseGrenade::m_flDamage");
+	N_ADD_VARIABLE(CBaseHandle, GetThrowerHandle, "DT_BaseGrenade::m_hThrower");
 };
 
 class CBaseCSGrenade : public CWeaponCSBase
 {
 public:
-	#pragma region DT_BaseCSGrenade
-	N_ADD_VARIABLE(bool, IsPinPulled, "CBaseCSGrenade->m_bPinPulled");
-	N_ADD_VARIABLE(float, GetThrowTime, "CBaseCSGrenade->m_fThrowTime");
-	N_ADD_VARIABLE(float, GetThrowStrength, "CBaseCSGrenade->m_flThrowStrength");
-	#pragma endregion
+	Q_CLASS_NO_INITIALIZER(CBaseCSGrenade);
 
-	#pragma region DT_BaseCSGrenadeProjectile
-	N_ADD_VARIABLE(int, GetEffectTickBegin, "CBaseCSGrenadeProjectile->m_nExplodeEffectTickBegin");
-	#pragma endregion
+	N_ADD_VARIABLE(bool, IsPinPulled, "DT_BaseCSGrenade::m_bPinPulled");
+	N_ADD_VARIABLE(float, GetThrowTime, "DT_BaseCSGrenade::m_fThrowTime");
+	N_ADD_VARIABLE(float, GetThrowStrength, "DT_BaseCSGrenade::m_flThrowStrength");
 };
 
-class CSmokeGrenade
+// @source: master/game/shared/cstrike15/basecsgrenade_projectile.h
+class CBaseCSGrenadeProjectile : public CBaseGrenade
 {
 public:
-	#pragma region DT_SmokeGrenadeProjectile
-	N_ADD_VARIABLE(int, GetEffectTickBegin, "CSmokeGrenadeProjectile->m_nSmokeEffectTickBegin");
-	#pragma endregion
+	Q_CLASS_NO_INITIALIZER(CBaseCSGrenadeProjectile);
 
-	inline float GetMaxTime()
+	N_ADD_VARIABLE(Vector_t, GetInitialVelocity, "DT_BaseCSGrenadeProjectile::m_vInitialVelocity");
+	N_ADD_VARIABLE(int, GetBounces, "DT_BaseCSGrenadeProjectile::m_nBounces");
+	N_ADD_VARIABLE(int, GetExplodeEffectIndex, "DT_BaseCSGrenadeProjectile::m_nExplodeEffectIndex");
+	N_ADD_VARIABLE(int, GetExplodeEffectTickBegin, "DT_BaseCSGrenadeProjectile::m_nExplodeEffectTickBegin");
+	N_ADD_VARIABLE(Vector_t, GetExplodeEffectOrigin, "DT_BaseCSGrenadeProjectile::m_vecExplodeEffectOrigin");
+};
+
+// @source: master/game/shared/cstrike15/smokegrenade_projectile.h
+class CSmokeGrenadeProjectile : public CBaseCSGrenadeProjectile
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CSmokeGrenadeProjectile);
+
+	N_ADD_VARIABLE(int, GetSmokeEffectTickBegin, "DT_SmokeGrenadeProjectile::m_nSmokeEffectTickBegin");
+	N_ADD_VARIABLE(bool, DidSmokeEffect, "DT_SmokeGrenadeProjectile::m_bDidSmokeEffect");
+
+	[[nodiscard]] static Q_INLINE float GetMaxTime()
 	{
 		return 18.f;
 	}
+
+	[[nodiscard]] static Q_INLINE float GetRadius()
+	{
+		/*
+		 * smoke grenade radius constant is actually tuned for the bots and not for gameplay.
+		 * visualizing smoke will show that it goes up from the emitter by 128 units (fuzzy top),
+		 * nothing goes down, and it makes a wide xy-donut with a radius of *128* units (fuzzy edges)
+		 */
+		return 166.f;
+	}
 };
 
-class CInferno
+// @source: master/game/shared/cstrike15/molotov_projectile.h
+class CMolotovProjectile : public CBaseCSGrenadeProjectile
 {
 public:
-	#pragma region DT_Inferno
-	N_ADD_VARIABLE(int, GetEffectTickBegin, "CInferno->m_nFireEffectTickBegin");
-	#pragma endregion
+	Q_CLASS_NO_INITIALIZER(CMolotovProjectile);
 
-	inline float GetMaxTime()
-	{
-		// @todo: get with inferno_flame_lifetime convar
-		return 7.f;
-	}
+	N_ADD_VARIABLE(int, IsIncendiaryGrenade, "DT_MolotovProjectile::m_bIsIncGrenade");
 };
 
-class CPlantedC4
+// @source: master/game/client/cstrike15/Effects/clientinferno.h
+class CInferno : public CBaseEntity
 {
 public:
-	#pragma region DT_PlantedC4
-	N_ADD_VARIABLE(float, GetBlowTime, "CPlantedC4->m_flC4Blow");
-	N_ADD_VARIABLE(float, GetTimerLength, "CPlantedC4->m_flTimerLength");
-	N_ADD_VARIABLE(float, GetDefuseLength, "CPlantedC4->m_flDefuseLength");
-	N_ADD_VARIABLE(float, GetDefuseCountDown, "CPlantedC4->m_flDefuseCountDown");
-	N_ADD_VARIABLE(bool, IsPlanted, "CPlantedC4->m_bBombTicking");
-	N_ADD_VARIABLE(CBaseHandle, GetDefuserHandle, "CPlantedC4->m_hBombDefuser");
-	N_ADD_VARIABLE(bool, IsDefused, "CPlantedC4->m_bBombDefused");
+	Q_CLASS_NO_INITIALIZER(CInferno);
 
-	inline float GetTimer(const float flServerTime)
+	enum
 	{
-		return std::clamp(this->GetBlowTime() - flServerTime, 0.0f, this->GetTimerLength());
-	}
+		MAX_INFERNO_FIRES = 64
+	};
 
-	inline float GetDefuseTimer(const float flServerTime)
-	{
-		return std::clamp(this->GetDefuseCountDown() - flServerTime, 0.0f, this->GetDefuseLength());
-	}
-	#pragma endregion
+	N_ADD_VARIABLE(int[MAX_INFERNO_FIRES], GetFireXDelta, "DT_Inferno::m_fireXDelta");
+	N_ADD_VARIABLE(int[MAX_INFERNO_FIRES], GetFireYDelta, "DT_Inferno::m_fireYDelta");
+	N_ADD_VARIABLE(int[MAX_INFERNO_FIRES], GetFireZDelta, "DT_Inferno::m_fireZDelta");
+	N_ADD_VARIABLE(bool[MAX_INFERNO_FIRES], IsFireBurning, "DT_Inferno::m_bFireIsBurning");
+	N_ADD_VARIABLE(int, GetFireCount, "DT_Inferno::m_fireCount");
+	N_ADD_VARIABLE(int, GetEffectTickBegin, "DT_Inferno::m_nFireEffectTickBegin");
+
+	[[nodiscard]] static float GetMaxTime();
 };
 
-class CBaseViewModel
+// @source: master/game/shared/cstrike15/weapon_c4.h
+class CC4 : public CWeaponCSBase
 {
 public:
-	#pragma region DT_BaseViewModel
-	N_ADD_VARIABLE(int, GetModelIndex, "CBaseViewModel->m_nModelIndex");
-	N_ADD_VARIABLE(CBaseHandle, GetOwnerHandle, "CBaseViewModel->m_hOwner");
-	N_ADD_VARIABLE(CBaseHandle, GetWeaponHandle, "CBaseViewModel->m_hWeapon");
-	#pragma endregion
+	Q_CLASS_NO_INITIALIZER(CC4);
 
-	void SendViewModelMatchingSequence(int nSequence)
+	N_ADD_VARIABLE(bool, IsPlantingViaUse, "DT_WeaponC4::m_bIsPlantingViaUse");
+};
+
+// @source: master/game/client/cstrike15/c_plantedc4.h
+class CPlantedC4 : public CBaseAnimating
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CPlantedC4);
+
+	N_ADD_VARIABLE(bool, IsBombActive, "DT_PlantedC4::m_bBombTicking");
+	N_ADD_VARIABLE(float, GetBlowCountDown, "DT_PlantedC4::m_flC4Blow");
+	N_ADD_VARIABLE(float, GetBlowLength, "DT_PlantedC4::m_flTimerLength");
+	N_ADD_VARIABLE(float, GetDefuseLength, "DT_PlantedC4::m_flDefuseLength");
+	N_ADD_VARIABLE(float, GetDefuseCountDown, "DT_PlantedC4::m_flDefuseCountDown");
+	N_ADD_VARIABLE(bool, IsPlanted, "DT_PlantedC4::m_bBombTicking");
+	N_ADD_VARIABLE(CBaseHandle, GetDefuserHandle, "DT_PlantedC4::m_hBombDefuser");
+	N_ADD_VARIABLE(bool, IsDefused, "DT_PlantedC4::m_bBombDefused");
+};
+
+// @source: master/game/shared/econ/econ_item_view.h
+class CEconItemView : public CDefaultClientRenderable, public IEconItemInterface, public CCustomMaterialOwner
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CEconItemView);
+
+	N_ADD_VARIABLE(ItemDefinitionIndex_t, GetItemDefinitionIndex, "DT_ScriptCreatedItem::m_iItemDefinitionIndex");
+	N_ADD_VARIABLE(std::uint32_t, GetEntityLevel, "DT_ScriptCreatedItem::m_iEntityLevel");
+	N_ADD_VARIABLE(std::uint32_t, GetItemIDHigh, "DT_ScriptCreatedItem::m_iItemIDHigh");
+	N_ADD_VARIABLE(std::uint32_t, GetItemIDLow, "DT_ScriptCreatedItem::m_iItemIDLow");
+	N_ADD_VARIABLE(std::uint32_t, GetAccountID, "DT_ScriptCreatedItem::m_iAccountID");
+	N_ADD_VARIABLE(int, GetEntityQuality, "DT_ScriptCreatedItem::m_iEntityQuality");
+	N_ADD_VARIABLE(int, IsInitialized, "DT_ScriptCreatedItem::m_bInitialized");
+	N_ADD_VARIABLE_OFFSET(CUtlVector<IVisualsDataProcessor*>, GetVisualsDataProcessors, "DT_ScriptCreatedItem::m_bInitialized", 0x1C); // @ida C_EconItemView::m_ppVisualsDataProcessors: client.dll -> ["81 C7 ? ? ? ? 8B 4F 0C 8B 57 04 89 4C" + 0x2] @xref: "Original material not found! Name: %s"
+	N_ADD_VARIABLE(char[MAX_ITEM_CUSTOM_NAME_DATABASE_SIZE], GetCustomName, "DT_ScriptCreatedItem::m_szCustomName");
+};
+
+// @source: master/game/shared/baseviewmodel_shared.h
+class CBaseViewModel : public CBaseAnimating
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CBaseViewModel);
+
+	N_ADD_VARIABLE(CBaseHandle, GetWeaponHandle, "DT_BaseViewModel::m_hWeapon");
+	N_ADD_VARIABLE(CBaseHandle, GetOwnerHandle, "DT_BaseViewModel::m_hOwner");
+
+	Q_INLINE void SendViewModelMatchingSequence(int nSequence)
 	{
-		MEM::CallVFunc<void>(this, 247, nSequence);
+		CallVFunc<void, 247U>(this, nSequence);
 	}
 
-	void SetWeaponModel(const char* szFileName, CBaseCombatWeapon* pWeapon)
+	Q_INLINE void SetWeaponModel(const char* szFileName, CBaseCombatWeapon* pWeapon)
 	{
-		// @ida setweaponmodel: 57 8B F9 8B 97 ? ? ? ? 83 FA FF 74 6A
-		MEM::CallVFunc<void>(this, 248, szFileName, pWeapon);
+		// @ida C_BaseViewModel::SetWeaponModel(): client.dll -> "57 8B F9 8B 97 ? ? ? ? 83 FA FF 74 6A"
+		CallVFunc<void, 248U>(this, szFileName, pWeapon);
 	}
 };
 
+// @source: master/game/shared/basecombatweapon_shared.h
+class CBaseWeaponWorldModel : public CBaseAnimatingOverlay
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CBaseWeaponWorldModel);
+
+	N_ADD_VARIABLE_OFFSET(int, GetHoldPlayerAnimations, "DT_BaseWeaponWorldModel::m_hCombatWeaponParent", 0x4);
+
+	/// @returns: true if this world model holds player animations, false otherwise
+	[[nodiscard]] Q_INLINE bool IsHoldPlayerAnimations()
+	{
+		// @ida CBaseWeaponWorldModel::HoldsPlayerAnimations(): server.dll -> "57 8B F9 83 BF ? ? ? ? ? 75 6D"
+
+		if (this->GetHoldPlayerAnimations() == WEAPON_PLAYER_ANIMS_UNKNOWN)
+		{
+			const CStudioHdr* pStudioHdr = this->GetModelPtr();
+			this->GetHoldPlayerAnimations() = (pStudioHdr != nullptr && pStudioHdr->GetSequenceCount() > 2) ? WEAPON_PLAYER_ANIMS_AVAILABLE : WEAPON_PLAYER_ANIMS_NOT_AVAILABLE;
+		}
+
+		return (this->GetHoldPlayerAnimations() == WEAPON_PLAYER_ANIMS_AVAILABLE);
+	}
+};
+
+// @source: master/game/client/cstrike15/c_cs_playerresource.h
+class CCSPlayerResource // : public CPlayerResource
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CCSPlayerResource);
+
+	N_ADD_VARIABLE(Vector_t, GetBombsiteCenterA, "DT_CSPlayerResource::m_bombsiteCenterA");
+	N_ADD_VARIABLE(Vector_t, GetBombsiteCenterB, "DT_CSPlayerResource::m_bombsiteCenterB");
+	N_ADD_VARIABLE(int[MAX_HOSTAGE_RESCUES], GetHostageResqueX, "DT_CSPlayerResource::m_hostageRescueX");
+	N_ADD_VARIABLE(int[MAX_HOSTAGE_RESCUES], GetHostageResqueY, "DT_CSPlayerResource::m_hostageRescueY");
+	N_ADD_VARIABLE(int[MAX_HOSTAGE_RESCUES], GetHostageResqueZ, "DT_CSPlayerResource::m_hostageRescueZ");
+	N_ADD_VARIABLE(int[MAX_PLAYERS + 1], GetMVPs, "DT_CSPlayerResource::m_iMVPs");
+	N_ADD_VARIABLE(int[MAX_PLAYERS + 1], GetArmor, "DT_CSPlayerResource::m_iArmor");
+	N_ADD_VARIABLE(bool[MAX_PLAYERS + 1], HasHelmet, "DT_CSPlayerResource::m_bHasHelmet");
+	N_ADD_VARIABLE(bool[MAX_PLAYERS + 1], HasDefuser, "DT_CSPlayerResource::m_bHasDefuser");
+	N_ADD_VARIABLE(int[MAX_PLAYERS + 1], GetScore, "DT_CSPlayerResource::m_iScore");
+	N_ADD_VARIABLE(int[MAX_PLAYERS + 1], GetCompetitiveRanking, "DT_CSPlayerResource::m_iCompetitiveRanking");
+	N_ADD_VARIABLE(int[MAX_PLAYERS + 1], GetCompetitiveWins, "DT_CSPlayerResource::m_iCompetitiveWins");
+	N_ADD_VARIABLE(int[MAX_PLAYERS + 1], GetCompetitiveRankType, "DT_CSPlayerResource::m_iCompetitiveRankType");
+	N_ADD_VARIABLE(int[MAX_PLAYERS + 1], GetCompetitiveTeammateColor, "DT_CSPlayerResource::m_iCompTeammateColor");
+	N_ADD_VARIABLE(char[MAX_PLAYERS + 1][MAX_CLAN_TAG_LENGTH], GetClanTag, "DT_CSPlayerResource::m_szClan");
+	N_ADD_VARIABLE(int[MAX_PLAYERS + 1], GetActiveCoinRank, "DT_CSPlayerResource::m_nActiveCoinRank");
+	N_ADD_VARIABLE(int[MAX_PLAYERS + 1], GetMusicID, "DT_CSPlayerResource::m_nMusicID");
+	N_ADD_VARIABLE(int[MAX_PLAYERS + 1], GetPersonaDataPublicLevel, "DT_CSPlayerResource::m_nPersonaDataPublicLevel");
+	N_ADD_VARIABLE(int[MAX_PLAYERS + 1], GetPersonaDataPublicCommendsLeader, "DT_CSPlayerResource::m_nPersonaDataPublicCommendsLeader");
+	N_ADD_VARIABLE(int[MAX_PLAYERS + 1], GetPersonaDataPublicCommendsTeacher, "DT_CSPlayerResource::m_nPersonaDataPublicCommendsTeacher");
+	N_ADD_VARIABLE(int[MAX_PLAYERS + 1], GetPersonaDataPublicCommendsFriendly, "DT_CSPlayerResource::m_nPersonaDataPublicCommendsFriendly");
+};
+
+// @source: master/game/shared/cstrike15/cs_gamerules.h
+class CCSGameRulesProxy
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CCSGameRulesProxy);
+
+	N_ADD_VARIABLE(bool, IsFreezePeriod, "DT_CSGameRulesProxy::m_bFreezePeriod");
+	N_ADD_VARIABLE(bool, IsWarmupPeriod, "DT_CSGameRulesProxy::m_bWarmupPeriod");
+	N_ADD_VARIABLE(float, GetWarmupPeriodEnd, "DT_CSGameRulesProxy::m_fWarmupPeriodEnd");
+	N_ADD_VARIABLE(float, GetWarmupPeriodStart, "DT_CSGameRulesProxy::m_fWarmupPeriodStart");
+	N_ADD_VARIABLE(int, GetRoundTime, "DT_CSGameRulesProxy::m_iRoundTime");
+	N_ADD_VARIABLE(bool, IsMapHasBombTarget, "DT_CSGameRulesProxy::m_bMapHasBombTarget");
+	N_ADD_VARIABLE(bool, IsMapHasRescueZone, "DT_CSGameRulesProxy::m_bMapHasRescueZone");
+	N_ADD_VARIABLE(bool, IsMapHasBuyZone, "DT_CSGameRulesProxy::m_bMapHasBuyZone");
+	N_ADD_VARIABLE(bool, IsValveDS, "DT_CSGameRulesProxy::m_bIsValveDS");
+};
+
+// @source: master/game/client/c_env_tonemap_controller.cpp
 class CEnvTonemapController
 {
 public:
-	#pragma region DT_EnvTonemapController
-	N_ADD_VARIABLE(bool, IsUseCustomAutoExposureMin, "CEnvTonemapController->m_bUseCustomAutoExposureMin");
-	N_ADD_VARIABLE(bool, IsUseCustomAutoExposureMax, "CEnvTonemapController->m_bUseCustomAutoExposureMax");
-	N_ADD_VARIABLE(bool, IsUseCustomBloomScale, "CEnvTonemapController->m_bUseCustomBloomScale");
-	N_ADD_VARIABLE(float, GetCustomAutoExposureMin, "CEnvTonemapController->m_flCustomAutoExposureMin");
-	N_ADD_VARIABLE(float, GetCustomAutoExposureMax, "CEnvTonemapController->m_flCustomAutoExposureMax");
-	N_ADD_VARIABLE(float, GetCustomBloomScale, "CEnvTonemapController->m_flCustomBloomScale");
-	N_ADD_VARIABLE(float, GetCustomBloomScaleMin, "CEnvTonemapController->m_flCustomBloomScaleMinimum");
-	N_ADD_VARIABLE(float, GetBloomExponent, "CEnvTonemapController->m_flBloomExponent");
-	N_ADD_VARIABLE(float, GetBloomSaturation, "CEnvTonemapController->m_flBloomSaturation");
-	#pragma endregion
+	Q_CLASS_NO_INITIALIZER(CEnvTonemapController);
+
+	N_ADD_VARIABLE(bool, IsUsingCustomAutoExposureMin, "DT_EnvTonemapController::m_bUseCustomAutoExposureMin");
+	N_ADD_VARIABLE(bool, IsUsingCustomAutoExposureMax, "DT_EnvTonemapController::m_bUseCustomAutoExposureMax");
+	N_ADD_VARIABLE(bool, IsUsingCustomBloomScale, "DT_EnvTonemapController::m_bUseCustomBloomScale");
+	N_ADD_VARIABLE(float, GetCustomAutoExposureMin, "DT_EnvTonemapController::m_flCustomAutoExposureMin");
+	N_ADD_VARIABLE(float, GetCustomAutoExposureMax, "DT_EnvTonemapController::m_flCustomAutoExposureMax");
+	N_ADD_VARIABLE(float, GetCustomBloomScale, "DT_EnvTonemapController::m_flCustomBloomScale");
+	N_ADD_VARIABLE(float, GetCustomBloomScaleMin, "DT_EnvTonemapController::m_flCustomBloomScaleMinimum");
+	N_ADD_VARIABLE(float, GetBloomExponent, "DT_EnvTonemapController::m_flBloomExponent");
+	N_ADD_VARIABLE(float, GetBloomSaturation, "DT_EnvTonemapController::m_flBloomSaturation");
 };
 
-class CBreakableSurface : public CBaseEntity, public IBreakableWithPropData
+// @source: master/game/client/c_env_fog_controller.h
+class CFogController : public CBaseEntity
 {
 public:
-	#pragma region DT_BreakableSurface
-	N_ADD_VARIABLE(bool, IsBroken, "CBreakableSurface->m_bIsBroken");
-	#pragma endregion
+	Q_CLASS_NO_INITIALIZER(CFogController);
+
+	N_ADD_VARIABLE(bool, IsEnabled, "DT_FogController::m_fog.enable");
+	N_ADD_VARIABLE(Color_t, GetColorPrimary, "DT_FogController::m_fog.colorPrimary");
+	N_ADD_VARIABLE(float, GetStart, "DT_FogController::m_fog.start");
+	N_ADD_VARIABLE(float, GetEnd, "DT_FogController::m_fog.end");
+	N_ADD_VARIABLE(float, GetMaxDensity, "DT_FogController::m_fog.maxdensity");
+	N_ADD_VARIABLE(float, GetHDRColorScale, "DT_FogController::m_fog.HDRColorScale");
+};
+
+// @source: master/game/client/c_func_breakablesurf.h
+class CBreakableSurface : public CBaseEntity //, public IBreakableWithPropData
+{
+public:
+	Q_CLASS_NO_INITIALIZER(CBreakableSurface);
+
+	N_ADD_VARIABLE(bool, IsBroken, "DT_BreakableSurface::m_bIsBroken");
 };

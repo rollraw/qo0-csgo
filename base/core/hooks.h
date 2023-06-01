@@ -1,178 +1,237 @@
 #pragma once
-// used: winapi, directx, fmt includes
 #include "../common.h"
-// used: hook setup/destroy
+
+#include "../sdk/datatypes/qangle.h"
+#include "../sdk/datatypes/matrix.h"
+
+// used: cbitwrite
+#include "../sdk/bitbuf.h"
+// used: cdetourhook
 #include "../utilities/detourhook.h"
-// used: recvprop hook setup/destroy, recvproxydata
-#include "netvar.h"
-// used: baseclasses
+// used: interface baseclasses
 #include "interfaces.h"
 
-#define FASTCALL __fastcall
-#define STDCALL __stdcall
+// forward declarations
+enum EClientFrameStage : int;
+class CViewSetup;
+class INetChannel;
+class INetMessage;
+struct DrawModelInfo_t;
+struct DrawModelResults_t;
+class CCSGOPlayerAnimState;
+class CUserCmd;
+class IClientRenderable;
+class CBaseEntity;
+class CBasePlayer;
+class CCSPlayer;
 
 /*
-* VTABLE INDEXES
-* functions indexes in their virtual tables
-*/
+ * VTABLE INDEXES
+ * - indexes of methods in their virtual tables
+ */
 namespace VTABLE
 {
-	enum
+	// @todo: this would be more convenient to move it to other place (like memory.h/inside classes etc) and keep all virtual indexes in such enums to make it easier to update them and visualize as little explanation, but since ppl are so lazy, it will lead to dumbest crap in real use of this base, which i would never want to see...
+
+	namespace DXDEVICE
 	{
-		/* directx table */
-		RESET = 16,
-		ENDSCENE = 42,
-		RESETEX = 132,
+		enum : std::size_t
+		{
+			RESET = 16U,
+			ENDSCENE = 42U,
+			RESETEX = 132U
+		};
+	}
 
-		/* keyvaluessystem table */
-		ALLOCKEYVALUESMEMORY = 2,
+	namespace CLIENT
+	{
+		enum : std::size_t
+		{
+			CREATEMOVE = 22U,
+			FRAMESTAGENOTIFY = 37U
+		};
+	}
 
-		/* client table */
-		CREATEMOVE = 22,
-		FRAMESTAGENOTIFY = 37,
+	namespace CLIENTMODE
+	{
+		enum : std::size_t
+		{
+			OVERRIDEVIEW = 18U,
+			OVERRIDEMOUSEINPUT = 23U,
+			CREATEMOVE2 = 24U,
+			GETVIEWMODELFOV = 35U,
+			DOPOSTSCREENSPACEEFFECTS = 44U
+		};
+	}
 
-		/* panel table */
-		PAINTTRAVERSE = 41,
+	namespace ENGINE
+	{
+		enum : std::size_t
+		{
+			ISCONNECTED = 27U,
+			ISHLTV = 93U
+		};
+	}
 
-		/* clientmode table */
-		OVERRIDEVIEW = 18,
-		OVERRIDEMOUSEINPUT = 23,
-		GETVIEWMODELFOV = 35,
-		DOPOSTSCREENEFFECTS = 44,
+	namespace SPATIALQUERY
+	{
+		enum : std::size_t
+		{
+			LISTLEAVESINBOX = 6U
+		};
+	}
 
-		/* modelrender table */
-		DRAWMODELEXECUTE = 21,
+	namespace NETCHANNEL
+	{
+		enum : std::size_t
+		{
+			SENDNETMSG = 40U,
+			SENDDATAGRAM = 46U
+		};
+	}
 
-		/* studiorender table */
-		DRAWMODEL = 29,
+	namespace PREDICTION
+	{
+		enum : std::size_t
+		{
+			RUNCOMMAND = 19U
+		};
+	}
 
-		/* viewrender table */
-		RENDERSMOKEOVERLAY = 41,
+	namespace SURFACE
+	{
+		enum : std::size_t
+		{
+			LOCKCURSOR = 67U
+		};
+	}
 
-		/* engine table */
-		ISCONNECTED = 27,
+	namespace INPUT
+	{
+		enum : std::size_t
+		{
+			CAM_TOFIRSTPERSON = 36U
+		};
+	}
 
-		/* bsp query table */
-		LISTLEAVESINBOX = 6,
+	namespace VIEWRENDER
+	{
+		enum : std::size_t
+		{
+			RENDERVIEW = 6U,
+			RENDERSMOKEOVERLAY = 41U
+		};
+	}
 
-		/* prediction table */
-		RUNCOMMAND = 19,
+	namespace STUDIORENDER
+	{
+		enum : std::size_t
+		{
+			DRAWMODEL = 29U
+		};
+	}
 
-		/* steamgamecoordinator table */
-		SENDMESSAGE = 0,
-		RETRIEVEMESSAGE = 2,
+	namespace STEAMGAMECOORDINATOR
+	{
+		enum : std::size_t
+		{
+			SENDMESSAGE = 0U,
+			RETRIEVEMESSAGE = 2U
+		};
+	}
 
-		/* sound table */
-		EMITSOUND = 5,
+	namespace CLIENTRENDERABLE
+	{
+		enum : std::size_t
+		{
+			SETUPBONES = 13U
+		};
+	}
 
-		/* materialsystem table */
-		OVERRIDECONFIG = 21,
+	namespace BASEPLAYER
+	{
+		using namespace CLIENTRENDERABLE;
 
-		/* renderview table */
-		SCENEEND = 9,
+		enum : std::size_t
+		{
+			EYEANGLES = 170U
+		};
+	}
 
-		/* surface table */
-		LOCKCURSOR = 67,
-		PLAYSOUND = 82,
+	namespace CSPLAYER
+	{
+		using namespace BASEPLAYER;
 
-		/* gameevent table */
-		FIREEVENT = 9,
-
-		/* convar table */
-		GETBOOL = 13,
-
-		/* netchannel table */
-		SENDNETMSG = 40,
-		SENDDATAGRAM = 46
-	};
-}
-
-/*
- * DETOURS
- * detour hook managers
- */
-namespace DTR
-{
-	inline CDetourHook Reset;
-	inline CDetourHook EndScene;
-	inline CDetourHook AllocKeyValuesMemory;
-	inline CDetourHook CreateMoveProxy;
-	inline CDetourHook FrameStageNotify;
-	inline CDetourHook OverrideView;
-	inline CDetourHook OverrideMouseInput;
-	inline CDetourHook SendNetMsg;
-	inline CDetourHook SendDatagram;
-	inline CDetourHook GetViewModelFOV;
-	inline CDetourHook DoPostScreenEffects;
-	inline CDetourHook IsConnected;
-	inline CDetourHook RenderSmokeOverlay;
-	inline CDetourHook ListLeavesInBox;
-	inline CDetourHook PaintTraverse;
-	inline CDetourHook DrawModel;
-	inline CDetourHook RunCommand;
-	inline CDetourHook SendMessageGC;
-	inline CDetourHook RetrieveMessage;
-	inline CDetourHook LockCursor;
-	inline CDetourHook PlaySoundSurface;
-	inline CDetourHook SvCheatsGetBool;
+		enum : std::size_t
+		{
+			UPDATECLIENTSIDEANIMATION = 224U,
+			CALCVIEW = 277U
+		};
+	}
 }
 
 /*
  * HOOKS
- * swap functions with given pointers
+ * - functions call replacement
  */
 namespace H
 {
-	// Get
-	bool	Setup();
-	void	Restore();
+	bool Setup();
+	void Destroy();
 
-	// Handlers
-	/* [type][call]		hk[name] (args...) */
-	long	D3DAPI		hkReset(IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pPresentationParameters);
-	long	D3DAPI		hkEndScene(IDirect3DDevice9* pDevice);
-	void*	FASTCALL	hkAllocKeyValuesMemory(IKeyValuesSystem* thisptr, int edx, int iSize);
-	void	FASTCALL	hkCreateMoveProxy(IBaseClientDll* thisptr, int edx, int nSequenceNumber, float flInputSampleFrametime, bool bIsActive);
-	void	FASTCALL	hkPaintTraverse(ISurface* thisptr, int edx, unsigned int uPanel, bool bForceRepaint, bool bForce);
-	void	FASTCALL	hkPlaySound(ISurface* thisptr, int edx, const char* szFileName);
-	void	FASTCALL	hkLockCursor(ISurface* thisptr, int edx);
-	void	FASTCALL	hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFrameStage stage);
-	void	FASTCALL	hkDrawModel(IStudioRender* thisptr, int edx, DrawModelResults_t* pResults, const DrawModelInfo_t& info, matrix3x4_t* pBoneToWorld, float* flFlexWeights, float* flFlexDelayedWeights, const Vector& vecModelOrigin, int nFlags);
-	void	FASTCALL	hkRenderSmokeOverlay(IViewRender* thisptr, int edx, bool bPreViewModel);
-	int		FASTCALL	hkListLeavesInBox(void* thisptr, int edx, const Vector& vecMins, const Vector& vecMaxs, unsigned short* puList, int nListMax);
-	bool	FASTCALL	hkIsConnected(IEngineClient* thisptr, int edx);
-	bool	FASTCALL	hkSendNetMsg(INetChannel* thisptr, int edx, INetMessage* pMessage, bool bForceReliable, bool bVoice);
-	int		FASTCALL	hkSendDatagram(INetChannel* thisptr, int edx, bf_write* pDatagram);
-	void	FASTCALL	hkOverrideView(IClientModeShared* thisptr, int edx, CViewSetup* pSetup);
-	void	FASTCALL	hkOverrideMouseInput(IClientModeShared* thisptr, int edx, float* x, float* y);
-	float	FASTCALL	hkGetViewModelFOV(IClientModeShared* thisptr, int edx);
-	int		FASTCALL	hkDoPostScreenEffects(IClientModeShared* thisptr, int edx, CViewSetup* pSetup);
-	void	FASTCALL	hkRunCommand(IPrediction* thisptr, int edx, CBaseEntity* pEntity, CUserCmd* pCmd, IMoveHelper* pMoveHelper);
-	int		FASTCALL	hkSendMessage(ISteamGameCoordinator* thisptr, int edx, std::uint32_t uMsgType, const void* pData, std::uint32_t uData);
-	int		FASTCALL	hkRetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::uint32_t* puMsgType, void* pDest, std::uint32_t uDest, std::uint32_t* puMsgSize);
-	bool	FASTCALL	hkSvCheatsGetBool(CConVar* thisptr, int edx);
-	long	CALLBACK	hkWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-}
+	/* @section: handlers */
+	long D3DAPI Reset(IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pPresentationParameters);
+	long D3DAPI EndScene(IDirect3DDevice9* pDevice);
+	void Q_FASTCALL CreateMoveProxy(IBaseClientDll* thisptr, int edx, int nSequenceNumber, float flInputSampleFrametime, bool bIsActive);
+	bool Q_FASTCALL CreateMoveProxy2(IClientModeShared* thisptr, int edx, float flInputSampleFrametime, CUserCmd* pCmd);
+	void Q_FASTCALL FrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFrameStage nStage);
+	void Q_FASTCALL OverrideView(IClientModeShared* thisptr, int edx, CViewSetup* pSetup);
+	float Q_FASTCALL GetViewModelFOV(IClientModeShared* thisptr, int edx);
+	void Q_FASTCALL DoPostScreenSpaceEffects(IClientModeShared* thisptr, int edx, CViewSetup* pSetup);
+	bool Q_FASTCALL IsConnected(IEngineClient* thisptr, int edx);
+	bool Q_FASTCALL IsHLTV(IEngineClient* thisptr, int edx);
+	int Q_FASTCALL ListLeavesInBox(void* thisptr, int edx, const Vector_t& vecMins, const Vector_t& vecMaxs, unsigned short* puList, int nListMax);
+	bool Q_FASTCALL SendNetMsg(INetChannel* thisptr, int edx, INetMessage& message, bool bForceReliable, bool bVoice);
+	int Q_FASTCALL SendDatagram(INetChannel* thisptr, int edx, CBitWrite* pDatagram);
+	void Q_FASTCALL RunCommand(IPrediction* thisptr, int edx, CBasePlayer* pPlayer, CUserCmd* pCmd, IMoveHelper* pMoveHelper);
+	void Q_FASTCALL LockCursor(ISurface* thisptr, int edx);
+	void Q_FASTCALL CAM_ToFirstPerson(IInput* thisptr, int edx);
+	void Q_FASTCALL RenderView(IViewRender* thisptr, int edx, const CViewSetup& viewSetup, const CViewSetup& viewSetupHUD, int nClearFlags, int nWhatToDraw);
+	void Q_FASTCALL RenderSmokeOverlay(IViewRender* thisptr, int edx, bool bPreViewModel);
+	void Q_FASTCALL DrawModel(IStudioRender* thisptr, int edx, DrawModelResults_t* pResults, const DrawModelInfo_t& info, Matrix3x4_t* pBoneToWorld, float* flFlexWeights, float* flFlexDelayedWeights, const Vector_t& vecModelOrigin, int nFlags);
+	int Q_FASTCALL SendMessage(ISteamGameCoordinator* thisptr, int edx, std::uint32_t uMessageHeader, const void* pData, std::uint32_t nDataSize);
+	int Q_FASTCALL RetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::uint32_t* pMessageHeader, void* pDestination, std::uint32_t nDestinationSize, std::uint32_t* pnMessageSize);
+	void Q_FASTCALL ModifyEyePosition(CCSGOPlayerAnimState* thisptr, int edx, Vector_t& vecInputEyePosition);
+	bool Q_FASTCALL SetupBones(IClientRenderable* thisptr, int edx, Matrix3x4a_t* arrBonesToWorld, int iMaxBones, int nBoneMask, float flCurrentTime);
+	void Q_FASTCALL FireBullet(CCSPlayer* thisptr, int edx, Vector_t vecSource, const QAngle_t& angShootView, float flDistance, float flPenetration, int nPenetrationCount, int nBulletType, int iDamage, float flRangeModifier, CBaseEntity* pAttacker, bool bDoEffects, float flSpreadX, float flSpreadY);
+	void Q_FASTCALL UpdateClientSideAnimation(CCSPlayer* thisptr, int edx);
+	void Q_FASTCALL CalcView(CCSPlayer* thisptr, int edx, Vector_t& vecEyeOrigin, QAngle_t& angEyeView, float& flNearZ, float& flFarZ, float& flFOV);
+	long CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-/*
- * RECV VAR PROXY MANAGERS
- * proxy property hook managers
- */
-namespace RVP
-{
-	inline std::shared_ptr<CRecvPropHook> SmokeEffectTickBegin;
-}
-
-/*
- * PROXIES
- * networkable property proxy swap functions
- */
-namespace P
-{
-	// Get
-	bool	Setup();
-	void	Restore();
-
-	// Handlers
-	void	SmokeEffectTickBegin(const CRecvProxyData* pData, void* pStruct, void* pOut);
+	/* @section: managers */
+	inline CHookObject hkReset = { };
+	inline CHookObject hkEndScene = { };
+	inline CHookObject<ROP::EngineGadget_t> hkCreateMove = { };
+	inline CHookObject<ROP::EngineGadget_t> hkFrameStageNotify = { };
+	inline CHookObject<ROP::ClientGadget_t> hkOverrideView = { };
+	inline CHookObject<ROP::ClientGadget_t> hkGetViewModelFOV = { };
+	inline CHookObject<ROP::ClientGadget_t> hkDoPostScreenSpaceEffects = { };
+	inline CHookObject<ROP::EngineGadget_t> hkIsConnected = { };
+	inline CHookObject<ROP::EngineGadget_t> hkIsHLTV = { };
+	inline CHookObject<ROP::EngineGadget_t> hkListLeavesInBox = { };
+	inline CHookObject<ROP::ClientGadget_t> hkRunCommand = { };
+	inline CHookObject<ROP::ClientGadget_t> hkLockCursor = { };
+	inline CHookObject<ROP::ClientGadget_t> hkCAM_ToFirstPerson = { };
+	inline CHookObject<ROP::ClientGadget_t> hkRenderView = { };
+	inline CHookObject<ROP::ClientGadget_t> hkRenderSmokeOverlay = { };
+	inline CHookObject<ROP::ClientGadget_t> hkDrawModel = { };
+	inline CHookObject<ROP::ClientGadget_t> hkSendMessage = { };
+	inline CHookObject<ROP::ClientGadget_t> hkRetrieveMessage = { };
+	inline CHookObject<ROP::EngineGadget_t> hkSendNetMsg = { };
+	inline CHookObject<ROP::EngineGadget_t> hkSendDatagram = { };
+	inline CHookObject<ROP::ClientGadget_t> hkModifyEyePosition = { };
+	inline CHookObject<ROP::ClientGadget_t> hkSetupBones = { };
+	inline CHookObject<ROP::ClientGadget_t> hkFireBullet = { };
+	inline CHookObject<ROP::ClientGadget_t> hkUpdateClientSideAnimation = { };
+	inline CHookObject<ROP::ClientGadget_t> hkCalcView = { };
 }

@@ -1,6 +1,12 @@
 #pragma once
-// used: std::array
-#include <array>
+// used: [crt] fmodf
+#include <cmath>
+
+#include "../../common.h"
+// used: swap
+#include "../../utilities/crt.h"
+// used: [ext] imu32
+#include "../../../dependencies/imgui/imgui.h"
 
 enum
 {
@@ -13,257 +19,193 @@ enum
 struct ColorRGBExp32
 {
 	std::uint8_t r, g, b;
-	char exponent;
+	std::int8_t iExponent;
 };
+static_assert(sizeof(ColorRGBExp32) == 0x4);
 
-class Color
+struct Color_t
 {
-public:
-	Color() = default;
+	Color_t() = default;
 
-	/* default color constructor (in: 0 - 255) */
-	constexpr Color(std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a = 255) :
-		arrColor({ r, g, b, a }) { }
+	// 8-bit color constructor (in: [0 .. 255])
+	constexpr Color_t(const std::uint8_t r, const std::uint8_t g, const std::uint8_t b, const std::uint8_t a = 255) :
+		r(r), g(g), b(b), a(a) { }
 
-	constexpr Color(int r, int g, int b, int a = 255) :
-		arrColor({ static_cast<std::uint8_t>(r), static_cast<std::uint8_t>(g), static_cast<std::uint8_t>(b), static_cast<std::uint8_t>(a) }) { }
+	// 8-bit color constructor (in: [0 .. 255])
+	constexpr Color_t(const int r, const int g, const int b, const int a = 255) :
+		r(static_cast<std::uint8_t>(r)), g(static_cast<std::uint8_t>(g)), b(static_cast<std::uint8_t>(b)), a(static_cast<std::uint8_t>(a)) { }
 
-	/* float color constructor (in: 0.0 - 1.0) */
-	constexpr Color(float r, float g, float b, float a = 1.0f) :
-		arrColor({ static_cast<std::uint8_t>(r * 255.f), static_cast<std::uint8_t>(g * 255.f), static_cast<std::uint8_t>(b * 255.f), static_cast<std::uint8_t>(a * 255.f) }) { }
+	// 8-bit array color constructor (in: [0.0 .. 1.0])
+	explicit constexpr Color_t(const std::uint8_t arrColor[4]) :
+		r(arrColor[COLOR_R]), g(arrColor[COLOR_G]), b(arrColor[COLOR_B]), a(arrColor[COLOR_A]) { }
 
-	/* output color to given variables */
-	void Get(std::uint8_t& r, std::uint8_t& g, std::uint8_t& b, std::uint8_t& a) const
+	// 32-bit packed color constructor (in: 0x00000000 - 0xFFFFFFFF)
+	explicit constexpr Color_t(const ImU32 uPackedColor) :
+		r(static_cast<std::uint8_t>((uPackedColor >> IM_COL32_R_SHIFT) & 0xFF)), g(static_cast<std::uint8_t>((uPackedColor >> IM_COL32_G_SHIFT) & 0xFF)), b(static_cast<std::uint8_t>((uPackedColor >> IM_COL32_B_SHIFT) & 0xFF)), a(static_cast<std::uint8_t>((uPackedColor >> IM_COL32_A_SHIFT) & 0xFF)) { }
+
+	// 32-bit color constructor (in: [0.0 .. 1.0])
+	constexpr Color_t(const float r, const float g, const float b, const float a = 1.0f) :
+		r(static_cast<std::uint8_t>(r * 255.f)), g(static_cast<std::uint8_t>(g * 255.f)), b(static_cast<std::uint8_t>(b * 255.f)), a(static_cast<std::uint8_t>(a * 255.f)) { }
+
+	/// @returns: 32-bit packed integer representation of color
+	[[nodiscard]] constexpr ImU32 GetU32(const float flAlphaMultiplier = 1.0f) const
 	{
-		r = arrColor[COLOR_R];
-		g = arrColor[COLOR_G];
-		b = arrColor[COLOR_B];
-		a = arrColor[COLOR_A];
+		return IM_COL32(r, g, b, a * flAlphaMultiplier);
 	}
 
-	/* convert color to directx argb */
-	[[nodiscard]] D3DCOLOR GetD3D() const
+	std::uint8_t& operator[](const std::uint8_t nIndex)
 	{
-		return D3DCOLOR_ARGB(arrColor[COLOR_A], arrColor[COLOR_R], arrColor[COLOR_G], arrColor[COLOR_B]);
+		Q_ASSERT(nIndex <= COLOR_A); // given index is out of range
+		return reinterpret_cast<std::uint8_t*>(this)[nIndex];
 	}
 
-	/* convert color to imgui rgba */
-	[[nodiscard]] ImU32 GetU32(const float flAlphaMultiplier = 1.0f) const
+	const std::uint8_t& operator[](const std::uint8_t nIndex) const
 	{
-		return ImGui::GetColorU32(this->GetVec4(flAlphaMultiplier));
+		Q_ASSERT(nIndex <= COLOR_A); // given index is out of range
+		return reinterpret_cast<const std::uint8_t*>(this)[nIndex];
 	}
 
-	/* convert color to imgui vector */
-	[[nodiscard]] ImVec4 GetVec4(const float flAlphaMultiplier = 1.0f) const
+	bool operator==(const Color_t& colSecond) const
 	{
-		return ImVec4(this->Base<COLOR_R>(), this->Base<COLOR_G>(), this->Base<COLOR_B>(), this->Base<COLOR_A>() * flAlphaMultiplier);
+		return (std::bit_cast<std::uint32_t>(*this) == std::bit_cast<std::uint32_t>(colSecond));
 	}
 
-	std::uint8_t& operator[](const std::size_t i)
+	bool operator!=(const Color_t& colSecond) const
 	{
-		return this->arrColor[i];
+		return (std::bit_cast<std::uint32_t>(*this) != std::bit_cast<std::uint32_t>(colSecond));
 	}
 
-	const std::uint8_t& operator[](const std::size_t i) const
-	{
-		return this->arrColor[i];
-	}
-
-	bool operator==(const Color& colSecond) const
-	{
-		return this->arrColor == colSecond.arrColor;
-	}
-
-	bool operator!=(const Color& colSecond) const
-	{
-		return !(operator==(colSecond));
-	}
-
-	Color& operator=(const Color& colFrom)
-	{
-		arrColor[COLOR_R] = colFrom.arrColor[COLOR_R];
-		arrColor[COLOR_G] = colFrom.arrColor[COLOR_G];
-		arrColor[COLOR_B] = colFrom.arrColor[COLOR_B];
-		arrColor[COLOR_A] = colFrom.arrColor[COLOR_A];
-		return *this;
-	}
-
-	/* returns certain R/G/B/A value */
+	/// @returns: copy of color with certain R/G/B/A component changed to given value
 	template <std::size_t N>
-	[[nodiscard]] std::uint8_t Get() const
+	[[nodiscard]] Color_t Set(const std::uint8_t nValue) const
 	{
-		static_assert(N >= COLOR_R && N <= COLOR_A, "given index is out of range");
-		return arrColor[N];
-	}
+		static_assert(N >= COLOR_R && N <= COLOR_A, "color component index is out of range");
 
-	/* returns copy of color with changed certain R/G/B/A value to given value */
-	template <std::size_t N>
-	[[nodiscard]] Color Set(const std::uint8_t nValue) const
-	{
-		static_assert(N >= COLOR_R && N <= COLOR_A, "given index is out of range");
-
-		Color colCopy = *this;
-		colCopy.arrColor[N] = nValue;
+		Color_t colCopy = *this;
+		colCopy[N] = nValue;
 		return colCopy;
 	}
 
-	/* returns copy of color with multiplied certain R/G/B/A value by given value */
+	/// @returns: copy of color with certain R/G/B/A component multiplied by given value
 	template <std::size_t N>
-	[[nodiscard]] Color Multiplier(const float flValue) const
+	[[nodiscard]] Color_t Multiplier(const float flValue) const
 	{
-		static_assert(N >= COLOR_R && N <= COLOR_A, "given index is out of range");
+		static_assert(N >= COLOR_R && N <= COLOR_A, "color component index is out of range");
 
-		Color colCopy = *this;
-		colCopy.arrColor[N] = static_cast<std::uint8_t>(static_cast<float>(colCopy.arrColor[N]) * flValue);
+		Color_t colCopy = *this;
+		colCopy[N] = static_cast<std::uint8_t>(static_cast<float>(colCopy[N]) * flValue);
 		return colCopy;
 	}
 
-	/* returns copy of color with divided certain R/G/B/A value by given value */
+	/// @returns: copy of color with certain R/G/B/A component divided by given value
 	template <std::size_t N>
-	[[nodiscard]] Color Divider(const int iValue) const
+	[[nodiscard]] Color_t Divider(const int iValue) const
 	{
-		static_assert(N >= COLOR_R && N <= COLOR_A, "given index is out of range");
+		static_assert(N >= COLOR_R && N <= COLOR_A, "color component index is out of range");
 
-		Color colCopy = *this;
-		colCopy.arrColor[N] /= iValue;
+		Color_t colCopy = *this;
+		colCopy[N] /= iValue;
 		return colCopy;
 	}
 
-	/* returns certain R/G/B/A float value (in: 0 - 255, out: 0.0 - 1.0) */
+	/// @returns: certain R/G/B/A float value (in: [0 .. 255], out: [0.0 .. 1.0])
 	template <std::size_t N>
 	[[nodiscard]] float Base() const
 	{
-		static_assert(N >= COLOR_R && N <= COLOR_A, "given index is out of range");
-		return arrColor[N] / 255.f;
+		static_assert(N >= COLOR_R && N <= COLOR_A, "color component index is out of range");
+		return reinterpret_cast<const std::uint8_t*>(this)[N] / 255.f;
 	}
 
-	/* convert color to float array (in: 0 - 255, out: 0.0 - 1.0) */
-	[[nodiscard]] std::array<float, 3U> Base() const
+	/// @param[out] arrBase output array of R/G/B color components converted to float (in: [0 .. 255], out: [0.0 .. 1.0])
+	constexpr void Base(float (&arrBase)[3]) const
 	{
-		std::array<float, 3U> arrBaseColor = { };
-		arrBaseColor[COLOR_R] = this->Base<COLOR_R>();
-		arrBaseColor[COLOR_G] = this->Base<COLOR_G>();
-		arrBaseColor[COLOR_B] = this->Base<COLOR_B>();
-		return arrBaseColor;
+		arrBase[COLOR_R] = static_cast<float>(r) / 255.f;
+		arrBase[COLOR_G] = static_cast<float>(g) / 255.f;
+		arrBase[COLOR_B] = static_cast<float>(b) / 255.f;
 	}
 
-	/* set color from float array (in: 0.0 - 1.0, out: 0 - 255) */
-	static Color FromBase3(float arrBase[3])
+	/// @returns: color created from float[3] array (in: [0.0 .. 1.0], out: [0 .. 255])
+	static Color_t FromBase3(const float arrBase[3])
 	{
-		return Color(arrBase[0], arrBase[1], arrBase[2]);
+		return { arrBase[0], arrBase[1], arrBase[2] };
 	}
 
-	/* convert color to float array w/ alpha (in: 0 - 255, out: 0.0 - 1.0) */
-	[[nodiscard]] std::array<float, 4U> BaseAlpha() const
+	/// @param[out] arrBase output array of R/G/B/A color components converted to float (in: [0 .. 255], out: [0.0 .. 1.0])
+	constexpr void BaseAlpha(float (&arrBase)[4]) const
 	{
-		std::array<float, 4U> arrBaseColor = { };
-		arrBaseColor[COLOR_R] = this->Base<COLOR_R>();
-		arrBaseColor[COLOR_G] = this->Base<COLOR_G>();
-		arrBaseColor[COLOR_B] = this->Base<COLOR_B>();
-		arrBaseColor[COLOR_A] = this->Base<COLOR_A>();
-		return arrBaseColor;
+		arrBase[COLOR_R] = static_cast<float>(r) / 255.f;
+		arrBase[COLOR_G] = static_cast<float>(g) / 255.f;
+		arrBase[COLOR_B] = static_cast<float>(b) / 255.f;
+		arrBase[COLOR_A] = static_cast<float>(a) / 255.f;
 	}
 
-	/* set color from float array w/ alpha (in: 0.0 - 1.0, out: 0 - 255) */
-	static Color FromBase4(float arrBase[4])
+	/// @returns : color created from float[3] array (in: [0.0 .. 1.0], out: [0 .. 255])
+	static Color_t FromBase4(const float arrBase[4])
 	{
-		return Color(arrBase[0], arrBase[1], arrBase[2], arrBase[3]);
+		return { arrBase[COLOR_R], arrBase[COLOR_G], arrBase[COLOR_B], arrBase[COLOR_A] };
 	}
 
-	[[nodiscard]] float Hue() const
+	/// @param[out] arrHSB output array of HSB/HSV color converted from RGB color
+	void ToHSB(float (&arrHSB)[3]) const
 	{
-		if (arrColor[COLOR_R] == arrColor[COLOR_G] && arrColor[COLOR_G] == arrColor[COLOR_B])
-			return 0.f;
+		float arrBase[3] = { };
+		Base(arrBase);
 
-		const float r = this->Base<COLOR_R>();
-		const float g = this->Base<COLOR_G>();
-		const float b = this->Base<COLOR_B>();
+		float flKernel = 0.0f;
+		if (arrBase[COLOR_G] < arrBase[COLOR_B])
+		{
+			CRT::Swap(arrBase[COLOR_G], arrBase[COLOR_B]);
+			flKernel = -1.0f;
+		}
+		if (arrBase[COLOR_R] < arrBase[COLOR_G])
+		{
+			CRT::Swap(arrBase[COLOR_R], arrBase[COLOR_G]);
+			flKernel = -2.0f / 6.0f - flKernel;
+		}
 
-		const float flMax = std::max(r, std::max(g, b)), flMin = std::min(r, std::min(g, b));
-
-		if (flMax == flMin)
-			return 0.f;
-
-		const float flDelta = flMax - flMin;
-		float flHue = 0.f;
-
-		if (flMax == r)
-			flHue = (g - b) / flDelta;
-		else if (flMax == g)
-			flHue = 2.f + (b - r) / flDelta;
-		else if (flMax == b)
-			flHue = 4.f + (r - g) / flDelta;
-
-		flHue *= 60.f;
-
-		if (flHue < 0.f)
-			flHue += 360.f;
-
-		return flHue / 360.f;
+		const float flChroma = arrBase[COLOR_R] - CRT::Min(arrBase[COLOR_G], arrBase[COLOR_B]);
+		arrHSB[COLOR_R] = std::fabsf(flKernel + (arrBase[COLOR_G] - arrBase[COLOR_B]) / (6.0f * flChroma + std::numeric_limits<float>::epsilon()));
+		arrHSB[COLOR_G] = flChroma / (arrBase[COLOR_R] + std::numeric_limits<float>::epsilon());
+		arrHSB[COLOR_G] = arrBase[COLOR_R];
 	}
 
-	[[nodiscard]] float Saturation() const
+	/// @returns: RGB color converted from HSB/HSV color
+	static Color_t FromHSB(const float flHue, const float flSaturation, const float flBrightness, const float flAlpha = 1.0f)
 	{
-		const float r = this->Base<COLOR_R>();
-		const float g = this->Base<COLOR_G>();
-		const float b = this->Base<COLOR_B>();
+		constexpr float flHueRange = (60.0f / 360.0f);
+		const float flHuePrime = std::fmodf(flHue, 1.0f) / flHueRange;
+		const int iRoundHuePrime = static_cast<int>(flHuePrime);
+		const float flDelta = flHuePrime - static_cast<float>(iRoundHuePrime);
 
-		const float flMax = std::max(r, std::max(g, b)), flMin = std::min(r, std::min(g, b));
-		const float flDelta = flMax - flMin;
-
-		if (flMax == 0.f)
-			return flDelta;
-
-		return flDelta / flMax;
-	}
-
-	[[nodiscard]] float Brightness() const
-	{
-		const float r = this->Base<COLOR_R>();
-		const float g = this->Base<COLOR_G>();
-		const float b = this->Base<COLOR_B>();
-
-		return std::max(r, std::max(g, b));
-	}
-
-	/* return RGB color converted from HSB/HSV color */
-	static Color FromHSB(float flHue, float flSaturation, float flBrightness, float flAlpha = 1.0f)
-	{
-		const float h = std::fmodf(flHue, 1.0f) / (60.0f / 360.0f);
-		const int i = static_cast<int>(h);
-		const float f = h - static_cast<float>(i);
 		const float p = flBrightness * (1.0f - flSaturation);
-		const float q = flBrightness * (1.0f - flSaturation * f);
-		const float t = flBrightness * (1.0f - flSaturation * (1.0f - f));
+		const float q = flBrightness * (1.0f - flSaturation * flDelta);
+		const float t = flBrightness * (1.0f - flSaturation * (1.0f - flDelta));
 
-		float r = 0.0f, g = 0.0f, b = 0.0f;
-
-		switch (i)
+		float flRed, flGreen, flBlue;
+		switch (iRoundHuePrime)
 		{
 		case 0:
-			r = flBrightness, g = t, b = p;
+			flRed = flBrightness; flGreen = t; flBlue = p;
 			break;
 		case 1:
-			r = q, g = flBrightness, b = p;
+			flRed = q; flGreen = flBrightness; flBlue = p;
 			break;
 		case 2:
-			r = p, g = flBrightness, b = t;
+			flRed = p; flGreen = flBrightness; flBlue = t;
 			break;
 		case 3:
-			r = p, g = q, b = flBrightness;
+			flRed = p; flGreen = q; flBlue = flBrightness;
 			break;
 		case 4:
-			r = t, g = p, b = flBrightness;
+			flRed = t; flGreen = p; flBlue = flBrightness;
 			break;
-		case 5:
 		default:
-			r = flBrightness, g = p, b = q;
+			flRed = flBrightness; flGreen = p; flBlue = q;
 			break;
 		}
 
-		return Color(r, g, b, flAlpha);
+		return { flRed, flGreen, flBlue, flAlpha };
 	}
 
-private:
-	std::array<std::uint8_t, 4U> arrColor;
+	std::uint8_t r = 0U, g = 0U, b = 0U, a = 0U;
 };

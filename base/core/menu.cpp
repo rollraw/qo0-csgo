@@ -1,50 +1,62 @@
+// used: [ext] imgui
+#include "../../dependencies/imgui/imgui.h"
+
 #include "menu.h"
 
-// used: global variables
-#include "../global.h"
 // used: config variables
 #include "../core/variables.h"
-// used: actions with config
-#include "../core/config.h"
-// used: configurations error logging
-#include "../utilities/logging.h"
-// used: render setup, etc
+// used: stringstring
+#include "../utilities/crt.h"
+// used: setup, fonts
 #include "../utilities/draw.h"
-// used: engine, inputsystem, convar interfaces
-#include "../core/interfaces.h"
-// used: render visuals
-#include "../features/visuals.h"
-// used: skinchanger tab items map
-#include "../features/skinchanger.h"
-// used: inputtext() wrappers for c++ standard library (stl) type: std::string
-#include "../../dependencies/imgui/cpp/imgui_stdlib.h"
+// used: last send packet state
+#include "../features.h"
 
-const std::pair<const char*, std::uint32_t> arrColors[] =
+// used: interface handles
+#include "../core/interfaces.h"
+// used: interface declarations
+#include "../sdk/interfaces/iengineclient.h"
+
+// used: [ext] imgui
+#include "../../dependencies/imgui/dx9/imgui_impl_dx9.h"
+#include "../../dependencies/imgui/win32/imgui_impl_win32.h"
+
+// @todo: untouched, wait for new gui merge
+
+static const std::pair<const char*, std::size_t> arrColors[ ] =
 {
-	{ "[esp] box - enemies", Vars.colEspMainBoxEnemies },
-	{ "[esp] box - enemies wall", Vars.colEspMainBoxEnemiesWall },
-	{ "[esp] box - allies", Vars.colEspMainBoxAllies },
-	{ "[esp] box - allies wall", Vars.colEspMainBoxAlliesWall },
-	{ "[glow] enemies", Vars.colEspGlowEnemies },
-	{ "[glow] enemies wall", Vars.colEspGlowEnemiesWall },
-	{ "[glow] allies", Vars.colEspGlowAllies },
-	{ "[glow] allies wall", Vars.colEspGlowAlliesWall },
-	{ "[glow] weapons", Vars.colEspGlowWeapons },
-	{ "[glow] grenades", Vars.colEspGlowGrenades },
-	{ "[glow] bomb", Vars.colEspGlowBomb },
-	{ "[glow] planted bomb", Vars.colEspGlowBombPlanted },
-	{ "[chams] enemies", Vars.colEspChamsEnemies },
-	{ "[chams] enemies wall", Vars.colEspChamsEnemiesWall },
-	{ "[chams] allies", Vars.colEspChamsAllies },
-	{ "[chams] allies wall", Vars.colEspChamsAlliesWall },
-	{ "[chams] viewmodel", Vars.colEspChamsViewModel },
-	{ "[chams] viewmodel additional", Vars.colEspChamsViewModelAdditional },
-	{ "[screen] hitmarker - lines", Vars.colScreenHitMarker },
-	{ "[screen] hitmarker - damage", Vars.colScreenHitMarkerDamage }
+	{ "[esp] box - enemies", Vars.colVisualOverlayBoxEnemies },
+	{ "[esp] box - enemies hidden", Vars.colVisualOverlayBoxEnemiesHidden},
+	{ "[esp] box - allies", Vars.colVisualOverlayBoxAllies },
+	{ "[esp] box - allies hidden", Vars.colVisualOverlayBoxAlliesHidden },
+	{ "[esp] box - local", Vars.colVisualOverlayBoxLocal },
+	{ "[esp] box - local hidden", Vars.colVisualOverlayBoxLocalHidden },
+	{ "[glow] enemies", Vars.colVisualGlowEnemies },
+	{ "[glow] enemies hidden", Vars.colVisualGlowEnemiesHidden },
+	{ "[glow] allies", Vars.colVisualGlowAllies },
+	{ "[glow] allies hidden", Vars.colVisualGlowAlliesHidden },
+	{ "[glow] local", Vars.colVisualGlowLocal },
+	{ "[glow] local hidden", Vars.colVisualGlowLocalHidden },
+	{ "[glow] weapons", Vars.colVisualGlowWeapons },
+	{ "[glow] grenades", Vars.colVisualGlowGrenades },
+	{ "[glow] bomb", Vars.colVisualGlowBomb },
+	{ "[glow] planted bomb", Vars.colVisualGlowBombPlanted },
+	{ "[chams] enemies", Vars.colVisualChamsEnemies },
+	{ "[chams] enemies hidden", Vars.colVisualChamsEnemiesHidden },
+	{ "[chams] allies", Vars.colVisualChamsAllies },
+	{ "[chams] allies hidden", Vars.colVisualChamsAlliesHidden },
+	{ "[chams] local", Vars.colVisualChamsLocal },
+	{ "[chams] local hidden", Vars.colVisualChamsLocalHidden },
+	{ "[chams] local desync", Vars.colVisualChamsLocalDesync },
+	{ "[chams] local desync hidden", Vars.colVisualChamsLocalDesyncHidden },
+	{ "[chams] viewmodel", Vars.colVisualChamsViewModel },
+	{ "[chams] viewmodel hidden", Vars.colVisualChamsViewModelHidden },
+	{ "[screen] hitmarker - lines", Vars.colVisualScreenHitMarker },
+	{ "[screen] hitmarker - damage", Vars.colVisualScreenHitMarkerDamage }
 };
 
 #pragma region menu_array_entries
-static constexpr std::array<std::string_view, 4U> arrVisualsFlags =
+static constexpr const char* arrVisualsFlags[ ] =
 {
 	"helmet",
 	"kevlar",
@@ -52,26 +64,48 @@ static constexpr std::array<std::string_view, 4U> arrVisualsFlags =
 	"zoom"
 };
 
-static constexpr std::array<std::string_view, 4U> arrVisualsRemovals =
+static constexpr const char* arrVisualsRemovals[ ] =
 {
 	"post-processing",
 	"punch",
+	"flash",
 	"smoke",
 	"scope"
 };
 #pragma endregion
 
-// spectator list, radar, other stuff here
-#pragma region menu_windows
-void W::MainWindow(IDirect3DDevice9* pDevice)
+#pragma region menu_callbacks
+void MENU::OnEndScene(IDirect3DDevice9* pDevice)
+{
+	ImGui_ImplDX9_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+
+	ImGui::NewFrame();
+
+	// render cheat menu
+	MainWindow(pDevice);
+
+	ImGui::EndFrame();
+
+	ImGui::Render();
+
+	// render thread-safe data
+	D::RenderDrawData(ImGui::GetDrawData());
+
+	// render draw lists from draw data
+	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+}
+#pragma endregion
+
+#pragma region menu_main
+void MENU::MainWindow(IDirect3DDevice9* pDevice)
 {
 	ImGuiIO& io = ImGui::GetIO();
 	const ImVec2 vecScreenSize = io.DisplaySize;
 
 	ImGuiStyle& style = ImGui::GetStyle();
-	ImDrawList* pForegroundDrawList = ImGui::GetForegroundDrawList();
 
-	#pragma region main_visuals
+	#pragma region main_header
 	if (!I::Engine->IsTakingScreenshot() && !I::Engine->IsDrawingLoadingImage())
 	{
 		ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0.f, 0.f, 0.f, 0.03f));
@@ -80,20 +114,20 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 		// hmm, another one watermark
 		ImGui::BeginMainMenuBar();
 		{
-			ImGui::PushFont(F::Verdana);
+			ImGui::PushFont(FONT::pExtra);
 			ImGui::Dummy(ImVec2(1, 1));
 
-			#ifdef _DEBUG
-			ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), XorStr("debug"));
-			#endif
+		#ifdef _DEBUG
+			ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), Q_XOR("debug"));
+		#endif
 
-			if (strstr(GetCommandLine(), XorStr("-insecure")) != nullptr)
-				ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), XorStr("insecure"));
+			if (CRT::StringString(GetCommandLineW(), Q_XOR(L"-insecure")) != nullptr)
+				ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), Q_XOR("insecure"));
 
 			if (I::Engine->IsInGame())
-				ImGui::TextColored(G::bSendPacket ? ImVec4(0.0f, 1.0f, 0.0f, 1.0f) : ImVec4(1.0f, 0.0f, 0.0f, 1.0f), XorStr("send packets"));
+				ImGui::TextColored(F::bLastSendPacket ? ImVec4(0.0f, 1.0f, 0.0f, 1.0f) : ImVec4(1.0f, 0.0f, 0.0f, 1.0f), Q_XOR("send packets"));
 
-			const char* const szName = XorStr("qo0 base | " __DATE__);
+			const char* const szName = Q_XOR("qo0 base | " __DATE__);
 			static ImVec2 vecNameSize = ImGui::CalcTextSize(szName);
 			ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - vecNameSize.x);
 			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), szName);
@@ -104,9 +138,6 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 
 		ImGui::PopStyleColor(2);
 	}
-
-	ImDrawList* pBackgroundDrawList = ImGui::GetBackgroundDrawList();
-	D::RenderDrawData(pBackgroundDrawList);
 	#pragma endregion
 
 	#pragma region main_window
@@ -114,15 +145,9 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 
 	if (bMainOpened)
 	{
-		int x, y;
-		I::InputSystem->GetCursorPosition(&x, &y);
-
-		// set imgui mouse position
-		io.MousePos = ImVec2(static_cast<float>(x), static_cast<float>(y));
-
 		ImGui::SetNextWindowPos(ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y * 0.5f), ImGuiCond_Once, ImVec2(0.5f, 0.5f));
 		ImGui::SetNextWindowSize(ImVec2(500, 327), ImGuiCond_Always);
-		ImGui::Begin(XorStr("qo0 base"), &bMainOpened, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse);
+		ImGui::Begin(Q_XOR("qo0 base"), &bMainOpened, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse);
 		{
 			const ImVec2 vecPosition = ImGui::GetCursorScreenPos();
 			const float flWindowWidth = ImGui::GetWindowWidth();
@@ -139,16 +164,15 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 			ImGui::PopClipRect();
 
 			// add tabs
-			static std::array<CTab, 4U> const arrTabs =
+			static const CTab arrTabs[ ] =
 			{
 				CTab{ "rage", &T::RageBot },
 				CTab{ "legit", &T::LegitBot },
 				CTab{ "visuals", &T::Visuals },
 				CTab{ "miscellaneous", &T::Miscellaneous }
-				//CTab{ "skinchanger", &T::SkinChanger }
 			};
 
-			T::Render<arrTabs.size()>(XorStr("main_tabs"), arrTabs, &iMainTab, style.Colors[ImGuiCol_TabActive]);
+			T::Render(Q_XOR("main_tabs"), arrTabs, 4U, &iMainTab, style.Colors[ImGuiCol_TabActive]);
 
 			ImGui::End();
 		}
@@ -158,21 +182,16 @@ void W::MainWindow(IDirect3DDevice9* pDevice)
 #pragma endregion
 
 #pragma region menu_tabs
-template <std::size_t S>
-void T::Render(const char* szTabBar, const std::array<CTab, S> arrTabs, int* nCurrentTab, const ImVec4& colActive, ImGuiTabBarFlags flags)
+void T::Render(const char* szTabBar, const CTab* arrTabs, const std::size_t nTabsCount, int* nCurrentTab, const ImVec4& colActive, ImGuiTabBarFlags flags)
 {
-	// is empty check
-	if (arrTabs.empty())
-		return;
-
 	// set active tab color
 	ImGui::PushStyleColor(ImGuiCol_TabActive, colActive);
 	if (ImGui::BeginTabBar(szTabBar, flags))
 	{
-		for (std::size_t i = 0U; i < arrTabs.size(); i++)
+		for (std::size_t i = 0U; i < nTabsCount; i++)
 		{
 			// add tab
-			if (ImGui::BeginTabItem(arrTabs.at(i).szName))
+			if (ImGui::BeginTabItem(arrTabs[i].szName))
 			{
 				// set current tab index
 				*nCurrentTab = i;
@@ -181,8 +200,8 @@ void T::Render(const char* szTabBar, const std::array<CTab, S> arrTabs, int* nCu
 		}
 
 		// render inner tab
-		if (arrTabs.at(*nCurrentTab).pRenderFunction != nullptr)
-			arrTabs.at(*nCurrentTab).pRenderFunction();
+		if (arrTabs[*nCurrentTab].pRenderFunction != nullptr)
+			arrTabs[*nCurrentTab].pRenderFunction();
 
 		ImGui::EndTabBar();
 	}
@@ -197,17 +216,20 @@ void T::RageBot()
 
 	ImGui::Columns(2, nullptr, false);
 	{
-		ImGui::BeginChild(XorStr("ragebot.aimbot"), ImVec2(), true, ImGuiWindowFlags_MenuBar);
+		ImGui::BeginChild(
+		Q_XOR("ragebot.aimbot"), ImVec2{ }, true, ImGuiWindowFlags_MenuBar);
 		{
 			if (ImGui::BeginMenuBar())
 			{
-				ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
-				ImGui::Selectable(XorStr("aimbot##ragebot"), &C::Get<bool>(Vars.bRage), ImGuiSelectableFlags_None, ImVec2(30, 0));
-				ImGui::PopStyleVar();
+				if (ImGui::BeginMenu(Q_XOR("aimbot##master"), C::Get<bool>(Vars.bRage)))
+					ImGui::EndMenu();
+				if (ImGui::IsItemClicked())
+					C::Get<bool>(Vars.bRage) ^= true;
+
 				ImGui::EndMenuBar();
 			}
 
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, 0));
 
 			ImGui::PopStyleVar();
 
@@ -216,22 +238,29 @@ void T::RageBot()
 	}
 	ImGui::NextColumn();
 	{
-		ImGui::BeginChild(XorStr("ragebot.antiaim"), ImVec2(), true, ImGuiWindowFlags_MenuBar);
+		ImGui::BeginChild(Q_XOR("ragebot.antiaim"), ImVec2{ }, true, ImGuiWindowFlags_MenuBar);
 		{
 			if (ImGui::BeginMenuBar())
 			{
-				ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
-				ImGui::Selectable(XorStr("anti-aim"), &C::Get<bool>(Vars.bAntiAim), ImGuiSelectableFlags_None, ImVec2(40, 0));
-				ImGui::PopStyleVar();
+				if (ImGui::BeginMenu(Q_XOR("anti-aim##master"), C::Get<bool>(Vars.bAntiAim)))
+					ImGui::EndMenu();
+				if (ImGui::IsItemClicked())
+					C::Get<bool>(Vars.bAntiAim) ^= true;
+
 				ImGui::EndMenuBar();
 			}
 
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
-			ImGui::Combo(XorStr("pitch"), &C::Get<int>(Vars.iAntiAimPitch), XorStr("none\0up\0down\0zero (untrusted)\0\0"));
-			ImGui::Combo(XorStr("yaw"), &C::Get<int>(Vars.iAntiAimYaw), XorStr("none\0desync\0\0"));
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, 0));
+			ImGui::Checkbox(Q_XOR("pitch"), &C::Get<bool>(Vars.bAntiAimPitch));
+			if (C::Get<bool>(Vars.bAntiAimPitch))
+				ImGui::SliderInt(Q_XOR("angle"), &C::Get<int>(Vars.iAntiAimPitch), -89, 89, "%d\xC2\xB0");
+			ImGui::Checkbox(Q_XOR("yaw real"), &C::Get<bool>(Vars.bAntiAimYawReal));
+			if (C::Get<bool>(Vars.bAntiAimYawReal))
+				ImGui::SliderInt(Q_XOR("offset"), &C::Get<int>(Vars.iAntiAimYawRealOffset), -180, 180, "%d\xC2\xB0");
 
-			if (C::Get<int>(Vars.iAntiAimYaw) == (int)EAntiAimYawType::DESYNC)
-				ImGui::HotKey(XorStr("desync switch"), &C::Get<int>(Vars.iAntiAimDesyncKey));
+			ImGui::Checkbox(Q_XOR("yaw fake"), &C::Get<bool>(Vars.bAntiAimYawFake));
+			if (C::Get<bool>(Vars.bAntiAimYawFake))
+				ImGui::HotKey(Q_XOR("inverter"), &C::Get<KeyBind_t>(Vars.keyAntiAimYawFakeInverter));
 			ImGui::PopStyleVar();
 
 			ImGui::EndChild();
@@ -246,17 +275,19 @@ void T::LegitBot()
 
 	ImGui::Columns(2, nullptr, false);
 	{
-		ImGui::BeginChild(XorStr("legitbot.aimbot"), ImVec2(), true, ImGuiWindowFlags_MenuBar);
+		ImGui::BeginChild(Q_XOR("legitbot.aimbot"), ImVec2{ }, true, ImGuiWindowFlags_MenuBar);
 		{
 			if (ImGui::BeginMenuBar())
 			{
-				ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
-				ImGui::Selectable(XorStr("aimbot##legitbot"), &C::Get<bool>(Vars.bLegit), ImGuiSelectableFlags_None, ImVec2(30, 0));
-				ImGui::PopStyleVar();
+				if (ImGui::BeginMenu(Q_XOR("aimbot##master"), C::Get<bool>(Vars.bLegit)))
+					ImGui::EndMenu();
+				if (ImGui::IsItemClicked())
+					C::Get<bool>(Vars.bLegit) ^= true;
+
 				ImGui::EndMenuBar();
 			}
 
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, 0));
 
 			ImGui::PopStyleVar();
 
@@ -265,34 +296,35 @@ void T::LegitBot()
 	}
 	ImGui::NextColumn();
 	{
-		ImGui::BeginChild(XorStr("legitbot.triggerbot"), ImVec2(), true, ImGuiWindowFlags_MenuBar);
+		ImGui::BeginChild(Q_XOR("legitbot.triggerbot"), ImVec2{ }, true, ImGuiWindowFlags_MenuBar);
 		{
 			if (ImGui::BeginMenuBar())
 			{
-				ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
-				ImGui::Selectable(XorStr("triggerbot##master"), &C::Get<bool>(Vars.bTrigger), ImGuiSelectableFlags_None, ImVec2(45, 0));
-				ImGui::PopStyleVar();
+				if (ImGui::BeginMenu(Q_XOR("triggerbot##master"), C::Get<bool>(Vars.bTrigger)))
+					ImGui::EndMenu();
+				if (ImGui::IsItemClicked())
+					C::Get<bool>(Vars.bTrigger) ^= true;
 
-				if (ImGui::BeginMenu(XorStr("filters")))
+				if (ImGui::BeginMenu(Q_XOR("filters")))
 				{
-					ImGui::MenuItem(XorStr("head"), nullptr, &C::Get<bool>(Vars.bTriggerHead));
-					ImGui::MenuItem(XorStr("chest"), nullptr, &C::Get<bool>(Vars.bTriggerChest));
-					ImGui::MenuItem(XorStr("stomach"), nullptr, &C::Get<bool>(Vars.bTriggerStomach));
-					ImGui::MenuItem(XorStr("arms"), nullptr, &C::Get<bool>(Vars.bTriggerArms));
-					ImGui::MenuItem(XorStr("legs"), nullptr, &C::Get<bool>(Vars.bTriggerLegs));
+					ImGui::MenuItem(Q_XOR("head"), nullptr, &C::Get<bool>(Vars.bTriggerHead));
+					ImGui::MenuItem(Q_XOR("chest"), nullptr, &C::Get<bool>(Vars.bTriggerChest));
+					ImGui::MenuItem(Q_XOR("stomach"), nullptr, &C::Get<bool>(Vars.bTriggerStomach));
+					ImGui::MenuItem(Q_XOR("arms"), nullptr, &C::Get<bool>(Vars.bTriggerArms));
+					ImGui::MenuItem(Q_XOR("legs"), nullptr, &C::Get<bool>(Vars.bTriggerLegs));
 					ImGui::EndMenu();
 				}
 
 				ImGui::EndMenuBar();
 			}
 
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
-			ImGui::HotKey(XorStr("activation key"), &C::Get<int>(Vars.iTriggerKey));
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, 0));
+			ImGui::HotKey(Q_XOR("activation key"), &C::Get<KeyBind_t>(Vars.keyTrigger));
 			ImGui::Separator();
 
-			ImGui::SliderInt(XorStr("reaction delay##trigger"), &C::Get<int>(Vars.iTriggerDelay), 0, 500, "%dms");
-			ImGui::Checkbox(XorStr("auto wall##trigger"), &C::Get<bool>(Vars.bTriggerAutoWall));
-			ImGui::SliderInt(XorStr("minimal damage##trigger"), &C::Get<int>(Vars.iTriggerMinimalDamage), 1, 100, "%dhp");
+			ImGui::SliderInt(Q_XOR("reaction delay##trigger"), &C::Get<int>(Vars.iTriggerDelay), 0, 500, "%dms");
+			ImGui::Checkbox(Q_XOR("auto wall##trigger"), &C::Get<bool>(Vars.bTriggerAutoWall));
+			ImGui::SliderInt(Q_XOR("minimal damage##trigger"), &C::Get<int>(Vars.iTriggerMinimalDamage), 1, 100, "%dhp");
 			ImGui::PopStyleVar();
 
 			ImGui::EndChild();
@@ -307,41 +339,45 @@ void T::Visuals()
 
 	ImGui::Columns(2, nullptr, false);
 	{
-		ImGui::BeginChild(XorStr("visuals.esp"), ImVec2(0, 0), true, ImGuiWindowFlags_MenuBar);
+		ImGui::BeginChild(Q_XOR("visuals.esp"), ImVec2{ }, true, ImGuiWindowFlags_MenuBar);
 		{
 			if (ImGui::BeginMenuBar())
 			{
-				ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
-				ImGui::Selectable(XorStr("esp##master"), &C::Get<bool>(Vars.bEsp), ImGuiSelectableFlags_None, ImVec2(30, 0));
-				ImGui::PopStyleVar();
+				if (ImGui::BeginMenu(Q_XOR("visual##master"), C::Get<bool>(Vars.bVisual)))
+					ImGui::EndMenu();
+				if (ImGui::IsItemClicked())
+					C::Get<bool>(Vars.bVisual) ^= true;
 
-				if (ImGui::BeginMenu(XorStr("filters")))
+				if (ImGui::BeginMenu(Q_XOR("filters")))
 				{
 					switch (iEspTab)
 					{
 					case 0:
 					{
-						ImGui::MenuItem(XorStr("enemies"), nullptr, &C::Get<bool>(Vars.bEspMainEnemies));
-						ImGui::MenuItem(XorStr("allies"), nullptr, &C::Get<bool>(Vars.bEspMainAllies));
-						ImGui::MenuItem(XorStr("weapons"), nullptr, &C::Get<bool>(Vars.bEspMainWeapons));
-						ImGui::MenuItem(XorStr("grenades"), nullptr, &C::Get<bool>(Vars.bEspMainGrenades));
-						ImGui::MenuItem(XorStr("bomb"), nullptr, &C::Get<bool>(Vars.bEspMainBomb));
+						ImGui::MenuItem(Q_XOR("enemies"), nullptr, &C::Get<bool>(Vars.bVisualOverlayEnemies));
+						ImGui::MenuItem(Q_XOR("allies"), nullptr, &C::Get<bool>(Vars.bVisualOverlayAllies));
+						ImGui::MenuItem(Q_XOR("local"), nullptr, &C::Get<bool>(Vars.bVisualOverlayLocal));
+						ImGui::MenuItem(Q_XOR("weapons"), nullptr, &C::Get<bool>(Vars.bVisualOverlayWeapons));
+						ImGui::MenuItem(Q_XOR("grenades"), nullptr, &C::Get<bool>(Vars.bVisualOverlayGrenades));
+						ImGui::MenuItem(Q_XOR("bomb"), nullptr, &C::Get<bool>(Vars.bVisualOverlayBomb));
 						break;
 					}
 					case 1:
 					{
-						ImGui::MenuItem(XorStr("enemies"), nullptr, &C::Get<bool>(Vars.bEspGlowEnemies));
-						ImGui::MenuItem(XorStr("allies"), nullptr, &C::Get<bool>(Vars.bEspGlowAllies));
-						ImGui::MenuItem(XorStr("weapons"), nullptr, &C::Get<bool>(Vars.bEspGlowWeapons));
-						ImGui::MenuItem(XorStr("grenades"), nullptr, &C::Get<bool>(Vars.bEspGlowGrenades));
-						ImGui::MenuItem(XorStr("bomb"), nullptr, &C::Get<bool>(Vars.bEspGlowBomb));
+						ImGui::MenuItem(Q_XOR("enemies"), nullptr, &C::Get<bool>(Vars.bVisualGlowEnemies));
+						ImGui::MenuItem(Q_XOR("allies"), nullptr, &C::Get<bool>(Vars.bVisualGlowAllies));
+						ImGui::MenuItem(Q_XOR("local"), nullptr, &C::Get<bool>(Vars.bVisualGlowLocal));
+						ImGui::MenuItem(Q_XOR("weapons"), nullptr, &C::Get<bool>(Vars.bVisualGlowWeapons));
+						ImGui::MenuItem(Q_XOR("grenades"), nullptr, &C::Get<bool>(Vars.bVisualGlowGrenades));
+						ImGui::MenuItem(Q_XOR("bomb"), nullptr, &C::Get<bool>(Vars.bVisualGlowBomb));
 						break;
 					}
 					case 2:
 					{
-						ImGui::MenuItem(XorStr("enemies"), nullptr, &C::Get<bool>(Vars.bEspChamsEnemies));
-						ImGui::MenuItem(XorStr("allies"), nullptr, &C::Get<bool>(Vars.bEspChamsAllies));
-						ImGui::MenuItem(XorStr("viewmodel"), nullptr, &C::Get<bool>(Vars.bEspChamsViewModel));
+						ImGui::MenuItem(Q_XOR("enemies"), nullptr, &C::Get<bool>(Vars.bVisualChamsEnemies));
+						ImGui::MenuItem(Q_XOR("allies"), nullptr, &C::Get<bool>(Vars.bVisualChamsAllies));
+						ImGui::MenuItem(Q_XOR("local"), nullptr, &C::Get<bool>(Vars.bVisualChamsLocal));
+						ImGui::MenuItem(Q_XOR("viewmodel"), nullptr, &C::Get<bool>(Vars.bVisualChamsViewModel));
 						break;
 					}
 					default:
@@ -354,84 +390,103 @@ void T::Visuals()
 				ImGui::EndMenuBar();
 			}
 
-			static std::array<CTab, 3U> const arrEspTabs =
+			static const CTab arrEspTabs[ ] =
 			{
-				CTab{ "main", [&style]()
+				CTab{ "overlay", []()
 			{
-				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
-				ImGui::Checkbox(XorStr("enable##main"), &C::Get<bool>(Vars.bEspMain));
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(ImGui::GetStyle().FramePadding.x, -1));
+				ImGui::Checkbox(Q_XOR("enable##main"), &C::Get<bool>(Vars.bVisualOverlay));
 
-				if (C::Get<bool>(Vars.bEspMainEnemies) || C::Get<bool>(Vars.bEspMainAllies))
+				if (C::Get<bool>(Vars.bVisualOverlayEnemies) || C::Get<bool>(Vars.bVisualOverlayAllies))
 				{
 					ImGui::Separator();
-					ImGui::Combo(XorStr("player box"), &C::Get<int>(Vars.iEspMainPlayerBox), XorStr("none\0full\0corners\0\0"));
-					ImGui::Checkbox(XorStr("far radar"), &C::Get<bool>(Vars.bEspMainPlayerFarRadar));
+					ImGui::Combo(Q_XOR("player box"), &C::Get<int>(Vars.iVisualOverlayPlayerBox), Q_XOR("none\0full\0corners\0\0"));
 
-					ImGui::Checkbox(XorStr("players info"), &C::Get<bool>(Vars.bEspMainPlayerInfo));
-					if (C::Get<bool>(Vars.bEspMainPlayerInfo))
+					ImGui::Checkbox(Q_XOR("players info"), &C::Get<bool>(Vars.bVisualOverlayPlayerInfo));
+					if (C::Get<bool>(Vars.bVisualOverlayPlayerInfo))
 					{
-						ImGui::Checkbox(XorStr("health##player"), &C::Get<bool>(Vars.bEspMainPlayerHealth));
-						ImGui::Checkbox(XorStr("money##player"), &C::Get<bool>(Vars.bEspMainPlayerMoney));
-						ImGui::Checkbox(XorStr("name##player"), &C::Get<bool>(Vars.bEspMainPlayerName));
-						ImGui::Checkbox(XorStr("flash##player"), &C::Get<bool>(Vars.bEspMainPlayerFlash));
-						ImGui::MultiCombo(XorStr("flags##player"), C::Get<std::vector<bool>>(Vars.vecEspMainPlayerFlags), arrVisualsFlags.data(), arrVisualsFlags.size());
-						ImGui::Checkbox(XorStr("weapons##player"), &C::Get<bool>(Vars.bEspMainPlayerWeapons));
-						ImGui::Checkbox(XorStr("ammo##player"), &C::Get<bool>(Vars.bEspMainPlayerAmmo));
-						ImGui::Checkbox(XorStr("distance##player"), &C::Get<bool>(Vars.bEspMainPlayerDistance));
+						ImGui::Checkbox(Q_XOR("health##player"), &C::Get<bool>(Vars.bVisualOverlayPlayerHealth));
+						ImGui::Checkbox(Q_XOR("money##player"), &C::Get<bool>(Vars.bVisualOverlayPlayerMoney));
+						ImGui::Checkbox(Q_XOR("name##player"), &C::Get<bool>(Vars.bVisualOverlayPlayerName));
+						ImGui::Checkbox(Q_XOR("flash##player"), &C::Get<bool>(Vars.bVisualOverlayPlayerFlash));
+						ImGui::MultiCombo(Q_XOR("flags##player"), &C::Get<unsigned int>(Vars.nVisualOverlayPlayerFlags), arrVisualsFlags, ARRAYSIZE(arrVisualsFlags));
+						ImGui::Checkbox(Q_XOR("weapons##player"), &C::Get<bool>(Vars.bVisualOverlayPlayerWeapons));
+						ImGui::Checkbox(Q_XOR("ammo##player"), &C::Get<bool>(Vars.bVisualOverlayPlayerAmmo));
+						ImGui::Checkbox(Q_XOR("distance##player"), &C::Get<bool>(Vars.bVisualOverlayPlayerDistance));
 					}
 				}
 
-				if (C::Get<bool>(Vars.bEspMainWeapons))
+				if (C::Get<bool>(Vars.bVisualOverlayWeapons))
 				{
 					ImGui::Separator();
-					ImGui::Combo(XorStr("weapon box"), &C::Get<int>(Vars.iEspMainWeaponBox), XorStr("none\0full\0corners\0\0"));
+					ImGui::Combo(Q_XOR("weapon box"), &C::Get<int>(Vars.iVisualOverlayWeaponBox), Q_XOR("none\0full\0corners\0\0"));
 
-					ImGui::Checkbox(XorStr("weapons info"), &C::Get<bool>(Vars.bEspMainWeaponInfo));
-					if (C::Get<bool>(Vars.bEspMainWeaponInfo))
+					ImGui::Checkbox(Q_XOR("weapons info"), &C::Get<bool>(Vars.bVisualOverlayWeaponInfo));
+					if (C::Get<bool>(Vars.bVisualOverlayWeaponInfo))
 					{
-						ImGui::Checkbox(XorStr("icon##weapon"), &C::Get<bool>(Vars.bEspMainWeaponIcon));
-						ImGui::Checkbox(XorStr("ammo##weapon"), &C::Get<bool>(Vars.bEspMainWeaponAmmo));
-						ImGui::Checkbox(XorStr("distance##weapon"), &C::Get<bool>(Vars.bEspMainWeaponDistance));
+						ImGui::Checkbox(Q_XOR("icon##weapon"), &C::Get<bool>(Vars.bVisualOverlayWeaponIcon));
+						ImGui::Checkbox(Q_XOR("ammo##weapon"), &C::Get<bool>(Vars.bVisualOverlayWeaponAmmo));
+						ImGui::Checkbox(Q_XOR("distance##weapon"), &C::Get<bool>(Vars.bVisualOverlayWeaponDistance));
 					}
 				}
 
 				ImGui::PopStyleVar();
 			}},
-				CTab{ "glow", [&style]()
+				CTab{ "glow", []()
 			{
-				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
-				ImGui::Checkbox(XorStr("enable##glow"), &C::Get<bool>(Vars.bEspGlow));
-				ImGui::Checkbox(XorStr("bloom"), &C::Get<bool>(Vars.bEspGlowBloom));
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(ImGui::GetStyle().FramePadding.x, -1));
+				ImGui::Checkbox(Q_XOR("enable##glow"), &C::Get<bool>(Vars.bVisualGlow));
+				ImGui::Checkbox(Q_XOR("bloom"), &C::Get<bool>(Vars.bVisualGlowBloom));
 
 				// @note: if u rebuild glow and wanna use styles do like that
-				//ImGui::Combo(XorStr("styles example##glow"), XorStr("outer\0rim\0edge\0edge pulse\0\0"));
+				//ImGui::Combo(Q_XOR("styles example##glow"), Q_XOR("outer\0rim\0edge\0edge pulse\0\0"));
 
 				ImGui::PopStyleVar();
 			}},
-				CTab{ "chams", [&style]()
+				CTab{ "chams", []()
 			{
-				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
-				ImGui::Checkbox(XorStr("enable##chams"), &C::Get<bool>(Vars.bEspChams));
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(ImGui::GetStyle().FramePadding.x, -1));
+				ImGui::Checkbox(Q_XOR("enable##chams"), &C::Get<bool>(Vars.bVisualChams));
 
-				if (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies))
+				if (C::Get<bool>(Vars.bVisualChamsEnemies))
 				{
-					ImGui::Combo(XorStr("players style##chams"), &C::Get<int>(Vars.iEspChamsPlayer), XorStr("covered\0flat\0wireframe\0reflective\0\0"));
-					ImGui::Checkbox(XorStr("xqz"), &C::Get<bool>(Vars.bEspChamsXQZ));
-					ImGui::Checkbox(XorStr("disable occlusion"), &C::Get<bool>(Vars.bEspChamsDisableOcclusion));
-					if (ImGui::IsItemHovered())
-						ImGui::SetTooltip(XorStr("may cause \"invisible\" players models sometimes"));
+					ImGui::Combo(Q_XOR("enemies style##enemies"), &C::Get<int>(Vars.iVisualChamsEnemies), Q_XOR("none\0covered\0flat\0glow\0reflective\0scroll\0\0"));
+					ImGui::Checkbox(Q_XOR("xqz##enemies"), &C::Get<bool>(Vars.bVisualChamsEnemiesXQZ));
+					ImGui::Checkbox(Q_XOR("wireframe##enemies"), &C::Get<bool>(Vars.bVisualChamsEnemiesWireframe));
+					ImGui::Separator();
 				}
 
-				if (C::Get<bool>(Vars.bEspChamsViewModel))
+				if (C::Get<bool>(Vars.bVisualChamsAllies))
 				{
-					ImGui::Combo(XorStr("viewmodel style##chams"), &C::Get<int>(Vars.iEspChamsViewModel), XorStr("no draw\0covered\0flat\0wireframe\0glow\0scroll\0chrome\0\0"));
+					ImGui::Combo(Q_XOR("allies style##allies"), &C::Get<int>(Vars.iVisualChamsAllies), Q_XOR("none\0covered\0flat\0glow\0reflective\0scroll\0\0"));
+					ImGui::Checkbox(Q_XOR("xqz##allies"), &C::Get<bool>(Vars.bVisualChamsAlliesXQZ));
+					ImGui::Checkbox(Q_XOR("wireframe##allies"), &C::Get<bool>(Vars.bVisualChamsAlliesWireframe));
+					ImGui::Separator();
+				}
+
+				if (C::Get<bool>(Vars.bVisualChamsLocal))
+				{
+					ImGui::Combo(Q_XOR("local style##local"), &C::Get<int>(Vars.iVisualChamsLocal), Q_XOR("none\0covered\0flat\0glow\0reflective\0scroll\0\0"));
+					ImGui::Checkbox(Q_XOR("xqz##local"), &C::Get<bool>(Vars.bVisualChamsLocalXQZ));
+					ImGui::Checkbox(Q_XOR("wireframe##local"), &C::Get<bool>(Vars.bVisualChamsLocalWireframe));
+					ImGui::Combo(Q_XOR("desync style##local"), &C::Get<int>(Vars.iVisualChamsLocalDesync), Q_XOR("none\0covered\0flat\0glow\0reflective\0scroll\0\0"));
+					ImGui::Checkbox(Q_XOR("desync xqz##local"), &C::Get<bool>(Vars.bVisualChamsLocalDesyncXQZ));
+					ImGui::Checkbox(Q_XOR("desync wireframe##local"), &C::Get<bool>(Vars.bVisualChamsLocalDesyncWireframe));
+					ImGui::Separator();
+				}
+
+				if (C::Get<bool>(Vars.bVisualChamsViewModel))
+				{
+					ImGui::Combo(Q_XOR("viewmodel style##viewmodel"), &C::Get<int>(Vars.iVisualChamsViewModel), Q_XOR("none\0covered\0flat\0glow\0reflective\0scroll\0\0"));
+					ImGui::Checkbox(Q_XOR("xqz##viewmodel"), &C::Get<bool>(Vars.bVisualChamsViewModelXQZ));
+					ImGui::Checkbox(Q_XOR("wireframe##viewmodel"), &C::Get<bool>(Vars.bVisualChamsViewModelWireframe));
 				}
 
 				ImGui::PopStyleVar();
 			}}
 			};
 
-			T::Render<arrEspTabs.size()>(XorStr("visuals_esp"), arrEspTabs, &iEspTab, style.Colors[ImGuiCol_ScrollbarGrab]);
+			Render(Q_XOR("visuals_esp"), arrEspTabs, 3U, &iEspTab, style.Colors[ImGuiCol_ScrollbarGrab]);
 
 			ImGui::EndChild();
 		}
@@ -439,51 +494,54 @@ void T::Visuals()
 	ImGui::NextColumn();
 	{
 		static float flWorldChildSize = 0.f;
-		ImGui::BeginChild(XorStr("visuals.world"), ImVec2(0, flWorldChildSize), true, ImGuiWindowFlags_MenuBar);
+		ImGui::BeginChild(Q_XOR("visuals.world"), ImVec2(0, flWorldChildSize), true, ImGuiWindowFlags_MenuBar);
 		{
 			if (ImGui::BeginMenuBar())
 			{
-				ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
-				ImGui::Selectable(XorStr("world##master"), &C::Get<bool>(Vars.bWorld), ImGuiSelectableFlags_None, ImVec2(30, 0));
-				ImGui::PopStyleVar();
+				if (ImGui::BeginMenu(Q_XOR("world##master"), C::Get<bool>(Vars.bVisualWorld)))
+					ImGui::EndMenu();
+				if (ImGui::IsItemClicked())
+					C::Get<bool>(Vars.bVisualWorld) ^= true;
+
 				ImGui::EndMenuBar();
 			}
 
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
-			ImGui::Checkbox(XorStr("night mode"), &C::Get<bool>(Vars.bWorldNightMode));
-			ImGui::SliderInt(XorStr("max flash effect"), &C::Get<int>(Vars.iWorldMaxFlash), 0, 100, "%d%%");
-			ImGui::MultiCombo(XorStr("removals"), C::Get<std::vector<bool>>(Vars.vecWorldRemovals), arrVisualsRemovals.data(), arrVisualsRemovals.size());
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, 0));
+			ImGui::Checkbox(Q_XOR("night mode"), &C::Get<bool>(Vars.bVisualWorldNightMode));
+			ImGui::MultiCombo(Q_XOR("removals"), &C::Get<unsigned int>(Vars.nVisualWorldRemovals), arrVisualsRemovals, ARRAYSIZE(arrVisualsRemovals));
 			ImGui::Separator();
 
-			ImGui::HotKey(XorStr("thirdperson"), &C::Get<int>(Vars.iWorldThirdPersonKey));
-			ImGui::SliderFloat(XorStr("camera offset"), &C::Get<float>(Vars.flWorldThirdPersonOffset), 50.f, 300.f, "%.1f units");
+			ImGui::HotKey(Q_XOR("thirdperson"), &C::Get<KeyBind_t>(Vars.keyVisualWorldThirdPerson));
+			ImGui::SliderFloat(Q_XOR("camera offset"), &C::Get<float>(Vars.flVisualWorldThirdPersonOffset), 50.f, 300.f, "%.1f units");
 			ImGui::PopStyleVar();
 
 			flWorldChildSize = ImGui::GetCursorPosY() + style.ItemSpacing.y;
 			ImGui::EndChild();
 		}
 
-		ImGui::BeginChild(XorStr("visuals.screen"), ImVec2(0, 0), true, ImGuiWindowFlags_MenuBar);
+		ImGui::BeginChild(Q_XOR("visuals.screen"), ImVec2{ }, true, ImGuiWindowFlags_MenuBar);
 		{
 			if (ImGui::BeginMenuBar())
 			{
-				ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
-				ImGui::Selectable(XorStr("screen##master"), &C::Get<bool>(Vars.bScreen), ImGuiSelectableFlags_None, ImVec2(30, 0));
-				ImGui::PopStyleVar();
+				if (ImGui::BeginMenu(Q_XOR("screen##master"), C::Get<bool>(Vars.bVisualScreen)))
+					ImGui::EndMenu();
+				if (ImGui::IsItemClicked())
+					C::Get<bool>(Vars.bVisualScreen) ^= true;
+
 				ImGui::EndMenuBar();
 			}
 
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
-			ImGui::SliderFloat(XorStr("camera fov"), &C::Get<float>(Vars.flScreenCameraFOV), -89.f, 89.f, "%.1f\xC2\xB0");
-			ImGui::SliderFloat(XorStr("viewmodel fov"), &C::Get<float>(Vars.flScreenViewModelFOV), -90.f, 90.f, "%.1f\xC2\xB0");
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, 0));
+			ImGui::SliderFloat(Q_XOR("camera fov"), &C::Get<float>(Vars.flVisualScreenCameraFOV), -89.f, 89.f, "%.1f\xC2\xB0");
+			ImGui::SliderFloat(Q_XOR("viewmodel fov"), &C::Get<float>(Vars.flVisualScreenViewModelFOV), -90.f, 90.f, "%.1f\xC2\xB0");
 			ImGui::Separator();
 
-			ImGui::Checkbox(XorStr("hitmarker"), &C::Get<bool>(Vars.bScreenHitMarker));
-			ImGui::Checkbox(XorStr("damage"), &C::Get<bool>(Vars.bScreenHitMarkerDamage));
-			ImGui::Checkbox(XorStr("sound"), &C::Get<bool>(Vars.bScreenHitMarkerSound));
-			ImGui::SliderFloat(XorStr("time"), &C::Get<float>(Vars.flScreenHitMarkerTime), 0.5f, 5.f, "%.1fsec");
-			ImGui::SliderInt(XorStr("gap"), &C::Get<int>(Vars.iScreenHitMarkerGap), 1, 20, "%d pixels");
-			ImGui::SliderInt(XorStr("length"), &C::Get<int>(Vars.iScreenHitMarkerLenght), 1, 20, "%d pixels");
+			ImGui::Checkbox(Q_XOR("hitmarker"), &C::Get<bool>(Vars.bVisualScreenHitMarker));
+			ImGui::Checkbox(Q_XOR("damage"), &C::Get<bool>(Vars.bVisualScreenHitMarkerDamage));
+			ImGui::Checkbox(Q_XOR("sound"), &C::Get<bool>(Vars.bVisualScreenHitMarkerSound));
+			ImGui::SliderFloat(Q_XOR("time"), &C::Get<float>(Vars.flVisualScreenHitMarkerTime), 0.5f, 5.f, "%.1fsec");
+			ImGui::SliderInt(Q_XOR("gap"), &C::Get<int>(Vars.iVisualScreenHitMarkerGap), 1, 20, "%d pixels");
+			ImGui::SliderInt(Q_XOR("length"), &C::Get<int>(Vars.iVisualScreenHitMarkerLength), 1, 20, "%d pixels");
 			ImGui::PopStyleVar();
 
 			ImGui::EndChild();
@@ -499,44 +557,45 @@ void T::Miscellaneous()
 	ImGui::Columns(2, nullptr, false);
 	{
 		static float flMovementChildSize = 0.f;
-		ImGui::BeginChild(XorStr("misc.movement"), ImVec2(0, flMovementChildSize), true, ImGuiWindowFlags_MenuBar);
+		ImGui::BeginChild(Q_XOR("misc.movement"), ImVec2(0, flMovementChildSize), true, ImGuiWindowFlags_MenuBar);
 		{
 			if (ImGui::BeginMenuBar())
 			{
-				ImGui::TextUnformatted(XorStr("movement"));
+				ImGui::TextUnformatted(Q_XOR("movement"));
 				ImGui::EndMenuBar();
 			}
 
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
-			ImGui::Checkbox(XorStr("bunny hop"), &C::Get<bool>(Vars.bMiscBunnyHop));
-			ImGui::SliderInt(XorStr("chance"), &C::Get<int>(Vars.iMiscBunnyHopChance), 0, 100, "%d%%");
-			ImGui::Checkbox(XorStr("autostrafe"), &C::Get<bool>(Vars.bMiscAutoStrafe));
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, 0));
+			ImGui::Checkbox(Q_XOR("bunny hop"), &C::Get<bool>(Vars.bMiscBunnyHop));
+			ImGui::SliderInt(Q_XOR("chance"), &C::Get<int>(Vars.iMiscBunnyHopChance), 0, 100, "%d%%");
+			ImGui::Checkbox(Q_XOR("autostrafe"), &C::Get<bool>(Vars.bMiscAutoStrafe));
 			ImGui::Separator();
 
-			ImGui::Checkbox(XorStr("fake lag"), &C::Get<bool>(Vars.bMiscFakeLag));
-			ImGui::Checkbox(XorStr("auto accept"), &C::Get<bool>(Vars.bMiscAutoAccept));
-			ImGui::Checkbox(XorStr("auto pistol"), &C::Get<bool>(Vars.bMiscAutoPistol));
-			ImGui::Checkbox(XorStr("no crouch cooldown"), &C::Get<bool>(Vars.bMiscNoCrouchCooldown));
+			ImGui::Checkbox(Q_XOR("fake lag"), &C::Get<bool>(Vars.bMiscFakeLag));
+			ImGui::SliderInt(Q_XOR("ticks"), &C::Get<int>(Vars.iMiscFakeLagTicks), 1, 17, "%d");
+			ImGui::Checkbox(Q_XOR("auto accept"), &C::Get<bool>(Vars.bMiscAutoAccept));
+			ImGui::Checkbox(Q_XOR("auto pistol"), &C::Get<bool>(Vars.bMiscAutoPistol));
+			ImGui::Checkbox(Q_XOR("no crouch cooldown"), &C::Get<bool>(Vars.bMiscNoCrouchCooldown));
 			ImGui::PopStyleVar();
 
 			flMovementChildSize = ImGui::GetCursorPosY() + style.ItemSpacing.y;
 			ImGui::EndChild();
 		}
 
-		ImGui::BeginChild(XorStr("misc.exploits"), ImVec2(0, 0), true, ImGuiWindowFlags_MenuBar);
+		ImGui::BeginChild(Q_XOR("misc.exploits"), ImVec2{ }, true, ImGuiWindowFlags_MenuBar);
 		{
 			if (ImGui::BeginMenuBar())
 			{
-				ImGui::TextUnformatted(XorStr("exploits"));
+				ImGui::TextUnformatted(Q_XOR("exploits"));
 				ImGui::EndMenuBar();
 			}
 
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
-			ImGui::Checkbox(XorStr("ping spike"), &C::Get<bool>(Vars.bMiscPingSpike));
-			ImGui::SliderFloat(XorStr("latency factor"), &C::Get<float>(Vars.flMiscLatencyFactor), 0.1f, 1.0f, "%.1f second");
-			ImGui::Checkbox(XorStr("reveal ranks"), &C::Get<bool>(Vars.bMiscRevealRanks));
-			ImGui::Checkbox(XorStr("unlock inventory"), &C::Get<bool>(Vars.bMiscUnlockInventory));
-			ImGui::Checkbox(XorStr("anti-untrusted"), &C::Get<bool>(Vars.bMiscAntiUntrusted));
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, 0));
+			ImGui::Checkbox(Q_XOR("fake latency"), &C::Get<bool>(Vars.bMiscFakeLatency));
+			ImGui::SliderInt(Q_XOR("amount##fakelatency"), &C::Get<int>(Vars.iMiscFakeLatencyAmount), 1, 1000, "%dms");
+			ImGui::Checkbox(Q_XOR("reveal ranks"), &C::Get<bool>(Vars.bMiscRevealRanks));
+			ImGui::Checkbox(Q_XOR("unlock inventory"), &C::Get<bool>(Vars.bMiscUnlockInventory));
+			ImGui::Checkbox(Q_XOR("anti-smac"), &C::Get<bool>(Vars.bMiscAntiSMAC));
 			ImGui::PopStyleVar();
 
 			ImGui::EndChild();
@@ -544,74 +603,66 @@ void T::Miscellaneous()
 	}
 	ImGui::NextColumn();
 	{
-		// current selected configuration name
-		static std::string szCurrentConfig = { };
-
 		static float flConfigChildSize = 0.f;
-		ImGui::BeginChild(XorStr("misc.config"), ImVec2(0, flConfigChildSize), true, ImGuiWindowFlags_MenuBar);
+		ImGui::BeginChild(Q_XOR("misc.config"), ImVec2(0, flConfigChildSize), true, ImGuiWindowFlags_MenuBar);
 		{
 			if (ImGui::BeginMenuBar())
 			{
-				ImGui::TextUnformatted(XorStr("configuration"));
+				ImGui::TextUnformatted(Q_XOR("configuration"));
 				ImGui::EndMenuBar();
 			}
 
-			ImGui::Columns(2, XorStr("#CONFIG"), false);
+			ImGui::Columns(2, Q_XOR("#CONFIG"), false);
 			{
 				ImGui::PushItemWidth(-1);
 
-				ImGui::ListBox(XorStr("##config.list"), &iSelectedConfig, [](int nIndex)
+				if (ImGui::ListBoxHeader(Q_XOR("##config.list"), C::vecFileNames.size(), 5))
+				{
+					for (std::size_t i = 0U; i < C::vecFileNames.size(); i++)
 					{
-						// return current displaying configuration name
-						return C::vecFileNames.at(nIndex).c_str();
-					}, C::vecFileNames.size(), 5);
+						// @todo: imgui cant work with wstring, wait for change to other gui
+						const wchar_t* wszFileName = C::vecFileNames[i];
 
-				szCurrentConfig = !C::vecFileNames.empty() ? C::vecFileNames.at(iSelectedConfig) : "";
+						char szFileName[MAX_PATH] = { };
+						CRT::StringUnicodeToMultiByte(szFileName, sizeof(szFileName), wszFileName);
+
+						if (ImGui::Selectable(szFileName, (nSelectedConfig == i)))
+							nSelectedConfig = i;
+					}
+
+					ImGui::ListBoxFooter();
+				}
+
 				ImGui::PopItemWidth();
 			}
 			ImGui::NextColumn();
 			{
-				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, -1));
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, 0));
 				ImGui::PushItemWidth(-1);
-				if (ImGui::InputTextWithHint(XorStr("##config.file"), XorStr("create new..."), &szConfigFile, ImGuiInputTextFlags_EnterReturnsTrue))
+				if (ImGui::InputTextWithHint(Q_XOR("##config.file"), Q_XOR("create new..."), szConfigFile, sizeof(szConfigFile), ImGuiInputTextFlags_EnterReturnsTrue))
 				{
-					if (!C::Save(szConfigFile))
-					{
-						L::PushConsoleColor(FOREGROUND_RED);
-						L::Print(XorStr("[error] failed to create \"{}\" config"), szConfigFile);
-						L::PopConsoleColor();
-					}
+					// @todo: imgui cant work with wstring, wait for change to other gui
+					wchar_t wszConfigFile[MAX_PATH] = { };
+					CRT::StringMultiByteToUnicode(wszConfigFile, MAX_PATH, szConfigFile, szConfigFile + sizeof(szConfigFile));
 
-					szConfigFile.clear();
-					C::Refresh();
+					C::CreateFile(wszConfigFile);
+
+					// clear string
+					CRT::MemorySet(szConfigFile, 0U, sizeof(szConfigFile));
 				}
 				if (ImGui::IsItemHovered())
-					ImGui::SetTooltip(XorStr("press enter to create new configuration"));
+					ImGui::SetTooltip(Q_XOR("press enter to create new configuration"));
 
-				if (ImGui::Button(XorStr("save"), ImVec2(-1, 15)))
-				{
-					if (!C::Save(szCurrentConfig))
-					{
-						L::PushConsoleColor(FOREGROUND_RED);
-						L::Print(XorStr("[error] failed to save \"{}\" config"), szCurrentConfig);
-						L::PopConsoleColor();
-					}
-				}
+				if (ImGui::Button(Q_XOR("save"), ImVec2(-1, 15)))
+					C::SaveFile(nSelectedConfig);
 
-				if (ImGui::Button(XorStr("load"), ImVec2(-1, 15)))
-				{
-					if (!C::Load(szCurrentConfig))
-					{
-						L::PushConsoleColor(FOREGROUND_RED);
-						L::Print(XorStr("[error] failed to load \"{}\" config"), szCurrentConfig);
-						L::PopConsoleColor();
-					}
-				}
+				if (ImGui::Button(Q_XOR("load"), ImVec2(-1, 15)))
+					C::LoadFile(nSelectedConfig);
 
-				if (ImGui::Button(XorStr("remove"), ImVec2(-1, 15)))
-					ImGui::OpenPopup(XorStr("confirmation##config.remove"));
+				if (ImGui::Button(Q_XOR("remove"), ImVec2(-1, 15)))
+					ImGui::OpenPopup(Q_XOR("confirmation##config.remove"));
 
-				if (ImGui::Button(XorStr("refresh"), ImVec2(-1, 15)))
+				if (ImGui::Button(Q_XOR("refresh"), ImVec2(-1, 15)))
 					C::Refresh();
 
 				ImGui::PopItemWidth();
@@ -619,22 +670,26 @@ void T::Miscellaneous()
 			}
 			ImGui::Columns(1);
 
-			if (ImGui::BeginPopupModal(XorStr("confirmation##config.remove"), nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize))
+			if (ImGui::BeginPopupModal(Q_XOR("confirmation##config.remove"), nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize))
 			{
-				ImGui::Text(XorStr("are you sure you want to remove \"%s\" configuration?"), szCurrentConfig.c_str());
+				// @todo: imgui cant work with wstring, wait for change to other gui
+				char szCurrentConfig[MAX_PATH] = { };
+				CRT::StringUnicodeToMultiByte(szCurrentConfig, MAX_PATH, C::vecFileNames[nSelectedConfig]);
+
+				ImGui::Text(Q_XOR("are you sure you want to remove \"%s\" configuration?"), szCurrentConfig);
 				ImGui::Spacing();
 
-				if (ImGui::Button(XorStr("no"), ImVec2(30, 0)))
+				if (ImGui::Button(Q_XOR("no"), ImVec2(30, 0)))
 					ImGui::CloseCurrentPopup();
 
 				ImGui::SameLine();
 
-				if (ImGui::Button(XorStr("yes"), ImVec2(30, 0)))
+				if (ImGui::Button(Q_XOR("yes"), ImVec2(30, 0)))
 				{
-					C::Remove(iSelectedConfig);
+					C::RemoveFile(nSelectedConfig);
 
 					// reset current configuration
-					iSelectedConfig = 0;
+					nSelectedConfig = 0U;
 
 					ImGui::CloseCurrentPopup();
 				}
@@ -646,11 +701,11 @@ void T::Miscellaneous()
 			ImGui::EndChild();
 		}
 
-		ImGui::BeginChild(XorStr("misc.colors"), ImVec2(), true, ImGuiWindowFlags_MenuBar);
+		ImGui::BeginChild(Q_XOR("misc.colors"), ImVec2{ }, true, ImGuiWindowFlags_MenuBar);
 		{
 			if (ImGui::BeginMenuBar())
 			{
-				ImGui::TextUnformatted(XorStr("colors"));
+				ImGui::TextUnformatted(Q_XOR("colors"));
 				ImGui::EndMenuBar();
 			}
 
@@ -661,26 +716,13 @@ void T::Miscellaneous()
 			ImGui::Spacing();
 			ImGui::PushItemWidth(-1);
 
-			ImGui::ListBox(XorStr("##colors.select"), &iSelectedColor, szColorNames, IM_ARRAYSIZE(szColorNames), 4);
-			ImGui::ColorEdit4(XorStr("##colors.picker"), &C::Get<Color>(arrColors[iSelectedColor].second), ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf);
+			ImGui::ListBox(Q_XOR("##colors.select"), &iSelectedColor, szColorNames, IM_ARRAYSIZE(arrColors), 4);
+			ImGui::ColorEdit4(Q_XOR("##colors.picker"), &C::Get<Color_t>(arrColors[iSelectedColor].second), ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf);
 			ImGui::PopItemWidth();
 
 			ImGui::EndChild();
 		}
 	}
 	ImGui::Columns(1);
-}
-
-void T::SkinChanger()
-{
-	ImGui::BeginChild(XorStr("skins"), ImVec2(), true);
-	{
-		for (const auto& item : mapItemList) //first - itemdefindex, second - skin item struct
-		{
-
-		}
-
-		ImGui::EndChild();
-	}
 }
 #pragma endregion

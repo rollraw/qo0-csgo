@@ -1,11 +1,11 @@
 #include "crc32.h"
-#define LittleLong( val )	( val )
+
+// @source: master/tier1/checksum_crc.cpp
 
 #define CRC32_INIT_VALUE 0xFFFFFFFFUL
 #define CRC32_XOR_VALUE  0xFFFFFFFFUL
 
-#define NUM_BYTES 256
-constexpr CRC32_t pulCRCTable[NUM_BYTES] =
+constexpr CRC32_t arrCRCLookupTable[256] =
 {
 	0x00000000, 0x77073096, 0xee0e612c, 0x990951ba,
 	0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3,
@@ -83,88 +83,18 @@ void CRC32::Final(CRC32_t* pulCRC)
 	*pulCRC ^= CRC32_XOR_VALUE;
 }
 
-CRC32_t CRC32::GetTableEntry(unsigned int nSlot)
+CRC32_t CRC32::GetTableEntry(const unsigned int nSlot)
 {
-	return pulCRCTable[(unsigned char)nSlot];
+	return arrCRCLookupTable[nSlot];
 }
 
-void CRC32::ProcessBuffer(CRC32_t* pulCRC, const void* pBuffer, int nBuffer)
+void CRC32::ProcessBuffer(CRC32_t* pulCRC, const void* pBuffer, int nBufferSize)
 {
-	CRC32_t ulCrc = *pulCRC;
-	unsigned char* pb = (unsigned char *)pBuffer;
-	unsigned int nFront;
-	int nMain;
+	const std::uint8_t* pCurrentByte = static_cast<const std::uint8_t*>(pBuffer);
+	CRC32_t ulCRC = *pulCRC;
 
-JustAfew:
+	while (nBufferSize--)
+		ulCRC = (ulCRC >> 8) ^ arrCRCLookupTable[(ulCRC & 0xFF) ^ *pCurrentByte++];
 
-	switch (nBuffer)
-	{
-	case 7:
-		ulCrc = pulCRCTable[*pb++ ^ (unsigned char)ulCrc] ^ (ulCrc >> 8);
-
-	case 6:
-		ulCrc = pulCRCTable[*pb++ ^ (unsigned char)ulCrc] ^ (ulCrc >> 8);
-
-	case 5:
-		ulCrc = pulCRCTable[*pb++ ^ (unsigned char)ulCrc] ^ (ulCrc >> 8);
-
-	case 4:
-		ulCrc ^= LittleLong(*(CRC32_t*)pb);
-		ulCrc = pulCRCTable[(unsigned char)ulCrc] ^ (ulCrc >> 8);
-		ulCrc = pulCRCTable[(unsigned char)ulCrc] ^ (ulCrc >> 8);
-		ulCrc = pulCRCTable[(unsigned char)ulCrc] ^ (ulCrc >> 8);
-		ulCrc = pulCRCTable[(unsigned char)ulCrc] ^ (ulCrc >> 8);
-		*pulCRC = ulCrc;
-		return;
-
-	case 3:
-		ulCrc = pulCRCTable[*pb++ ^ (unsigned char)ulCrc] ^ (ulCrc >> 8);
-
-	case 2:
-		ulCrc = pulCRCTable[*pb++ ^ (unsigned char)ulCrc] ^ (ulCrc >> 8);
-
-	case 1:
-		ulCrc = pulCRCTable[*pb++ ^ (unsigned char)ulCrc] ^ (ulCrc >> 8);
-
-	case 0:
-		*pulCRC = ulCrc;
-		return;
-	}
-
-	// We may need to do some alignment work up front, and at the end, so that
-	// the main loop is aligned and only has to worry about 8 byte at a time.
-	//
-	// The low-order two bits of pb and nBuffer in total control the
-	// upfront work.
-	//
-	nFront = ((unsigned int)pb) & 3;
-	nBuffer -= nFront;
-	switch (nFront)
-	{
-	case 3:
-		ulCrc = pulCRCTable[*pb++ ^ (unsigned char)ulCrc] ^ (ulCrc >> 8);
-	case 2:
-		ulCrc = pulCRCTable[*pb++ ^ (unsigned char)ulCrc] ^ (ulCrc >> 8);
-	case 1:
-		ulCrc = pulCRCTable[*pb++ ^ (unsigned char)ulCrc] ^ (ulCrc >> 8);
-	}
-
-	nMain = nBuffer >> 3;
-	while (nMain--)
-	{
-		ulCrc ^= LittleLong(*(CRC32_t *)pb);
-		ulCrc = pulCRCTable[(unsigned char)ulCrc] ^ (ulCrc >> 8);
-		ulCrc = pulCRCTable[(unsigned char)ulCrc] ^ (ulCrc >> 8);
-		ulCrc = pulCRCTable[(unsigned char)ulCrc] ^ (ulCrc >> 8);
-		ulCrc = pulCRCTable[(unsigned char)ulCrc] ^ (ulCrc >> 8);
-		ulCrc ^= LittleLong(*(CRC32_t *)(pb + 4));
-		ulCrc = pulCRCTable[(unsigned char)ulCrc] ^ (ulCrc >> 8);
-		ulCrc = pulCRCTable[(unsigned char)ulCrc] ^ (ulCrc >> 8);
-		ulCrc = pulCRCTable[(unsigned char)ulCrc] ^ (ulCrc >> 8);
-		ulCrc = pulCRCTable[(unsigned char)ulCrc] ^ (ulCrc >> 8);
-		pb += 8;
-	}
-
-	nBuffer &= 7;
-	goto JustAfew;
+	*pulCRC = ulCRC;
 }

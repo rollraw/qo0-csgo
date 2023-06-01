@@ -1,6 +1,8 @@
 #pragma once
+// used: iappsystem
+#include "iclientmode.h"
 
-// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/inputsystem/ButtonCode.h
+// @source: master/public/inputsystem/ButtonCode.h
 #pragma region inputsystem_enumerations
 enum EButtonCode : int
 {
@@ -10,7 +12,6 @@ enum EButtonCode : int
 	KEY_FIRST = 0,
 	KEY_NONE = KEY_FIRST,
 
-	/* keys */
 	KEY_0,
 	KEY_1,
 	KEY_2,
@@ -129,52 +130,52 @@ enum EButtonCode : int
 	MOUSE_MIDDLE,
 	MOUSE_4,
 	MOUSE_5,
-	MOUSE_WHEEL_UP,		// A fake button which is 'pressed' and 'released' when the wheel is moved up 
+	MOUSE_WHEEL_UP,		// A fake button which is 'pressed' and 'released' when the wheel is moved up
 	MOUSE_WHEEL_DOWN,	// A fake button which is 'pressed' and 'released' when the wheel is moved down
 
 	MOUSE_LAST = MOUSE_WHEEL_DOWN,
-	MOUSE_COUNT = MOUSE_LAST - MOUSE_FIRST + 1,
+	MOUSE_COUNT = MOUSE_LAST - MOUSE_FIRST + 1
 };
 
 enum EMouseCodeState : int
 {
 	BUTTON_RELEASED = 0,
 	BUTTON_PRESSED,
-	BUTTON_DOUBLECLICKED,
+	BUTTON_DOUBLECLICKED
 };
 #pragma endregion
 
-// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/inputsystem/iinputsystem.h
-class IInputSystem
+// @source: master/public/inputsystem/iinputsystem.h
+class IInputSystem : public IAppSystem, ROP::VirtualCallable_t<ROP::EngineGadget_t>
 {
 public:
 	void EnableInput(bool bEnable)
 	{
-		MEM::CallVFunc<void>(this, 11, bEnable);
+		CallVFunc<void, 11U>(this, bEnable);
 	}
 
 	bool IsButtonDown(EButtonCode buttonCode)
 	{
-		return MEM::CallVFunc<bool>(this, 15, buttonCode);
+		return CallVFunc<bool, 15U>(this, buttonCode);
 	}
 
 	void ResetInputState()
 	{
-		MEM::CallVFunc<void>(this, 39);
+		CallVFunc<void, 39U>(this);
 	}
 
 	const char* ButtonCodeToString(EButtonCode buttonCode)
 	{
-		return MEM::CallVFunc<const char*>(this, 40, buttonCode);
+		return CallVFunc<const char*, 40U>(this, buttonCode);
 	}
 
 	EButtonCode VirtualKeyToButtonCode(int iVirtualKey)
 	{
-		return MEM::CallVFunc<EButtonCode>(this, 45, iVirtualKey);
+		return CallVFunc<EButtonCode, 45U>(this, iVirtualKey);
 	}
 
 	void GetCursorPosition(int* pX, int* pY)
 	{
-		MEM::CallVFunc<void>(this, 56, pX, pY);
+		CallVFunc<void, 56U>(this, pX, pY);
 	}
 };

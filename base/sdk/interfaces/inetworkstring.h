@@ -1,44 +1,73 @@
 #pragma once
-// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/networkstringtabledefs.h
+// @source: master/public/networkstringtabledefs.h
 
-#define INVALID_STRING_TABLE -1
-#define INVALID_STRING_INDEX (std::uint16_t)~0
+#define INVALID_STRING_TABLE (-1)
+#define INVALID_STRING_INDEX static_cast<std::uint16_t>(~0)
 
-class INetworkStringTable;
-using StringChangedFn = void(__cdecl*)(void*, INetworkStringTable*, int, char const*, void const*);
-
-class INetworkStringTable
+class INetworkStringTable : ROP::VirtualCallable_t<ROP::EngineGadget_t>
 {
 public:
-	virtual					~INetworkStringTable() { }
+	const char* GetTableName()
+	{
+		return CallVFunc<const char*, 1U>(this);
+	}
 
-	// Table Info
-	virtual const char*		GetTableName() const = 0;
-	virtual int				GetTableId() const = 0;
-	virtual int				GetNumStrings() const = 0;
-	virtual int				GetMaxStrings() const = 0;
-	virtual int				GetEntryBits() const = 0;
+	int GetTableID()
+	{
+		return CallVFunc<int, 2U>(this);
+	}
 
-	// Networking
-	virtual void			SetTick(int iTick) = 0;
-	virtual bool			ChangedSinceTick(int iTick) const = 0;
+	int GetNumStrings()
+	{
+		return CallVFunc<int, 3U>(this);
+	}
 
-	// Accessors
-	virtual int				AddString(bool bIsServer, const char* szValue, int iLength = -1, const void* pUserData = 0) = 0;
+	int GetMaxStrings()
+	{
+		return CallVFunc<int, 4U>(this);
+	}
 
-	virtual const char*		GetString(int nString) = 0;
-	virtual void			SetStringUserData(int nString, int iLength, const void* pUserData) = 0;
-	virtual const void*		GetStringUserData(int nString, int* iLength) = 0;
-	virtual int				FindStringIndex(char const* szString) = 0;
+	int GetEntryBits()
+	{
+		return CallVFunc<int, 5U>(this);
+	}
 
-	virtual void			SetStringChangedCallback(void* pObject, StringChangedFn changeFunc) = 0;
+	int AddString(bool bIsServer, const char* szValue, int iLength = -1, const void* pUserData = nullptr)
+	{
+		return CallVFunc<int, 8U>(this, bIsServer, szValue, iLength, pUserData);
+	}
+
+	const char* GetString(int nString)
+	{
+		return CallVFunc<const char*, 9U>(this, nString);
+	}
+
+	void SetStringUserData(int nString, int iLength, const void* pUserData)
+	{
+		CallVFunc<void, 10U>(this, nString, iLength, pUserData);
+	}
+
+	const void* GetStringUserData(int nString, int* iLength)
+	{
+		return CallVFunc<const void*, 11U>(this, nString, iLength);
+	}
+
+	int FindStringIndex(const char* szString)
+	{
+		return CallVFunc<int, 12U>(this, szString);
+	}
 };
 
-class INetworkContainer
+class INetworkStringTableContainer : ROP::VirtualCallable_t<ROP::EngineGadget_t>
 {
 public:
 	INetworkStringTable* FindTable(const char* szTableName)
 	{
-		return MEM::CallVFunc<INetworkStringTable*>(this, 3, szTableName);
+		return CallVFunc<INetworkStringTable*, 3U>(this, szTableName);
+	}
+
+	INetworkStringTable* GetTable(int nTableIndex)
+	{
+		return CallVFunc<INetworkStringTable*, 4U>(this, nTableIndex);
 	}
 };

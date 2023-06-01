@@ -1,30 +1,34 @@
-// used: std::function
-#include <functional>
+#pragma once
+// used: [stl] size_t
+#include <cstddef>
+// used: [d3d] idirect3ddevice9
+#include <d3d9.h>
 
-// used: winapi, directx, imgui, fmt includes
 #include "../common.h"
 
 class CTab
 {
 public:
 	const char* szName = nullptr;
-	std::function<void()> pRenderFunction = nullptr;
+	void (*pRenderFunction)() = nullptr;
 };
 
 /*
- * WINDOWS
+ * MENU
  */
-namespace W
+namespace MENU
 {
-	// Get
-	/* main cheat window */
+	/* @section: callbacks */
+	void OnEndScene(IDirect3DDevice9* pDevice);
+
+	/* @section: main */
+	// main cheat window
 	void MainWindow(IDirect3DDevice9* pDevice);
 
-	// Values
-	// @note: add smth like Vars.iMainExtra to show extra functions in menu e.g. hitchance precision and other (if disabled, will be used default optimal values)
-	/* open state of main window */
+	/* @section: values */
+	// open state of main window
 	inline bool bMainOpened = false;
-	/* current selected tab in main window */
+	// current selected tab in main window
 	inline int iMainTab = 0;
 }
 
@@ -33,25 +37,22 @@ namespace W
  */
 namespace T
 {
-	// Get
-	/* render tabs selection */
-	template <std::size_t S> // not a best way, but we stay using cheaper, fixed-sized arrays instead dynamic vectors
-	void Render(const char* szTabBar, const std::array<CTab, S> arrTabs, int* nCurrentTab, const ImVec4& colActive, ImGuiTabBarFlags flags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_NoTooltip);
+	/* @section: get */
+	void Render(const char* szTabBar, const CTab* arrTabs, const std::size_t nTabsCount, int* nCurrentTab, const ImVec4& colActive, ImGuiTabBarFlags flags = ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_NoCloseWithMiddleMouseButton | ImGuiTabBarFlags_NoTooltip);
 
-	// Tabs
+	/* @section: tabs */
 	void RageBot();
 	void LegitBot();
 	void Visuals();
 	void Miscellaneous();
-	void SkinChanger();
 
-	// Values
-	/* current selected sub-tab in visuals tab */
-	inline int			iEspTab = 0;
-	/* user-defined configuration filename in miscellaneous tab */
-	inline std::string	szConfigFile = { };
-	/* current selected configuration in miscellaneous tab */
-	inline int			iSelectedConfig = 0;
-	/* current selected color setting in miscellaneous tab */
-	inline int			iSelectedColor = 0;
+	/* @section: values */
+	// current selected sub-tab in visuals tab
+	inline int iEspTab = 0;
+	// user-defined configuration filename in miscellaneous tab
+	inline char szConfigFile[MAX_PATH] = { };
+	// current selected configuration in miscellaneous tab
+	inline std::size_t nSelectedConfig = 0U;
+	// current selected color setting in miscellaneous tab
+	inline int iSelectedColor = 0;
 }

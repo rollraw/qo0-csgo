@@ -1,370 +1,287 @@
-// used: shgetknownfolderpath
-#include <shlobj.h>
-// used: json parser implementation
-#include <json.hpp>
+// used: [win] winapi
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
 
 #include "config.h"
-// used: log config result state
-#include "../utilities/logging.h"
+// used: getworkingpath
+#include "../core.h"
+// used: l_print
+#include "../utilities/log.h"
+// used: integertostring
+#include "../utilities/crt.h"
+// used: heapalloc, heapfree
+#include "../utilities/memory.h"
 
-bool C::Setup(std::string_view szDefaultFileName)
+// used: formatter implementation
+#ifdef Q_CONFIGURATION_INCLUDE
+#include Q_CONFIGURATION_INCLUDE
+#else
+#include "../../extensions/binary.h"
+#endif
+
+// determine file extension for selected formatter
+#if defined(Q_BINARY_EXTENSION)
+#define C_EXTENSION Q_BINARY_EXTENSION
+#elif defined(Q_JSON_EXTENSION)
+#define C_EXTENSION Q_JSON_EXTENSION
+#elif defined(Q_TOML_EXTENSION)
+#define C_EXTENSION Q_TOML_EXTENSION
+#endif
+
+// default configurations working path
+static wchar_t wszConfigurationsPath[MAX_PATH];
+
+bool C::Setup(const wchar_t* wszDefaultFileName)
 {
-	// create directory "settings" in "%userprofile%\documents\.qo0" if it incorrect or doesnt exists
-	if (!std::filesystem::is_directory(fsPath))
+	if (!CORE::GetWorkingPath(wszConfigurationsPath))
+		return false;
+
+	CRT::StringCat(wszConfigurationsPath, Q_XOR(L"settings\\"));
+
+	// create directory if it doesn't exist
+	if (!::CreateDirectoryW(wszConfigurationsPath, nullptr))
 	{
-		std::filesystem::remove(fsPath);
-		if (!std::filesystem::create_directories(fsPath))
+		if (::GetLastError() != ERROR_ALREADY_EXISTS)
+		{
+			L_PRINT(LOG_ERROR) << Q_XOR("failed to create configurations directory, because one or more intermediate directories don't exist");
 			return false;
+		}
 	}
 
-	// create default config
-	if (!Save(szDefaultFileName))
-		return false;
+	// define custom data types we want to serialize
+	AddUserType(FNV1A::HashConst("KeyBind_t"),
+		{
+			UserDataMember_t{ FNV1A::HashConst("uKey"), FNV1A::HashConst("unsigned int"), &KeyBind_t::uKey },
+			UserDataMember_t{ FNV1A::HashConst("nMode"), FNV1A::HashConst("int"), &KeyBind_t::nMode }
+		});
 
-	// load default config
-	if (!Load(szDefaultFileName))
-		return false;
-
-	// refresh configs list
+	// store existing configurations list
 	Refresh();
 
+	// create default configuration
+	if (!CreateFile(wszDefaultFileName))
+		return false;
+
 	return true;
 }
 
-bool C::Save(std::string_view szFileName)
-{
-	// check for extension if it is not our replace it
-	std::filesystem::path fsFilePath(szFileName);
-	if (fsFilePath.extension() != XorStr(".qo0"))
-		fsFilePath.replace_extension(XorStr(".qo0"));
-
-	// get utf-8 full path to config
-	const std::string szFile = std::filesystem::path(fsPath / fsFilePath).string();
-	nlohmann::json config = { };
-
-	try
-	{
-		for (auto& variable : vecVariables)
-		{
-			nlohmann::json entry = { };
-
-			// save hashes to compare it later
-			entry[XorStr("name-id")] = variable.uNameHash;
-			entry[XorStr("type-id")] = variable.uTypeHash;
-
-			// get current variable
-			switch (variable.uTypeHash)
-			{
-			case FNV1A::HashConst("int"):
-			{
-				entry[XorStr("value")] = variable.Get<int>();
-				break;
-			}
-			case FNV1A::HashConst("float"):
-			{
-				entry[XorStr("value")] = variable.Get<float>();
-				break;
-			}
-			case FNV1A::HashConst("bool"):
-			{
-				entry[XorStr("value")] = variable.Get<bool>();
-				break;
-			}
-			case FNV1A::HashConst("std::string"):
-			{
-				entry[XorStr("value")] = variable.Get<std::string>();
-				break;
-			}
-			case FNV1A::HashConst("Color"):
-			{
-				const auto& colVariable = variable.Get<Color>();
-
-				// store RGBA as sub-node
-				nlohmann::json sub = { };
-
-				// fill node with all color values
-				sub.push_back(colVariable.Get<COLOR_R>());
-				sub.push_back(colVariable.Get<COLOR_G>());
-				sub.push_back(colVariable.Get<COLOR_B>());
-				sub.push_back(colVariable.Get<COLOR_A>());
-
-				entry[XorStr("value")] = sub.dump();
-				break;
-			}
-			case FNV1A::HashConst("std::vector<bool>"):
-			{
-				const auto& vecBools = variable.Get<std::vector<bool>>();
-
-				// store vector values as sub-node
-				nlohmann::json sub = { };
-
-				// fill node with all vector values
-				for (const auto&& bValue : vecBools)
-					sub.push_back(static_cast<bool>(bValue));
-
-				entry[XorStr("value")] = sub.dump();
-				break;
-			}
-			case FNV1A::HashConst("std::vector<int>"):
-			{
-				const auto& vecInts = variable.Get<std::vector<int>>();
-
-				// store vector values as sub-node
-				nlohmann::json sub = { };
-
-				// fill node with all vector values
-				for (const auto& iValue : vecInts)
-					sub.push_back(iValue);
-
-				entry[XorStr("value")] = sub.dump();
-				break;
-			}
-			case FNV1A::HashConst("std::vector<float>"):
-			{
-				const auto& vecFloats = variable.Get<std::vector<float>>();
-
-				// store vector values as sub-node
-				nlohmann::json sub = { };
-
-				// fill node with all vector values
-				for (const auto& flValue : vecFloats)
-					sub.push_back(flValue);
-
-				entry[XorStr("value")] = sub.dump();
-				break;
-			}
-			default:
-				break;
-			}
-
-			// add current variable to config
-			config.push_back(entry);
-		}
-	}
-	catch (const nlohmann::detail::exception& ex)
-	{
-		L::PushConsoleColor(FOREGROUND_RED);
-		L::Print(XorStr("[error] json save failed: {}"), ex.what());
-		L::PopConsoleColor();
-		return false;
-	}
-
-	// open output config file
-	std::ofstream ofsOutFile(szFile, std::ios::out | std::ios::trunc);
-
-	if (!ofsOutFile.good())
-		return false;
-
-	try
-	{
-		// write stored variables
-		ofsOutFile << config.dump(4);
-		ofsOutFile.close();
-	}
-	catch (std::ofstream::failure& ex)
-	{
-		L::PushConsoleColor(FOREGROUND_RED);
-		L::Print(XorStr("[error] failed to save configuration: {}"), ex.what());
-		L::PopConsoleColor();
-		return false;
-	}
-
-	L::Print(XorStr("saved configuration at: {}"), szFile);
-	return true;
-}
-
-bool C::Load(std::string_view szFileName)
-{
-	// get utf-8 full path to config
-	const std::string szFile = std::filesystem::path(fsPath / szFileName).string();
-	nlohmann::json config = { };
-
-	// open input config file
-	std::ifstream ifsInputFile(szFile, std::ios::in);
-
-	if (!ifsInputFile.good())
-		return false;
-
-	try
-	{
-		// parse saved variables
-		config = nlohmann::json::parse(ifsInputFile, nullptr, false);
-
-		// check is json parse failed
-		if (config.is_discarded())
-			return false;
-
-		ifsInputFile.close();
-	}
-	catch (std::ifstream::failure& ex)
-	{
-		L::PushConsoleColor(FOREGROUND_RED);
-		L::Print(XorStr("[error] failed to load configuration: {}"), ex.what());
-		L::PopConsoleColor();
-		return false;
-	}
-
-	try
-	{
-		for (const auto& variable : config)
-		{
-			const std::size_t nIndex = GetVariableIndex(variable[XorStr("name-id")].get<FNV1A_t>());
-
-			// check is variable exist
-			if (nIndex == C_INVALID_VARIABLE)
-				continue;
-
-			// get variable
-			auto& entry = vecVariables.at(nIndex);
-
-			switch (variable[XorStr("type-id")].get<FNV1A_t>())
-			{
-			case FNV1A::HashConst("bool"):
-			{
-				entry.Set<bool>(variable[XorStr("value")].get<bool>());
-				break;
-			}
-			case FNV1A::HashConst("float"):
-			{
-				entry.Set<float>(variable[XorStr("value")].get<float>());
-				break;
-			}
-			case FNV1A::HashConst("int"):
-			{
-				entry.Set<int>(variable[XorStr("value")].get<int>());
-				break;
-			}
-			case FNV1A::HashConst("std::string"):
-			{
-				entry.Set<std::string>(variable[XorStr("value")].get<std::string>());
-				break;
-			}
-			case FNV1A::HashConst("Color"):
-			{
-				const nlohmann::json vector = nlohmann::json::parse(variable[XorStr("value")].get<std::string>());
-
-				entry.Set<Color>(Color(
-					vector.at(0).get<std::uint8_t>(),
-					vector.at(1).get<std::uint8_t>(),
-					vector.at(2).get<std::uint8_t>(),
-					vector.at(3).get<std::uint8_t>()
-				));
-
-				break;
-			}
-			case FNV1A::HashConst("std::vector<bool>"):
-			{
-				const nlohmann::json vector = nlohmann::json::parse(variable[XorStr("value")].get<std::string>());
-				auto& vecBools = entry.Get<std::vector<bool>>();
-
-				for (std::size_t i = 0U; i < vector.size(); i++)
-				{
-					// check is item out of bounds
-					if (i < vecBools.size())
-						vecBools.at(i) = vector.at(i).get<bool>();
-				}
-
-				break;
-			}
-			case FNV1A::HashConst("std::vector<int>"):
-			{
-				const nlohmann::json vector = nlohmann::json::parse(variable[XorStr("value")].get<std::string>());
-				auto& vecInts = entry.Get<std::vector<int>>();
-
-				for (std::size_t i = 0U; i < vector.size(); i++)
-				{
-					// check is item out of bounds
-					if (i < vecInts.size())
-						vecInts.at(i) = vector.at(i).get<int>();
-				}
-
-				break;
-			}
-			case FNV1A::HashConst("std::vector<float>"):
-			{
-				const nlohmann::json vector = nlohmann::json::parse(variable[XorStr("value")].get<std::string>());
-				auto& vecFloats = entry.Get<std::vector<float>>();
-
-				for (std::size_t i = 0U; i < vector.size(); i++)
-				{
-					// check is item out of bounds
-					if (i < vecFloats.size())
-						vecFloats.at(i) = vector.at(i).get<float>();
-				}
-
-				break;
-			}
-			default:
-				break;
-			}
-		}
-	}
-	catch (const nlohmann::detail::exception& ex)
-	{
-		L::PushConsoleColor(FOREGROUND_RED);
-		L::Print(XorStr("[error] json load failed: {}"), ex.what());
-		L::PopConsoleColor();
-		return false;
-	}
-
-	L::Print(XorStr("loaded configuration at: {}"), szFile);
-	return true;
-}
-
-void C::Remove(const std::size_t nIndex)
-{
-	const std::string& szFileName = vecFileNames.at(nIndex);
-
-	// unable delete default config
-	if (szFileName.compare(XorStr("default.qo0")) == 0)
-		return;
-
-	// get utf-8 full path to config
-	const std::string szFile = std::filesystem::path(fsPath / szFileName).string();
-
-	if (std::filesystem::remove(szFile))
-	{
-		vecFileNames.erase(vecFileNames.cbegin() + static_cast<std::ptrdiff_t>(nIndex));
-		L::Print(XorStr("removed configuration at: {}"), szFile);
-	}
-}
-
+#pragma region config_main
 void C::Refresh()
 {
+	// clear previous stored file names
+	for (wchar_t* wszFileName : vecFileNames)
+		MEM::HeapFree(wszFileName);
 	vecFileNames.clear();
 
-	for (const auto& it : std::filesystem::directory_iterator(fsPath))
-    {
-		if (it.path().filename().extension() == XorStr(".qo0"))
+	// make configuration files path filter
+	wchar_t wszPathFilter[MAX_PATH];
+	CRT::StringCat(CRT::StringCopy(wszPathFilter, wszConfigurationsPath), Q_XOR(L"*" C_EXTENSION));
+
+	// iterate through all files with our filter
+	WIN32_FIND_DATAW findData;
+	if (const HANDLE hFindFile = ::FindFirstFileW(wszPathFilter, &findData); hFindFile != INVALID_HANDLE_VALUE)
+	{
+		do
 		{
-			L::Print(XorStr("found configuration file: {}"), it.path().filename().string());
-			vecFileNames.push_back(it.path().filename().string());
-		}
-    }
+			vecFileNames.push_back(static_cast<wchar_t*>(MEM::HeapAlloc((CRT::StringLength(findData.cFileName) + 1U) * sizeof(wchar_t))));
+			CRT::StringCopy(vecFileNames.back(), findData.cFileName);
+
+			L_PRINT(LOG_INFO) << Q_XOR("found configuration file: \"") << findData.cFileName << Q_XOR("\"");
+		} while (::FindNextFileW(hFindFile, &findData));
+
+		::FindClose(hFindFile);
+	}
 }
 
+void C::AddUserType(const FNV1A_t uTypeHash, const std::initializer_list<UserDataMember_t> vecUserMembers)
+{
+	if (vecUserMembers.size() == 0U)
+		return;
+
+	UserDataType_t userDataType;
+	userDataType.uTypeHash = uTypeHash;
+
+	for (const auto& userDataMember : vecUserMembers)
+		userDataType.vecMembers.push_back(userDataMember);
+
+	vecUserTypes.emplace_back(CRT::Move(userDataType));
+}
+
+bool C::SaveFileVariable(const std::size_t nFileIndex, const VariableObject_t& variable)
+{
+	const wchar_t* wszFileName = vecFileNames[nFileIndex];
+
+	wchar_t wszFilePath[MAX_PATH];
+	CRT::StringCat(CRT::StringCopy(wszFilePath, wszConfigurationsPath), wszFileName);
+
+#if defined(Q_BINARY_EXTENSION)
+	if (BIN::SaveVariable(wszFilePath, variable))
+#elif defined(Q_JSON_EXTENSION)
+	if (JSON::SaveVariable(wszFilePath, variable))
+#elif defined(Q_TOML_EXTENSION)
+	if (TOML::SaveVariable(wszFilePath, variable))
+#endif
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool C::LoadFileVariable(const std::size_t nFileIndex, VariableObject_t& variable)
+{
+	const wchar_t* wszFileName = vecFileNames[nFileIndex];
+
+	wchar_t wszFilePath[MAX_PATH];
+	CRT::StringCat(CRT::StringCopy(wszFilePath, wszConfigurationsPath), wszFileName);
+
+#if defined(Q_BINARY_EXTENSION)
+	if (BIN::LoadVariable(wszFilePath, variable))
+#elif defined(Q_JSON_EXTENSION)
+	if (JSON::LoadVariable(wszFilePath, variable))
+#elif defined(Q_TOML_EXTENSION)
+	if (TOML::LoadVariable(wszFilePath, variable))
+#endif
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool C::RemoveFileVariable(const std::size_t nFileIndex, const VariableObject_t& variable)
+{
+	const wchar_t* wszFileName = vecFileNames[nFileIndex];
+
+	wchar_t wszFilePath[MAX_PATH];
+	CRT::StringCat(CRT::StringCopy(wszFilePath, wszConfigurationsPath), wszFileName);
+
+#if defined(Q_BINARY_EXTENSION)
+	if (BIN::RemoveVariable(wszFilePath, variable))
+#elif defined(Q_JSON_EXTENSION)
+	if (JSON::RemoveVariable(wszFilePath, variable))
+#elif defined(Q_TOML_EXTENSION)
+	if (TOML::RemoveVariable(wszFilePath, variable))
+#endif
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool C::CreateFile(const wchar_t* wszFileName)
+{
+	wchar_t wszFilePath[MAX_PATH];
+	wchar_t* wszFilePathEnd = CRT::StringCopy(wszFilePath, wszConfigurationsPath);
+
+	// check is file extension already correct
+	if (const wchar_t* wszFileExtension = CRT::StringCharR(wszFileName, L'.'); wszFileExtension != nullptr && CRT::StringCompare(wszFileExtension, Q_XOR(C_EXTENSION)) == 0)
+		wszFilePathEnd = CRT::StringCat(wszFilePathEnd, wszFileName);
+	// file extension is either not set or incorrect
+	else
+	{
+		if (wszFileExtension != nullptr)
+			wszFilePathEnd = CRT::StringCatN(wszFilePathEnd, wszFileName, wszFileExtension - wszFileName);
+		else
+			wszFilePathEnd = CRT::StringCat(wszFilePathEnd, wszFileName);
+
+		wszFilePathEnd = CRT::StringCat(wszFilePathEnd, Q_XOR(C_EXTENSION));
+	}
+
+	// add file to the list
+	const wchar_t* wszFileNameStripped = CRT::StringCharR(wszFilePath, '\\') + 1U;
+	wchar_t* wszFullFileName = static_cast<wchar_t*>(MEM::HeapAlloc((wszFilePathEnd - wszFileNameStripped + 1U) * sizeof(wchar_t)));
+	CRT::StringCopy(wszFullFileName, wszFileNameStripped);
+	vecFileNames.emplace_back(wszFullFileName);
+
+	// create and save it by the index
+	if (SaveFile(vecFileNames.size() - 1U))
+	{
+		L_PRINT(LOG_INFO) << Q_XOR("created configuration file: \"") << wszFullFileName << Q_XOR("\"");
+		return true;
+	}
+
+	L_PRINT(LOG_WARNING) << Q_XOR("failed to create configuration file: \"") << wszFullFileName << Q_XOR("\"");
+	return false;
+}
+
+bool C::SaveFile(const std::size_t nFileIndex)
+{
+	const wchar_t* wszFileName = vecFileNames[nFileIndex];
+
+	wchar_t wszFilePath[MAX_PATH];
+	CRT::StringCat(CRT::StringCopy(wszFilePath, wszConfigurationsPath), wszFileName);
+
+#if defined(Q_BINARY_EXTENSION)
+	if (BIN::SaveFile(wszFilePath))
+#elif defined(Q_JSON_EXTENSION)
+	if (JSON::SaveFile(wszFilePath))
+#elif defined(Q_TOML_EXTENSION)
+	if (TOML::SaveFile(wszFilePath))
+#endif
+	{
+		L_PRINT(LOG_INFO) << Q_XOR("saved configuration file: \"") << wszFileName << Q_XOR("\"");
+		return true;
+	}
+
+	L_PRINT(LOG_WARNING) << Q_XOR("failed to save configuration file: \"") << wszFileName << Q_XOR("\"");
+	return false;
+}
+
+bool C::LoadFile(const std::size_t nFileIndex)
+{
+	const wchar_t* wszFileName = vecFileNames[nFileIndex];
+
+	wchar_t wszFilePath[MAX_PATH];
+	CRT::StringCat(CRT::StringCopy(wszFilePath, wszConfigurationsPath), wszFileName);
+
+#if defined(Q_BINARY_EXTENSION)
+	if (BIN::LoadFile(wszFilePath))
+#elif defined(Q_JSON_EXTENSION)
+	if (JSON::LoadFile(wszFilePath))
+#elif defined(Q_TOML_EXTENSION)
+	if (TOML::LoadFile(wszFilePath))
+#endif
+	{
+		L_PRINT(LOG_INFO) << Q_XOR("loaded configuration file: \"") << wszFileName << Q_XOR("\"");
+		return true;
+	}
+
+	L_PRINT(LOG_WARNING) << Q_XOR("failed to load configuration file: \"") << wszFileName << Q_XOR("\"");
+	return false;
+}
+
+void C::RemoveFile(const std::size_t nFileIndex)
+{
+	const wchar_t* wszFileName = vecFileNames[nFileIndex];
+
+	// unable to delete default config
+	if (CRT::StringCompare(wszFileName, Q_XOR(L"default" C_EXTENSION)) == 0)
+		return;
+
+	wchar_t wszFilePath[MAX_PATH];
+	CRT::StringCat(CRT::StringCopy(wszFilePath, wszConfigurationsPath), wszFileName);
+
+	if (::DeleteFileW(wszFilePath))
+	{
+		vecFileNames.erase(vecFileNames.cbegin() + nFileIndex);
+		L_PRINT(LOG_INFO) << Q_XOR("removed configuration file: \"") << wszFileName << Q_XOR("\"");
+	}
+}
+#pragma endregion
+
+#pragma region config_get
 std::size_t C::GetVariableIndex(const FNV1A_t uNameHash)
 {
 	for (std::size_t i = 0U; i < vecVariables.size(); i++)
 	{
-		if (vecVariables.at(i).uNameHash == uNameHash)
+		if (vecVariables[i].uNameHash == uNameHash)
 			return i;
 	}
 
 	return C_INVALID_VARIABLE;
 }
-
-std::filesystem::path C::GetWorkingPath()
-{
-	std::filesystem::path fsWorkingPath;
-
-	// get path to user documents
-	if (PWSTR pszPathToDocuments; SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, 0UL, nullptr, &pszPathToDocuments)))
-	{
-		fsWorkingPath.assign(pszPathToDocuments);
-		fsWorkingPath.append(XorStr(".qo0"));
-		CoTaskMemFree(pszPathToDocuments);
-	}
-	
-	return fsWorkingPath;
-}
+#pragma endregion

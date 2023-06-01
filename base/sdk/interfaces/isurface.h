@@ -1,10 +1,11 @@
 #pragma once
-// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/vgui/ISurface.h
-
-// used: color
 #include "../datatypes/color.h"
-// used: vector
 #include "../datatypes/vector.h"
+
+// used: callvfunc
+#include "../../utilities/memory.h"
+
+// @source: master/public/vgui/ISurface.h
 
 typedef unsigned long HScheme, HPanel, HTexture, HCursor, HFont;
 
@@ -31,145 +32,144 @@ enum EFontFlags
 	FONTFLAG_ADDITIVE = 0x100,
 	FONTFLAG_OUTLINE = 0x200,
 	FONTFLAG_CUSTOM = 0x400,
-	FONTFLAG_BITMAP = 0x800,
+	FONTFLAG_BITMAP = 0x800
 };
 #pragma endregion
 
 struct Vertex_t
 {
-	Vertex_t() = default;
+	Vertex_t(const Vector2D_t& vecPosition, const Vector2D_t& vecCoordinate = { 0, 0 }) :
+		vecPosition(vecPosition), vecCoordinate(vecCoordinate) { }
 
-	Vertex_t(const Vector2D& vecPosition, const Vector2D& vecCoordinate = Vector2D(0, 0))
-	{
-		this->vecPosition = vecPosition;
-		this->vecCoordinate = vecCoordinate;
-	}
-
-	void Init(const Vector2D& vecPosition, const Vector2D& vecCoordinate = Vector2D(0, 0))
-	{
-		this->vecPosition = vecPosition;
-		this->vecCoordinate = vecCoordinate;
-	}
-
-	Vector2D vecPosition = { };
-	Vector2D vecCoordinate = { };
+	Vector2D_t vecPosition = { };
+	Vector2D_t vecCoordinate = { };
 };
 
-class ISurface
+class ISurface : ROP::VirtualCallable_t<ROP::ClientGadget_t>
 {
 public:
-	void DrawSetColor(Color colDraw)
-	{
-		MEM::CallVFunc<void>(this, 14, colDraw);
-	}
-
 	void DrawSetColor(int r, int g, int b, int a)
 	{
-		MEM::CallVFunc<void>(this, 15, r, g, b, a);
+		CallVFunc<void, 14U>(this, r, g, b, a);
+	}
+
+	void DrawSetColor(Color_t colDraw)
+	{
+		CallVFunc<void, 15U>(this, colDraw);
 	}
 
 	void DrawFilledRect(int x0, int y0, int x1, int y1)
 	{
-		MEM::CallVFunc<void>(this, 16, x0, y0, x1, y1);
-	}
-
-	void DrawFilledRectFade(int x0, int y0, int x1, int y1, uint32_t uAlpha0, uint32_t uAlpha1, bool bHorizontal)
-	{
-		MEM::CallVFunc<void>(this, 123, x0, y0, x1, y1, uAlpha0, uAlpha1, bHorizontal);
+		CallVFunc<void, 16U>(this, x0, y0, x1, y1);
 	}
 
 	void DrawOutlinedRect(int x0, int y0, int x1, int y1)
 	{
-		MEM::CallVFunc<void>(this, 18, x0, y0, x1, y1);
+		CallVFunc<void, 18U>(this, x0, y0, x1, y1);
 	}
 
 	void DrawLine(int x0, int y0, int x1, int y1)
 	{
-		MEM::CallVFunc<void>(this, 19, x0, y0, x1, y1);
+		CallVFunc<void, 19U>(this, x0, y0, x1, y1);
 	}
 
 	void DrawPolyLine(int* x, int* y, int nPoints)
 	{
-		MEM::CallVFunc<void>(this, 20, x, y, nPoints);
+		CallVFunc<void, 20U>(this, x, y, nPoints);
 	}
 
 	void DrawSetTextFont(HFont hFont)
 	{
-		MEM::CallVFunc<void>(this, 23, hFont);
+		CallVFunc<void, 23U>(this, hFont);
 	}
 
-	void DrawSetTextColor(Color color)
+	void DrawSetTextColor(Color_t color)
 	{
-		MEM::CallVFunc<void>(this, 24, color);
+		CallVFunc<void, 24U>(this, color);
 	}
 
 	void DrawSetTextColor(int r, int g, int b, int a)
 	{
-		MEM::CallVFunc<void>(this, 25, r, g, b, a);
+		CallVFunc<void, 25U>(this, r, g, b, a);
 	}
 
 	void DrawSetTextPos(int x, int y)
 	{
-		MEM::CallVFunc<void>(this, 26, x, y);
+		CallVFunc<void, 26U>(this, x, y);
 	}
 
 	void DrawPrintText(const wchar_t* wszText, int nTextLength, EFontDrawType drawType = FONT_DRAW_DEFAULT)
 	{
-		MEM::CallVFunc<void>(this, 28, wszText, nTextLength, drawType);
+		CallVFunc<void, 28U>(this, wszText, nTextLength, drawType);
 	}
 
-	void DrawSetTextureRGBA(int nIndex, const unsigned char* rgba, int iWide, int iTall)
+	void DrawSetTextureRGBA(int nIndex, const unsigned char* arrRGBA, int iWide, int iTall)
 	{
-		MEM::CallVFunc<void>(this, 37, nIndex, rgba, iWide, iTall);
+		CallVFunc<void, 37U>(this, nIndex, arrRGBA, iWide, iTall);
 	}
 
 	void DrawSetTexture(int nIndex)
 	{
-		MEM::CallVFunc<void>(this, 38, nIndex);
+		CallVFunc<void, 38U>(this, nIndex);
 	}
 
 	int CreateNewTextureID(bool bProcedural = false)
 	{
-		return MEM::CallVFunc<int>(this, 43, bProcedural);
+		return CallVFunc<int, 43U>(this, bProcedural);
 	}
 
 	void UnLockCursor()
 	{
-		return MEM::CallVFunc<void>(this, 66);
+		CallVFunc<void, 66U>(this);
 	}
 
 	void LockCursor()
 	{
-		return MEM::CallVFunc<void>(this, 67);
+		CallVFunc<void, 67U>(this);
 	}
 
-	HFont FontCreate()
+	HFont CreateFontGame()
 	{
-		return MEM::CallVFunc<HFont>(this, 71);
+		return CallVFunc<HFont, 71U>(this);
 	}
 
 	bool SetFontGlyphSet(HFont hFont, const char* szWindowsFontName, int iTall, int iWeight, int iBlur, int nScanLines, int iFlags, int nRangeMin = 0, int nRangeMax = 0)
 	{
-		return MEM::CallVFunc<bool>(this, 72, hFont, szWindowsFontName, iTall, iWeight, iBlur, nScanLines, iFlags, nRangeMin, nRangeMax);
+		return CallVFunc<bool, 72U>(this, hFont, szWindowsFontName, iTall, iWeight, iBlur, nScanLines, iFlags, nRangeMin, nRangeMax);
 	}
 
 	void GetTextSize(HFont hFont, const wchar_t* wszText, int& iWide, int& iTall)
 	{
-		MEM::CallVFunc<void>(this, 79, hFont, wszText, std::ref(iWide), std::ref(iTall));
+		CallVFunc<void, 79U>(this, hFont, wszText, &iWide, &iTall);
 	}
 
-	void PlaySoundSurface(const char* szFileName)
+	void PlaySound(const char* szFileName)
 	{
-		MEM::CallVFunc<void>(this, 82, szFileName);
+		CallVFunc<void, 82U>(this, szFileName);
 	}
 
 	void DrawOutlinedCircle(int x, int y, int iRadius, int nSegments)
 	{
-		MEM::CallVFunc<void>(this, 103, x, y, iRadius, nSegments);
+		CallVFunc<void, 103U>(this, x, y, iRadius, nSegments);
 	}
 
-	void DrawTexturedPolygon(int n, Vertex_t* pVertice, bool bClipVertices = true)
+	void DrawTexturedPolygon(int nCount, Vertex_t* pVertices, bool bClipVertices = true)
 	{
-		MEM::CallVFunc<void>(this, 106, n, pVertice, bClipVertices);
+		CallVFunc<void, 106U>(this, nCount, pVertices, bClipVertices);
+	}
+
+	void DrawFilledRectFade(int x0, int y0, int x1, int y1, std::uint32_t uAlpha0, std::uint32_t uAlpha1, bool bHorizontal)
+	{
+		CallVFunc<void, 123U>(this, x0, y0, x1, y1, uAlpha0, uAlpha1, bHorizontal);
+	}
+
+	void GetClipRect(int& x0, int& y0, int& x1, int& y1)
+	{
+		CallVFunc<void, 146U>(this, &x0, &y0, &x1, &y1);
+	}
+
+	void SetClipRect(int x0, int y0, int x1, int y1)
+	{
+		CallVFunc<void, 147U>(this, x0, y0, x1, y1);
 	}
 };

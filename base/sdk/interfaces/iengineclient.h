@@ -1,17 +1,19 @@
 #pragma once
-// @credits: https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/cdll_int.h
-
-// used: viewmatrix_t, matrix3x4_t
 #include "../datatypes/matrix.h"
-// used: angle
 #include "../datatypes/qangle.h"
+#include "../hash/crc32.h"
+
+// used: callvfunc
+#include "../../utilities/memory.h"
+
+// @source: master/public/cdll_int.h
 
 #pragma region engineclient_enumerations
 enum EClientFrameStage : int
 {
 	FRAME_UNDEFINED = -1,
 	FRAME_START,
-	// a network packet is being recieved
+	// a network packet is being received
 	FRAME_NET_UPDATE_START,
 	// data has been received and we are going to start calling postdataupdate
 	FRAME_NET_UPDATE_POSTDATAUPDATE_START,
@@ -35,194 +37,187 @@ enum ERenderViewInfo : int
 };
 #pragma endregion
 
+#pragma pack(push, 8) // @todo: why it fits perfectly with 8 bytes pack instead of 4?
+// functions to verify offsets:
+// @ida CBaseClient::FillUserInfo(): engine.dll -> "55 8B EC 83 EC 0C 56 57 8B 7D 08 8B F1 68"
 struct PlayerInfo_t
 {
-	std::uint64_t	ullVersion = 0ULL;
-	union
-	{
-		std::uint64_t ullXuid;
-		struct
-		{
-			std::uint32_t nXuidLow;
-			std::uint32_t nXuidHigh;
-		};
-	};
-
-	char			szName[128];
-	int				nUserID;
-	char			szSteamID[33];
-	std::uint32_t	nFriendsID;
-	char			szFriendsName[128];
-	bool			bFakePlayer;
-	bool			bIsHLTV;
-	CRC32_t			uCustomFiles[4];
-	std::uint8_t	dFilesDownloaded;
+	std::uint64_t ullVersion = 0ULL; // 0x0000 // version for future compatibility
+	std::uint64_t ullXuid; // 0x0008 // network xuid
+	char szName[128]; // 0x0010 // scoreboard information
+	int nUserID; // 0x0090 // local server user ID, unique while server is running
+	char szSteamID[33]; // 0x0094 // global unique player identifier
+	std::uint32_t nFriendsID; // 0x00B8 // friends identification number
+	char szFriendsName[128]; // 0x00BC
+	bool bFakePlayer; // 0x013C // true if player is a bot
+	bool bIsHLTV; // 0x013D // true if player is the HLTV proxy
+	CRC32_t uCustomFiles[4]; // 0x0140 // custom files CRC for this player
+	std::uint8_t uFilesDownloaded; // 0x0150 // this counter increases each time the server downloaded a new file
 };
+static_assert(sizeof(PlayerInfo_t) == 0x158); // size verify @ida: engine.dll -> ["68 ? ? ? ? 85 C0 74 26" + 0x1] @xref: "userinfo"
+#pragma pack(pop)
 
-struct AudioState_t
-{
-	Vector			vecOrigin;
-	QAngle			angAngles;
-	bool			bIsUnderwater;
-};
-
-struct Model_t;
+// forward declarations
+class INetChannelInfo;
 struct SteamAPIContext_t;
-struct ClientTextMessage_t;
-struct SurfInfo_t;
-class CSentence;
-class CAudioSource;
-class CPhysCollide;
-class CGamestatsData;
-class ICollideable;
-class ISpatialQuery;
-class ISPSharedMemory;
-class IAchievementMgr;
-class IMaterial;
-class IMaterialSystem;
 
-class IEngineClient
+class IEngineClient : ROP::VirtualCallable_t<ROP::EngineGadget_t>
 {
 public:
 	void GetScreenSize(int& iWidth, int& iHeight)
 	{
-		MEM::CallVFunc<void>(this, 5, std::ref(iWidth), std::ref(iHeight));
+		CallVFunc<void, 5U>(this, &iWidth, &iHeight);
 	}
 
-	bool GetPlayerInfo(int nEntityIndex, PlayerInfo_t* pInfo)
+	[[nodiscard]] bool GetPlayerInfo(int nEntityIndex, PlayerInfo_t* pInfo)
 	{
-		return MEM::CallVFunc<bool>(this, 8, nEntityIndex, pInfo);
+		return CallVFunc<bool, 8U>(this, nEntityIndex, pInfo);
 	}
 
-	int GetPlayerForUserID(int nUserID)
+	[[nodiscard]] int GetPlayerForUserID(int nUserID)
 	{
-		return MEM::CallVFunc<int>(this, 9, nUserID);
+		return CallVFunc<int, 9U>(this, nUserID);
 	}
 
-	bool IsConsoleVisible()
+	[[nodiscard]] bool IsConsoleVisible()
 	{
-		return MEM::CallVFunc<bool>(this, 11);
+		return CallVFunc<bool, 11U>(this);
 	}
 
-	int GetLocalPlayer()
+	[[nodiscard]] int GetLocalPlayer()
 	{
-		return MEM::CallVFunc<int>(this, 12);
+		return CallVFunc<int, 12U>(this);
 	}
 
-	float GetLastTimeStamp()
+	[[nodiscard]] float GetLastTimeStamp()
 	{
-		return MEM::CallVFunc<float>(this, 14);
+		return CallVFunc<float, 14U>(this);
 	}
 
-	void GetViewAngles(QAngle& angView)
+	void GetViewAngles(QAngle_t& angView)
 	{
-		MEM::CallVFunc<void>(this, 18, std::ref(angView));
+		CallVFunc<void, 18U>(this, &angView);
 	}
 
-	void SetViewAngles(QAngle& angView)
+	void SetViewAngles(QAngle_t& angView)
 	{
-		MEM::CallVFunc<void>(this, 19, std::ref(angView));
+		CallVFunc<void, 19U>(this, &angView);
 	}
 
-	int GetMaxClients()
+	[[nodiscard]] int GetMaxClients()
 	{
-		return MEM::CallVFunc<int>(this, 20);
+		return CallVFunc<int, 20U>(this);
 	}
 
-	// returns true if the player is fully connected and active in game (i.e, not still loading) and for check doesnt need isconnected
-	bool IsInGame()
+	/// @returns: true if the player is fully connected and active in game (i.e, not still loading)
+	[[nodiscard]] bool IsInGame()
 	{
-		return MEM::CallVFunc<bool>(this, 26);
+		return CallVFunc<bool, 26U>(this);
 	}
 
-	// returns true if the player is connected, but not necessarily active in game (could still be loading)
-	bool IsConnected()
+	/// @returns: true if the player is connected, but not necessarily active in game (could still be loading)
+	[[nodiscard]] bool IsConnected()
 	{
-		return MEM::CallVFunc<bool>(this, 27);
+		return CallVFunc<bool, 27U>(this);
 	}
 
-	bool IsDrawingLoadingImage()
+	[[nodiscard]] bool IsDrawingLoadingImage()
 	{
-		return MEM::CallVFunc<bool>(this, 28);
+		return CallVFunc<bool, 28U>(this);
 	}
 
-	const ViewMatrix_t& WorldToScreenMatrix()
+	[[nodiscard]] const ViewMatrix_t& WorldToScreenMatrix()
 	{
-		return MEM::CallVFunc<const ViewMatrix_t&>(this, 37);
+		return CallVFunc<const ViewMatrix_t&, 37U>(this);
 	}
 
-	void* GetBSPTreeQuery()
+	[[nodiscard]] void* GetBSPTreeQuery()
 	{
-		return MEM::CallVFunc<void*>(this, 43);
+		return CallVFunc<void*, 43U>(this);
 	}
 
-	const char* GetLevelName()
+	[[nodiscard]] const char* GetLevelName()
 	{
-		return MEM::CallVFunc<const char*>(this, 52);
+		return CallVFunc<const char*, 52U>(this);
 	}
 
-	const char* GetLevelNameShort()
+	[[nodiscard]] const char* GetLevelNameShort()
 	{
-		return MEM::CallVFunc<const char*>(this, 53);
+		return CallVFunc<const char*, 53U>(this);
 	}
 
-	INetChannelInfo* GetNetChannelInfo()
+	void FireEvents()
 	{
-		return MEM::CallVFunc<INetChannelInfo*>(this, 78);
+		CallVFunc<void, 59U>(this);
 	}
 
-	bool IsPlayingDemo()
+	[[nodiscard]] INetChannelInfo* GetNetChannelInfo()
 	{
-		return MEM::CallVFunc<bool>(this, 82);
+		return CallVFunc<INetChannelInfo*, 78U>(this);
 	}
 
-	bool IsRecordingDemo()
+	[[nodiscard]] bool IsPlayingDemo()
 	{
-		return MEM::CallVFunc<bool>(this, 83);
+		return CallVFunc<bool, 82U>(this);
 	}
 
-	bool IsPlayingTimeDemo()
+	[[nodiscard]] bool IsRecordingDemo()
 	{
-		return MEM::CallVFunc<bool>(this, 84);
+		return CallVFunc<bool, 83U>(this);
 	}
 
-	bool IsTakingScreenshot()
+	[[nodiscard]] bool IsPlayingTimeDemo()
 	{
-		return MEM::CallVFunc<bool>(this, 92);
+		return CallVFunc<bool, 84U>(this);
 	}
 
-	bool IsHLTV()
+	[[nodiscard]] bool IsPaused()
 	{
-		return MEM::CallVFunc<bool>(this, 93);
+		return CallVFunc<bool, 90U>(this);
 	}
 
-	unsigned int GetEngineBuildNumber()
+	[[nodiscard]] bool IsTakingScreenshot()
 	{
-		return MEM::CallVFunc<unsigned int>(this, 104);
+		return CallVFunc<bool, 92U>(this);
 	}
 
-	const char* GetProductVersionString()
+	[[nodiscard]] bool IsHLTV()
 	{
-		return MEM::CallVFunc<const char*>(this, 105);
+		return CallVFunc<bool, 93U>(this);
+	}
+
+	[[nodiscard]] const char* GetMapEntitiesString()
+	{
+		return CallVFunc<const char*, 99U>(this);
+	}
+
+	[[nodiscard]] unsigned int GetEngineBuildNumber()
+	{
+		return CallVFunc<unsigned int, 104U>(this);
+	}
+
+	[[nodiscard]] const char* GetProductVersionString()
+	{
+		return CallVFunc<const char*, 105U>(this);
 	}
 
 	void ExecuteClientCmd(const char* szCmdString)
 	{
-		MEM::CallVFunc<void>(this, 108, szCmdString);
+		CallVFunc<void, 108U>(this, szCmdString);
 	}
 
 	void ClientCmdUnrestricted(const char* szCmdString, bool bFromConsoleOrKeybind = false)
 	{
-		MEM::CallVFunc<void>(this, 114, szCmdString, bFromConsoleOrKeybind);
+		CallVFunc<void, 114U>(this, szCmdString, bFromConsoleOrKeybind);
 	}
 
-	SteamAPIContext_t* GetSteamAPIContext()
+	[[nodiscard]] SteamAPIContext_t* GetSteamAPIContext()
 	{
-		return MEM::CallVFunc<SteamAPIContext_t*>(this, 185);
+		return CallVFunc<SteamAPIContext_t*, 185U>(this);
 	}
 
-	bool IsVoiceRecording()
+	[[nodiscard]] bool IsVoiceRecording() const
 	{
-		return MEM::CallVFunc<bool>(this, 224);
+		return CallVFunc<bool, 224U>(this);
 	}
 };

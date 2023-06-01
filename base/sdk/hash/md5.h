@@ -1,17 +1,15 @@
 #pragma once
-#include <cstring>
-#include <assert.h>
 
 // 16 bytes == 128 bit digest
-#define MD5_DIGEST_LENGTH 16  
-#define MD5_BIT_LENGTH ( MD5_DIGEST_LENGTH * sizeof(unsigned char) )
+#define MD5_DIGEST_LENGTH 16
+#define MD5_BIT_LENGTH (MD5_DIGEST_LENGTH * sizeof(unsigned char))
 
 // MD5 Hash
 typedef struct
 {
-	unsigned int	buf[4];
-	unsigned int	bits[2];
-	unsigned char	in[64];
+	unsigned int buf[4];
+	unsigned int bits[2];
+	unsigned char in[64];
 } MD5Context_t;
 
 struct MD5Value_t;
@@ -42,11 +40,6 @@ namespace MD5
 
 struct MD5Value_t
 {
-	void Zero()
-	{
-		memset(bits, 0, sizeof(bits));
-	};
-
 	bool IsZero() const
 	{
 		for (int i = 0; i < (sizeof(bits) / sizeof(bits[0])); ++i)

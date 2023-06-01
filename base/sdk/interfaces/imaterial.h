@@ -1,27 +1,11 @@
 #pragma once
-// used: keyvalues
+#include "../datatypes/matrix.h"
 #include "../datatypes/keyvalues.h"
-// used: call virtual function
-#include "../../utilities/memory.h"
+#include "../datatypes/utlsymbol.h"
 
 using VertexFormat_t = std::uint64_t;
 
 #pragma region material_enumerations
-enum EPreviewImageRetVal : int
-{
-	MATERIAL_PREVIEW_IMAGE_BAD = 0,
-	MATERIAL_PREVIEW_IMAGE_OK,
-	MATERIAL_NO_PREVIEW_IMAGE,
-};
-
-enum EMaterialPropertyType : int
-{
-	MATERIAL_PROPERTY_NEEDS_LIGHTMAP = 0,
-	MATERIAL_PROPERTY_OPACITY,
-	MATERIAL_PROPERTY_REFLECTIVITY,
-	MATERIAL_PROPERTY_NEEDS_BUMPED_LIGHTMAPS
-};
-
 enum EMaterialVarFlags : int
 {
 	MATERIAL_VAR_DEBUG = (1 << 0),
@@ -56,6 +40,36 @@ enum EMaterialVarFlags : int
 	MATERIAL_VAR_ALLOWALPHATOCOVERAGE = (1 << 29),
 	MATERIAL_VAR_ALPHA_MODIFIED_BY_PROXY = (1 << 30),
 	MATERIAL_VAR_VERTEXFOG = (1 << 31)
+};
+
+enum EShaderParameterType : int
+{
+	SHADER_PARAM_TYPE_TEXTURE,
+	SHADER_PARAM_TYPE_INTEGER,
+	SHADER_PARAM_TYPE_COLOR,
+	SHADER_PARAM_TYPE_VEC2,
+	SHADER_PARAM_TYPE_VEC3,
+	SHADER_PARAM_TYPE_VEC4,
+	SHADER_PARAM_TYPE_ENVMAP, // obsolete
+	SHADER_PARAM_TYPE_FLOAT,
+	SHADER_PARAM_TYPE_BOOL,
+	SHADER_PARAM_TYPE_FOURCC,
+	SHADER_PARAM_TYPE_MATRIX,
+	SHADER_PARAM_TYPE_MATERIAL,
+	SHADER_PARAM_TYPE_STRING,
+};
+
+enum EMaterialVarType : int
+{
+	MATERIAL_VAR_TYPE_FLOAT = 0,
+	MATERIAL_VAR_TYPE_STRING,
+	MATERIAL_VAR_TYPE_VECTOR,
+	MATERIAL_VAR_TYPE_TEXTURE,
+	MATERIAL_VAR_TYPE_INT,
+	MATERIAL_VAR_TYPE_FOURCC,
+	MATERIAL_VAR_TYPE_UNDEFINED,
+	MATERIAL_VAR_TYPE_MATRIX,
+	MATERIAL_VAR_TYPE_MATERIAL
 };
 
 enum EImageFormat
@@ -132,114 +146,306 @@ enum EImageFormat
 	IMAGE_FORMAT_LE_BGRX8888,
 	IMAGE_FORMAT_LE_BGRA8888,
 
-	NUM_IMAGE_FORMATS
+	IMAGE_FORMAT_MAX
 };
 #pragma endregion
 
-class IMaterialVar
+// forward declarations
+class IMaterial;
+
+#pragma pack(push, 4)
+// functions used to verify indexes:
+// @ida CMaterialVar::CopyFrom(): materialsystem.dll -> "55 8B EC A1 ? ? ? ? 83 EC 08 53"
+// functions used to verify offsets:
+// @ida CMaterialVar::GetStringValue(): materialsystem.dll -> "55 8B EC A1 ? ? ? ? 83 EC 0C 53" @xref: "env_cubemap", "<UNDEFINED>"
+class IMaterialVar : ROP::VirtualCallable_t<ROP::EngineGadget_t>
 {
 public:
-	ITexture* GetTexture()
+	[[nodiscard]] ITexture* GetTexture()
 	{
-		return MEM::CallVFunc<ITexture*>(this, 1);
+		return CallVFunc<ITexture*, 0U>(this);
 	}
 
-	void SetFloat(float flValue)
+	[[nodiscard]] const char* GetName() const
 	{
-		MEM::CallVFunc<void>(this, 4, flValue);
+		return CallVFunc<const char*, 3U>(this);
 	}
 
-	void SetInt(int iValue)
+	void SetFloat(float flNewValue)
 	{
-		MEM::CallVFunc<void>(this, 5, iValue);
+		CallVFunc<void, 4U>(this, flNewValue);
 	}
 
-	void SetString(const char* szValue)
+	void SetInt(int iNewValue)
 	{
-		MEM::CallVFunc<void>(this, 6, szValue);
+		CallVFunc<void, 5U>(this, iNewValue);
+	}
+
+	void SetString(const char* szNewValue)
+	{
+		CallVFunc<void, 6U>(this, szNewValue);
+	}
+
+	[[nodiscard]] const char* GetString() const
+	{
+		return CallVFunc<const char*, 7U>(this);
+	}
+
+	void SetVector(const float* arrNewVector, int nComponentCount)
+	{
+		CallVFunc<void, 9U>(this, arrNewVector, nComponentCount);
 	}
 
 	void SetVector(float x, float y)
 	{
-		MEM::CallVFunc<void>(this, 10, x, y);
+		CallVFunc<void, 10U>(this, x, y);
 	}
 
 	void SetVector(float x, float y, float z)
 	{
-		MEM::CallVFunc<void>(this, 11, x, y, z);
+		CallVFunc<void, 11U>(this, x, y, z);
 	}
 
-	void SetTexture(ITexture* pTexture)
+	void SetVector(float x, float y, float z, float w)
 	{
-		MEM::CallVFunc<void>(this, 15, pTexture);
+		CallVFunc<void, 12U>(this, x, y, z, w);
 	}
 
-	void SetVectorComponent(float flValue, int iComponent)
+	void SetTexture(ITexture* pNewTexture)
 	{
-		MEM::CallVFunc<void>(this, 26, flValue, iComponent);
+		CallVFunc<void, 15U>(this, pNewTexture);
 	}
+
+	[[nodiscard]] IMaterial* GetMaterial()
+	{
+		return CallVFunc<IMaterial*, 16U>(this);
+	}
+
+	void SetMaterial(IMaterial* pMaterial)
+	{
+		CallVFunc<void, 17U>(this, pMaterial);
+	}
+
+	void SetVectorComponent(float flComponentValue, int nComponentIndex)
+	{
+		CallVFunc<void, 26U>(this, flComponentValue, nComponentIndex);
+	}
+
+	[[nodiscard]] int GetInt() const
+	{
+		return CallVFunc<int, 27U>(this);
+	}
+
+	[[nodiscard]] float GetFloat() const
+	{
+		return CallVFunc<float, 28U>(this);
+	}
+
+	[[nodiscard]] const float* GetVector() const
+	{
+		return CallVFunc<const float*, 30U>(this);
+	}
+
+	[[nodiscard]] int GetVectorSize() const
+	{
+		return CallVFunc<int, 31U>(this);
+	}
+
+private:
+	void* pVTable; // 0x00
+public:
+	struct Matrix_t
+	{
+		ViewMatrix_t matView; // 0x00
+		bool bIsIdent; // 0x40
+	};
+	static_assert(sizeof(Matrix_t) == 0x44);
+
+	char* szValue; // 0x04
+	int iValue; // 0x08
+	Vector4D_t vecValue; // 0x0C // @ida: materialsystem.dll -> U8["F3 0F 10 43 ? 83" + 0x4]
+	std::uint8_t nType : 4; // 0x18
+	std::uint8_t nNumVectorComps : 3; // 0x18
+	std::uint8_t bFakeMaterialVar : 1; // 0x18
+	// 0x19 // valve screwed up with those bitfields and made it even worse uhh.. leads to 4 byte padding
+	std::uint8_t nTempIndex; // 0x1D // @ida: materialsystem.dll -> U8["8A 43 ? 3C FF 74 21 0F B6 C0 B9" + 0x2]
+	CUtlSymbol name; // 0x1E
+	IMaterial* pMaterialInternal; // 0x20 // owning material
+
+	union
+	{
+		IMaterial* pMaterialValue;
+		ITexture* pTextureValue;
+		Matrix_t* pMatrixValue;
+	}; // 0x24
 };
+static_assert(sizeof(IMaterialVar) == 0x28);
+#pragma pack(pop)
 
-class IMaterial
+class IMaterial : ROP::VirtualCallable_t<ROP::EngineGadget_t>
 {
 public:
-	virtual const char*		GetName() const = 0;
-	virtual const char*		GetTextureGroupName() const = 0;
-	virtual EPreviewImageRetVal GetPreviewImageProperties(int* iWidth, int* iHeight, EImageFormat* pImageFormat, bool* bTranslucent) const = 0;
-	virtual EPreviewImageRetVal GetPreviewImage(unsigned char* pData, int iWidth, int iHeight, EImageFormat imageFormat) const = 0;
-	virtual int				GetMappingWidth() = 0;
-	virtual int				GetMappingHeight() = 0;
-	virtual int				GetNumAnimationFrames() = 0;
-	virtual bool			InMaterialPage() = 0;
-	virtual	void			GetMaterialOffset(float* flOffset) = 0;
-	virtual void			GetMaterialScale(float* flScale) = 0;
-	virtual IMaterial*		GetMaterialPage() = 0;
-	virtual IMaterialVar*	FindVar(const char* szName, bool* bFound, bool bComplain = true) = 0;
-	virtual void			IncrementReferenceCount() = 0;
-	virtual void			DecrementReferenceCount() = 0;
-	inline void				AddReference() { IncrementReferenceCount(); }
-	inline void				Release() { DecrementReferenceCount(); }
-	virtual int 			GetEnumerationID() const = 0;
-	virtual void			GetLowResColorSample(float s, float t, float* arrColor) const = 0;
-	virtual void			RecomputeStateSnapshots() = 0;
-	virtual bool			IsTranslucent() = 0;
-	virtual bool			IsAlphaTested() = 0;
-	virtual bool			IsVertexLit() = 0;
-	virtual VertexFormat_t	GetVertexFormat() const = 0;
-	virtual bool			HasProxy() const = 0;
-	virtual bool			UsesEnvCubemap() = 0;
-	virtual bool			NeedsTangentSpace() = 0;
-	virtual bool			NeedsPowerOfTwoFrameBufferTexture(bool bCheckSpecificToThisFrame = true) = 0;
-	virtual bool			NeedsFullFrameBufferTexture(bool bCheckSpecificToThisFrame = true) = 0;
-	virtual bool			NeedsSoftwareSkinning() = 0;
-	virtual void			AlphaModulate(float flAlpha) = 0;
-	virtual void			ColorModulate(float r, float g, float b) = 0;
-	virtual void			SetMaterialVarFlag(EMaterialVarFlags flag, bool bEnable) = 0;
-	virtual bool			GetMaterialVarFlag(EMaterialVarFlags flag) = 0;
-	virtual void			GetReflectivity(Vector& vecReflect) = 0;
-	virtual bool			GetPropertyFlag(EMaterialPropertyType type) = 0;
-	virtual bool			IsTwoSided() = 0;
-	virtual void			SetShader(const char* szShaderName) = 0;
-	virtual int				GetNumPasses() = 0;
-	virtual int				GetTextureMemoryBytes() = 0;
-	virtual void			Refresh() = 0;
-	virtual bool			NeedsLightmapBlendAlpha() = 0;
-	virtual bool			NeedsSoftwareLighting() = 0;
-	virtual int				ShaderParamCount() const = 0;
-	virtual IMaterialVar**	GetShaderParams() = 0;
-	virtual bool			IsErrorMaterial() const = 0;
-	virtual void			SetUseFixedFunctionBakedLighting(bool bEnable) = 0;
-	virtual float			GetAlphaModulation() = 0;
-	virtual void			GetColorModulation(float* r, float* g, float* b) = 0;
-	virtual bool			IsTranslucentUnderModulation(float flAlphaModulation = 1.0f) const = 0;
-	virtual IMaterialVar*	FindVarFast(char const* szName, unsigned int* puToken) = 0;
-	virtual void			SetShaderAndParams(CKeyValues* pKeyValues) = 0;
-	virtual const char*		GetShaderName() const = 0;
-	virtual void			DeleteIfUnreferenced() = 0;
-	virtual bool			IsSpriteCard() = 0;
-	virtual void			CallBindProxy(void* pProxyData) = 0;
-	virtual void			RefreshPreservingMaterialVars() = 0;
-	virtual bool			WasReloadedFromWhitelist() = 0;
-	virtual bool			SetTempExcluded(bool bSet, int nExcludedDimensionLimit) = 0;
-	virtual int				GetReferenceCount() const = 0;
+	[[nodiscard]] const char* GetName() const
+	{
+		return CallVFunc<const char*, 0U>(this);
+	}
+
+	[[nodiscard]] const char* GetTextureGroupName() const
+	{
+		return CallVFunc<const char*, 1U>(this);
+	}
+
+	[[nodiscard]] int GetMappingWidth()
+	{
+		return CallVFunc<int, 4U>(this);
+	}
+
+	[[nodiscard]] int GetMappingHeight()
+	{
+		return CallVFunc<int, 5U>(this);
+	}
+
+	[[nodiscard]] int GetNumAnimationFrames()
+	{
+		return CallVFunc<int, 6U>(this);
+	}
+
+	/// @param[in] szName name of shader variable
+	/// @param[out] pbFound [optional] true if shader variable was found, false otherwise
+	/// @param[in] bComplain accumulate failures with error message
+	/// @returns: shader variable of current material on success, dummy variable otherwise (not null!)
+	[[nodiscard]] IMaterialVar* FindVar(const char* szName, bool* pbFound, bool bComplain = true)
+	{
+		return CallVFunc<IMaterialVar*, 11U>(this, szName, pbFound, bComplain);
+	}
+
+	void IncrementReferenceCount()
+	{
+		CallVFunc<void, 12U>(this);
+	}
+
+	void DecrementReferenceCount()
+	{
+		CallVFunc<void, 13U>(this);
+	}
+
+	[[nodiscard]] int GetEnumerationID()
+	{
+		return CallVFunc<int, 14U>(this);
+	}
+
+	[[nodiscard]] bool IsTranslucent()
+	{
+		return CallVFunc<bool, 17U>(this);
+	}
+
+	[[nodiscard]] bool IsAlphaTested()
+	{
+		return CallVFunc<bool, 18U>(this);
+	}
+
+	[[nodiscard]] bool IsVertexLit()
+	{
+		return CallVFunc<bool, 19U>(this);
+	}
+
+	[[nodiscard]] VertexFormat_t GetVertexFormat() const
+	{
+		return CallVFunc<VertexFormat_t, 20U>(this);
+	}
+
+	[[nodiscard]] bool HasProxy() const
+	{
+		return CallVFunc<bool, 21U>(this);
+	}
+
+	[[nodiscard]] bool UsesEnvCubemap()
+	{
+		return CallVFunc<bool, 22U>(this);
+	}
+
+	void AlphaModulate(float flAlpha)
+	{
+		CallVFunc<void, 27U>(this, flAlpha);
+	}
+
+	void ColorModulate(float flRed, float flGreen, float flBlue)
+	{
+		CallVFunc<void, 28U>(this, flRed, flGreen, flBlue);
+	}
+
+	void SetMaterialVarFlag(EMaterialVarFlags nVarFlag, bool bEnable)
+	{
+		CallVFunc<void, 29U>(this, nVarFlag, bEnable);
+	}
+
+	[[nodiscard]] bool GetMaterialVarFlag(EMaterialVarFlags nVarFlag)
+	{
+		return CallVFunc<bool, 30U>(this, nVarFlag);
+	}
+
+	void GetReflectivity(Vector_t& vecReflectivity)
+	{
+		CallVFunc<void, 31U>(this, &vecReflectivity);
+	}
+
+	[[nodiscard]] bool IsTwoSided()
+	{
+		return CallVFunc<bool, 33U>(this);
+	}
+
+	void SetShader(const char* szShaderName)
+	{
+		CallVFunc<void, 34U>(this, szShaderName);
+	}
+
+	[[nodiscard]] int GetTextureMemoryBytes()
+	{
+		return CallVFunc<int, 36U>(this);
+	}
+
+	void Refresh()
+	{
+		CallVFunc<void, 37U>(this);
+	}
+
+	[[nodiscard]] int GetShaderParametersCount() const
+	{
+		return CallVFunc<int, 40U>(this);
+	}
+
+	[[nodiscard]] IMaterialVar** GetShaderParameters()
+	{
+		return CallVFunc<IMaterialVar**, 41U>(this);
+	}
+
+	[[nodiscard]] bool IsErrorMaterial() const
+	{
+		return CallVFunc<bool, 42U>(this);
+	}
+
+	[[nodiscard]] float GetAlphaModulation()
+	{
+		return CallVFunc<float, 44U>(this);
+	}
+
+	void GetColorModulation(float* pflRed, float* pflGreen, float* pflBlue)
+	{
+		CallVFunc<void, 45U>(this, pflRed, pflGreen, pflBlue);
+	}
+
+	void SetShaderAndParams(CKeyValues* pKeyValues)
+	{
+		CallVFunc<void, 48U>(this, pKeyValues);
+	}
+
+	[[nodiscard]] const char* GetShaderName() const
+	{
+		return CallVFunc<const char*, 49U>(this);
+	}
+
+	[[nodiscard]] int GetReferenceCount() const
+	{
+		return CallVFunc<int, 56U>(this);
+	}
 };

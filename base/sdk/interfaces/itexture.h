@@ -1,37 +1,46 @@
 #pragma once
-// used: directx texture class, call virtual function
-#include "../../utilities/memory.h"
+// @source: master/public/materialsystem/itexture.h
+
+// forward declarations
+struct IDirect3DTexture9;
 
 struct Texture_t
 {
-	std::byte			pad0[0xC];		// 0x0000
-	IDirect3DTexture9*	lpRawTexture;	// 0x000C
+	std::byte pad0[0xC]; // 0x00
+	IDirect3DTexture9* lpRawTexture; // 0x0C
 };
+static_assert(sizeof(Texture_t) == 0x10);
 
-class ITexture
+class ITexture : ROP::VirtualCallable_t<ROP::EngineGadget_t>
 {
 private:
-	std::byte	pad0[0x50];		 // 0x0000
+	std::byte pad0[0x50]; // 0x00
 public:
-	Texture_t** pTextureHandles; // 0x0050
+	Texture_t** pTextureHandles; // 0x50
 
-	int GetActualWidth()
+	[[nodiscard]] const char* GetName() const
 	{
-		return MEM::CallVFunc<int>(this, 3);
+		return CallVFunc<const char*, 0U>(this);
 	}
 
-	int GetActualHeight()
+	[[nodiscard]] int GetActualWidth() const
 	{
-		return MEM::CallVFunc<int>(this, 4);
+		return CallVFunc<int, 3U>(this);
 	}
 
-	void IncrementReferenceCount()
+	[[nodiscard]] int GetActualHeight() const
 	{
-		MEM::CallVFunc<void>(this, 10);
+		return CallVFunc<int, 4U>(this);
 	}
 
-	void DecrementReferenceCount()
+	void IncrementReferenceCount() const
 	{
-		MEM::CallVFunc<void>(this, 11);
+		CallVFunc<void, 10U>(this);
+	}
+
+	void DecrementReferenceCount() const
+	{
+		CallVFunc<void, 11U>(this);
 	}
 };
+static_assert(sizeof(ITexture) == 0x54);

@@ -1,7 +1,7 @@
 #pragma once
 
 #pragma region datamap_enumerations
-enum EFieldTypes : int
+enum EFieldType : int
 {
 	FIELD_VOID = 0,			// No type or value
 	FIELD_FLOAT,			// Any floating point value
@@ -28,7 +28,7 @@ enum EFieldTypes : int
 	FIELD_VMATRIX,			// a vmatrix (output coords are NOT worldspace)
 	FIELD_VMATRIX_WORLDSPACE,// A VMatrix that maps some local space to world space (translation is fixed up on level transitions)
 	FIELD_MATRIX3X4_WORLDSPACE,	// matrix3x4_t that maps some local space to world space (translation is fixed up on level transitions)
-	FIELD_INTERVAL,			// a start and range floating point interval ( e.g., 3.2->3.6 == 3.2 and 0.4 )
+	FIELD_INTERVAL,			// a start and range floating point interval (e.g., 3.2->3.6 == 3.2 and 0.4)
 	FIELD_MODELINDEX,		// a model index
 	FIELD_MATERIALINDEX,	// a material index (using the material precache string table)
 	FIELD_VECTOR2D,			// 2 floats
@@ -45,27 +45,44 @@ enum
 };
 #pragma endregion
 
+// forward declarations
 struct DataMap_t;
+struct OptimizedDataMap_t; // not implemented
+
+#pragma pack(push, 4)
+// functions used to verify offsets:
+// @ida DescribeFlattenedList(): client.dll -> "55 8B EC 83 EC 20 83 3D ? ? ? ? ? B8" @xref: "->Sorted %s for copy type: %s, packing: %s\n"
 struct TypeDescription_t
 {
 public:
-	EFieldTypes			iFieldType;						//0x0000
-	const char*			szFieldName;					//0x0004
-	int					iFieldOffset[TD_OFFSET_COUNT];	//0x0008
-	unsigned short		uFieldSize;						//0x0010
-	short				fFlags;							//0x0012
-	std::byte			pad0[0xC];						//0x0014
-	DataMap_t*			pTypeDescription;				//0x0020
-	std::byte			pad1[0x18];						//0x0024
-}; // size: 0x003C
+	EFieldType nFieldType; // 0x00
+	const char* szFieldName; // 0x04
+	int iFieldOffset; // 0x08
+	unsigned short nFieldSize; // 0x0C
+	short nFlags; // 0x0E
+	const char* szExternalName; // 0x10
+	void* pSaveRestoreOps; // 0x14
+	void* pInputFunc; // 0x18
+	DataMap_t* pTypeDescription; // 0x1C
+	int nFieldSizeInBytes; // 0x20
+	TypeDescription_t* pOverrideField; // 0x24
+	int nOverrideCount; // 0x28
+	float flFieldTolerance; // 0x2C
+	int iFlatOffset[TD_OFFSET_COUNT]; // 0x30
+	unsigned short nFlatGroup; // 0x38
+};
+static_assert(sizeof(TypeDescription_t) == 0x3C); // size verify @ida: client.dll -> U8["8D 76 ? 66 8B C3 47" + 0x2]
 
+// functions used to verify offsets:
+// @ida CPredictionCopy::TransferData(): client.dll -> "55 8B EC 8B 45 10 53 56 8B F1 57"
 struct DataMap_t
 {
-	TypeDescription_t*	pDataDesc;
-	int					nDataFields;
-	const char*			szDataClassName;
-	DataMap_t*			pBaseMap;
-	bool				bChainsValidated;
-	bool				bPackedOffsetsComputed;
-	int					iPackedSize;
+	TypeDescription_t* pDataDesc; // 0x00
+	int nDataFieldCount; // 0x04
+	const char* szDataClassName; // 0x08 // @ida: client.dll -> U8["51 50 FF 72 ? 68" + 0x4]
+	DataMap_t* pBaseMap; // 0x0C
+	int nPackedSize; // 0x10 // @ida: client.dll -> U8["89 47 ? 83 FB 60 7C CF" + 0x2]
+	OptimizedDataMap_t* pOptimizedDataMap; // 0x14 // @ida: U8["83 78 ? 00 75 0A 8B C8 E8" + 0x2]
 };
+static_assert(sizeof(DataMap_t) == 0x18); // @todo: size verify
+#pragma pack(pop)

@@ -2,88 +2,87 @@ workspace "base"
 	configurations { "Debug", "Release" }
 	system "windows"
 	architecture "x86"
-	
-	project "cinnamon"
-		-- specify physical files paths to import
+
+	project "csgo"
+		location "base"
+		targetname "base"
+		kind "SharedLib"
+
+		language "C++"
+		cppdialect "c++20"
+
+		-- specify physical include file paths
 		files
 		{
 			"base/**.cpp",
 			"base/**.h",
+
 			"dependencies/imgui/**.cpp",
 			"dependencies/imgui/**.h",
 			"dependencies/minhook/**.c",
 			"dependencies/minhook/**.h",
+
 			"resources/*.h"
 		}
-		
-		-- specify virtual files paths to filter (for us them mostly same as physical)
+
+		-- specify virtual filter file paths
 		vpaths
 		{
-			{ ["source/*"] = "base/*.cpp" },
-			{ ["source/core/*"] = "base/core/*.cpp" },
-			{ ["source/features/*"] = "base/features/*.cpp" },
-			{ ["source/sdk/*"] = "base/sdk/*.cpp" },
-			{ ["source/sdk/datatypes/*"] = "base/sdk/datatypes/*.cpp" },
-			{ ["source/sdk/hash/*"] = "base/sdk/hash/*.cpp" },
-			{ ["source/sdk/interfaces/*"] = "base/sdk/interfaces/*.cpp" },
-			{ ["source/utilities/*"] = "base/utilities/*.cpp" },
-			{ ["source/utilities/memory/*"] = "base/utilities/memory/*.cpp" },
+			{ ["*"] = "base/*" },
 			
-			{ ["include/*"] = "base/*.h" },
-			{ ["include/core/*"] = "base/core/*.h" },
-			{ ["include/features/*"] = "base/features/*.h" },
-			{ ["include/sdk/*"] = "base/sdk/*.h" },
-			{ ["include/sdk/datatypes/*"] = "base/sdk/datatypes/*.h" },
-			{ ["include/sdk/hash/*"] = "base/sdk/hash/*.h" },
-			{ ["include/sdk/interfaces/*"] = "base/sdk/interfaces/*.h" },
-			{ ["include/utilities/*"] = "base/utilities/*.h" },
-			{ ["include/utilities/memory/*"] = "base/utilities/memory/*.h" },
+			{ ["core/*"] = "base/core/*" },
 			
+			{ ["features/*"] = "base/features/*" },
+			{ ["features/legit/*"] = "base/features/legit/*" },
+			{ ["features/misc/*"] = "base/features/misc/*" },
+			{ ["features/rage/*"] = "base/features/rage/*" },
+			{ ["features/visual/*"] = "base/features/visual/*" },
+			
+			{ ["sdk/*"] = "base/sdk/*" },
+			{ ["sdk/datatypes/*"] = "base/sdk/datatypes/*" },
+			{ ["sdk/hash/*"] = "base/sdk/hash/*" },
+			{ ["sdk/interfaces/*"] = "base/sdk/interfaces/*" },
+			
+			{ ["utilities/*"] = "base/utilities/*" },
+
 			{ ["dependencies/imgui/*"] = "dependencies/imgui/*" },
 			{ ["dependencies/imgui/dx9/*"] = "dependencies/imgui/dx9/*" },
 			{ ["dependencies/imgui/win32/*"] = "dependencies/imgui/win32/*" },
-			{ ["dependencies/imgui/cpp/*"] = "dependencies/imgui/cpp/*" },
 			{ ["dependencies/minhook/*"] = "dependencies/minhook/*" },
 			{ ["dependencies/minhook/hde/*"] = "dependencies/minhook/hde/*" },
-			
+
 			{ ["resources/*"] = "resources/*.h" }
 		}
-		
-		-- common
-		language "C++"
-		cppdialect "c++20"
-		kind "SharedLib"
-		location "base"
-		targetname "base"
-		targetdir "$(SolutionDir)build/$(Configuration)/"
-		objdir "!$(SolutionDir)log/$(ProjectName)/$(Configuration)/" --use the "!" prefix to force a specific directory using msvs's provided environment variables instead of premake tokens
-		
-		-- additional
-		characterset "MBCS"
-		
-		-- vc++ directories
-		includedirs { "$(SolutionDir)dependencies/freetype/include", "$(SolutionDir)dependencies/json", "$(DXSDK_DIR)Include;$(IncludePath)" }
-		libdirs { "$(SolutionDir)dependencies/freetype/win32", "$(DXSDK_DIR)Lib/x86" }
 
-		-- build
-		buildoptions { "/sdl" }
-		rtti "on"
-		staticruntime "off"
-		editandcontinue "off"
+		-- @note: use the "!" prefix to force a specific directory using msvs's provided environment variables instead of premake tokens
+		targetdir "$(SolutionDir)build/$(Configuration)/"
+		objdir "!$(SolutionDir)intermediate/$(ProjectName)/$(Configuration)/"
+		implibname "$(OutDir)$(TargetName)"
+
+		-- link
+		includedirs { "$(SolutionDir)dependencies", "$(SolutionDir)dependencies/freetype/include", "$(DXSDK_DIR)Include", "$(IncludePath)" }
+		libdirs { "$(SolutionDir)dependencies/freetype/win32", "$(DXSDK_DIR)Lib/x86" }
+		links { "d3d9.lib" }
+		flags { "MultiProcessorCompile", "NoImportLib", "NoManifest", "NoPCH" } -- @test: NoImplicitLink
+
+		-- compile
 		conformancemode "on"
-		
-		-- linker
-		links { "d3d9.lib", "d3dx9.lib" }
-		flags { "MultiProcessorCompile", "NoImportLib", "NoManifest", "NoPCH" }
-		
+		editandcontinue "off"
+		entrypoint "CoreEntryPoint"
+		exceptionhandling "off"
+		staticruntime "on"
+		symbols "full"
+		vectorextensions "SSE2"
+
 		-- configuration specific
 		filter "configurations:Debug"
-			symbols "full"
-			links { "freetype_debug.lib" }
-			defines { "DEBUG_CONSOLE", "NOMINMAX", "_DEBUG" }
+			defines { "_DEBUG" }
+			flags { "NoIncrementalLink" }
+			rtti "on"
 
 		filter "configurations:Release"
+			defines { "NDEBUG" }
+			flags { "LinkTimeOptimization" } -- @test: NoRuntimeChecks
 			optimize "speed"
-			links { "freetype.lib" }
-			defines { "NOMINMAX", "NDEBUG" }
-			flags { "LinkTimeOptimization" }
+			rtti "off"
+			-- @test: "/Zc:threadSafeInit-" to disable thread-safe local static initialization ('__Init_thread_header'/'__Init_thread_footer' calls)

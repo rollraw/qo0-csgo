@@ -1,44 +1,21 @@
 #pragma once
-// used: std::function
-#include <functional>
-// used: std::deque
-#include <deque>
-// used: std::unique_lock
-#include <mutex>
-// used: std::shared_mutex
-#include <shared_mutex>
-// used: std::any
-#include <any>
+// used: [d3d]
+#include <d3d9.h>
 
-// used: winapi, directx, imgui, fmt includes
 #include "../common.h"
-// used: color
+
 #include "../sdk/datatypes/color.h"
-// used: vector
 #include "../sdk/datatypes/vector.h"
 
-// types of thread-safe render objects
-enum class EDrawType : int
-{
-	NONE = 0,
-	LINE,
-	RECT,
-	RECT_MULTICOLOR,
-	CIRCLE,
-	TRIANGLE,
-	POLYGON,
-	TEXT,
-	IMAGE
-};
+// used: itemdefinitionindex_t
+#include "../sdk/interfaces/iweaponsystem.h"
 
-struct DrawObject_t
-{
-	DrawObject_t(const EDrawType nType, std::any&& pObject) :
-		nType(nType), pObject(std::move(pObject)) { }
+// used: [ext] imgui
+#include "../../dependencies/imgui/imgui.h"
+#include "../../dependencies/imgui/imgui_internal.h"
 
-	EDrawType nType = EDrawType::NONE;
-	std::any pObject = { };
-};
+// forward declarations
+struct KeyBind_t;
 
 #pragma region draw_objects_enumerations
 enum ERectRenderFlags : unsigned int
@@ -63,6 +40,13 @@ enum ETriangleRenderFlags : unsigned int
 	DRAW_TRIANGLE_FILLED = (1 << 1)
 };
 
+enum EQuadRenderFlags : unsigned int
+{
+	DRAW_QUAD_NONE = 0,
+	DRAW_QUAD_OUTLINE = (1 << 0),
+	DRAW_QUAD_FILLED = (1 << 1)
+};
+
 enum EPolygonRenderFlags : unsigned int
 {
 	DRAW_POLYGON_NONE = 0,
@@ -78,173 +62,85 @@ enum ETextRenderFlags : unsigned int
 };
 #pragma endregion
 
-#pragma region draw_objects_structures
-struct LineObject_t
-{
-	ImVec2 vecStart = { };
-	ImVec2 vecEnd = { };
-	ImU32 colLine = 0x0;
-	float flThickness = 0.f;
-};
-
-struct RectObject_t
-{
-	ImVec2 vecMin = { };
-	ImVec2 vecMax = { };
-	ImU32 colRect = 0x0;
-	unsigned int uFlags = 0x0;
-	ImU32 colOutline = 0x0;
-	float flRounding = 0.f;
-	ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_None;
-	float flThickness = 0.f;
-};
-
-struct RectMultiColorObject_t
-{
-	ImVec2 vecMin = { };
-	ImVec2 vecMax = { };
-	ImU32 colUpperLeft = 0x0;
-	ImU32 colUpperRight = 0x0;
-	ImU32 colBottomRight = 0x0;
-	ImU32 colBottomLeft = 0x0;
-};
-
-struct CircleObject_t
-{
-	ImVec2 vecCenter = { };
-	float flRadius = 0.f;
-	ImU32 colCircle = 0x0;
-	int nSegments = 0;
-	unsigned int uFlags = 0x0;
-	ImU32 colOutline = 0x0;
-	float flThickness = 0.f;
-};
-
-struct TriangleObject_t
-{
-	ImVec2 vecFirst = { };
-	ImVec2 vecSecond = { };
-	ImVec2 vecThird = { };
-	ImU32 colTriangle = 0x0;
-	unsigned int uFlags = 0x0;
-	ImU32 colOutline = 0x0;
-	float flThickness = 0.f;
-};
-
-struct PolygonObject_t
-{
-	std::vector<ImVec2> vecPoints = { };
-	ImU32 colPolygon = 0x0;
-	unsigned int uFlags = 0x0;
-	ImU32 colOutline = 0x0;
-	bool bClosed = false;
-	float flThickness = 0.f;
-};
-
-struct TextObject_t
-{
-	const ImFont* pFont = nullptr;
-	float flFontSize = 0.f;
-	ImVec2 vecPosition = { };
-	std::string szText = { };
-	ImU32 colText = 0x0;
-	unsigned int uFlags = 0x0;
-	ImU32 colOutline = 0x0;
-};
-
-struct ImageObject_t
-{
-	ImTextureID pTexture = nullptr;
-	ImVec2 vecMin = { };
-	ImVec2 vecMax = { };
-	ImU32 colImage = 0x0;
-	float flRounding = 0.f;
-	ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_None;
-};
-#pragma endregion
-
 /*
  * FONTS
  */
-namespace F
+namespace FONT
 {
-	/*
-	 * fonts navigation:
-	 * [N][purpose]	[max size]	[flags]
-	 */
-
-	// 0	main		13		autohinting
-	inline ImFont* Whitney;
-	// 1	extra		14		bold
-	inline ImFont* Verdana;
-	// 2	visuals		40		lighthinting
-	inline ImFont* SmallestPixel;
-	// 3	icons		40		lighthinting
-	inline ImFont* Icons;
+	// 0. verdana, size: 12px; lighthinting
+	inline ImFont* pMenu;
+	// 1. verdana, size: 14px; bold
+	inline ImFont* pExtra;
+	// 2. smallest pixel, size: 40px; lighthinting
+	inline ImFont* pVisual;
+	// 3. icons, size: 40px; lighthinting
+	inline ImFont* pIcons;
 }
 
 // extended imgui functionality
 namespace ImGui
 {
-	// Main
+	/* @section: main */
 	void HelpMarker(const char* szDescription);
-	bool ListBox(const char* szLabel, int* iCurrentItem, std::function<const char* (int)> pLambda, int nItemsCount, int iHeightInItems);
-	bool HotKey(const char* szLabel, int* pValue);
-	bool MultiCombo(const char* szLabel, std::vector<bool>& vecValues, const std::string_view* arrItems, int nItemsCount);
+	bool HotKey(const char* szLabel, unsigned int* pValue);
+	bool HotKey(const char* szLabel, KeyBind_t* pKeyBind, const bool bAllowSwitch = true);
+	bool MultiCombo(const char* szLabel, unsigned int* pFlags, const char* const* arrItems, int nItemsCount);
 
-	// Wrappers
-	bool Combo(const char* szLabel, std::vector<int>& vecValues, int nIndex, const char* szItemsSeparatedByZeros, int nHeightInItems = -1);
-	bool Checkbox(const char* szLabel, std::vector<bool>& vecValues, int nIndex);
-	bool SliderFloat(const char* szLabel, std::vector<float>& vecValues, int nIndex, float flMin, float flMax, const char* szFormat = "%.3f", float flPower = 1.0f);
-	bool SliderInt(const char* szLabel, std::vector<int>& vecValues, int nIndex, int iMin, int iMax, const char* szFormat = "%d");
-	bool ColorEdit3(const char* szLabel, Color* pColor, ImGuiColorEditFlags flags);
-	bool ColorEdit4(const char* szLabel, Color* pColor, ImGuiColorEditFlags flags);
+	/* @section: wrappers */
+	bool ColorEdit3(const char* szLabel, Color_t* pColor, ImGuiColorEditFlags flags);
+	bool ColorEdit4(const char* szLabel, Color_t* pColor, ImGuiColorEditFlags flags);
 }
 
 /*
  * DRAW
- * ready rendering framework
+ * - rendering framework
  */
 namespace D
 {
-	// Get
-	/* create fonts, set styles etc */
-	void Setup(IDirect3DDevice9* pDevice, unsigned int uFontFlags = 0x0);
-	/* shutdown imgui */
+	// initialize rendering engine, create fonts, set styles etc
+	bool Setup(IDirect3DDevice9* pDevice, unsigned int uFontFlags = 0x0);
+	// shutdown rendering engine
 	void Destroy();
-	/* render primitives by stored & safe data */
-	void RenderDrawData(ImDrawList* pDrawList);
-	/* clear native data to draw */
-	void ClearDrawData();
-	/* swap native draw data to safe */
+
+	/* @section: callbacks */
+	void OnPreReset(IDirect3DDevice9* pDevice);
+	void OnPostReset(IDirect3DDevice9* pDevice);
+	bool OnWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+	/* @section: main */
+	// render primitives by stored safe data
+	void RenderDrawData(ImDrawData* pDrawData);
+	// reset active draw data container
+	void ResetDrawData();
+	// swap active draw data container to safe one
 	void SwapDrawData();
 
-	// Render
-	void AddLine(const ImVec2& vecStart, const ImVec2& vecEnd, const Color& colLine, float flThickness = 1.0f);
-	void AddRect(const ImVec2& vecMin, const ImVec2& vecMax, const Color& colRect, unsigned int uFlags = DRAW_RECT_NONE, const Color& colOutline = Color(0, 0, 0, 255), float flRounding = 0.f, ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_All, float flThickness = 1.0f);
-	void AddRectMultiColor(const ImVec2& vecMin, const ImVec2& vecMax, const Color& colUpperLeft, const Color& colUpperRight, const Color& colBottomRight, const Color& colBottomLeft);
-	void AddCircle(const ImVec2& vecCenter, float flRadius, const Color& colCircle, int nSegments = 12, unsigned int uFlags = DRAW_CIRCLE_NONE, const Color& colOutline = Color(0, 0, 0, 255), float flThickness = 1.0f);
-	void AddTriangle(const ImVec2& vecFirst, const ImVec2& vecSecond, const ImVec2& vecThird, const Color& colTriangle, unsigned int uFlags = DRAW_TRIANGLE_NONE, const Color& colOutline = Color(0, 0, 0, 255), float flThickness = 1.0f);
-	void AddPolygon(std::vector<ImVec2>& vecPoints, const Color& colPolygon, unsigned int uFlags = DRAW_POLYGON_FILLED, const Color& colOutline = Color(0, 0, 0, 255), bool bClosed = true, float flThickness = 1.0f);
-	void AddText(const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const std::string& szText, const Color& colText, unsigned int uFlags = DRAW_TEXT_NONE, const Color& colOutline = Color(0, 0, 0, 255));
-	void AddText(const ImVec2& vecPosition, const std::string& szText, const Color& colText, int iFlags = DRAW_TEXT_NONE, const Color& colOutline = Color(0, 0, 0, 255));
-	void AddImage(ImTextureID pTexture, const ImVec2& vecMin, const ImVec2& vecMax, const Color& colImage = Color(255, 255, 255, 255), float flRounding = 0.f, ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_All);
+	/* @section: get */
+	/// @returns: custom font icon codepoint for weapon of given index
+	const char8_t* GetWeaponIcon(const ItemDefinitionIndex_t nItemDefinitionIndex);
+	/// convert world space to screen space coordinates by game's conversion matrix
+	/// @param[out] pvecScreen output for converted screen position
+	/// @returns: true if converted coordinates fit into display size, false otherwise
+	bool WorldToScreen(const Vector_t& vecOrigin, ImVec2* pvecScreen);
 
-	// Bindings
-	void AddDrawListRect(ImDrawList* pDrawList, const ImVec2& vecMin, const ImVec2& vecMax, ImU32 colRect, unsigned int uFlags = DRAW_RECT_NONE, ImU32 colOutline = IM_COL32(0, 0, 0, 255), float flRounding = 0.f, ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_All, float flThickness = 1.0f);
-	void AddDrawListText(ImDrawList* pDrawList, const ImFont* pFont, float flFontSize, const ImVec2& vecPosition, const std::string& szText, ImU32 colText, unsigned int uFlags = DRAW_TEXT_NONE, ImU32 colOutline = IM_COL32(0, 0, 0, 255));
+	/* @section: bindings */
+	void AddDrawListRect(ImDrawList* pDrawList, const ImVec2& vecMin, const ImVec2& vecMax, const Color_t& colRect, const unsigned int uFlags = DRAW_RECT_NONE, const Color_t& colOutline = Color_t(0, 0, 0, 255), const float flRounding = 0.f, const ImDrawCornerFlags roundingCorners = ImDrawCornerFlags_All, float flThickness = 1.0f, const float flOutlineThickness = 1.0f);
+	void AddDrawListRectMultiColor(ImDrawList* pDrawList, const ImVec2& vecMin, const ImVec2& vecMax, const Color_t& colUpperLeft, const Color_t& colUpperRight, const Color_t& colBottomRight, const Color_t& colBottomLeft);
+	void AddDrawListCircle(ImDrawList* pDrawList, const ImVec2& vecCenter, const float flRadius, const Color_t& colCircle, const int nSegments, const unsigned int uFlags = DRAW_CIRCLE_NONE, const Color_t& colOutline = Color_t(0, 0, 0, 255), const float flThickness = 1.0f, const float flOutlineThickness = 1.0f);
+	void AddDrawListArc(ImDrawList* pDrawList, const ImVec2& vecPosition, const float flRadius, const float flMinimumAngle, const float flMaximumAngle, const Color_t& colArc = Color_t(255, 255, 255, 255), const float flThickness = 1.0f);
+	void AddDrawListLine(ImDrawList* pDrawList, const ImVec2& vecFirst, const ImVec2& vecSecond, const Color_t& colLine, const float flThickness = 1.0f);
+	void AddDrawListTriangle(ImDrawList* pDrawList, const ImVec2& vecFirst, const ImVec2& vecSecond, const ImVec2& vecThird, const Color_t& colTriangle, const unsigned int uFlags = DRAW_TRIANGLE_NONE, const Color_t& colOutline = Color_t(0, 0, 0, 255), const float flThickness = 0.f);
+	void AddDrawListQuad(ImDrawList* pDrawList, const ImVec2& vecFirst, const ImVec2& vecSecond, const ImVec2& vecThird, const ImVec2& vecFourth, const Color_t& colQuad, const unsigned int uFlags = DRAW_QUAD_NONE, const Color_t& colOutline = Color_t(0, 0, 0, 255), const float flThickness = 0.f);
+	void AddDrawListPolygon(ImDrawList* pDrawList, const ImVec2* vecPoints, const int nPointsCount, const Color_t& colPolygon, unsigned int uFlags = DRAW_POLYGON_NONE, const Color_t& colOutline = Color_t(0, 0, 0, 255), const bool bClosed = true, const float flThickness = 1.0f);
+	void AddDrawListText(ImDrawList* pDrawList, const ImFont* pFont, const float flFontSize, const ImVec2& vecPosition, const char* szText, const Color_t& colText, const unsigned int uFlags = DRAW_TEXT_NONE, const Color_t& colOutline = Color_t(0, 0, 0, 255), const float flThickness = 1.0f);
 
-	// Extra
-	/* converts 3d game world space to screen space */
-	bool WorldToScreen(const Vector& vecOrigin, ImVec2& vecScreen);
-
-	// Values
-	/* directx init state */
+	/* @section: values */
+	// rendering engine initialization state
 	inline bool	bInitialized = false;
-	/* saved data to draw */
-	inline std::deque<DrawObject_t> vecDrawData = { };
-	/* thread-safe data to draw */
-	inline std::deque<DrawObject_t> vecSafeDrawData = { };
-	/* thread-safe render mutex */
-	inline std::shared_mutex drawMutex = { };
+	// active draw data container used to store
+	inline ImDrawList* pDrawListActive = nullptr;
+	// safe draw data container
+	inline ImDrawList* pDrawListSafe = nullptr;
+	// actual draw data container used to render
+	inline ImDrawList* pDrawListRender = nullptr;
 }

@@ -1,220 +1,190 @@
-// used: _ReturnAddress, _AddressOfReturnAddress
-#include <intrin.h>
-// used: std::array
-#include <array>
-
 #include "hooks.h"
-// used: global variables
-#include "../global.h"
+
 // used: cheat variables
 #include "variables.h"
-// used: input system
-#include "../utilities/inputsystem.h"
-// used: logging
-#include "../utilities/logging.h"
-// used: initialize state
-#include "../utilities/draw.h"
-// used: set localplayer ready
-#include "../utilities.h"
 // used: render windows
 #include "menu.h"
+// used: input system
+#include "../utilities/inputsystem.h"
+// used: l_print
+#include "../utilities/log.h"
+// used: initialize state
+#include "../utilities/draw.h"
+// used: setlocalplayerready
+#include "../sdk.h"
+// used: cbonebitlist, cikcontext, studio_buildmatrices
+#include "../sdk/bonesetup.h"
+// used: cbonemergecache
+#include "../sdk/bonemergecache.h"
 
-/* features */
+// used: interface handles
+#include "interfaces.h"
+// used: interface declarations
+#include "../sdk/interfaces/iprediction.h"
+#include "../sdk/interfaces/iinput.h"
+#include "../sdk/interfaces/icliententitylist.h"
+#include "../sdk/interfaces/iclientleafsystem.h"
+#include "../sdk/interfaces/iviewrender.h"
+#include "../sdk/interfaces/isteamgamecoordinator.h"
+#include "../sdk/interfaces/imdlcache.h"
+
+// used: features handler
+#include "../features.h"
+// used: features declarations
+#include "../features/animationcorrection.h"
 #include "../features/lagcompensation.h"
-#include "../features/prediction.h"
-#include "../features/ragebot.h"
-#include "../features/antiaim.h"
-#include "../features/legitbot.h"
-#include "../features/triggerbot.h"
-#include "../features/visuals.h"
-#include "../features/misc.h"
-#include "../features/skinchanger.h"
+#include "../features/visual.h"
 
-static constexpr std::array<const char*, 3U> arrSmokeMaterials =
-{
-	//"particle/vistasmokev1/vistasmokev1_fire",  // to look cool fresh fashionable yo :sunglasses: (if u wont be cool just uncomment this)
-	"particle/vistasmokev1/vistasmokev1_smokegrenade",
-	"particle/vistasmokev1/vistasmokev1_emods",
-	"particle/vistasmokev1/vistasmokev1_emods_impactdust",
-};
-
-#pragma region hooks_get
 bool H::Setup()
 {
-	SEH_START
-
 	if (MH_Initialize() != MH_OK)
-		throw std::runtime_error(XorStr("failed initialize minhook"));
+	{
+		L_PRINT(LOG_ERROR) << Q_XOR("failed to initialize minhook");
+		return false;
+	}
 
-	if (!DTR::Reset.Create(MEM::GetVFunc(I::DirectDevice, VTABLE::RESET), &hkReset))
+	if (!hkReset.Create(MEM::GetVFunc(I::DirectDevice, VTABLE::DXDEVICE::RESET), reinterpret_cast<void*>(&Reset)))
 		return false;
 
-	if (!DTR::EndScene.Create(MEM::GetVFunc(I::DirectDevice, VTABLE::ENDSCENE), &hkEndScene))
+	if (!hkEndScene.Create(MEM::GetVFunc(I::DirectDevice, VTABLE::DXDEVICE::ENDSCENE), reinterpret_cast<void*>(&EndScene)))
 		return false;
 
-	if (!DTR::AllocKeyValuesMemory.Create(MEM::GetVFunc(I::KeyValuesSystem, VTABLE::ALLOCKEYVALUESMEMORY), &hkAllocKeyValuesMemory))
+	if (!hkCreateMove.Create(MEM::GetVFunc(I::Client, VTABLE::CLIENT::CREATEMOVE), reinterpret_cast<void*>(&CreateMoveProxy)))
 		return false;
 
-	if (!DTR::CreateMoveProxy.Create(MEM::GetVFunc(I::Client, VTABLE::CREATEMOVE), &hkCreateMoveProxy))
+	if (!hkFrameStageNotify.Create(MEM::GetVFunc(I::Client, VTABLE::CLIENT::FRAMESTAGENOTIFY), reinterpret_cast<void*>(&FrameStageNotify)))
 		return false;
 
-	if (!DTR::FrameStageNotify.Create(MEM::GetVFunc(I::Client, VTABLE::FRAMESTAGENOTIFY), &hkFrameStageNotify))
+	if (!hkOverrideView.Create(MEM::GetVFunc(I::ClientMode, VTABLE::CLIENTMODE::OVERRIDEVIEW), reinterpret_cast<void*>(&OverrideView)))
 		return false;
 
-	if (!DTR::OverrideView.Create(MEM::GetVFunc(I::ClientMode, VTABLE::OVERRIDEVIEW), &hkOverrideView))
+	if (!hkGetViewModelFOV.Create(MEM::GetVFunc(I::ClientMode, VTABLE::CLIENTMODE::GETVIEWMODELFOV), reinterpret_cast<void*>(&GetViewModelFOV)))
 		return false;
 
-	// @note: be useful for mouse event aimbot
-	#if 0
-	if (!DTR::OverrideMouseInput.Replace(MEM::GetVFunc(I::ClientMode, VTABLE::OVERRIDEMOUSEINPUT), &hkOverrideMouseInput))
-		return false;
-	#endif
-
-	if (!DTR::GetViewModelFOV.Create(MEM::GetVFunc(I::ClientMode, VTABLE::GETVIEWMODELFOV), &hkGetViewModelFOV))
+	if (!hkDoPostScreenSpaceEffects.Create(MEM::GetVFunc(I::ClientMode, VTABLE::CLIENTMODE::DOPOSTSCREENSPACEEFFECTS), reinterpret_cast<void*>(&DoPostScreenSpaceEffects)))
 		return false;
 
-	if (!DTR::DoPostScreenEffects.Create(MEM::GetVFunc(I::ClientMode, VTABLE::DOPOSTSCREENEFFECTS), &hkDoPostScreenEffects))
+	if (!hkIsConnected.Create(MEM::GetVFunc(I::Engine, VTABLE::ENGINE::ISCONNECTED), reinterpret_cast<void*>(&IsConnected)))
 		return false;
 
-	if (!DTR::IsConnected.Create(MEM::GetVFunc(I::Engine, VTABLE::ISCONNECTED), &hkIsConnected))
+	if (!hkIsHLTV.Create(MEM::GetVFunc(I::Engine, VTABLE::ENGINE::ISHLTV), reinterpret_cast<void*>(&IsHLTV)))
 		return false;
 
-	if (!DTR::ListLeavesInBox.Create(MEM::GetVFunc(I::Engine->GetBSPTreeQuery(), VTABLE::LISTLEAVESINBOX), &hkListLeavesInBox))
+	if (!hkListLeavesInBox.Create(MEM::GetVFunc(I::Engine->GetBSPTreeQuery(), VTABLE::SPATIALQUERY::LISTLEAVESINBOX), reinterpret_cast<void*>(&ListLeavesInBox)))
 		return false;
 
-	if (!DTR::PaintTraverse.Create(MEM::GetVFunc(I::Panel, VTABLE::PAINTTRAVERSE), &hkPaintTraverse))
+	const void* pCNetChannelVTable = MEM::FindVTable(ENGINE_DLL, Q_XOR("CNetChan"));
+	if (!hkSendNetMsg.Create(MEM::GetVFunc(pCNetChannelVTable, VTABLE::NETCHANNEL::SENDNETMSG), reinterpret_cast<void*>(&SendNetMsg)))
 		return false;
 
-	if (!DTR::DrawModel.Create(MEM::GetVFunc(I::StudioRender, VTABLE::DRAWMODEL), &hkDrawModel))
+	if (!hkSendDatagram.Create(MEM::GetVFunc(pCNetChannelVTable, VTABLE::NETCHANNEL::SENDDATAGRAM), reinterpret_cast<void*>(&SendDatagram)))
 		return false;
 
-	if (!DTR::RenderSmokeOverlay.Create(MEM::GetVFunc(I::ViewRender, VTABLE::RENDERSMOKEOVERLAY), &hkRenderSmokeOverlay))
+	if (!hkRunCommand.Create(MEM::GetVFunc(I::Prediction, VTABLE::PREDICTION::RUNCOMMAND), reinterpret_cast<void*>(&RunCommand)))
 		return false;
 
-	if (!DTR::RunCommand.Create(MEM::GetVFunc(I::Prediction, VTABLE::RUNCOMMAND), &hkRunCommand))
+	if (!hkLockCursor.Create(MEM::GetVFunc(I::Surface, VTABLE::SURFACE::LOCKCURSOR), reinterpret_cast<void*>(&LockCursor)))
 		return false;
 
-	if (!DTR::SendMessageGC.Create(MEM::GetVFunc(I::SteamGameCoordinator, VTABLE::SENDMESSAGE), &hkSendMessage))
+	if (!hkCAM_ToFirstPerson.Create(MEM::GetVFunc(I::Input, VTABLE::INPUT::CAM_TOFIRSTPERSON), reinterpret_cast<void*>(&CAM_ToFirstPerson)))
 		return false;
 
-	if (!DTR::RetrieveMessage.Create(MEM::GetVFunc(I::SteamGameCoordinator, VTABLE::RETRIEVEMESSAGE), &hkRetrieveMessage))
+	if (!hkRenderView.Create(MEM::GetVFunc(I::ViewRender, VTABLE::VIEWRENDER::RENDERVIEW), reinterpret_cast<void*>(&RenderView)))
 		return false;
 
-	if (!DTR::LockCursor.Create(MEM::GetVFunc(I::Surface, VTABLE::LOCKCURSOR), &hkLockCursor))
+	if (!hkRenderSmokeOverlay.Create(MEM::GetVFunc(I::ViewRender, VTABLE::VIEWRENDER::RENDERSMOKEOVERLAY), reinterpret_cast<void*>(&RenderSmokeOverlay)))
 		return false;
 
-	if (!DTR::PlaySoundSurface.Create(MEM::GetVFunc(I::Surface, VTABLE::PLAYSOUND), &hkPlaySound))
+	if (!hkDrawModel.Create(MEM::GetVFunc(I::StudioRender, VTABLE::STUDIORENDER::DRAWMODEL), reinterpret_cast<void*>(&DrawModel)))
 		return false;
 
-	static CConVar* sv_cheats = I::ConVar->FindVar(XorStr("sv_cheats"));
+	if (!hkSendMessage.Create(MEM::GetVFunc(I::SteamGameCoordinator, VTABLE::STEAMGAMECOORDINATOR::SENDMESSAGE), reinterpret_cast<void*>(&SendMessage)))
+		return false;
 
-	if (!DTR::SvCheatsGetBool.Create(MEM::GetVFunc(sv_cheats, VTABLE::GETBOOL), &hkSvCheatsGetBool))
+	if (!hkRetrieveMessage.Create(MEM::GetVFunc(I::SteamGameCoordinator, VTABLE::STEAMGAMECOORDINATOR::RETRIEVEMESSAGE), reinterpret_cast<void*>(&RetrieveMessage)))
+		return false;
+
+	if (!hkModifyEyePosition.Create(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 E4 F8 83 EC 70 56 57 8B F9 89 7C 24 14")), reinterpret_cast<void*>(&ModifyEyePosition)))
+		return false;
+
+	const void* pCCSPlayerVTable = MEM::FindVTable(CLIENT_DLL, Q_XOR("C_CSPlayer"));
+	// this comes from inherited 'C_CSPlayer : IClientRenderable' vtable
+	if (!hkSetupBones.Create(/*MEM::GetVFunc(pCSPlayerRenderableVTable, VTABLE::CSPLAYER::SETUPBONES)*/MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 56 8B F1 51 8D")), reinterpret_cast<void*>(&SetupBones)))
+		return false;
+
+	if (!hkFireBullet.Create(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 E4 F0 81 EC ? ? ? ? F3 0F 7E")), reinterpret_cast<void*>(&FireBullet)))
+		return false;
+
+	if (!hkUpdateClientSideAnimation.Create(MEM::GetVFunc(pCCSPlayerVTable, VTABLE::CSPLAYER::UPDATECLIENTSIDEANIMATION), reinterpret_cast<void*>(&UpdateClientSideAnimation)))
+		return false;
+
+	if (!hkCalcView.Create(MEM::GetVFunc(pCCSPlayerVTable, VTABLE::CSPLAYER::CALCVIEW), reinterpret_cast<void*>(&CalcView)))
 		return false;
 
 	return true;
-
-	SEH_END
-	
-	return false;
 }
 
-void H::Restore()
+void H::Destroy()
 {
 	MH_DisableHook(MH_ALL_HOOKS);
 	MH_RemoveHook(MH_ALL_HOOKS);
 
 	MH_Uninitialize();
 }
-#pragma endregion
 
 #pragma region hooks_handlers
-long D3DAPI H::hkReset(IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pPresentationParameters)
+long D3DAPI H::Reset(IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
-	static auto oReset = DTR::Reset.GetOriginal<decltype(&hkReset)>();
+	const auto oReset = hkReset.GetOriginal<decltype(&Reset)>();
 
-	// check for first initialization
-	if (!D::bInitialized)
-		return oReset(pDevice, pPresentationParameters);
-
-	// invalidate vertex & index buffer, release fonts texture
-	ImGui_ImplDX9_InvalidateDeviceObjects();
+	D::OnPreReset(pDevice);
 
 	const HRESULT hReset = oReset(pDevice, pPresentationParameters);
 
 	// get directx device and create fonts texture
 	if (hReset == D3D_OK)
-		ImGui_ImplDX9_CreateDeviceObjects();
+		D::OnPostReset(pDevice);
 
 	return hReset;
 }
 
-long D3DAPI H::hkEndScene(IDirect3DDevice9* pDevice)
+long D3DAPI H::EndScene(IDirect3DDevice9* pDevice)
 {
-	static auto oEndScene = DTR::EndScene.GetOriginal<decltype(&hkEndScene)>();
-	static void* pUsedAddress = nullptr;
+	const auto oEndScene = hkEndScene.GetOriginal<decltype(&EndScene)>();
 
-	SEH_START
+	const void* pReturnAddress = Q_RETURN_ADDRESS();
+	static const void* pGameOverlayReturnAddress = nullptr;
 
-	if (pUsedAddress == nullptr)
+	if (pGameOverlayReturnAddress == nullptr)
 	{
-		// search for gameoverlay address
-		MEMORY_BASIC_INFORMATION memInfo;
-		VirtualQuery(_ReturnAddress(), &memInfo, sizeof(MEMORY_BASIC_INFORMATION));
+		MEMORY_BASIC_INFORMATION memInfo = { };
+		::VirtualQuery(pReturnAddress, &memInfo, sizeof(MEMORY_BASIC_INFORMATION));
 
-		char chModuleName[MAX_PATH];
-		GetModuleFileName(static_cast<HMODULE>(memInfo.AllocationBase), chModuleName, MAX_PATH);
-
-		if (strstr(chModuleName, GAMEOVERLAYRENDERER_DLL) != nullptr)
-			pUsedAddress = _ReturnAddress();
+		// search for gameoverlay return address
+		if (const wchar_t* wszCallModuleName = MEM::GetModuleBaseFileName(memInfo.AllocationBase); CRT::StringCompare(wszCallModuleName, GAMEOVERLAYRENDERER_DLL) == 0)
+			pGameOverlayReturnAddress = pReturnAddress;
 	}
 
-	// check for called from gameoverlay and render here to bypass capturing programs
-	if (_ReturnAddress() == pUsedAddress)
+	// check is called from gameoverlay and render within it to bypass most of screen capturing programs
+	if (pReturnAddress == pGameOverlayReturnAddress)
 	{
 		// init gui (fonts, sizes, styles, colors) once
-		if (!D::bInitialized)
-			D::Setup(pDevice);
-
-		ImGui_ImplDX9_NewFrame();
-		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
-
-		// render cheat menu & visuals
-		W::MainWindow(pDevice);
-
-		ImGui::EndFrame();
-		ImGui::Render();
-
-		// render draw lists from draw data
-		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+		if (!D::Setup(pDevice))
+		{
+			L_PRINT(LOG_ERROR) << Q_XOR("failed to initialize draw system");
+			return oEndScene(pDevice);
+		}
+		
+		MENU::OnEndScene(pDevice);
 	}
-
-	SEH_END
 
 	return oEndScene(pDevice);
 }
 
-void* FASTCALL H::hkAllocKeyValuesMemory(IKeyValuesSystem* thisptr, int edx, int iSize)
+static void Q_STDCALL CreateMove(int nSequenceNumber, float flInputSampleFrametime, bool bIsActive, bool* pbSendPacket)
 {
-	static auto oAllocKeyValuesMemory = DTR::AllocKeyValuesMemory.GetOriginal<decltype(&hkAllocKeyValuesMemory)>();
-
-	// return addresses of check function
-	// @credits: danielkrupinski
-	static const std::uintptr_t uAllocKeyValuesEngine = MEM::GetAbsoluteAddress(MEM::FindPattern(ENGINE_DLL, XorStr("E8 ? ? ? ? 83 C4 08 84 C0 75 10 FF 75 0C")) + 0x1) + 0x4A;
-	static const std::uintptr_t uAllocKeyValuesClient = MEM::GetAbsoluteAddress(MEM::FindPattern(CLIENT_DLL, XorStr("E8 ? ? ? ? 83 C4 08 84 C0 75 10")) + 0x1) + 0x3E;
-	
-	if (const std::uintptr_t uReturnAddress = reinterpret_cast<std::uintptr_t>(_ReturnAddress()); uReturnAddress == uAllocKeyValuesEngine || uReturnAddress == uAllocKeyValuesClient)
-		return nullptr;
-
-	return oAllocKeyValuesMemory(thisptr, edx, iSize);
-}
-
-static void STDCALL CreateMove(int nSequenceNumber, float flInputSampleFrametime, bool bIsActive, bool& bSendPacket)
-{
-	static auto oCreateMove = DTR::CreateMoveProxy.GetOriginal<decltype(&H::hkCreateMoveProxy)>();
-
-	// process original CHLClient::CreateMove -> CInput::CreateMove
-	oCreateMove(I::Client, 0, nSequenceNumber, flInputSampleFrametime, bIsActive);
+	// process original CHLClient::CreateMove -> IInput::CreateMove
+	H::hkCreateMove.CallOriginal<void>(I::Client, 0, nSequenceNumber, flInputSampleFrametime, bIsActive);
 
 	CUserCmd* pCmd = I::Input->GetUserCmd(nSequenceNumber);
 	CVerifiedUserCmd* pVerifiedCmd = I::Input->GetVerifiedCmd(nSequenceNumber);
@@ -223,621 +193,535 @@ static void STDCALL CreateMove(int nSequenceNumber, float flInputSampleFrametime
 	if (pCmd == nullptr || pVerifiedCmd == nullptr || !bIsActive)
 		return;
 
-	// save global cmd pointer
-	G::pCmd = pCmd;
+	// local player is always valid during 'CreateMove()' call
+	CCSPlayer* pLocal = CCSPlayer::GetLocalPlayer();
 
-	/*
-	 * get global localplayer pointer
-	 * @note: dont forget check global localplayer for nullptr when using not in createmove
-	 */
-	CBaseEntity* pLocal = G::pLocal = CBaseEntity::GetLocalPlayer();
+	F::OnMove(pLocal, pCmd, pbSendPacket, nSequenceNumber);
 
-	// netchannel pointer
-	INetChannel* pNetChannel = I::ClientState->pNetChannel;
-
-	// save previous view angles for movement correction
-	QAngle angOldViewPoint = pCmd->angViewPoint;
-
-	SEH_START
-
-	// @note: need do bunnyhop and other movements before prediction
-	CMiscellaneous::Get().Run(pCmd, pLocal, bSendPacket);
-
-	/*
-	 * CL_RunPrediction
-	 * correct prediction when framerate is lower than tickrate
-	 * https://github.com/VSES/SourceEngine2007/blob/master/se2007/engine/cl_pred.cpp#L41
-	 */
-	if (I::ClientState->iDeltaTick > 0)
-		I::Prediction->Update(I::ClientState->iDeltaTick, I::ClientState->iDeltaTick > 0, I::ClientState->iLastCommandAck, I::ClientState->iLastOutgoingCommand + I::ClientState->nChokedCommands);
-
-	CPrediction::Get().Start(pCmd, pLocal);
-	{
-		if (C::Get<bool>(Vars.bMiscAutoPistol))
-			CMiscellaneous::Get().AutoPistol(pCmd, pLocal);
-
-		if (C::Get<bool>(Vars.bMiscFakeLag) || C::Get<bool>(Vars.bAntiAim))
-			CMiscellaneous::Get().FakeLag(pLocal, bSendPacket);
-
-		if (C::Get<bool>(Vars.bRage))
-			CRageBot::Get().Run(pCmd, pLocal, bSendPacket);
-
-		if (C::Get<bool>(Vars.bLegit))
-			CLegitBot::Get().Run(pCmd, pLocal, bSendPacket);
-
-		if (C::Get<bool>(Vars.bTrigger))
-			CTriggerBot::Get().Run(pCmd, pLocal);
-
-		if (C::Get<bool>(Vars.bAntiAim))
-			CAntiAim::Get().UpdateServerAnimations(pCmd, pLocal);
-
-		if (C::Get<bool>(Vars.bAntiAim))
-			CAntiAim::Get().Run(pCmd, pLocal, bSendPacket);
-	}
-	CPrediction::Get().End(pCmd, pLocal);
-
-	if (pLocal->IsAlive())
-		CMiscellaneous::Get().MovementCorrection(pCmd, angOldViewPoint);
-
-	// clamp & normalize view angles
-	if (C::Get<bool>(Vars.bMiscAntiUntrusted))
-	{
-		pCmd->angViewPoint.Normalize();
-		pCmd->angViewPoint.Clamp();
-	}
-
-	if (C::Get<bool>(Vars.bMiscPingSpike))
-		CLagCompensation::Get().UpdateIncomingSequences(pNetChannel);
-	else
-		CLagCompensation::Get().ClearIncomingSequences();
-
-	// @note: we doesnt need rehook manually cuz detours here
-	if (pNetChannel != nullptr)
-	{
-		if (!DTR::SendNetMsg.IsHooked())
-			DTR::SendNetMsg.Create(MEM::GetVFunc(pNetChannel, VTABLE::SENDNETMSG), &H::hkSendNetMsg);
-
-		if (!DTR::SendDatagram.IsHooked())
-			DTR::SendDatagram.Create(MEM::GetVFunc(pNetChannel, VTABLE::SENDDATAGRAM), &H::hkSendDatagram);
-	}
-
-	// store next tick view angles state
-	G::angRealView = pCmd->angViewPoint;
-
-	// store current tick send packet state
-	G::bSendPacket = bSendPacket;
-
-	// @note: i seen many times this mistake and please do not set/clamp angles here cuz u get confused with psilent aimbot later!
-
-	SEH_END
+	// @note: also update the backup values so the game doesn't know we've changed them and trigger a possible detection vector, added since ~11.06.22 (version 1.38.3.7, build 1490)
+	// @ida CInput::CreateMove(): client.dll -> "8B 46 30 89 46 58"
+	pCmd->angViewPointBackup = pCmd->angViewPoint;
+	pCmd->nButtonsBackup = pCmd->nButtons;
 
 	pVerifiedCmd->userCmd = *pCmd;
 	pVerifiedCmd->uHashCRC = pCmd->GetChecksum();
 }
 
-__declspec(naked) void FASTCALL H::hkCreateMoveProxy([[maybe_unused]] IBaseClientDll* thisptr, [[maybe_unused]] int edx, [[maybe_unused]] int nSequenceNumber, [[maybe_unused]] float flInputSampleFrametime, [[maybe_unused]] bool bIsActive)
+// call hierarchy: [engine.dll] ... -> CL_Move() -> [client.dll] CHLClient::CreateMove() -> CInput::CreateMove() -> ClientModeShared::CreateMove() -> ...
+// @note: to outperform that, you can manipulate send packet state directly through 'CL_Move'
+Q_NAKED void Q_FASTCALL H::CreateMoveProxy(IBaseClientDll* thisptr, int edx, int nSequenceNumber, float flInputSampleFrametime, bool bIsActive)
 {
+	// @ida CHLClient::CreateMove(): client.dll -> "55 8B EC 8B 4D 04 83 EC 08 E8"
 	__asm
 	{
-		push	ebp
-		mov		ebp, esp; // store the stack
-		push	ebx; // bSendPacket
-		push	esp; // restore the stack
-		push	dword ptr[bIsActive]; // ebp + 16
-		push	dword ptr[flInputSampleFrametime]; // ebp + 12
-		push	dword ptr[nSequenceNumber]; // ebp + 8
-		call	CreateMove
-		pop		ebx
-		pop		ebp
-		retn	0Ch
+		push ebp // save register
+		mov ebp, esp; // store stack to register
+		push ebx; // save register
+		push esp; // bSendPacket from caller stack
+		push [ebp+10h]; // bIsActive
+		push [ebp+0Ch]; // flInputSampleFrametime
+		push [ebp+8]; // nSequenceNumber
+		call CreateMove
+		pop ebx // restore register
+		pop ebp // restore register 
+		retn 0Ch
 	}
 }
 
-void FASTCALL H::hkPaintTraverse(ISurface* thisptr, int edx, unsigned int uPanel, bool bForceRepaint, bool bForce)
+// call hierarchy: [engine.dll] ... -> ClientDLL_FrameStageNotify() -> [client.dll] CHLClient::FrameStageNotify() -> ...
+void Q_FASTCALL H::FrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFrameStage nStage)
 {
-	static auto oPaintTraverse = DTR::PaintTraverse.GetOriginal<decltype(&hkPaintTraverse)>();
-	const FNV1A_t uPanelHash = FNV1A::Hash(I::Panel->GetName(uPanel));
+	F::OnFrame(nStage);
 
-	// remove zoom panel
-	if (!I::Engine->IsTakingScreenshot() && C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SCOPE) && uPanelHash == FNV1A::HashConst("HudZoom"))
-		return;
-
-	oPaintTraverse(thisptr, edx, uPanel, bForceRepaint, bForce);
-
-	// @note: we don't render here, only store's data and render it later
-	if (uPanelHash == FNV1A::HashConst("FocusOverlayPanel"))
-	{
-		SEH_START
-
-		// clear data from previous call
-		D::ClearDrawData();
-
-		// store data to render
-		CVisuals::Get().Store();
-
-		// swap given data to safe container
-		D::SwapDrawData();
-
-		SEH_END
-	}
+	hkFrameStageNotify.CallOriginal<void>(thisptr, edx, nStage);
 }
 
-void FASTCALL H::hkPlaySound(ISurface* thisptr, int edx, const char* szFileName)
+// call hierarchy: [client.dll] ... -> CViewRender::SetUpView() -> ClientModeShared::OverrideView() -> ...
+void Q_FASTCALL H::OverrideView(IClientModeShared* thisptr, int edx, CViewSetup* pSetup)
 {
-	static auto oPlaySound = DTR::PlaySoundSurface.GetOriginal<decltype(&hkPlaySound)>();
-	oPlaySound(thisptr, edx, szFileName);
+	F::OnPreOverrideView(pSetup);
+
+	hkOverrideView.CallOriginal<void>(thisptr, edx, pSetup);
+
+	F::OnPostOverrideView(pSetup);
 }
 
-void FASTCALL H::hkLockCursor(ISurface* thisptr, int edx)
+// call hierarchy: [client.dll] ... -> CViewRender::SetUpView() -> ClientModeShared::GetViewModelFOV()
+float Q_FASTCALL H::GetViewModelFOV(IClientModeShared* thisptr, int edx)
 {
-	static auto oLockCursor = DTR::LockCursor.GetOriginal<decltype(&hkLockCursor)>();
+	float flReturn = hkGetViewModelFOV.CallOriginal<float>(thisptr, edx);
 
-	if (W::bMainOpened)
-	{
-		I::Surface->UnLockCursor();
-		return;
-	}
+	F::OnGetViewModelFOV(&flReturn);
 
-	oLockCursor(thisptr, edx);
+	return flReturn;
 }
 
-void FASTCALL H::hkFrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFrameStage stage)
+// call hierarchy: [client.dll] ... -> CViewRender::RenderView() -> ClientModeCSNormal::DoPostScreenSpaceEffects()
+void Q_FASTCALL H::DoPostScreenSpaceEffects(IClientModeShared* thisptr, int edx, CViewSetup* pSetup)
 {
-	static auto oFrameStageNotify = DTR::FrameStageNotify.GetOriginal<decltype(&hkFrameStageNotify)>();
+	F::OnDoPostScreenSpaceEffects(pSetup);
 
-	SEH_START
-
-	if (!I::Engine->IsInGame())
-	{
-		// clear sequences or we get commands overflow on new map connection
-		CLagCompensation::Get().ClearIncomingSequences();
-		return oFrameStageNotify(thisptr, edx, stage);
-	}
-
-	if (I::Engine->IsTakingScreenshot())
-		return oFrameStageNotify(thisptr, edx, stage);
-
-	CBaseEntity* pLocal = CBaseEntity::GetLocalPlayer();
-
-	if (pLocal == nullptr)
-		return oFrameStageNotify(thisptr, edx, stage);
-
-	static QAngle angOldAimPunch = { }, angOldViewPunch = { };
-
-	switch (stage)
-	{
-	case FRAME_NET_UPDATE_POSTDATAUPDATE_START:
-	{
-		/*
-		 * data has been received and we are going to start calling postdataupdate
-		 * e.g. resolver or skinchanger and other visuals
-		 */
-
-		break;
-	}
-	case FRAME_NET_UPDATE_POSTDATAUPDATE_END:
-	{
-		/*
-		 * data has been received and called postdataupdate on all data recipients
-		 * e.g. now we can modify interpolation, other lagcompensation stuff
-		 */
-
-		break;
-	}
-	case FRAME_NET_UPDATE_END:
-	{
-		/*
-		 * received all packets, now do interpolation, prediction, etc
-		 * e.g. backtrack stuff
-		 */
-
-		break;
-	}
-	case FRAME_RENDER_START:
-	{
-		/*
-		 * start rendering the scene
-		 * e.g. remove visual punch, thirdperson, other render/update stuff
-		 */
-
-		 // set max flash alpha
-		*pLocal->GetFlashMaxAlpha() = C::Get<bool>(Vars.bWorld) ? C::Get<int>(Vars.iWorldMaxFlash) * 2.55f : 255.f;
-
-		// no draw smoke
-		for (const auto& szSmokeMaterial : arrSmokeMaterials)
-		{
-			if (IMaterial* pMaterial = I::MaterialSystem->FindMaterial(szSmokeMaterial, TEXTURE_GROUP_OTHER); pMaterial != nullptr && !pMaterial->IsErrorMaterial())
-				pMaterial->SetMaterialVarFlag(MATERIAL_VAR_NO_DRAW, (C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SMOKE)) ? true : false);
-		}
-
-		// remove visual punch
-		if (pLocal->IsAlive() && C::Get<bool>(Vars.bWorld))
-		{
-			// save old values
-			angOldViewPunch = pLocal->GetViewPunch();
-			angOldAimPunch = pLocal->GetPunch();
-
-			if (C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_PUNCH))
-			{
-				// change current values
-				pLocal->GetViewPunch() = QAngle{ };
-				pLocal->GetPunch() = QAngle{ };
-			}
-		}
-
-		// thirdperson
-		if (C::Get<bool>(Vars.bWorld) && C::Get<int>(Vars.iWorldThirdPersonKey) > 0)
-		{
-			static bool bThirdPerson = false;
-
-			if (!I::Engine->IsConsoleVisible() && IPT::IsKeyReleased(C::Get<int>(Vars.iWorldThirdPersonKey)))
-				bThirdPerson = !bThirdPerson;
-
-			// my solution is here cuz camera offset is dynamically by standard functions without any garbage in overrideview hook
-			I::Input->bCameraInThirdPerson = bThirdPerson && pLocal->IsAlive() && !I::Engine->IsTakingScreenshot();
-			I::Input->vecCameraOffset.z = bThirdPerson ? C::Get<float>(Vars.flWorldThirdPersonOffset) : 150.f;
-		}
-
-		break;
-	}
-	case FRAME_RENDER_END:
-	{
-		/*
-		 * finished rendering the scene
-		 * here we can restore our modified things
-		 */
-
-		// restore original visual punch values
-		if (pLocal->IsAlive() && C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_PUNCH))
-		{
-			pLocal->GetViewPunch() = angOldViewPunch;
-			pLocal->GetPunch() = angOldAimPunch;
-		}
-
-		break;
-	}
-	default:
-		break;
-	}
-
-	SEH_END
-
-	oFrameStageNotify(thisptr, edx, stage);
+	hkDoPostScreenSpaceEffects.CallOriginal<void>(thisptr, edx, pSetup);
 }
 
-void FASTCALL H::hkDrawModel(IStudioRender* thisptr, int edx, DrawModelResults_t* pResults, const DrawModelInfo_t& info, matrix3x4_t* pBoneToWorld, float* flFlexWeights, float* flFlexDelayedWeights, const Vector& vecModelOrigin, int nFlags)
+// call hierarchy: [engine.dll, client.dll, ...] ... -> [engine.dll] CEngineClient::IsConnected()
+bool Q_FASTCALL H::IsConnected(IEngineClient* thisptr, int edx)
 {
-	static auto oDrawModel = DTR::DrawModel.GetOriginal<decltype(&hkDrawModel)>();
+	// @xref: "IsLoadoutAllowed"
+	static const auto pLoadoutAllowedReturn = MEM::FindPattern(CLIENT_DLL, Q_XOR("84 C0 75 05 B0 01 5F"));
 
-	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
-		return oDrawModel(thisptr, edx, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
+	// check is called from 'CCSGameRules::IsLoadoutAllowed()' @credits: gavreel
+	if (const volatile auto pReturnAddress = static_cast<std::uint8_t*>(Q_RETURN_ADDRESS()); pReturnAddress == pLoadoutAllowedReturn && C::Get<bool>(Vars.bMiscUnlockInventory))
+		return false;
 
-	bool bClearOverride = false;
-
-	if (CBaseEntity* pLocal = CBaseEntity::GetLocalPlayer(); pLocal != nullptr && C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams))
-		bClearOverride = CVisuals::Get().Chams(pLocal, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
-
-	oDrawModel(thisptr, edx, pResults, info, pBoneToWorld, flFlexWeights, flFlexDelayedWeights, vecModelOrigin, nFlags);
-	
-	if (bClearOverride)
-		I::StudioRender->ForcedMaterialOverride(nullptr);
+	return hkIsConnected.CallOriginal<bool>(thisptr, edx);
 }
 
-void FASTCALL H::hkRenderSmokeOverlay(IViewRender* thisptr, int edx, bool bPreViewModel)
+// call hierarchy: [engine.dll, client.dll, ...] ... -> [engine.dll] CEngineClient::IsHLTV()
+bool Q_FASTCALL H::IsHLTV(IEngineClient* thisptr, int edx)
 {
-	static auto oRenderSmokeOverlay = DTR::RenderSmokeOverlay.GetOriginal<decltype(&hkRenderSmokeOverlay)>();
+	const volatile auto pReturnAddress = static_cast<std::uint8_t*>(Q_RETURN_ADDRESS());
 
-	if (C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SMOKE))
-		// set flSmokeIntensity to 0
-		*reinterpret_cast<float*>(reinterpret_cast<std::uintptr_t>(thisptr) + 0x588) = 0.0f;
-	else
-		oRenderSmokeOverlay(thisptr, edx, bPreViewModel);
+	if (static const auto pSetupVelocityReturn = MEM::FindPattern(CLIENT_DLL, Q_XOR("84 C0 75 38 8B 0D ? ? ? ? 8B 01 8B 80 ? ? ? ? FF D0"));
+		// force 'CCSGOPlayerAnimState::SetupVelocity()' to use 'C_CSPlayer::GetAbsVelocity()' instead of 'C_BaseEntity::EstimateAbsVelocity()'
+		pReturnAddress == pSetupVelocityReturn)
+		return true;
+
+	return hkIsHLTV.CallOriginal<bool>(thisptr, edx);
 }
 
-int FASTCALL H::hkListLeavesInBox(void* thisptr, int edx, const Vector& vecMins, const Vector& vecMaxs, unsigned short* puList, int nListMax)
+// call hierarchy: [engine.dll] ... -> [client.dll] CHLClient::FrameStageNotify() -> OnRenderStart() -> CClientLeafSystem::RecomputeRenderableLeaves() -> CClientLeafSystem::InsertIntoTree() -> CEngineBSPTree::ListLeavesInBox()
+int Q_FASTCALL H::ListLeavesInBox(void* thisptr, int edx, const Vector_t& vecMins, const Vector_t& vecMaxs, unsigned short* puList, int nListMax)
 {
-	static auto oListLeavesInBox = DTR::ListLeavesInBox.GetOriginal<decltype(&hkListLeavesInBox)>();
-
-	// @todo: sometimes models doesn't drawn on certain maps (not only me: https://www.unknowncheats.me/forum/counterstrike-global-offensive/330483-disable-model-occulusion-3.html)
-	// @test: try to fix z order 11.08.20
-
 	// @credits: soufiw
-	// occlusion getting updated on player movement/angle change,
-	// in RecomputeRenderableLeaves https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L674
-	static std::uintptr_t uInsertIntoTree = (MEM::FindPattern(CLIENT_DLL, XorStr("56 52 FF 50 18")) + 0x5); // @xref: "<unknown renderable>"
+	// occlusion getting updated on player movement/angle change, in 'CClientLeafSystem::RecomputeRenderableLeaves()'
+	static const auto pInsertIntoTreeReturn = MEM::FindPattern(CLIENT_DLL, Q_XOR("56 52 FF 50 18")) + 0x5; // @xref: "<unknown renderable>"
 
-	// check for esp state and call from CClientLeafSystem::InsertIntoTree
-	if (C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspChams) && C::Get<bool>(Vars.bEspChamsDisableOcclusion) && (C::Get<bool>(Vars.bEspChamsEnemies) || C::Get<bool>(Vars.bEspChamsAllies)) && reinterpret_cast<std::uintptr_t>(_ReturnAddress()) == uInsertIntoTree)
+	if (const volatile auto pReturnAddress = static_cast<std::uint8_t*>(Q_RETURN_ADDRESS());
+		// check is called from 'CClientLeafSystem::InsertIntoTree()'
+		pReturnAddress != pInsertIntoTreeReturn)
+		return hkListLeavesInBox.CallOriginal<int>(thisptr, edx, &vecMins, &vecMaxs, puList, nListMax);
+
+	if (C::Get<bool>(Vars.bVisual) && C::Get<bool>(Vars.bVisualChams) && C::Get<bool>(Vars.bVisualChamsEnemies))
 	{
-		// get current renderable info from stack https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L1470
-		if (const auto pInfo = *reinterpret_cast<RenderableInfo_t**>(reinterpret_cast<std::uintptr_t>(_AddressOfReturnAddress()) + 0x14); pInfo != nullptr)
+		const volatile auto pStackFrame = static_cast<std::uint8_t*>(Q_FRAME_ADDRESS());
+
+		// get current renderable info from the stack
+		if (const auto pInfo = *reinterpret_cast<RenderableInfo_t**>(pStackFrame + 0x14); pInfo != nullptr)
 		{
 			if (const auto pRenderable = pInfo->pRenderable; pRenderable != nullptr)
 			{
-				// check if disabling occlusion for players
-				if (const auto pEntity = pRenderable->GetIClientUnknown()->GetBaseEntity(); pEntity != nullptr && pEntity->IsPlayer())
-				{
-					// fix render order, force translucent group (https://www.unknowncheats.me/forum/2429206-post15.html)
-					// AddRenderablesToRenderLists: https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L2473
-					// @ida addrenderablestorenderlists: 55 8B EC 83 EC 24 53 56 8B 75 08 57 8B 46
-					pInfo->uFlags &= ~RENDER_FLAGS_FORCE_OPAQUE_PASS;
-					pInfo->uFlags2 |= RENDER_FLAGS_BOUNDS_ALWAYS_RECOMPUTE;
+				CCSPlayer* pLocal = CCSPlayer::GetLocalPlayer();
 
-					// extend world space bounds to maximum https://github.com/pmrowla/hl2sdk-csgo/blob/master/game/client/clientleafsystem.cpp#L707
-					constexpr Vector vecMapMin(MIN_COORD_FLOAT, MIN_COORD_FLOAT, MIN_COORD_FLOAT);
-					constexpr Vector vecMapMax(MAX_COORD_FLOAT, MAX_COORD_FLOAT, MAX_COORD_FLOAT);
-					return oListLeavesInBox(thisptr, edx, vecMapMin, vecMapMax, puList, nListMax);
+				// check is disabling occlusion for enemy players
+				if (const auto pCSPlayer = static_cast<CCSPlayer*>(pRenderable->GetIClientUnknown()->GetBaseEntity()); pCSPlayer != nullptr && pCSPlayer->IsPlayer() && pLocal != nullptr && pCSPlayer->IsOtherEnemy(pLocal))
+				{
+					// @test: seems like valve fixed render order themselves or somewhat else and now chams draw perfect through decals w/o any fixes
+
+					constexpr Vector_t vecUnlimitedMins = { -MAX_COORD_FLOAT, -MAX_COORD_FLOAT, -MAX_COORD_FLOAT };
+					constexpr Vector_t vecUnlimitedMaxs = { MAX_COORD_FLOAT, MAX_COORD_FLOAT, MAX_COORD_FLOAT };
+					return hkListLeavesInBox.CallOriginal<int>(thisptr, edx, &vecUnlimitedMins, &vecUnlimitedMaxs, puList, nListMax);
 				}
 			}
 		}
 	}
 
-	return oListLeavesInBox(thisptr, edx, vecMins, vecMaxs, puList, nListMax);
+	return hkListLeavesInBox.CallOriginal<int>(thisptr, edx, &vecMins, &vecMaxs, puList, nListMax);
 }
 
-bool FASTCALL H::hkIsConnected(IEngineClient* thisptr, int edx)
+// call hierarchy: [engine.dll] ... -> CNetChan::SendNetMsg()
+bool Q_FASTCALL H::SendNetMsg(INetChannel* thisptr, int edx, INetMessage& message, bool bForceReliable, bool bVoice)
 {
-	static auto oIsConnected = DTR::IsConnected.GetOriginal<decltype(&hkIsConnected)>();
+	// @todo: just exclude our listened events from mask instead of preventing sending it at all, otherwise other things like killfeed etc (whatever events client uses) will not work
+	// @note: exclude listened events that are not used by the client from the message to the server, to bypass SMAC detection
+	//if (message.GetType() == 12 /* CCLCMsg_ListenEvents */)
+	//	return false;
 
-	// @xref: "IsLoadoutAllowed"
-	// sub above the string
-	// sub in that function
-	// .text : 103A2120 84 C0		test    al, al; Logical Compare
-	static const std::uintptr_t uLoadoutAllowedReturn = MEM::FindPattern(CLIENT_DLL, XorStr("84 C0 75 05 B0 01 5F"));
-
-	// @credits: gavreel
-	if (reinterpret_cast<std::uintptr_t>(_ReturnAddress()) == uLoadoutAllowedReturn && C::Get<bool>(Vars.bMiscUnlockInventory))
-		return false;
-
-	return oIsConnected(thisptr, edx);
+	return hkSendNetMsg.CallOriginal<bool>(thisptr, edx, &message, bForceReliable, bVoice);
 }
 
-bool FASTCALL H::hkSendNetMsg(INetChannel* thisptr, int edx, INetMessage* pMessage, bool bForceReliable, bool bVoice)
+// call hierarchy: [engine.dll] ... -> CNetChan::SendDatagram()
+int Q_FASTCALL H::SendDatagram(INetChannel* thisptr, int edx, CBitWrite* pDatagram)
 {
-	static auto oSendNetMsg = DTR::SendNetMsg.GetOriginal<decltype(&hkSendNetMsg)>();
+	if (!I::Engine->IsInGame() || pDatagram != nullptr)
+		return hkSendDatagram.CallOriginal<int>(thisptr, edx, pDatagram);
 
-	/*
-	 * @note: disable files crc check (sv_pure)
-	 * dont send message if it has FileCRCCheck type
-	 */
-	if (pMessage->GetType() == 14)
-		return false;
+	SendDatagramStack_t stack;
+	F::OnPreSendDatagram(thisptr, stack);
 
-	/*
-	 * @note: fix lag with chocking packets when voice chat is active
-	 * check for voicedata group and enable voice stream
-	 * @credits: Flaww
-	 */
-	if (pMessage->GetGroup() == INetChannelInfo::VOICE)
-		bVoice = true;
+	const int iReturn = hkSendDatagram.CallOriginal<int>(thisptr, edx, pDatagram);
 
-	return oSendNetMsg(thisptr, edx, pMessage, bForceReliable, bVoice);
-}
-
-int FASTCALL H::hkSendDatagram(INetChannel* thisptr, int edx, bf_write* pDatagram)
-{
-	static auto oSendDatagram = DTR::SendDatagram.GetOriginal<decltype(&hkSendDatagram)>();
-
-	INetChannelInfo* pNetChannelInfo = I::Engine->GetNetChannelInfo();
-	static CConVar* sv_maxunlag = I::ConVar->FindVar(XorStr("sv_maxunlag"));
-
-	if (!I::Engine->IsInGame() || !C::Get<bool>(Vars.bMiscPingSpike) || pDatagram != nullptr || pNetChannelInfo == nullptr || sv_maxunlag == nullptr)
-		return oSendDatagram(thisptr, edx, pDatagram);
-
-	const int iOldInReliableState = thisptr->iInReliableState;
-	const int iOldInSequenceNr = thisptr->iInSequenceNr;
-
-	// calculate max available fake latency with our real ping to keep it w/o real lags or delays
-	const float flMaxLatency = std::max(0.f, std::clamp(C::Get<float>(Vars.flMiscLatencyFactor), 0.f, sv_maxunlag->GetFloat()) - pNetChannelInfo->GetLatency(FLOW_OUTGOING));
-	CLagCompensation::Get().AddLatencyToNetChannel(thisptr, flMaxLatency);
-
-	const int iReturn = oSendDatagram(thisptr, edx, pDatagram);
-
-	thisptr->iInReliableState = iOldInReliableState;
-	thisptr->iInSequenceNr = iOldInSequenceNr;
+	F::OnPostSendDatagram(thisptr, stack);
 
 	return iReturn;
 }
 
-void FASTCALL H::hkOverrideView(IClientModeShared* thisptr, int edx, CViewSetup* pSetup)
+// call hierarchy: [engine.dll] ... -> CL_RunPrediction() -> CL_Predict() -> [client.dll] ... -> CPrediction::RunSimulation() -> C_BasePlayer::PhysicsSimulate() -> CPrediction::RunCommand()
+void Q_FASTCALL H::RunCommand(IPrediction* thisptr, int edx, CBasePlayer* pPlayer, CUserCmd* pCmd, IMoveHelper* pMoveHelper)
 {
-	static auto oOverrideView = DTR::OverrideView.GetOriginal<decltype(&hkOverrideView)>();
-	
-	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
-		return oOverrideView(thisptr, edx, pSetup);
-
-	CBaseEntity* pLocal = CBaseEntity::GetLocalPlayer();
-
-	// get camera origin
-	G::vecCamera = pSetup->vecOrigin;
-
-	if (pLocal == nullptr || !pLocal->IsAlive())
-		return oOverrideView(thisptr, edx, pSetup);
-
-	CBaseCombatWeapon* pWeapon = pLocal->GetWeapon();
-
-	if (pWeapon == nullptr)
-		return oOverrideView(thisptr, edx, pSetup);
-
-	if (CCSWeaponData* pWeaponData = I::WeaponSystem->GetWeaponData(pWeapon->GetItemDefinitionIndex());
-		pWeaponData != nullptr && C::Get<bool>(Vars.bScreen) && std::fpclassify(C::Get<float>(Vars.flScreenCameraFOV)) != FP_ZERO &&
-		// check is we not scoped
-		(pWeaponData->nWeaponType == WEAPONTYPE_SNIPER ? !pLocal->IsScoped() : true))
-		// set camera fov
-		pSetup->flFOV += C::Get<float>(Vars.flScreenCameraFOV);
-
-	oOverrideView(thisptr, edx, pSetup);
-}
-
-void FASTCALL H::hkOverrideMouseInput(IClientModeShared* thisptr, int edx, float* x, float* y)
-{
-	static auto oOverrideMouseInput = DTR::OverrideMouseInput.GetOriginal<decltype(&hkOverrideMouseInput)>();
-	
-	if (!I::Engine->IsInGame())
-		return oOverrideMouseInput(thisptr, edx, x, y);
-	
-	oOverrideMouseInput(thisptr, edx, x, y);
-}
-
-float FASTCALL H::hkGetViewModelFOV(IClientModeShared* thisptr, int edx)
-{
-	static auto oGetViewModelFOV = DTR::GetViewModelFOV.GetOriginal<decltype(&hkGetViewModelFOV)>();
-
-	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
-		return oGetViewModelFOV(thisptr, edx);
-
-	if (CBaseEntity* pLocal = CBaseEntity::GetLocalPlayer(); pLocal != nullptr && pLocal->IsAlive() && C::Get<bool>(Vars.bScreen) && std::fpclassify(C::Get<float>(Vars.flScreenViewModelFOV)) != FP_ZERO)
-		return oGetViewModelFOV(thisptr, edx) + C::Get<float>(Vars.flScreenViewModelFOV);
-
-	return oGetViewModelFOV(thisptr, edx);
-}
-
-int FASTCALL H::hkDoPostScreenEffects(IClientModeShared* thisptr, int edx, CViewSetup* pSetup)
-{
-	static auto oDoPostScreenEffects = DTR::DoPostScreenEffects.GetOriginal<decltype(&hkDoPostScreenEffects)>();
-
-	if (!I::Engine->IsInGame() || I::Engine->IsTakingScreenshot())
-		return oDoPostScreenEffects(thisptr, edx, pSetup);
-
-	if (CBaseEntity* pLocal = CBaseEntity::GetLocalPlayer(); pLocal != nullptr && C::Get<bool>(Vars.bEsp) && C::Get<bool>(Vars.bEspGlow))
-		CVisuals::Get().Glow(pLocal);
-
-	return oDoPostScreenEffects(thisptr, edx, pSetup);
-}
-
-void FASTCALL H::hkRunCommand(IPrediction* thisptr, int edx, CBaseEntity* pEntity, CUserCmd* pCmd, IMoveHelper* pMoveHelper)
-{
-	static auto oRunCommand = DTR::RunCommand.GetOriginal<decltype(&hkRunCommand)>();
-
-	/* there is tickbase corrections / velocity modifier fix */
-
-	oRunCommand(thisptr, edx, pEntity, pCmd, pMoveHelper);
-
 	// get movehelper interface pointer
 	I::MoveHelper = pMoveHelper;
+
+	/* there is tickbase/compressed netvars corrections */
+
+	hkRunCommand.CallOriginal<void>(thisptr, edx, pPlayer, pCmd, pMoveHelper);
 }
 
-int FASTCALL H::hkSendMessage(ISteamGameCoordinator* thisptr, int edx, std::uint32_t uMsgType, const void* pData, std::uint32_t uData)
+// call hierarchy: [engine.dll, client.dll, vgui2.dll, vguimatsurface.dll] ... -> CMatSystemSurface::CalculateMouseVisible() -> CMatSystemSurface::LockCursor()
+void Q_FASTCALL H::LockCursor(ISurface* thisptr, int edx)
 {
-	static auto oSendMessage = DTR::SendMessageGC.GetOriginal<decltype(&hkSendMessage)>();
-
-	std::uint32_t uMessageType = uMsgType & 0x7FFFFFFF;
-	void* pDataMutable = const_cast<void*>(pData);
-
-	const int iStatus = oSendMessage(thisptr, edx, uMsgType, pDataMutable, uData);
-
-	if (iStatus != EGCResultOK)
-		return iStatus;
-
-	#ifdef DEBUG_CONSOLE
-	L::PushConsoleColor(FOREGROUND_INTENSE_GREEN | FOREGROUND_RED);
-	L::Print(XorStr("[<-] Message sent to GC {:d}!"), uMessageType);
-	L::PopConsoleColor();
-	#endif
-
-	return iStatus;
-}
-
-int FASTCALL H::hkRetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::uint32_t* puMsgType, void* pDest, std::uint32_t uDest, std::uint32_t* puMsgSize)
-{
-	static auto oRetrieveMessage = DTR::RetrieveMessage.GetOriginal<decltype(&hkRetrieveMessage)>();
-	const int iStatus = oRetrieveMessage(thisptr, edx, puMsgType, pDest, uDest, puMsgSize);
-
-	if (iStatus != EGCResultOK)
-		return iStatus;
-
-	const std::uint32_t uMessageType = *puMsgType & 0x7FFFFFFF;
-
-	#ifdef DEBUG_CONSOLE
-	L::PushConsoleColor(FOREGROUND_INTENSE_GREEN | FOREGROUND_RED);
-	L::Print(XorStr("[->] Message received from GC {:d}!"), uMessageType);
-	L::PopConsoleColor();
-	#endif
-
-	// check for k_EMsgGCCStrike15_v2_GCToClientSteamdatagramTicket message when we can accept the game
-	if (C::Get<bool>(Vars.bMiscAutoAccept) && uMessageType == 9177)
+	if (MENU::bMainOpened)
 	{
-		U::SetLocalPlayerReady();
-		Beep(500, 800);
-		U::FlashWindow(IPT::hWindow);
+		I::Surface->UnLockCursor();
+		return;
 	}
 
-	return iStatus;
+	hkLockCursor.CallOriginal<void>(thisptr, edx);
 }
 
-bool FASTCALL H::hkSvCheatsGetBool(CConVar* thisptr, int edx)
+// call hierarchy: [client.dll] ... -> CInput::CAM_Think() -> CAM_ToFirstPerson() -> CInput::CAM_ToFirstPerson()
+void Q_FASTCALL H::CAM_ToFirstPerson(IInput* thisptr, int edx)
 {
-	static auto oSvCheatsGetBool = DTR::SvCheatsGetBool.GetOriginal<decltype(&hkSvCheatsGetBool)>();
-	static std::uintptr_t uCAM_ThinkReturn = (MEM::FindPattern(CLIENT_DLL, XorStr("85 C0 75 30 38 87"))); // @xref: "Pitch: %6.1f   Yaw: %6.1f   Dist: %6.1f %16s"
+	// prevent thirdperson flicking because of not passed "sv_cheats" check inside 'CInput::CAM_Think()'
+	if (CCSPlayer* pLocal = CCSPlayer::GetLocalPlayer(); C::Get<bool>(Vars.bVisualWorld) && IPT::GetBindState(C::Get<KeyBind_t>(Vars.keyVisualWorldThirdPerson)) && pLocal != nullptr && pLocal->IsAlive())
+		return;
 
-	if (reinterpret_cast<std::uintptr_t>(_ReturnAddress()) == uCAM_ThinkReturn && C::Get<bool>(Vars.bWorld) && C::Get<int>(Vars.iWorldThirdPersonKey) > 0)
-		return true;
-
-	return oSvCheatsGetBool(thisptr, edx);
+	hkCAM_ToFirstPerson.CallOriginal<void>(thisptr, edx);
 }
 
-long CALLBACK H::hkWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+// call hierarchy: [engine.dll] ... -> [client.dll] CHLClient::RenderView() -> CViewRender::RenderView()
+void Q_FASTCALL H::RenderView(IViewRender* thisptr, int edx, const CViewSetup& viewSetup, const CViewSetup& viewSetupHUD, int nClearFlags, int nWhatToDraw)
 {
-	// process keys
-	IPT::Process(uMsg, wParam, lParam);
+	F::OnPreRenderView(viewSetup, viewSetupHUD, nClearFlags, &nWhatToDraw);
 
-	// switch window state on key click
-	if (C::Get<int>(Vars.iMenuKey) > 0 && IPT::IsKeyReleased(C::Get<int>(Vars.iMenuKey)))
-		W::bMainOpened = !W::bMainOpened;
+	hkRenderView.CallOriginal<void>(thisptr, edx, &viewSetup, &viewSetupHUD, nClearFlags, nWhatToDraw);
 
-	// disable game input when menu is opened
-	I::InputSystem->EnableInput(!W::bMainOpened);
+	F::OnPostRenderView(viewSetup, viewSetupHUD, nClearFlags, &nWhatToDraw);
+}
+
+// call hierarchy: [client.dll] ... -> CViewRender::RenderView() -> CCSViewRender::RenderSmokeOverlay()
+void Q_FASTCALL H::RenderSmokeOverlay(IViewRender* thisptr, int edx, bool bPreViewModel)
+{
+	// prevent from drawing smoke overlay
+	// and this is the only possible place to do that due to awesome optimization with disabling rendering of all models when we're fully obscured by smoke
+	if (C::Get<bool>(Vars.bVisualWorld) && (C::Get<unsigned int>(Vars.nVisualWorldRemovals) & VISUAL_WORLD_REMOVAL_FLAG_SMOKE))
+	{
+		thisptr->flSmokeOverlayAmount = 0.0f;
+		return;
+	}
+
+	hkRenderSmokeOverlay.CallOriginal<void>(thisptr, edx, bPreViewModel);
+}
+
+// call hierarchy: [tier3.dll] ... -> CMDL::Draw() | [client.dll] ... -> CModelRender::DrawModelExecute() / CModelRender::DrawModelShadow() -> CStudioRender::DrawModel() -> ...
+void Q_FASTCALL H::DrawModel(IStudioRender* thisptr, int edx, DrawModelResults_t* pResults, const DrawModelInfo_t& info, Matrix3x4_t* pBoneToWorld, float* pflFlexWeights, float* pflFlexDelayedWeights, const Vector_t& vecModelOrigin, int nFlags)
+{
+	if (!F::VISUAL::OnDrawModel(pResults, info, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, vecModelOrigin, nFlags))
+		hkDrawModel.CallOriginal<void>(thisptr, edx, pResults, &info, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, &vecModelOrigin, nFlags);
+}
+
+// call hierarchy: @todo: [client.dll] ... -> GCSDK::CProtoBufMsgBase::BAsyncSendProto() -> ISteamGameCoordinator::SendMessage()
+int Q_FASTCALL H::SendMessage(ISteamGameCoordinator* thisptr, int edx, std::uint32_t uMessageHeader, const void* pData, std::uint32_t nDataSize)
+{
+	const std::uint32_t nMessageType = (uMessageHeader & 0x7FFFFFFF);
 
 	/*
-	 * @note: we can use imgui input handler to our binds if remove menu state check
-	 * with ImGui::IsKeyDown, ImGui::IsKeyPressed, etc functions
-	 * but imgui api's keys down durations doesnt have forward compatibility
-	 * and i dont want spend a lot of time on recode it
+	 * @note: prevent from sending 'k_EMsgGCCStrike15_v2_ClientVarValueNotificationInfo' (9144) message
+	 * used for possible detection of client-side variables modification
+	 *
+	 * @source: master/game/client/cstrike15/c_cs_player.cpp#L4704
+	 * @ida: C_CSPlayer::ClientThink(): client.dll -> "51 8D 4C 24 ? F2 0F 11 1D ? ? ? ? E8 ? ? ? ? 8B"
 	 */
-	if (D::bInitialized && W::bMainOpened && ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
-		return 1L;
+	if (nMessageType == 9144)
+	{
+		L_PRINT(LOG_INFO) << Q_XOR("[<-] prevented attempt to send GC message: ") << nMessageType;
+		return EGCResultOK;
+	}
 
-	// return input controls to the game
-	return CallWindowProcW(IPT::pOldWndProc, hWnd, uMsg, wParam, lParam);
+	L_PRINT(LOG_NONE) << L::SetColor(LOG_COLOR_FORE_YELLOW | LOG_COLOR_FORE_INTENSITY) << Q_XOR("[<-] message sent to GC: ") << nMessageType;
+	return hkSendMessage.CallOriginal<int>(thisptr, edx, uMessageHeader, pData, nDataSize);
 }
-#pragma endregion
 
-#pragma region proxies_get
-bool P::Setup()
+// call hierarchy: @todo: [client.dll] ... -> ISteamGameCoordinator::RetrieveMessage()
+int Q_FASTCALL H::RetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::uint32_t* pMessageHeader, void* pDestination, std::uint32_t nDestinationSize, std::uint32_t* pnMessageSize)
 {
-	// @note: as example
-	#if 0
-	RecvProp_t* pSmokeEffectTickBegin = CNetvarManager::Get().mapProps[FNV1A::HashConst("CSmokeGrenadeProjectile->m_nSmokeEffectTickBegin")].pRecvProp;
-	if (pSmokeEffectTickBegin == nullptr)
-		return false;
+	const int iResult = hkRetrieveMessage.CallOriginal<int>(thisptr, edx, pMessageHeader, pDestination, nDestinationSize, pnMessageSize);
 
-	RVP::SmokeEffectTickBegin = std::make_shared<CRecvPropHook>(pSmokeEffectTickBegin, P::SmokeEffectTickBegin);
-	#endif
+	if (iResult != EGCResultOK)
+		return iResult;
+
+	const std::uint32_t nMessageType = (*pMessageHeader & 0x7FFFFFFF);
+	L_PRINT(LOG_NONE) << L::SetColor(LOG_COLOR_FORE_YELLOW | LOG_COLOR_FORE_INTENSITY) << Q_XOR("[->] message received from GC: ") << nMessageType;
+
+	// check for 'k_EMsgGCCStrike15_v2_GCToClientSteamdatagramTicket' message when we can accept the game
+	if (C::Get<bool>(Vars.bMiscAutoAccept) && nMessageType == 9177)
+		SDK::SetLocalPlayerReady();
+
+	return iResult;
+}
+
+// call hierarchy: [client.dll] ... -> C_CSPlayer::Weapon_ShootPosition() / C_CSPlayer::CalcView() -> CCSGOPlayerAnimState::ModifyEyePosition()
+void Q_FASTCALL H::ModifyEyePosition(CCSGOPlayerAnimState* thisptr, int edx, Vector_t& vecInputEyePosition)
+{
+	// force to use our server-side rebuild for all game calls
+	thisptr->ModifyEyePosition(vecInputEyePosition);
+}
+
+// call hierarchy: [client.dll] ... -> C_CSPlayer::SetupBones()
+bool Q_FASTCALL H::SetupBones(IClientRenderable* thisptr, int edx, Matrix3x4a_t* arrBonesToWorld, int iMaxBones, int nBoneMask, float flCurrentTime)
+{
+	/*
+	 * server-side setup bones rebuild
+	 * reworked to be client-server hybrid, all changes can be found by comments with "[side change]" marker
+	 *
+	 * @ida C_BaseAnimating::SetupBones(): client.dll -> ABS["E8 ? ? ? ? 5E 5D C2 10 00 32 C0" + 0x1] @xref: "C_BaseAnimating::SetupBones"
+	 * @ida CBaseAnimating::SetupBones(): server.dll -> "55 8B EC 83 E4 F0 B8 ? ? ? ? E8 ? ? ? ? 8B C1" @xref: "CBaseAnimating::SetupBones"
+	 *
+	 * @ida C_CSPlayer::SetupBones(): client.dll -> "55 8B EC 56 8B F1 51 8D"
+	 * @ida CCSPlayer::SetupBones(): server.dll -> "55 8B EC 83 E4 F8 51 53 FF"
+	 */
+
+#ifdef Q_PARANOID
+	// manual cast to derived class
+	CCSPlayer* pPlayer = static_cast<CCSPlayer*>(static_cast<void*>(&thisptr[-1]));
+#else
+	CCSPlayer* pPlayer = static_cast<CCSPlayer*>(thisptr);
+#endif
+	const int nPlayerIndex = pPlayer->GetIndex();
+
+	/*
+	 * [side change] instead of calling client's 'C_CSPlayer::ReevauluateAnimLOD' that also handles PVS, force to always build most detailed bones for players
+	 * note that 'C_CSPlayer::ClientThink()' also calling this, but before this, so we don't care
+	 *
+	 * @ida C_CSPlayer::ReevauluateAnimLOD(): client.dll -> ABS["E8 ? ? ? ? 8B CE E8 ? ? ? ? 8B 8F" + 0x1]
+	 */
+	pPlayer->GetCustomBlendingRuleMask() = -1;
+	pPlayer->GetAnimationLODFlags() = 0U;
+	pPlayer->GetOldAnimationLODFlags() = 0U;
+	pPlayer->GetComputedAnimationLODFrame() = I::Globals->nFrameCount;
+
+	// [side change] check if we aren't allowing the game to setup bones for this player and should use the cache instead
+	if (!F::ANIMATION::IsGameAllowedToSetupBones(nPlayerIndex))
+	{
+		const Vector_t& vecAbsOrigin = pPlayer->GetAbsOrigin();
+
+		auto& arrServerBones = F::ANIMATION::GetPlayerBoneMatrices(nPlayerIndex);
+		F::ANIMATION::ConvertBonesPositionToWorldSpace(arrServerBones, nPlayerIndex, vecAbsOrigin);
+
+		// force overwrite cache with our bones
+		CUtlVectorAligned<Matrix3x4a_t>& vecCachedBonesData = pPlayer->GetCachedBonesData();
+		CRT::MemoryCopy(vecCachedBonesData.Base(), arrServerBones, sizeof(Matrix3x4a_t) * vecCachedBonesData.Count());
+
+		// force game to think that bone cache are still valid
+		pPlayer->GetMostRecentModelBoneCounter() = CBaseAnimating::GetModelBoneCounter();
+
+		if (arrBonesToWorld != nullptr)
+			// perform a copy of bone matrices since caller may want to modify them
+			CRT::MemoryCopy(arrBonesToWorld, arrServerBones, sizeof(Matrix3x4a_t) * iMaxBones);
+
+		F::ANIMATION::ConvertBonesPositionToLocalSpace(arrServerBones, nPlayerIndex, vecAbsOrigin);
+
+		// check is requested bones for attachments
+		if (nBoneMask & BONE_USED_BY_ATTACHMENT)
+		{
+			CStudioHdr* pStudioHdr = pPlayer->GetModelPtr();
+
+			if (pStudioHdr == nullptr)
+				return false;
+
+			pPlayer->SetupBones_AttachmentHelper(pStudioHdr);
+		}
+
+		return true;
+	}
+
+	// initialize RAII cache critical section
+	CMDLCacheCriticalSection mdlCacheCriticalSection(I::MDLCache);
+
+	CStudioHdr* pStudioHdr = pPlayer->GetModelPtr();
+	if (pStudioHdr == nullptr)
+	{
+		Q_ASSERT(false); // tried to 'CBaseAnimating::GetSkeleton()' without a model
+		return false;
+	}
+
+	// [side change] merged special cases of bone mask handling from client
+	if (nBoneMask == -1)
+	{
+		Q_ASSERT(false); // @test: this never triggers so we can remove handling of this
+		nBoneMask = pPlayer->GetPreviousBoneMask();
+	}
+	else
+	{
+		// if we're setting up LOD N, we have set up all lower LODs also, because lower LODs always use subsets of the bones of higher LODs
+		int nLOD = 0;
+		int nLODMask = BONE_USED_BY_VERTEX_LOD0;
+		for (; nLOD < MAX_NUM_LODS; ++nLOD, nLODMask <<= 1)
+		{
+			if (nBoneMask & nLODMask)
+				break;
+		}
+		for (; nLOD < MAX_NUM_LODS; ++nLOD, nLODMask <<= 1)
+			nBoneMask |= nLODMask;
+	}
+
+	// get bone cache accessor and data it points to
+	CBoneAccessor& boneAccessor = pPlayer->GetBoneAccessor();
+	int& nEFlags = pPlayer->GetEFlags();
+
+	// [side change] adapted for client's cache system, just adjust values that can be used by the game later
+	int& nAccumulatedBoneMask = pPlayer->GetAccumulatedBoneMask();
+	pPlayer->GetMostRecentModelBoneCounter() = CCSPlayer::GetModelBoneCounter();
+	pPlayer->GetPreviousBoneMask() = nAccumulatedBoneMask;
+	nAccumulatedBoneMask = nBoneMask;
+	pPlayer->GetLastBoneSetupTime() = I::Globals->flCurrentTime;
+
+	// allow access to the bones we're setting up
+	boneAccessor.nReadableBones = nBoneMask;
+	boneAccessor.nWritableBones = nBoneMask;
+
+	// setting this flag forces move children to keep their abs transform invalidated
+	Q_ASSERT((nEFlags & EFL_SETTING_UP_BONES) == 0);
+	nEFlags |= EFL_SETTING_UP_BONES;
+
+	// [side change] server also taking into account 'm_flEstIkOffset' for NPC's, we can safely ignore this
+	const Vector_t& vecAbsOrigin = pPlayer->GetAbsOrigin();
+	const QAngle_t& angAbsView = pPlayer->GetAbsAngles();
+
+	// [side change] used client-side cache of bones position and rotation instead of new stack allocation
+	// @todo: some game methods have alignment check that doesn't pass this way and cause debugger to break, so atm used stack allocated instead
+#if 0
+	BoneVector_t (&arrBonesPosition)[MAXSTUDIOBONES] = pPlayer->GetCachedBonesPosition();
+	BoneQuaternionAligned_t (&arrBonesRotation)[MAXSTUDIOBONES] = pPlayer->GetCachedBonesRotation();
+#else
+	BoneVector_t arrBonesPosition[MAXSTUDIOBONES];
+	BoneQuaternionAligned_t arrBonesRotation[MAXSTUDIOBONES];
+#endif
+
+	CBoneBitList arrBonesComputed = { };
+
+	// [side change] removed 'CBaseAnimating::CanSkipAnimation()' branch (PVS optimization for NPC's)
+	if (CIKContext* pIKContext = pPlayer->GetIKContext(); pIKContext != nullptr)
+	{
+		pIKContext->Init(pStudioHdr, angAbsView, vecAbsOrigin, flCurrentTime, I::Globals->nFrameCount, boneAccessor.nWritableBones);
+
+		pPlayer->GetSkeleton(pStudioHdr, arrBonesPosition, arrBonesRotation, boneAccessor.nWritableBones);
+
+		pIKContext->UpdateTargets(arrBonesPosition, arrBonesRotation, boneAccessor.matBones, arrBonesComputed);
+		pPlayer->CalculateIKLocks(flCurrentTime);
+		pIKContext->SolveDependencies(arrBonesPosition, arrBonesRotation, boneAccessor.matBones, arrBonesComputed);
+	}
+	else
+		pPlayer->GetSkeleton(pStudioHdr, arrBonesPosition, arrBonesRotation, boneAccessor.nWritableBones);
+
+	// [side change] rebased conditions to perform less checks
+	if (pPlayer->GetEffects() & EF_BONEMERGE)
+	{
+		if (const CBaseHandle& hMoveParent = pPlayer->GetMoveParentHandle(); hMoveParent.IsValid())
+		{
+			if (CBaseAnimating* pParent = I::ClientEntityList->Get<CBaseEntity>(hMoveParent)->GetBaseAnimating(); pParent != nullptr)
+				Q_ASSERT(false); // currently isn't used in cs:go
+		}
+	}
+	// @test: i had never got a break, so probably the whole code block can be removed
+	else if (CBoneMergeCache* pBoneMergeCache = pPlayer->GetBoneMergeCache(); pBoneMergeCache != nullptr)
+	{
+		delete pBoneMergeCache;
+		pBoneMergeCache = nullptr;
+
+		pPlayer->GetBoneMergeCache() = pBoneMergeCache;
+	}
+
+	// [side change] fixed old valve's fixme, passed mask of computed bones to skip transforms
+	Studio_BuildMatrices(pStudioHdr, angAbsView, vecAbsOrigin, arrBonesPosition, arrBonesRotation, pPlayer->GetModelHierarchyScale(), boneAccessor.matBones, boneAccessor.nWritableBones, arrBonesComputed);
+	nEFlags &= ~EFL_SETTING_UP_BONES;
+
+	// @todo: see todo above local variables declarations
+#if 1
+	CRT::MemoryCopy(pPlayer->GetCachedBonesPosition(), arrBonesPosition, sizeof(BoneVector_t) * pStudioHdr->GetBoneCount());
+	CRT::MemoryCopy(pPlayer->GetCachedBonesRotation(), arrBonesRotation, sizeof(BoneQuaternionAligned_t) * pStudioHdr->GetBoneCount());
+#endif
+
+	// [side change] added attachments handling because server doesn't handle them
+	// check is requested bones for attachments and didn't previously
+	if (nBoneMask & BONE_USED_BY_ATTACHMENT)
+		pPlayer->SetupBones_AttachmentHelper(pStudioHdr);
+
+	pPlayer->AdjustBonesToBBox(boneAccessor.matBones, boneAccessor.nWritableBones);
+
+	// [side change] added handling for cache only requests
+	if (arrBonesToWorld != nullptr)
+	{
+		Q_ASSERT((nEFlags & EFL_DIRTY_ABSTRANSFORM) == 0); // cached bone data has old abs origin/angles
+
+		if (CUtlVectorAligned<Matrix3x4a_t>& vecCachedBonesData = pPlayer->GetCachedBonesData(); iMaxBones >= vecCachedBonesData.Count())
+			CRT::MemoryCopy(arrBonesToWorld, vecCachedBonesData.Base(), sizeof(Matrix3x4a_t) * vecCachedBonesData.Count());
+		else
+		{
+			Q_ASSERT(false); // requested more bones than cached
+			return false;
+		}
+	}
 
 	return true;
 }
 
-void P::Restore()
+// call hierarchy: [client.dll] ... -> FX_FireBullets() -> C_CSPlayer::FireBullet() -> ...
+void Q_FASTCALL H::FireBullet(CCSPlayer* thisptr, int edx, Vector_t vecSource, const QAngle_t& angShootView, float flDistance, float flPenetration, int nPenetrationCount, int nBulletType, int iDamage, float flRangeModifier, CBaseEntity* pAttacker, bool bDoEffects, float flSpreadX, float flSpreadY)
 {
-	// @note: as example
-	#if 0
-	// restore smoke effect
-	RVP::SmokeEffectTickBegin->Restore();
-	#endif
+	hkFireBullet.CallOriginal<void>(thisptr, edx, vecSource, &angShootView, flDistance, flPenetration, nPenetrationCount, nBulletType, iDamage, flRangeModifier, pAttacker, bDoEffects, flSpreadX, flSpreadY);
+
+	/*
+	 * server gonna lock view angles to shoot angles for 'sv_maxusrcmdprocessticks_holdaim' ticks count on next sent tick
+	 * this is getting stored during 'FX_FireBullets()' call inside 'CCSPlayer::NoteWeaponFired()' and 'CCSPlayer::FireBullet()' calls on server
+	 *
+	 * @ida C_CSPlayer::FireBullet(): client.dll -> "55 8B EC 83 E4 F0 81 EC ? ? ? ? F3 0F 7E" @xref: "\ntime\tbullet\trange\trecovery\tinaccuracy\n"
+	 * @ida CCSPlayer::FireBullet(): server.dll -> "55 8B EC 83 E4 F0 81 EC ? ? ? ? 66 0F 6E 45 ? 8D 94" @xref: "add_bullet_hit_marker"
+	 */
+	if (thisptr->GetIndex() == I::Engine->GetLocalPlayer()) // @todo: this isn't quite correct, since 'NoteWeaponFired()' stores it on shot and after that 'FireBullet()' updates it only when bullet hits the enemy player
+		F::LAGCOMP::UpdateHoldAimCycle();
 }
-#pragma endregion
 
-#pragma region proxies_handlers
-void P::SmokeEffectTickBegin(const CRecvProxyData* pData, void* pStruct, void* pOut)
+// call hierarchy: [engine.dll] ... -> [client.dll] CHLClient::FrameStageNotify() -> OnRenderStart() -> C_BaseAnimating::UpdateClientSideAnimations() -> C_BaseAnimating::UpdateClientSideAnimation() -> CCSGOPlayerAnimState::Update()
+void Q_FASTCALL H::UpdateClientSideAnimation(CCSPlayer* thisptr, int edx)
 {
-	static auto oSmokeEffectTickBegin = RVP::SmokeEffectTickBegin->GetOriginal();
+	// tell game to update animations for player only when we need this, and never else
+	if (F::ANIMATION::IsGameAllowedToUpdateAnimations(thisptr->GetIndex()))
+		hkUpdateClientSideAnimation.CallOriginal<void>(thisptr, edx);
+}
 
-	if (C::Get<bool>(Vars.bWorld) && C::Get<std::vector<bool>>(Vars.vecWorldRemovals).at(REMOVAL_SMOKE))
-	{
-		if (auto pEntity = static_cast<CBaseEntity*>(pStruct); pEntity != nullptr)
-			pEntity->GetOrigin() = Vector(MAX_COORD_FLOAT, MAX_COORD_FLOAT, MAX_COORD_FLOAT);
-	}
+// call hierarchy: [client.dll] ... -> CViewRender::SetUpView() -> C_CSPlayer::CalcView() -> ... 
+void Q_FASTCALL H::CalcView(CCSPlayer* thisptr, int edx, Vector_t& vecEyeOrigin, QAngle_t& angEyeView, float& flNearZ, float& flFarZ, float& flFOV)
+{
+	// @ida C_CSPlayer::CalcView(): client.dll -> "55 8B EC 83 EC 14 53 56 57 FF 75 18"
 
-	oSmokeEffectTickBegin(pData, pStruct, pOut);
+	if (CCSPlayer* pLocal = CCSPlayer::GetLocalPlayer(); pLocal == nullptr || (!pLocal->IsAlive() && pLocal->GetObserverMode() != OBS_MODE_IN_EYE))
+		return hkCalcView.CallOriginal<void>(thisptr, edx, &vecEyeOrigin, &angEyeView, &flNearZ, &flFarZ, &flFOV);
+
+	CalcViewStack_t stack;
+
+	F::OnPreCalcView(thisptr, stack);
+
+	// prevent 'CCSGOPlayerAnimState::ModifyEyePosition()' from being called, to fix visual bug when landing with low pitch
+	const bool bOldIsUsingNewAnimState = thisptr->IsUsingNewAnimState();
+	thisptr->IsUsingNewAnimState() = false;
+
+	hkCalcView.CallOriginal<void>(thisptr, edx, &vecEyeOrigin, &angEyeView, &flNearZ, &flFarZ, &flFOV);
+
+	// restore forced values back to not affect other functions
+	thisptr->IsUsingNewAnimState() = bOldIsUsingNewAnimState;
+
+	F::OnPostCalcView(thisptr, stack);
+}
+
+long CALLBACK H::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	IPT::OnWndProc(hWnd, uMsg, wParam, lParam);
+
+	if (D::OnWndProc(hWnd, uMsg, wParam, lParam))
+		return 1L;
+
+	// return input controls to the game
+	return ::CallWindowProcW(IPT::pOldWndProc, hWnd, uMsg, wParam, lParam);
 }
 #pragma endregion

@@ -1,32 +1,59 @@
 #pragma once
 
-class OverlayText_t;
-class IVDebugOverlay
+// used: callvfunc
+#include "../../utilities/memory.h"
+
+struct Color_t;
+struct QAngle_t;
+struct Vector_t;
+struct Matrix3x4_t;
+
+class IVDebugOverlay : ROP::VirtualCallable_t<ROP::EngineGadget_t>
 {
 public:
-	virtual void			AddEntityTextOverlay(int iEntityIndex, int iLineOffset, float flDuration, int r, int g, int b, int a, const char* fmt, ...) = 0;
-	virtual void			AddBoxOverlay(const Vector& vecOrigin, const Vector& vecAbsMin, const Vector& vecAbsMax, const QAngle& angOrientation, int r, int g, int b, int a, float flDuration) = 0;
-	virtual void			AddSphereOverlay(const Vector& vecOrigin, float flRadius, int nTheta, int nPhi, int r, int g, int b, int a, float flDuration) = 0;
-	virtual void			AddTriangleOverlay(const Vector& p1, const Vector& p2, const Vector& p3, int r, int g, int b, int a, bool bNoDepthTest, float flDuration) = 0;
-	virtual void			AddLineOverlay(const Vector& vecOrigin, const Vector& vecDest, int r, int g, int b, bool bNoDepthTest, float flDuration) = 0;
-	virtual void			AddTextOverlay(const Vector& vecOrigin, float flDuration, const char* fmt, ...) = 0;
-	virtual void			AddTextOverlay(const Vector& vecOrigin, int iLineOffset, float flDuration, const char* fmt, ...) = 0;
-	virtual void			AddScreenTextOverlay(float flXPos, float flYPos, float flDuration, int r, int g, int b, int a, const char* szText) = 0;
-	virtual void			AddSweptBoxOverlay(const Vector& vecStart, const Vector& vecEnd, const Vector& vecMin, const Vector& vecMax, const QAngle& angles, int r, int g, int b, int a, float flDuration) = 0;
-	virtual void			AddGridOverlay(const Vector& vecOrigin) = 0;
-	virtual void			AddCoordFrameOverlay(const matrix3x4_t& matFrame, float flScale, int vColorTable[3][3] = nullptr) = 0;
-	virtual int				ScreenPosition(const Vector& vecPoint, Vector& vecScreen) = 0;
-	virtual int				ScreenPosition(float flXPos, float flYPos, Vector& vecScreen) = 0;
-	virtual OverlayText_t*	GetFirst() = 0;
-	virtual OverlayText_t*	GetNext(OverlayText_t* pCurrent) = 0;
-	virtual void			ClearDeadOverlays() = 0;
-	virtual void			ClearAllOverlays() = 0;
-	virtual void			AddTextOverlayRGB(const Vector& vecOrigin, int iLineOffset, float flDuration, float r, float g, float b, float a, const char* fmt, ...) = 0;
-	virtual void			AddTextOverlayRGB(const Vector& vecOrigin, int iLineOffset, float flDuration, int r, int g, int b, int a, const char* fmt, ...) = 0;
-	virtual void			AddLineOverlayAlpha(const Vector& vecOrigin, const Vector& dest, int r, int g, int b, int a, bool bNoDepthTest, float flDuration) = 0;
-	virtual void			AddBoxOverlay2(const Vector& vecOrigin, const Vector& vecAbsMin, const Vector& vecAbsMax, const QAngle& angOrientation, const Color& faceColor, const Color& edgeColor, float flDuration) = 0;
-	virtual void			AddLineOverlay(const Vector& vecOrigin, const Vector& vecDest, int r, int g, int b, int a, float flThickness, float flDuration) = 0;
-	virtual void			PurgeTextOverlays() = 0;
-	virtual void			AddCapsuleOverlay(const Vector& vecAbsMin, const Vector& vecAbsMax, const float& flRadius, int r, int g, int b, int a, float flDuration) = 0;
-	virtual void			DrawPill(Vector& vecAbsMin, Vector& vecAbsMax, float flRadius, int r, int g, int b, int a, float flDuration) = 0;
+	void AddBoxOverlay(const Vector_t& vecOrigin, const Vector_t& vecAbsMin, const Vector_t& vecAbsMax, const QAngle_t& angOrientation, int r, int g, int b, int a, float flDuration)
+	{
+		CallVFunc<void, 1U>(this, &vecOrigin, &vecAbsMin, &vecAbsMax, &angOrientation, r, g, b, a, flDuration);
+	}
+
+	void AddSphereOverlay(const Vector_t& vecOrigin, float flRadius, int nTheta, int nPhi, int r, int g, int b, int a, float flDuration)
+	{
+		CallVFunc<void, 2U>(this, &vecOrigin, flRadius, nTheta, nPhi, r, g, b, a, flDuration);
+	}
+
+	void AddTriangleOverlay(const Vector_t& vecFirst, const Vector_t& vecSecond, const Vector_t& vecThird, int r, int g, int b, int a, bool bNoDepthTest, float flDuration)
+	{
+		CallVFunc<void, 3U>(this, &vecFirst, &vecSecond, &vecThird, r, g, b, a, bNoDepthTest, flDuration);
+	}
+
+	void AddLineOverlay(const Vector_t& vecFirst, const Vector_t& vecSecond, int r, int g, int b, int a, float flThickness, float flDuration)
+	{
+		CallVFunc<void, 4U>(this, &vecFirst, &vecSecond, r, g, b, a, flThickness, flDuration);
+	}
+
+	void AddLineOverlay(const Vector_t& vecFirst, const Vector_t& vecSecond, int r, int g, int b, bool bNoDepthTest, float flDuration)
+	{
+		CallVFunc<void, 5U>(this, &vecFirst, &vecSecond, r, g, b, bNoDepthTest, flDuration);
+	}
+
+	/// @returns: true if converted 2D point is behind screen, false otherwise
+	int ScreenPosition(const Vector_t& vecPoint, Vector_t& vecScreen)
+	{
+		return CallVFunc<int, 13U>(this, &vecPoint, &vecScreen);
+	}
+
+	void AddLineOverlayAlpha(const Vector_t& vecFirst, const Vector_t& vecSecond, int r, int g, int b, int a, bool bNoDepthTest, float flDuration)
+	{
+		CallVFunc<void, 20U>(this, &vecFirst, &vecSecond, r, g, b, a, bNoDepthTest, flDuration);
+	}
+
+	void AddBoxOverlayTwoColor(const Vector_t& vecOrigin, const Vector_t& vecAbsMin, const Vector_t& vecAbsMax, const QAngle_t& angOrientation, const Color_t& colBoxFace, const Color_t& colBoxEdge, float flDuration)
+	{
+		CallVFunc<void, 21U>(this, &vecOrigin, &vecAbsMin, &vecAbsMax, &angOrientation, &colBoxFace, &colBoxEdge, flDuration);
+	}
+
+	void AddCapsuleOverlay(const Vector_t& vecAbsMin, const Vector_t& vecAbsMax, const float& flRadius, int r, int g, int b, int a, float flDuration)
+	{
+		CallVFunc<void, 24U>(this, &vecAbsMin, &vecAbsMax, &flRadius, r, g, b, a, flDuration);
+	}
 };
