@@ -145,9 +145,10 @@ void MENU::MainWindow(IDirect3DDevice9* pDevice)
 
 	if (bMainOpened)
 	{
-		ImGui::SetNextWindowPos(ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y * 0.5f), ImGuiCond_Once, ImVec2(0.5f, 0.5f));
-		ImGui::SetNextWindowSize(ImVec2(500, 327), ImGuiCond_Always);
-		ImGui::Begin(Q_XOR("qo0 base"), &bMainOpened, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse);
+		ImGui::SetNextWindowPos(ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y * 0.5f), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
+		ImGui::SetNextWindowSize(ImVec2(500, 327), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSizeConstraints(ImVec2(500, 327), ImVec2(1000, 327*2));
+		ImGui::Begin(Q_XOR("qo0 base"), &bMainOpened, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse);
 		{
 			const ImVec2 vecPosition = ImGui::GetCursorScreenPos();
 			const float flWindowWidth = ImGui::GetWindowWidth();
@@ -709,17 +710,27 @@ void T::Miscellaneous()
 				ImGui::EndMenuBar();
 			}
 
-			const char* szColorNames[IM_ARRAYSIZE(arrColors)];
-			for (int i = 0; i < IM_ARRAYSIZE(arrColors); i++)
-				szColorNames[i] = arrColors[i].first;
-
 			ImGui::Spacing();
 			ImGui::PushItemWidth(-1);
 
-			ImGui::ListBox(Q_XOR("##colors.select"), &iSelectedColor, szColorNames, IM_ARRAYSIZE(arrColors), 4);
+			static ImGuiTextFilter filter;
+			filter.Draw(Q_XOR("##colors.filter"));
 			ImGui::ColorEdit4(Q_XOR("##colors.picker"), &C::Get<Color_t>(arrColors[iSelectedColor].second), ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf);
-			ImGui::PopItemWidth();
+			if (ImGui::ListBoxHeader(Q_XOR("##colors.select"), ImVec2(-1, ImGui::GetContentRegionAvail( ).y)))
+			{
+				for (size_t i = 0; i < IM_ARRAYSIZE(arrColors); i++)
+				{
+					if (filter.PassFilter(arrColors[i].first))
+					{
+						if (ImGui::Selectable(arrColors[i].first, i == iSelectedColor))
+							iSelectedColor = i;
+					}
+				}
 
+				ImGui::ListBoxFooter();
+			}
+
+			ImGui::PopItemWidth();
 			ImGui::EndChild();
 		}
 	}
