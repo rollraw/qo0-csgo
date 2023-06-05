@@ -712,17 +712,18 @@ void T::Miscellaneous()
 
 			ImGui::Spacing();
 			ImGui::PushItemWidth(-1);
-
+			
+			const nColorsCount = IM_ARRAYSIZE(arrColors);
 			static ImGuiTextFilter filter;
 			filter.Draw(Q_XOR("##colors.filter"));
 			ImGui::ColorEdit4(Q_XOR("##colors.picker"), &C::Get<Color_t>(arrColors[iSelectedColor].second), ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf);
 			if (ImGui::ListBoxHeader(Q_XOR("##colors.select"), ImVec2(-1, ImGui::GetContentRegionAvail( ).y)))
 			{
-				for (size_t i = 0; i < IM_ARRAYSIZE(arrColors); i++)
+				for (std::size_t i = 0U; i < nColorsCount; i++)
 				{
 					if (filter.PassFilter(arrColors[i].first))
 					{
-						if (ImGui::Selectable(arrColors[i].first, i == iSelectedColor))
+						if (ImGui::Selectable(arrColors[i].first, (i == iSelectedColor)))
 							iSelectedColor = i;
 					}
 				}
