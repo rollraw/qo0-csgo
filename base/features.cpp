@@ -309,6 +309,9 @@ void F::MovementCorrection(CUserCmd* pCmd, const QAngle_t& angDesiredViewPoint)
 #pragma region features_command_access
 QAngle_t F::GetClientAngles()
 {
+	if (LAGCOMP::IsHoldAimCycle())
+		return LAGCOMP::GetHoldAimCycleViewAngles();
+
 	return angClientView;
 }
 
