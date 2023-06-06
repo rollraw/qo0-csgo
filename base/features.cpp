@@ -172,6 +172,8 @@ void F::OnMove(CCSPlayer* pLocal, CUserCmd* pCmd, bool* pbSendPacket, int nSeque
 	LEGIT::OnMove(pLocal, pCmd, pbSendPacket);
 
 	RAGE::OnMove(pLocal, pCmd, pbSendPacket);
+
+	PREDICTION::OnPostMove(pLocal, pCmd);
 	
 	MISC::OnPostMove(pLocal, pCmd, pbSendPacket);
 
