@@ -474,8 +474,8 @@ public:
 	N_ADD_VARIABLE_OFFSET(unsigned int, GetOldAnimationLODFlags, "DT_BaseAnimating::m_nBody", 0xC);
 	N_ADD_VARIABLE_OFFSET(int, GetComputedAnimationLODFrame, "DT_BaseAnimating::m_nBody", 0x10); // @ida C_BaseAnimating::m_nComputedLODframe: client.dll -> ["8B B7 ? ? ? ? 89 75 F8" + 0x2]
 	N_ADD_VARIABLE(float[MAXSTUDIOBONECTRLS], GetEncodedControllerArray, "DT_BaseAnimating::m_flEncodedController");
-	N_ADD_VARIABLE_OFFSET(BoneVector_t[MAXSTUDIOBONES], GetCachedBonesPosition, "DT_BaseAnimating::m_nMuzzleFlashParity", 0x4); // @ida: C_BaseAnimating::m_pos_cached: client.dll -> ["8D 87 ? ? ? ? 50 E8 ? ? ? ? 8B 06 83 C4" + 0x2]
-	N_ADD_VARIABLE_OFFSET(BoneQuaternionAligned_t[MAXSTUDIOBONES], GetCachedBonesRotation, "DT_BaseAnimating::m_nMuzzleFlashParity", 0x4 + sizeof(BoneVector_t[MAXSTUDIOBONES])); // @ida: C_BaseAnimating::m_q_cached: client.dll -> ["8D 87 ? ? ? ? 50 E8 ? ? ? ? 83 C4 0C F7" + 0x2]
+	N_ADD_VARIABLE_OFFSET(BoneVector_t[MAXSTUDIOBONES], GetCachedBonesPosition, "DT_BaseAnimating::m_nMuzzleFlashParity", 0x4); // @ida C_BaseAnimating::m_pos_cached: client.dll -> ["8D 87 ? ? ? ? 50 E8 ? ? ? ? 8B 06 83 C4" + 0x2]
+	N_ADD_VARIABLE_OFFSET(BoneQuaternionAligned_t[MAXSTUDIOBONES], GetCachedBonesRotation, "DT_BaseAnimating::m_nMuzzleFlashParity", 0x4 + sizeof(BoneVector_t[MAXSTUDIOBONES])); // @ida C_BaseAnimating::m_q_cached: client.dll -> ["8D 87 ? ? ? ? 50 E8 ? ? ? ? 83 C4 0C F7" + 0x2]
 	N_ADD_VARIABLE_OFFSET(CIKContext*, GetIKContext, "DT_BaseAnimating::m_vecForce", -0x14); // @ida C_BaseAnimating::m_pIk: client.dll -> ["89 87 ? ? ? ? 8D 47 FC 8B" + 0x2]
 	N_ADD_VARIABLE(Vector_t, GetForce, "DT_BaseAnimating::m_vecForce");
 	N_ADD_VARIABLE(int, GetForceBone, "DT_BaseAnimating::m_nForceBone");
@@ -494,7 +494,7 @@ public:
 	N_ADD_VARIABLE_OFFSET(float, GetLastBoneSetupTime, "DT_BaseAnimating::m_hLightingOrigin", -0x20); // @ida C_BaseAnimating::m_flLastBoneSetupTime: client.dll -> ["C7 87 ? ? ? ? ? ? ? ? 89 87 ? ? ? ? 8B 8F" + 0x2] @xref: "Model '%s' has skin but thinks it can render fastpath\n"
 	N_ADD_VARIABLE_OFFSET(bool, IsJiggleBonesAllowed, "DT_BaseAnimating::m_hLightingOrigin", -0x18); // @ida C_BaseAnimating::m_isJiggleBonesEnabled: client.dll -> ["80 BF ? ? ? ? ? 0F 84 ? ? ? ? 8B 74 24 14" + 0x2] @xref: r_jiggle_bones
 	N_ADD_VARIABLE_OFFSET(CStudioHdr*, GetStudioHdr, "DT_BaseAnimating::m_hLightingOrigin", 0x8); // @ida C_BaseAnimating::m_pStudioHdr: client.dll -> ["8B 8E ? ? ? ? 85 C9 0F 84 ? ? ? ? 83 39" + 0x2] @xref: "Bip01_Head", "head_0", "L_Hand", "hand_L", "R_Hand", "hand_R", "weapon_bone"
-	N_ADD_VARIABLE_OFFSET(MDLHandle_t, GetStudioHdrHandle, "DT_BaseAnimating::m_hLightingOrigin", 0xC); // @ida: C_BaseAnimating::m_hStudioHdr: (C_BaseAnimating::LockStudioHdr) client.dll -> ["66 89 83 ? ? ? ? EB 2F" + 0x3]
+	N_ADD_VARIABLE_OFFSET(MDLHandle_t, GetStudioHdrHandle, "DT_BaseAnimating::m_hLightingOrigin", 0xC); // @ida C_BaseAnimating::m_hStudioHdr: (C_BaseAnimating::LockStudioHdr) client.dll -> ["66 89 83 ? ? ? ? EB 2F" + 0x3]
 
 	// incremented each frame in 'InvalidateModelBones()'. models compare this value to what it was last time they setup their bones to determine if they need to re-setup their bones
 	[[nodiscard]] static unsigned long& GetModelBoneCounter()

@@ -300,7 +300,7 @@ public:
 public:
 	CGameEventDescriptor* GetEventDescriptor(const char* szEventName, int* pCookie = nullptr)
 	{
-		// @ida: CGameEventManager::GetEventDescriptor(): engine.dll -> "55 8B EC 83 EC 08 53 8B 5D 08 56 8B F1 89"
+		// @ida CGameEventManager::GetEventDescriptor(): engine.dll -> "55 8B EC 83 EC 08 53 8B 5D 08 56 8B F1 89"
 
 		constexpr std::uint32_t uCookieBit = 0x80000000;
 		constexpr std::uint32_t uCookieMask = ~uCookieBit;

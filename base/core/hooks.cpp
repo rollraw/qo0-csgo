@@ -430,7 +430,7 @@ int Q_FASTCALL H::SendMessage(ISteamGameCoordinator* thisptr, int edx, std::uint
 	 * used for possible detection of client-side variables modification
 	 *
 	 * @source: master/game/client/cstrike15/c_cs_player.cpp#L4704
-	 * @ida: C_CSPlayer::ClientThink(): client.dll -> "51 8D 4C 24 ? F2 0F 11 1D ? ? ? ? E8 ? ? ? ? 8B"
+	 * @ida C_CSPlayer::ClientThink(): client.dll -> "51 8D 4C 24 ? F2 0F 11 1D ? ? ? ? E8 ? ? ? ? 8B"
 	 */
 	if (nMessageType == 9144)
 	{

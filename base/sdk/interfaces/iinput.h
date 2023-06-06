@@ -5,8 +5,8 @@
 
 #pragma pack(push, 4)
 // functions used to verify offsets:
-// @ida: CInput::CreateMove(): client.dll -> "55 8B EC 83 EC 18 56 57 8B F9 8B 4D 04 E8 ? ? ? ? 8B 4D"
-// @ida: CInput::CAM_Think(): client.dll -> "55 8B EC 83 E4 F8 81 EC ? ? ? ? 56 8B F1 8B 0D ? ? ? ? 57 85 C9" @xref: "sv_cheats", "view angles", "ideal angles", "camera offset", "Pitch: %6.1f   Yaw: %6.1f %38s", "Pitch: %6.1f   Yaw: %6.1f   Dist: %6.1f %19s", "Pitch: %6.1f   Yaw: %6.1f   Dist: %6.1f %16s"
+// @ida CInput::CreateMove(): client.dll -> "55 8B EC 83 EC 18 56 57 8B F9 8B 4D 04 E8 ? ? ? ? 8B 4D"
+// @ida CInput::CAM_Think(): client.dll -> "55 8B EC 83 E4 F8 81 EC ? ? ? ? 56 8B F1 8B 0D ? ? ? ? 57 85 C9" @xref: "sv_cheats", "view angles", "ideal angles", "camera offset", "Pitch: %6.1f   Yaw: %6.1f %38s", "Pitch: %6.1f   Yaw: %6.1f   Dist: %6.1f %19s", "Pitch: %6.1f   Yaw: %6.1f   Dist: %6.1f %16s"
 class IInput
 {
 private:

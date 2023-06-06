@@ -25,7 +25,7 @@ static float flOldCurrentTime = 0.0f, flOldFrameTime = 0.0f;
 #pragma region prediction_callbacks
 void PREDICTION::Update()
 {
-	// @ida: CL_RunPrediction(): engine.dll -> "57 8B 3D ? ? ? ? 83 BF"
+	// @ida CL_RunPrediction(): engine.dll -> "57 8B 3D ? ? ? ? 83 BF"
 
 	if (I::ClientState->nSignonState == SIGNONSTATE_FULL && I::ClientState->nDeltaTick >= 0)
 		I::Prediction->Update(I::ClientState->nDeltaTick, I::ClientState->nDeltaTick > 0, I::ClientState->iLastCommandAck, I::ClientState->iLastOutgoingCommand + I::ClientState->nChokedCommands);

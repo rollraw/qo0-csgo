@@ -10,9 +10,9 @@ struct TypeDescription_t;
 
 #pragma pack(push, 4)
 // functions used to verify offsets:
-// @ida: CPrediction::Init: client.dll -> "A1 ? ? ? ? 56 8B F1 B9 ? ? ? ? 8B 40 54 FF D0 68" @xref: "CPDumpPanel"
-// @ida: CPrediction::Update: client.dll -> "55 8B EC 83 EC 08 53 56 8B F1 8B 0D ? ? ? ? 57 8B" @xref: "CPrediction::Update"
-// @ida: CPrediction::CheckError: client.dll -> "55 8B EC 83 E4 F0 83 EC 48 56 57 8B F9 8B 0D" @xref: "m_vecNetworkOrigin", "%d len(%6.3f) (%6.3f %6.3f %6.3f)"
+// @ida CPrediction::Init: client.dll -> "A1 ? ? ? ? 56 8B F1 B9 ? ? ? ? 8B 40 54 FF D0 68" @xref: "CPDumpPanel"
+// @ida CPrediction::Update: client.dll -> "55 8B EC 83 EC 08 53 56 8B F1 8B 0D ? ? ? ? 57 8B" @xref: "CPrediction::Update"
+// @ida CPrediction::CheckError: client.dll -> "55 8B EC 83 E4 F0 83 EC 48 56 57 8B F9 8B 0D" @xref: "m_vecNetworkOrigin", "%d len(%6.3f) (%6.3f %6.3f %6.3f)"
 class IPrediction : ROP::VirtualCallable_t<ROP::EngineGadget_t>
 {
 public:

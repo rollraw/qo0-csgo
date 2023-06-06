@@ -150,7 +150,7 @@ int CBaseAnimating::GetBoneByHash(const FNV1A_t uBoneHash)
 
 Vector_t CBaseAnimating::GetBonePosition(const int nBoneIndex)
 {
-	// @ida: C_BaseAnimating::GetBonePosition(): client.dll -> "55 8B EC 83 E4 F8 56 8B F1 57 83"
+	// @ida C_BaseAnimating::GetBonePosition(): client.dll -> "55 8B EC 83 E4 F8 56 8B F1 57 83"
 
 	if (const CStudioHdr* pStudioHdr = this->GetModelPtr(); pStudioHdr != nullptr && nBoneIndex >= 0 && nBoneIndex < pStudioHdr->GetBoneCount())
 	{
