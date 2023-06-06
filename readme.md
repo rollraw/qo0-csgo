@@ -200,7 +200,7 @@ float flName = Q_NAME(5.0f - 8.0f);
 	
 	5\. `@source: master/<path>` - path to the following file of the VALVE Source SDK.
 	
-	6\. `@ida: <full method/variable name if known> [inlined]: (method name of pattern source if known) <module> -> <pattern>`
+	6\. `@ida <full method/variable name if known> [inlined]: (method name of pattern source if known) <module> -> <pattern>`
 	- syntax:
 
 		pattern itself are enclosed with quotes `""` and represent found address.
@@ -213,7 +213,7 @@ float flName = Q_NAME(5.0f - 8.0f);
 
 		address prefixed with `ABS` represent conversion of relative address to absolute.
 
-	7\. `@xref: <string/name>` - reference to the following pattern.
+	7\. `@xref: (method name of reference source if known) <string/name>` - reference to the following pattern.
 	- syntax:
 
 		reference by string are enclosed with quotes `""`.
