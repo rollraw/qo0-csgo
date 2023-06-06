@@ -35,8 +35,8 @@ public:
 			break;
 		}
 		case EClassIndex::CCSGameRulesProxy:
-			static std::uint8_t* pCSGameRulesAddress = MEM::FindPattern(CLIENT_DLL, Q_XOR("8B 35 ? ? ? ? 57 8B F9 85 F6 74 20")) + 0x2;
-			ENTITY::pCSGameRulesProxy = *reinterpret_cast<CCSGameRulesProxy**>(pCSGameRulesAddress);
+			static CCSGameRulesProxy** ppCSGameRulesAddress = *reinterpret_cast<CCSGameRulesProxy***>(MEM::FindPattern(CLIENT_DLL, Q_XOR("8B 35 ? ? ? ? 57 8B F9 85 F6 74 20")) + 0x2);
+			ENTITY::pCSGameRules = *ppCSGameRulesAddress;
 			break;
 		case EClassIndex::CCSPlayerResource:
 			ENTITY::pCSPlayerResource = reinterpret_cast<CCSPlayerResource*>(pEntity);
@@ -63,7 +63,7 @@ public:
 			break;
 		}
 		case EClassIndex::CCSGameRulesProxy:
-			ENTITY::pCSGameRulesProxy = nullptr;
+			ENTITY::pCSGameRules = nullptr;
 			break;
 		case EClassIndex::CCSPlayerResource:
 			ENTITY::pCSPlayerResource = nullptr;

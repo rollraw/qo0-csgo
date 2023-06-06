@@ -1171,7 +1171,7 @@ public:
 };
 
 // @source: master/game/shared/cstrike15/cs_gamerules.h
-class CCSGameRulesProxy
+class CCSGameRulesProxy : public CBaseEntity
 {
 public:
 	Q_CLASS_NO_INITIALIZER(CCSGameRulesProxy);

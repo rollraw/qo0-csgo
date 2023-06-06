@@ -36,7 +36,7 @@ static void ValidateUserCommand(CUserCmd* pCmd, const CUserCmd* pPreviousCmd)
 	if (pCmd->angViewPoint.IsValid())
 	{
 		// check is player on the valve secured server
-		if (ENTITY::pCSGameRulesProxy == nullptr || ENTITY::pCSGameRulesProxy->IsValveDS())
+		if (ENTITY::pCSGameRules == nullptr || ENTITY::pCSGameRules->IsValveDS())
 		{
 			pCmd->angViewPoint.Clamp();
 			pCmd->angViewPoint.z = 0.0f;

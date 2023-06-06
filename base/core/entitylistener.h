@@ -24,7 +24,7 @@ namespace ENTITY
 
 	/* @section: values */
 	// game rules proxy entity, should be always checked for null
-	inline CCSGameRulesProxy* pCSGameRulesProxy = nullptr;
+	inline CCSGameRulesProxy* pCSGameRules = nullptr;
 	// player resource entity, should be always checked for null
 	inline CCSPlayerResource* pCSPlayerResource = nullptr;
 	// breakable entities of the map that client doesn't handle as breakable

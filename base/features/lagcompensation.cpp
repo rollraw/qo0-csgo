@@ -115,7 +115,7 @@ void LAGCOMP::ClearHoldAimCycle()
 bool LAGCOMP::IsHoldAimCycle()
 {
 	// since 'sv_maxusrcmdprocessticks_holdaim' convar isn't replicated to client, determine it manually 
-	const int nMaxUserCommandProcessTicksHoldAim = 1; //((ENTITY::pCSGameRulesProxy != nullptr && ENTITY::pCSGameRulesProxy->IsValveDS()) ? 5 : 1); @todo: not quite correct yet
+	const int nMaxUserCommandProcessTicksHoldAim = ((ENTITY::pCSGameRules != nullptr && ENTITY::pCSGameRules->IsValveDS()) ? 5 : 1);
 	return (I::Globals->nTickCount - nLockViewAnglesTick < nMaxUserCommandProcessTicksHoldAim);
 }
 
@@ -127,12 +127,12 @@ const QAngle_t& LAGCOMP::GetHoldAimCycleViewAngles()
 int LAGCOMP::GetTicksToChoke()
 {
 	// we don't want to choke during freeze period
-	if (ENTITY::pCSGameRulesProxy != nullptr && ENTITY::pCSGameRulesProxy->IsFreezePeriod())
+	if (ENTITY::pCSGameRules != nullptr && ENTITY::pCSGameRules->IsFreezePeriod())
 		return 0;
 
 	// since 'sv_maxusrcmdprocessticks' convar isn't replicated to client, determine it manually
 	// it's showing how many ticks game lag compensation can handle and generally it is 8 for valve hosted servers and 16 for others, we subtract 2 due to 'CL_SendMove()' client-side limit
-	const int nMaxUserCommandProcessTicks = ((ENTITY::pCSGameRulesProxy == nullptr || ENTITY::pCSGameRulesProxy->IsValveDS()) ? 6 : 14);
+	const int nMaxUserCommandProcessTicks = ((ENTITY::pCSGameRules == nullptr || ENTITY::pCSGameRules->IsValveDS()) ? 6 : 14);
 
 	if (C::Get<bool>(Vars.bMiscFakeLag))
 		return CRT::Clamp(C::Get<int>(Vars.iMiscFakeLagTicks), 1, nMaxUserCommandProcessTicks); // @todo: instead of clamp here, we shouldn't even let user to set this values in GUI
