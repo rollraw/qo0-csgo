@@ -39,7 +39,7 @@ static int nLockViewAnglesTick = 0;
 static QAngle_t angLockViewPoint = { };
 
 #pragma region lagcompensation_callbacks
-void LAGCOMP::OnMove(CCSPlayer* pLocal, CUserCmd* pCmd, bool* pbSendPacket)
+void LAGCOMP::OnPreMove(CCSPlayer* pLocal, CUserCmd* pCmd, bool* pbSendPacket)
 {
 	// check are we alive and not during freeze period (it have less choke limit than during the game)
 	if (!pLocal->IsAlive())
@@ -47,8 +47,6 @@ void LAGCOMP::OnMove(CCSPlayer* pLocal, CUserCmd* pCmd, bool* pbSendPacket)
 
 	// prevent client from sending packets to the server until we reach limit
 	*pbSendPacket = (I::ClientState->nChokedCommands >= GetTicksToChoke());
-
-	/* backtrack and other lag compensation abuse stuff */
 }
 
 void LAGCOMP::OnPreSendDatagram(INetChannel* pNetChannel, int* pnOldInReliableState, int* pnOldInSequenceNr)

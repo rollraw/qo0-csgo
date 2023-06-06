@@ -15,7 +15,7 @@ class INetChannel;
 namespace F::LAGCOMP
 {
 	/* @section: callbacks */
-	void OnMove(CCSPlayer* pLocal, CUserCmd* pCmd, bool* pbSendPacket);
+	void OnPreMove(CCSPlayer* pLocal, CUserCmd* pCmd, bool* pbSendPacket);
 	void OnPreSendDatagram(INetChannel* pNetChannel, int* pnOldInReliableState, int* pnOldInSequenceNr);
 	void OnPostSendDatagram(INetChannel* pNetChannel, const int nOldInReliableState, const int nOldInSequenceNr);
 	void OnPlayerDeleted(CCSPlayer* pPlayer);

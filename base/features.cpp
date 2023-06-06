@@ -160,7 +160,8 @@ void F::OnMove(CCSPlayer* pLocal, CUserCmd* pCmd, bool* pbSendPacket, int nSeque
 	angServerView = pCmd->angViewPoint;
 	angClientView = pCmd->angViewPoint;
 
-	// do bunnyhop and other movement before prediction to prevent flags and others server-client variables mismatch
+	LAGCOMP::OnPreMove(pLocal, pCmd, pbSendPacket);
+
 	MISC::OnPreMove(pLocal, pCmd, pbSendPacket);
 
 	PREDICTION::Update();
@@ -171,9 +172,7 @@ void F::OnMove(CCSPlayer* pLocal, CUserCmd* pCmd, bool* pbSendPacket, int nSeque
 	LEGIT::OnMove(pLocal, pCmd, pbSendPacket);
 
 	RAGE::OnMove(pLocal, pCmd, pbSendPacket);
-
-	LAGCOMP::OnMove(pLocal, pCmd, pbSendPacket);
-
+	
 	MISC::OnPostMove(pLocal, pCmd, pbSendPacket);
 
 	if (C::Get<bool>(Vars.bMiscFakeLatency))
