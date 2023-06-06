@@ -713,7 +713,7 @@ void T::Miscellaneous()
 			ImGui::Spacing();
 			ImGui::PushItemWidth(-1);
 			
-			const nColorsCount = IM_ARRAYSIZE(arrColors);
+			const int nColorsCount = IM_ARRAYSIZE(arrColors);
 			static ImGuiTextFilter filter;
 			filter.Draw(Q_XOR("##colors.filter"));
 			ImGui::ColorEdit4(Q_XOR("##colors.picker"), &C::Get<Color_t>(arrColors[iSelectedColor].second), ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf);
