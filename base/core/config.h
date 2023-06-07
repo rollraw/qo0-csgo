@@ -357,8 +357,10 @@ namespace C
 	template <typename T> requires (std::is_array_v<T>)
 	std::size_t AddVariableArray(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, std::remove_pointer_t<std::decay_t<T>> valueDefault)
 	{
+		using BaseType_t = std::remove_pointer_t<std::decay_t<T>>;
+
 		T arrValueDefault;
-		for (std::size_t i = 0U; i < Q_ARRAYSIZE(T); i++)
+		for (std::size_t i = 0U; i < sizeof(T) / sizeof(BaseType_t); i++)
 			arrValueDefault[i] = valueDefault;
 
 		vecVariables.emplace_back(uNameHash, uTypeHash, sizeof(T), arrValueDefault);
@@ -370,9 +372,11 @@ namespace C
 	template <typename T> requires (std::is_array_v<T>)
 	std::size_t AddVariableArray(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, std::initializer_list<std::remove_pointer_t<std::decay_t<T>>> vecValuesDefault)
 	{
+		using BaseType_t = std::remove_pointer_t<std::decay_t<T>>;
+
 		T arrValueDefault;
 		CRT::MemorySet(arrValueDefault, 0U, sizeof(T));
-		CRT::MemoryCopy(&arrValueDefault[0], vecValuesDefault.begin(), vecValuesDefault.size() * sizeof(T[0])); // @test: will sizeof work as expected?
+		CRT::MemoryCopy(arrValueDefault, vecValuesDefault.begin(), vecValuesDefault.size() * sizeof(BaseType_t)); // @test: will sizeof work as expected?
 
 		vecVariables.emplace_back(uNameHash, uTypeHash, sizeof(T), arrValueDefault);
 		return vecVariables.size() - 1U;
