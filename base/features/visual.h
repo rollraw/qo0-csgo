@@ -27,7 +27,7 @@ namespace F::VISUAL
 	void OnGetViewModelFOV(float* pflViewModelFOV);
 	void OnPreCalcView(CCSPlayer* pPlayer, QAngle_t* pangOldViewPunch, QAngle_t* pangOldAimPunch);
 	void OnPostCalcView(CCSPlayer* pPlayer, QAngle_t* pangOldViewPunch, QAngle_t* pangOldAimPunch);
-	void OnEvent(const FNV1A_t uEventHash, IGameEvent& gameEvent);
+	void OnEvent(const FNV1A_t uEventHash, IGameEvent* pEvent);
 
 	/* @section: values */
 	// in-game camera origin

@@ -2,8 +2,6 @@
 
 // used: cheat variables
 #include "../core/variables.h"
-// used: addtolistener
-#include "../core/eventlistener.h"
 // used: render functions
 #include "../utilities/draw.h"
 
@@ -154,8 +152,8 @@ void VISUAL::OnDoPostScreenSpaceEffects()
 	GLOW::OnDoPostScreenSpaceEffects(pLocal);
 }
 
-void VISUAL::OnEvent(const FNV1A_t uEventHash, IGameEvent& gameEvent)
+void VISUAL::OnEvent(const FNV1A_t uEventHash, IGameEvent* pEvent)
 {
-	SCREEN::OnEvent(uEventHash, gameEvent);
+	SCREEN::OnEvent(uEventHash, pEvent);
 }
 #pragma endregion

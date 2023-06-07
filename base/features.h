@@ -60,13 +60,13 @@ namespace F
 	void OnPreCalcView(CCSPlayer* pPlayer, CalcViewStack_t& stack);
 	// called after 'CalcView()' original
 	void OnPostCalcView(CCSPlayer* pPlayer, CalcViewStack_t& stack);
-	/// handle all features event callbacks
-	/// @remarks: if your function doesn't getting called when it should, check did you registered needed event with "EVENT::AddToListener"
-	void OnEvent(const FNV1A_t uEventHash, IGameEvent& gameEvent);
-	/// handle all features callbacks on player create
+	// handle callbacks when certain game events occur
+	// @note: all events list: https://wiki.alliedmods.net/Counter-Strike:_Global_Offensive_Events
+	void OnEvent(IGameEvent* pEvent);
+	/// handle callbacks on player create
 	/// @remarks: note that this is called after the constructor
 	void OnPlayerCreated(CCSPlayer* pPlayer);
-	/// handle all features callbacks on player delete
+	/// handle callbacks on player delete
 	/// @remarks: note that this is called before the destructor
 	void OnPlayerDeleted(CCSPlayer* pPlayer);
 

@@ -24,7 +24,7 @@ void SCREEN::OnDraw(CCSPlayer* pLocal)
 	HitMarker(C::Get<Color_t>(Vars.colVisualScreenHitMarker), C::Get<Color_t>(Vars.colVisualScreenHitMarkerDamage));
 }
 
-void SCREEN::OnEvent(const FNV1A_t uEventHash, IGameEvent& gameEvent)
+void SCREEN::OnEvent(const FNV1A_t uEventHash, IGameEvent* pEvent)
 {
 	if (uEventHash != FNV1A::HashConst("player_hurt"))
 		return;
@@ -38,16 +38,16 @@ void SCREEN::OnEvent(const FNV1A_t uEventHash, IGameEvent& gameEvent)
 		return;
 
 	// get hitmarker info
-	if (const CBasePlayer* pAttacker = I::ClientEntityList->Get<CBasePlayer>(I::Engine->GetPlayerForUserID(gameEvent.GetInt(Q_XOR("attacker")))); pAttacker == pLocal)
+	if (const CBasePlayer* pAttacker = I::ClientEntityList->Get<CBasePlayer>(I::Engine->GetPlayerForUserID(pEvent->GetInt(Q_XOR("attacker")))); pAttacker == pLocal)
 	{
-		if (CBasePlayer* pPlayer = I::ClientEntityList->Get<CBasePlayer>(I::Engine->GetPlayerForUserID(gameEvent.GetInt(Q_XOR("userid")))); pPlayer != nullptr && pPlayer != pLocal)
+		if (CBasePlayer* pPlayer = I::ClientEntityList->Get<CBasePlayer>(I::Engine->GetPlayerForUserID(pEvent->GetInt(Q_XOR("userid")))); pPlayer != nullptr && pPlayer != pLocal)
 		{
 			// play hit sound
 			if (C::Get<bool>(Vars.bVisualScreenHitMarkerSound))
 				I::Surface->PlaySound(Q_XOR("buttons\\arena_switch_press_02.wav"));
 
 			// add hit info
-			vecHitMarks.emplace_back(pPlayer->GetHitGroupPosition(gameEvent.GetInt(Q_XOR("hitgroup"))), gameEvent.GetInt(Q_XOR("dmg_health")), I::Globals->flRealTime + C::Get<float>(Vars.flVisualScreenHitMarkerTime));
+			vecHitMarks.emplace_back(pPlayer->GetHitGroupPosition(pEvent->GetInt(Q_XOR("hitgroup"))), pEvent->GetInt(Q_XOR("dmg_health")), I::Globals->flRealTime + C::Get<float>(Vars.flVisualScreenHitMarkerTime));
 		}
 	}
 }
