@@ -472,7 +472,7 @@ private:
 	std::int8_t iDataType; // 0x10
 	bool bHasEscapeSequences; // 0x11
 	std::uint16_t uKeyNameCaseSensitive2; // 0x12
-	IKeyValuesSystem* pKeySystem; // 0x14 // why do valve store global ptr for each instance? | fuck lol i just released that them doing this to prevent allockeyvalues from hooking | even now when they moved retadr info to protos they didnt revert this... makes me think that valve just missed previous devs and the current ones are just doing this pointless shit 
+	IKeyValuesSystem* pKeySystem; // 0x14 // why do valve store global ptr for each instance? | fuck lol i just released that them doing this to prevent allockeyvalues from hooking | even now when they moved retadr info to protos they didnt revert this... makes me think that valve just missed previous devs and the current ones are just doing this pointless shit
 	bool bIsSystemOwner; // 0x18 // if true, destructor will free current system
 	CKeyValues* pPeer; // 0x1C
 	CKeyValues* pSub; // 0x20

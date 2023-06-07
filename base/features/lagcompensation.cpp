@@ -3,13 +3,13 @@
 // used: [stl] deque
 #include <deque>
 
-// used: gamerulesproxy entity
+// used: csgamerules entity
 #include "../core/entitylistener.h"
 // used: cheats variables
 #include "../core/variables.h"
 // used: sv_maxunlag
 #include "../core/convar.h"
-// used: getoriginalangles
+// used: getserverangles
 #include "../features.h"
 
 // used: interface handles
@@ -112,7 +112,7 @@ void LAGCOMP::ClearHoldAimCycle()
 
 bool LAGCOMP::IsHoldAimCycle()
 {
-	// since 'sv_maxusrcmdprocessticks_holdaim' convar isn't replicated to client, determine it manually 
+	// since 'sv_maxusrcmdprocessticks_holdaim' convar isn't replicated to client, determine it manually
 	const int nMaxUserCommandProcessTicksHoldAim = ((ENTITY::pCSGameRules != nullptr && ENTITY::pCSGameRules->IsValveDS()) ? 5 : 1);
 	return (I::Globals->nTickCount - nLockViewAnglesTick < nMaxUserCommandProcessTicksHoldAim);
 }

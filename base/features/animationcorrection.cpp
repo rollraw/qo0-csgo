@@ -2,7 +2,7 @@
 
 // used: memorycopy
 #include "../utilities/crt.h"
-// used: getserverangles
+// used: getclientangles, getserverangles
 #include "../features.h"
 
 // used: interface handles
@@ -244,7 +244,6 @@ static void UpdateLocal(CCSPlayer* pLocal, AnimationUpdateObject_t& updateObject
 	 * but we should always force server data last because game gonna use it
 	 */
 
-	// 
 	QAngle_t& angLocalView = pLocal->GetPlayerState()->GetViewAngles();
 	const QAngle_t angOldLocalView = angLocalView;
 

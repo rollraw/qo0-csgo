@@ -75,7 +75,7 @@ static void StoreTableProperties(const RecvTable_t* pRecvTable, const FNV1A_t uT
 }
 
 // recursively go through table and child tables properties, format them and print into the file
-// used separate function to have variables sorted by their offsets, don't mess storing code with debug checks and follow general principles 
+// used separate function to have variables sorted by their offsets, don't mess storing code with debug checks and follow general principles
 static void DumpTableProperties(HANDLE hFileOut, const RecvTable_t* pRecvTable, const int iDepth = 0)
 {
 	char szTableBuffer[64];
@@ -319,7 +319,7 @@ void NETVAR::GetPropertyType(const RecvProp_t* pRecvProp, char* szOutBuffer)
 		static_assert(std::endian::native == std::endian::little); // following code assume little-endian
 
 		const RecvTable_t* pChildTable = pRecvProp->pDataTable;
-		
+
 		// check if the child table starts with 'DT' prefix
 		if (const char* szChildTableName = pChildTable->szNetTableName; *reinterpret_cast<const std::uint16_t*>(szChildTableName) == 0x5444)
 		{
@@ -357,7 +357,7 @@ void NETVAR::GetPropertyType(const RecvProp_t* pRecvProp, char* szOutBuffer)
 				szOutBuffer += CRT::StringLength(szOutBuffer);
 				szOutBuffer[nArraySizeLength + 1U] = '\0';
 			}
-			
+
 			*szOutBuffer++ = '[';
 			szOutBuffer = CRT::StringCopy(szOutBuffer, szArraySize);
 			*szOutBuffer = ']';

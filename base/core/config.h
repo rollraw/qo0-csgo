@@ -82,7 +82,7 @@ namespace C
 		FNV1A_t uTypeHash = 0U;
 		std::vector<UserDataMember_t> vecMembers = { };
 	};
-	
+
 	/* @section: values */
 	// all user configuration filenames, sorted
 	inline std::vector<wchar_t*> vecFileNames = { };

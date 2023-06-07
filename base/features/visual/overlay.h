@@ -40,7 +40,7 @@ namespace F::VISUAL::OVERLAY
 		}
 
 		virtual void Render(const ImVec2& vecPosition) = 0;
-		
+
 		EAlignSide nSide = SIDE_TOP;
 		ImVec2 vecOffset = { };
 		ImVec2 vecSize = { };
@@ -55,7 +55,7 @@ namespace F::VISUAL::OVERLAY
 		{
 			return true;
 		}
-		
+
 		EAlignDirection nDirection = DIR_TOP;
 	};
 
@@ -80,7 +80,7 @@ namespace F::VISUAL::OVERLAY
 		CTextComponent(const EAlignSide nAlignSide, const EAlignDirection nAlignDirection, const ImFont* pFont, const float flFontSize, const char* szText, const Color_t& colPrimary, const float flOutlineThickness = 0.0f, const Color_t& colOutline = Color_t(0, 0, 0, 100));
 
 		void Render(const ImVec2& vecPosition) override;
-		
+
 		const ImFont* pFont = nullptr;
 		float flFontSize = 0.0f;
 		const char* szText = nullptr;
@@ -94,7 +94,7 @@ namespace F::VISUAL::OVERLAY
 	 * @note: was designed to support the reordering of components that can be implemented with minimal effort
 	 *
 	 * currently supported next sides and sub-directions:
-	 * 
+	 *
 	 *                DIR_TOP
 	 *                   ^
 	 *                   |

@@ -174,7 +174,7 @@ void F::OnMove(CCSPlayer* pLocal, CUserCmd* pCmd, bool* pbSendPacket, int nSeque
 	RAGE::OnMove(pLocal, pCmd, pbSendPacket);
 
 	PREDICTION::OnPostMove(pLocal, pCmd);
-	
+
 	MISC::OnPostMove(pLocal, pCmd, pbSendPacket);
 
 	if (C::Get<bool>(Vars.bMiscFakeLatency))

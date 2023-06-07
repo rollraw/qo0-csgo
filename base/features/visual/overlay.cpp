@@ -228,12 +228,12 @@ void OVERLAY::Context_t::AddComponent(CBaseComponent* pComponent)
 	}
 
 	float& flSidePadding = this->arrSidePaddings[pComponent->nSide];
-	
+
 	if (pComponent->IsDirectional())
 	{
 		CBaseDirectionalComponent* pDirectionalComponent = static_cast<CBaseDirectionalComponent*>(pComponent);
 		float (&arrDirectionPaddings)[DIR_MAX] = this->arrSideDirectionPaddings[pDirectionalComponent->nSide];
-		
+
 		// directional components don't change side paddings, but take them into account
 		pComponent->vecOffset[pDirectionalComponent->nSide & 1U] += ((pDirectionalComponent->nSide < 2U) ? -flSidePadding : flSidePadding);
 
@@ -304,7 +304,7 @@ void OVERLAY::Context_t::Render(const ImVec4& vecBox) const
 	{
 		ImVec2 vecPosition = pComponent->GetBasePosition(vecBox);
 
-		// check if the component is in the supported centering side 
+		// check if the component is in the supported centering side
 		if (pComponent->nSide == SIDE_TOP || pComponent->nSide == SIDE_BOTTOM)
 		{
 			// check if the component is directional and if it is in one of the horizontal directions
@@ -719,7 +719,7 @@ void OVERLAY::Bomb(CC4* pBomb)
 	ImVec2 vecScreen = { };
 	if (!D::WorldToScreen(pBomb->GetOrigin(), &vecScreen))
 		return;
-	
+
 	Context_t context = { };
 
 	// label
@@ -736,7 +736,7 @@ void OVERLAY::PlantedBomb(CPlantedC4* pBomb)
 {
 	if (!C::Get<bool>(Vars.bVisualOverlayBomb))
 		return;
-	
+
 	ImVec2 vecScreen = { };
 	if (!D::WorldToScreen(pBomb->GetOrigin(), &vecScreen))
 		return;
@@ -897,7 +897,7 @@ void OVERLAY::DroppedWeapon(CBaseCombatWeapon* pWeapon, const float flDistance)
 			const std::size_t nDistanceLength = szDistanceBuffer + sizeof(szDistanceBuffer) - szDistance - 1U;
 			szDistance = static_cast<char*>(CRT::MemoryMove(szDistance - 1U, szDistance, nDistanceLength)); // @note: this relies on current 'CRT::IntegerToString' behaviour, be careful
 			szDistance[nDistanceLength] = 'M';
-			
+
 			context.AddComponent(new CTextComponent(SIDE_BOTTOM, DIR_BOTTOM, FONT::pVisual, 12.f, szDistance, colInfo, 1.0f, colOutline));
 		}
 	}

@@ -174,7 +174,7 @@ long D3DAPI H::EndScene(IDirect3DDevice9* pDevice)
 			L_PRINT(LOG_ERROR) << Q_XOR("failed to initialize draw system");
 			return oEndScene(pDevice);
 		}
-		
+
 		MENU::OnEndScene(pDevice);
 	}
 
@@ -223,7 +223,7 @@ Q_NAKED void Q_FASTCALL H::CreateMoveProxy(IBaseClientDll* thisptr, int edx, int
 		push [ebp+8]; // nSequenceNumber
 		call CreateMove
 		pop ebx // restore register
-		pop ebp // restore register 
+		pop ebp // restore register
 		retn 0Ch
 	}
 }
@@ -690,7 +690,7 @@ void Q_FASTCALL H::UpdateClientSideAnimation(CCSPlayer* thisptr, int edx)
 		hkUpdateClientSideAnimation.CallOriginal<void>(thisptr, edx);
 }
 
-// call hierarchy: [client.dll] ... -> CViewRender::SetUpView() -> C_CSPlayer::CalcView() -> ... 
+// call hierarchy: [client.dll] ... -> CViewRender::SetUpView() -> C_CSPlayer::CalcView() -> ...
 void Q_FASTCALL H::CalcView(CCSPlayer* thisptr, int edx, Vector_t& vecEyeOrigin, QAngle_t& angEyeView, float& flNearZ, float& flFarZ, float& flFOV)
 {
 	// @ida C_CSPlayer::CalcView(): client.dll -> "55 8B EC 83 EC 14 53 56 57 FF 75 18"

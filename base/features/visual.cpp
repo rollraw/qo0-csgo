@@ -40,7 +40,7 @@ void VISUAL::OnFrame(const EClientFrameStage nStage)
 		// check is render initialized
 		if (!D::bInitialized)
 			return;
-		
+
 		/*
 		 * game and our gui are based on immediate render mode principe
 		 * this means that we should always reset draw data from previous frame and re-store it again
@@ -68,7 +68,7 @@ void VISUAL::OnPreRenderView(const CViewSetup& viewSetup, int* nWhatToDraw)
 		return;
 
 	const VisualWorldRemovalFlags_t nVisualWorldRemovals = C::Get<unsigned int>(Vars.nVisualWorldRemovals);
-	
+
 	WORLD::PostProcessingRemoval();
 
 	if (nVisualWorldRemovals & VISUAL_WORLD_REMOVAL_FLAG_FLASH)

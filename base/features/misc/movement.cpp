@@ -59,14 +59,14 @@ void MOVEMENT::BunnyHop(CCSPlayer* pLocal, CUserCmd* pCmd)
 	{
 		// update the random seed
 		MEM::fnRandomSeed(pCmd->iRandomSeed);
-		
+
 		// bypass of possible SMAC/VAC server anticheat detection
 		if (static bool bShouldFakeJump = false; bShouldFakeJump)
 		{
 			pCmd->nButtons |= IN_JUMP;
 			bShouldFakeJump = false;
 		}
-		// check is player want to jump 
+		// check is player want to jump
 		else if (pCmd->nButtons & IN_JUMP)
 		{
 			// check is player on the ground
