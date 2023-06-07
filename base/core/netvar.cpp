@@ -17,7 +17,7 @@
 // used: interface declarations
 #include "../sdk/interfaces/ibaseclientdll.h"
 
-// @todo: much possible store/dump improvements, workaround over "baseclass" props (e.g. in storing case, we can use it to determine is ptr base/parent class to other, in dump case, we can print them near table name to show hierarchy), get rid of stl
+// @todo: much possible store/dump improvements, get rid of stl
 
 struct PropertyObject_t
 {
@@ -32,27 +32,25 @@ static std::size_t nTablesCount = 0U;
 // recursively go through table and child tables properties and store their offsets
 static void StoreTableProperties(const RecvTable_t* pRecvTable, const FNV1A_t uTableHash)
 {
-	// reserve memory for all table properties
-	vecProperties.reserve(vecProperties.size() + pRecvTable->nPropCount);
+	// get the count of already stored properties
+	const std::size_t nPropertiesCount = vecProperties.size();
 
-	const FNV1A_t uDelimiterHash = FNV1A::Hash("::", uTableHash);
-	const FNV1A_t uBaseClassHash = FNV1A::Hash("baseclass", uDelimiterHash);
+	// reserve memory for the all table properties
+	vecProperties.resize(nPropertiesCount + pRecvTable->nPropCount);
+
+	const FNV1A_t uDelimiterHash = FNV1A::Hash(Q_XOR("::"), uTableHash);
+	const FNV1A_t uBaseClassHash = FNV1A::Hash(Q_XOR("baseclass"), uDelimiterHash);
 
 	for (int i = 0; i < pRecvTable->nPropCount; i++)
 	{
 		RecvProp_t* const pCurrentProp = &pRecvTable->vecProps[i];
+		const std::uintptr_t uOffset = static_cast<std::uintptr_t>(pCurrentProp->iOffset);
 
 		// concat variable name to our netvar format just by hash
 		const FNV1A_t uVariableHash = FNV1A::Hash(pCurrentProp->szVarName, uDelimiterHash);
-
-		// skip baseclass table
-		if (uVariableHash == uBaseClassHash)
-			continue;
-
-		const std::uintptr_t uOffset = static_cast<std::uintptr_t>(pCurrentProp->iOffset);
-
-		// check if the property is a child data table
-		if (pCurrentProp->nRecvType == DPT_DATATABLE)
+		
+		// check if the property is a child data table but it's not a base class
+		if (pCurrentProp->nRecvType == DPT_DATATABLE && uVariableHash != uBaseClassHash)
 		{
 			static_assert(std::endian::native == std::endian::little); // following code assume little-endian
 
@@ -67,7 +65,7 @@ static void StoreTableProperties(const RecvTable_t* pRecvTable, const FNV1A_t uT
 			// @todo: the way valve doing this is fucking dumb, and even isn't same as for send tables @source: master/engine/dt.h#L469-471
 		}
 
-		vecProperties.emplace_back(PropertyObject_t{ uVariableHash, pCurrentProp, uOffset });
+		vecProperties[nPropertiesCount + i] = PropertyObject_t{ uVariableHash, pCurrentProp, uOffset };
 	}
 
 	// count total stored tables
@@ -78,7 +76,7 @@ static void StoreTableProperties(const RecvTable_t* pRecvTable, const FNV1A_t uT
 // used separate function to have variables sorted by their offsets, don't mess storing code with debug checks and follow general principles
 static void DumpTableProperties(HANDLE hFileOut, const RecvTable_t* pRecvTable, const int iDepth = 0)
 {
-	char szTableBuffer[64];
+	char szTableBuffer[128];
 	char* szTableEnd = szTableBuffer;
 
 	// insert depth tabulation
@@ -90,6 +88,21 @@ static void DumpTableProperties(HANDLE hFileOut, const RecvTable_t* pRecvTable, 
 	*szTableEnd++ = '[';
 	szTableEnd = CRT::StringCopy(szTableEnd, pRecvTable->szNetTableName);
 	*szTableEnd++ = ']';
+
+	// check does table has child table variable of the base class
+	bool bHasBaseClass = false;
+	if (const RecvProp_t* pFirstProperty = &pRecvTable->vecProps[0]; pRecvTable->nPropCount > 0 && pFirstProperty->nRecvType == DPT_DATATABLE && CRT::StringCompare(pFirstProperty->szVarName, "baseclass") == 0)
+	{
+		// insert base table name
+		*szTableEnd++ = ' ';
+		*szTableEnd++ = ':';
+		*szTableEnd++ = ' ';
+		*szTableEnd++ = '[';
+		szTableEnd = CRT::StringCopy(szTableEnd, pFirstProperty->pDataTable->szNetTableName);
+		*szTableEnd++ = ']';
+
+		bHasBaseClass = true;
+	}
 	*szTableEnd++ = '\n';
 
 	// zero-terminate string
@@ -104,14 +117,9 @@ static void DumpTableProperties(HANDLE hFileOut, const RecvTable_t* pRecvTable, 
 	CRT::MemoryCopy(vecPropsSorted, pRecvTable->vecProps, nSortedPropertiesCount * sizeof(RecvProp_t));
 
 	// flatten child tables without base offset into our copied table
-	for (int i = 0; i < pRecvTable->nPropCount; i++)
+	for (int i = static_cast<int>(bHasBaseClass); i < pRecvTable->nPropCount; i++)
 	{
 		const RecvProp_t* pCurrentProp = &vecPropsSorted[i];
-
-		// skip baseclass table
-		if (CRT::StringCompare(pCurrentProp->szVarName, "baseclass") == 0)
-			continue;
-
 		const std::uintptr_t uOffset = static_cast<std::uintptr_t>(pCurrentProp->iOffset);
 
 		// check if the property is a child data table
@@ -132,17 +140,13 @@ static void DumpTableProperties(HANDLE hFileOut, const RecvTable_t* pRecvTable, 
 
 	// sort the copied variables by their offset
 	// @todo: crt
-	std::sort(vecPropsSorted, vecPropsSorted + nSortedPropertiesCount, [](const auto& leftProperty, const auto& rightProperty) { return leftProperty.iOffset < rightProperty.iOffset; });
-	//std::partial_sort_copy(pRecvTable->vecProps, pRecvTable->vecProps + pRecvTable->nPropCount, vecPropsSorted, vecPropsSorted + pRecvTable->nPropCount, [](const auto& leftProperty, const auto& rightProperty) { return leftProperty.iOffset < rightProperty.iOffset; });
+	std::sort(vecPropsSorted, vecPropsSorted + nSortedPropertiesCount, [ ](const auto& leftProperty, const auto& rightProperty) { return leftProperty.iOffset < rightProperty.iOffset; });
+	//std::partial_sort_copy(pRecvTable->vecProps, pRecvTable->vecProps + pRecvTable->nPropCount, vecPropsSorted, vecPropsSorted + pRecvTable->nPropCount, [ ](const auto& leftProperty, const auto& rightProperty) { return leftProperty.iOffset < rightProperty.iOffset; });
 
-	for (int i = 0; i < nSortedPropertiesCount; i++)
+	// go through sorted properties, except base class and format them to file
+	for (int i = static_cast<int>(bHasBaseClass); i < nSortedPropertiesCount; i++)
 	{
 		const RecvProp_t* pCurrentProp = &vecPropsSorted[i];
-
-		// skip baseclass table
-		if (CRT::StringCompare(pCurrentProp->szVarName, "baseclass") == 0)
-			continue;
-
 		const std::uintptr_t uOffset = static_cast<std::uintptr_t>(pCurrentProp->iOffset);
 
 		// check if the property is a child data table
@@ -201,9 +205,6 @@ bool NETVAR::Setup()
 		const RecvTable_t* pRecvTable = pClass->pRecvTable;
 		StoreTableProperties(pRecvTable, FNV1A::Hash(pRecvTable->szNetTableName));
 	}
-
-	// deallocate over-reserved memory
-	vecProperties.shrink_to_fit();
 
 	// sort grabbed variables to use faster binary search later
 	std::ranges::sort(vecProperties, std::ranges::less{ }, &PropertyObject_t::uHash);
