@@ -22,7 +22,7 @@ it was designed to:
 	- other, movement, fake-lag, etc.
 * game's console/networkable variables dumper with formatting.
 * extensive library for working with memory, with fast pattern search, virtual method tables search based on RTTI, etc.
-* fast, feature rich configuration manager, with automatic version adaptation algorithm, easist user type registration, single variables load/save/remove and so on. you can select one of customizable formatters. see [extensions][#zap-extensions].
+* fast, feature rich configuration manager, with automatic version adaptation algorithm, easist user type registration, single variables load/save/remove and so on. you can select one of customizable formatters. see [extensions](#zap-extensions).
 * safe function hooking and return address spoofer of game's methods calls.
 * easy to use, STL-stream like file/console logging system.
 
