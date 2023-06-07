@@ -18,9 +18,9 @@
 #pragma region config_definitions
 #define C_ADD_VARIABLE(TYPE, NAME, DEFAULT) const std::size_t NAME = C::AddVariable<TYPE>(FNV1A::HashConst(#NAME), FNV1A::HashConst(#TYPE), DEFAULT);
 
-#define C_ADD_VARIABLE_ARRAY(TYPE, SIZE, NAME, ...) const std::size_t NAME = C::AddVariableArray<TYPE[SIZE]>(FNV1A::HashConst(#NAME), FNV1A::HashConst(#TYPE "[]"), __VA_ARGS__);
+#define C_ADD_VARIABLE_ARRAY(TYPE, SIZE, NAME, DEFAULT) const std::size_t NAME = C::AddVariableArray<TYPE[SIZE]>(FNV1A::HashConst(#NAME), FNV1A::HashConst(#TYPE "[]"), DEFAULT);
 
-#define C_ADD_VARIABLE_ARRAY_ARRAY(TYPE, SIZE, SUBSIZE, NAME, ...) const std::size_t NAME = C::AddVariableArray<TYPE[SIZE][SUBSIZE]>(FNV1A::HashConst(#NAME), FNV1A::HashConst(#TYPE "[][]"), __VA_ARGS__);
+#define C_ADD_VARIABLE_ARRAY_ARRAY(TYPE, SIZE, SUBSIZE, NAME, DEFAULT) const std::size_t NAME = C::AddVariableArray<TYPE[SIZE][SUBSIZE]>(FNV1A::HashConst(#NAME), FNV1A::HashConst(#TYPE "[][]"), DEFAULT);
 
 #define C_INVALID_VARIABLE static_cast<std::size_t>(-1)
 #pragma endregion
