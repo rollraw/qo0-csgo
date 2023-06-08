@@ -15,10 +15,8 @@ class CEventListener final : public IGameEventListener2
 public:
 	void FireGameEvent(IGameEvent* pEvent) override
 	{
-		const FNV1A_t uEventHash = FNV1A::Hash(pEvent->GetName());
-
-		// process all features callbacks
-		F::OnEvent(uEventHash, *pEvent);
+		// process callbacks of the all features
+		F::OnEvent(*pEvent);
 	}
 
 	int GetEventDebugID() override
