@@ -77,8 +77,8 @@ if (iName < 0 || iName > 0)
 	2\. specify number data type with *UPPERCASE* (except float, with *lowercase*) type literal.
 	```cpp
 	unsigned int uName = 0U;
-	long lName = 0LL;
-	long long llName = 0L;
+	long lName = 0L;
+	long long llName = 0LL;
 	long double ldName = 0.0L;
 	float flName = 0.0f;
 	```
@@ -173,7 +173,9 @@ auto Name = [ ](int& nNameCount)
 5. must be placed after comma and colon, except conditions when new line must be placed instead.
 ```cpp
 int iName = 0, iSecondName = 0;
-class CDerived : CBase, IBase { };
+
+class CDerived : IBase { };
+
 Name_t(const int iName) :
 	iName(iName) { }
 ```
@@ -377,8 +379,9 @@ enum EName : int { };
 ```
 ### namespace
 1. if the namespace is part of a particular module, then it must be named by at least one letter of the module name.
+
+<sub>font.h</sub>
 ```cpp
-'font.h'
 namespace F;
 ```
 ### macro
@@ -387,8 +390,9 @@ namespace F;
 #define Q_NAME
 ```
 2. if the macro is defined in a particular module/header, then it must be prefixed with at least one letter of the module/header name.
+
+<sub>math.h</sub>
 ```cpp
-'math.h'
 #define M_NAME
 ```
 3. arguments must be written in *UPPER_SNAKE_CASE*.
