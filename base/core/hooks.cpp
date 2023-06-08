@@ -80,10 +80,6 @@ bool H::Setup()
 	if (!hkSendDatagram.Create(MEM::GetVFunc(pCNetChannelVTable, VTABLE::NETCHANNEL::SENDDATAGRAM), reinterpret_cast<void*>(&SendDatagram)))
 		return false;
 
-	// @note: instead it could be done by hooking both 'FireEvent()' and 'FireEventClientSide()' from the vtable
-	if (!hkFireEventIntern.Create(MEM::FindPattern(ENGINE_DLL, Q_XOR("55 8B EC 83 E4 F8 83 EC 0C 8B C1 53 56")), reinterpret_cast<void*>(&FireEventIntern))) // @xref: "Game event \"%s\", Tick %i:\n"
-		return false;
-
 	if (!hkRunCommand.Create(MEM::GetVFunc(I::Prediction, VTABLE::PREDICTION::RUNCOMMAND), reinterpret_cast<void*>(&RunCommand)))
 		return false;
 
@@ -336,6 +332,11 @@ int Q_FASTCALL H::ListLeavesInBox(void* thisptr, int edx, const Vector_t& vecMin
 // call hierarchy: [engine.dll] ... -> CNetChan::SendNetMsg()
 bool Q_FASTCALL H::SendNetMsg(INetChannel* thisptr, int edx, INetMessage& message, bool bForceReliable, bool bVoice)
 {
+	// @todo: just exclude our listened events from mask instead of preventing sending it at all, otherwise other things like killfeed etc (whatever events client uses) will not work
+	// @note: exclude listened events that are not used by the client from the message to the server, to bypass SMAC detection
+	//if (message.GetType() == 12 /* CCLCMsg_ListenEvents */)
+	//	return false;
+
 	return hkSendNetMsg.CallOriginal<bool>(thisptr, edx, &message, bForceReliable, bVoice);
 }
 
@@ -353,15 +354,6 @@ int Q_FASTCALL H::SendDatagram(INetChannel* thisptr, int edx, CBitWrite* pDatagr
 	F::OnPostSendDatagram(thisptr, stack);
 
 	return iReturn;
-}
-
-// call hierarchy: [engine.dll, client.dll, server.dll] ... -> [engine.dll] CGameEventManager::FireEvent() / CGameEventManager::FireEventClientSide() -> CGameEventManager::FireEventIntern()
-bool Q_FASTCALL H::FireEventIntern(IGameEventManager2* thisptr, int edx, IGameEvent* pEvent, bool bServerOnly, bool bClientOnly)
-{
-	// process event callbacks of the all features
-	F::OnEvent(pEvent);
-
-	return hkFireEventIntern.CallOriginal<bool>(thisptr, edx, pEvent, bServerOnly, bClientOnly);
 }
 
 // call hierarchy: [engine.dll] ... -> CL_RunPrediction() -> CL_Predict() -> [client.dll] ... -> CPrediction::RunSimulation() -> C_BasePlayer::PhysicsSimulate() -> CPrediction::RunCommand()

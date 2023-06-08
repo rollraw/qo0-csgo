@@ -128,6 +128,9 @@
     <ClInclude Include="core\entitylistener.h">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="core\eventlistener.h">
+      <Filter>core</Filter>
+    </ClInclude>
     <ClInclude Include="core\hooks.h">
       <Filter>core</Filter>
     </ClInclude>
@@ -534,6 +537,9 @@
       <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="core\entitylistener.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="core\eventlistener.cpp">
       <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="core\hooks.cpp">

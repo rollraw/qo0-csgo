@@ -22,7 +22,7 @@ namespace F::VISUAL::SCREEN
 
 	/* @section: callbacks */
 	void OnDraw(CCSPlayer* pLocal);
-	void OnEvent(const FNV1A_t uEventHash, IGameEvent* pEvent);
+	void OnEvent(const FNV1A_t uEventHash, IGameEvent& gameEvent);
 
 	/* @section: main */
 	// override the camera field of view

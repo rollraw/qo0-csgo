@@ -47,6 +47,7 @@ target_sources("csgo" PRIVATE
 		"base/core/config.cpp"
 		"base/core/convar.cpp"
 		"base/core/entitylistener.cpp"
+		"base/core/eventlistener.cpp"
 		"base/core/hooks.cpp"
 		"base/core/interfaces.cpp"
 		"base/core/menu.cpp"

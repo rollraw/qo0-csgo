@@ -253,11 +253,11 @@ void F::OnPostCalcView(CCSPlayer* pPlayer, CalcViewStack_t& stack)
 	VISUAL::OnPostCalcView(pPlayer, &stack.angOldViewPunch, &stack.angOldAimPunch);
 }
 
-void F::OnEvent(IGameEvent* pEvent)
+void F::OnEvent(const FNV1A_t uEventHash, IGameEvent& gameEvent)
 {
-	const FNV1A_t uEventHash = FNV1A::Hash(pEvent->GetName());
+	const FNV1A_t uEventHash = FNV1A::Hash(gameEvent.GetName());
 
-	VISUAL::OnEvent(uEventHash, pEvent);
+	VISUAL::OnEvent(uEventHash, gameEvent);
 }
 
 void F::OnPlayerCreated(CCSPlayer* pPlayer)

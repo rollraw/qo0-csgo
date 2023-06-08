@@ -144,6 +144,7 @@
     <ClInclude Include="core\config.h" />
     <ClInclude Include="core\convar.h" />
     <ClInclude Include="core\entitylistener.h" />
+    <ClInclude Include="core\eventlistener.h" />
     <ClInclude Include="core\hooks.h" />
     <ClInclude Include="core\interfaces.h" />
     <ClInclude Include="core\menu.h" />
@@ -284,6 +285,7 @@
     <ClCompile Include="core\config.cpp" />
     <ClCompile Include="core\convar.cpp" />
     <ClCompile Include="core\entitylistener.cpp" />
+    <ClCompile Include="core\eventlistener.cpp" />
     <ClCompile Include="core\hooks.cpp" />
     <ClCompile Include="core\interfaces.cpp" />
     <ClCompile Include="core\menu.cpp" />

@@ -24,6 +24,8 @@
 #include "core/hooks.h"
 // used: proxies setup/destroy
 #include "core/proxies.h"
+// used: eventlistener setup/destroy
+#include "core/eventlistener.h"
 // used: entitylistener setup/destroy
 #include "core/entitylistener.h"
 // used: features setup
@@ -117,6 +119,14 @@ static bool Setup(HMODULE hModule)
 	}
 	L_PRINT(LOG_NONE) << Q_XOR("input system initialization completed");
 
+	// start tracking events
+	if (!EVENT::Setup())
+	{
+		L_PRINT(LOG_ERROR) << Q_XOR("failed to register one or more events to listener");
+		return false;
+	}
+	L_PRINT(LOG_NONE) << Q_XOR("event listener initialization completed");
+
 	// start tracking entities
 	ENTITY::Setup();
 	L_PRINT(LOG_NONE) << Q_XOR("entity listener initialization completed");
@@ -170,6 +180,9 @@ static void Destroy()
 
 	// destroy entity listener
 	ENTITY::Destroy();
+
+	// destroy event listener
+	EVENT::Destroy();
 
 	// destroy render
 	D::Destroy();

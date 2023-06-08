@@ -16,7 +16,6 @@ enum EClientFrameStage : int;
 class CViewSetup;
 class INetChannel;
 class INetMessage;
-class IGameEvent;
 struct DrawModelInfo_t;
 struct DrawModelResults_t;
 class CCSGOPlayerAnimState;
@@ -194,7 +193,6 @@ namespace H
 	int Q_FASTCALL ListLeavesInBox(void* thisptr, int edx, const Vector_t& vecMins, const Vector_t& vecMaxs, unsigned short* puList, int nListMax);
 	bool Q_FASTCALL SendNetMsg(INetChannel* thisptr, int edx, INetMessage& message, bool bForceReliable, bool bVoice);
 	int Q_FASTCALL SendDatagram(INetChannel* thisptr, int edx, CBitWrite* pDatagram);
-	bool Q_FASTCALL FireEventIntern(IGameEventManager2* thisptr, int edx, IGameEvent* pEvent, bool bServerOnly, bool bClientOnly);
 	void Q_FASTCALL RunCommand(IPrediction* thisptr, int edx, CBasePlayer* pPlayer, CUserCmd* pCmd, IMoveHelper* pMoveHelper);
 	void Q_FASTCALL LockCursor(ISurface* thisptr, int edx);
 	void Q_FASTCALL CAM_ToFirstPerson(IInput* thisptr, int edx);
@@ -231,7 +229,6 @@ namespace H
 	inline CHookObject<ROP::ClientGadget_t> hkRetrieveMessage = { };
 	inline CHookObject<ROP::EngineGadget_t> hkSendNetMsg = { };
 	inline CHookObject<ROP::EngineGadget_t> hkSendDatagram = { };
-	inline CHookObject<ROP::EngineGadget_t> hkFireEventIntern = { };
 	inline CHookObject<ROP::ClientGadget_t> hkModifyEyePosition = { };
 	inline CHookObject<ROP::ClientGadget_t> hkSetupBones = { };
 	inline CHookObject<ROP::ClientGadget_t> hkFireBullet = { };

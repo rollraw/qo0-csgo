@@ -152,8 +152,8 @@ void VISUAL::OnDoPostScreenSpaceEffects()
 	GLOW::OnDoPostScreenSpaceEffects(pLocal);
 }
 
-void VISUAL::OnEvent(const FNV1A_t uEventHash, IGameEvent* pEvent)
+void VISUAL::OnEvent(const FNV1A_t uEventHash, IGameEvent& gameEvent)
 {
-	SCREEN::OnEvent(uEventHash, pEvent);
+	SCREEN::OnEvent(uEventHash, gameEvent);
 }
 #pragma endregion
