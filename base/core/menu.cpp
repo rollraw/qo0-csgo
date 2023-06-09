@@ -709,15 +709,27 @@ void T::Miscellaneous()
 				ImGui::EndMenuBar();
 			}
 
-			const char* szColorNames[IM_ARRAYSIZE(arrColors)];
-			for (int i = 0; i < IM_ARRAYSIZE(arrColors); i++)
-				szColorNames[i] = arrColors[i].first;
-
-			ImGui::Spacing();
 			ImGui::PushItemWidth(-1);
+			static char szColorFilter[128] = { };
+			ImGui::InputTextWithHint(Q_XOR("##colors.filter"), Q_XOR("search..."), szColorFilter, Q_ARRAYSIZE(szColorFilter));
 
-			ImGui::ListBox(Q_XOR("##colors.select"), &iSelectedColor, szColorNames, IM_ARRAYSIZE(arrColors), 4);
-			ImGui::ColorEdit4(Q_XOR("##colors.picker"), &C::Get<Color_t>(arrColors[iSelectedColor].second), ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf);
+			if (ImGui::ListBoxHeader(Q_XOR("##colors.select"), ImVec2(-1.0f, ImGui::GetContentRegionAvail().y - style.ItemSpacing.y - ImGui::GetFrameHeight())))
+			{
+				for (std::size_t i = 0U; i < Q_ARRAYSIZE(arrColors); i++)
+				{
+					const char* szColorName = arrColors[i].first;
+
+					if (*szColorFilter != '\0' && CRT::StringStringI(szColorName, szColorFilter) == nullptr)
+						continue;
+
+					if (ImGui::Selectable(szColorName, (i == nSelectedColor)))
+						nSelectedColor = i;
+				}
+
+				ImGui::ListBoxFooter();
+			}
+
+			ImGui::ColorEdit4(Q_XOR("##colors.picker"), &C::Get<Color_t>(arrColors[nSelectedColor].second), ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf);
 			ImGui::PopItemWidth();
 
 			ImGui::EndChild();

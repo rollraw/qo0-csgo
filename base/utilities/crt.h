@@ -611,6 +611,28 @@ namespace CRT
 		return nullptr;
 	}
 
+	/// case-insensitive search for one string inside another, alternative of 'strcasestr()'
+	/// @remarks: finds the first occurrence of @a'szSearch' in @a'szSource'. the search does not include terminating null character, performs unsigned character comparison
+	/// @returns: pointer to the first found occurrence of @a'szSearch' substring in @a'szSource' on success, null otherwise
+	constexpr char* StringStringI(const char* szSource, const char* szSearch)
+	{
+		while (*szSource != '\0')
+		{
+			while (*szSearch != '\0' && CharToLower(static_cast<std::uint8_t>(*szSource)) == CharToLower(static_cast<std::uint8_t>(*szSearch)))
+			{
+				++szSource;
+				++szSearch;
+			}
+
+			if (*szSearch == '\0')
+				return const_cast<char*>(szSource);
+
+			++szSource;
+		}
+
+		return nullptr;
+	}
+
 	/// copy a one string to another, alternative of 'stpcpy()', 'wcpcpy()'
 	/// @remarks: copies @a'szSource', including the terminating null character, to the location that's specified by @a'szDestination'. the behavior is undefined if the source and destination strings overlap
 	/// @returns: pointer to the terminating null in @a'tszDestination'
