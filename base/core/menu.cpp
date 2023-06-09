@@ -145,10 +145,9 @@ void MENU::MainWindow(IDirect3DDevice9* pDevice)
 
 	if (bMainOpened)
 	{
-		ImGui::SetNextWindowPos(ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y * 0.5f), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
-		ImGui::SetNextWindowSize(ImVec2(500, 327), ImGuiCond_FirstUseEver);
-		ImGui::SetNextWindowSizeConstraints(ImVec2(500, 327), ImVec2(1000, 327*2));
-		ImGui::Begin(Q_XOR("qo0 base"), &bMainOpened, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse);
+		ImGui::SetNextWindowPos(ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y * 0.5f), ImGuiCond_Once, ImVec2(0.5f, 0.5f));
+		ImGui::SetNextWindowSize(ImVec2(500, 327), ImGuiCond_Always);
+		ImGui::Begin(Q_XOR("qo0 base"), &bMainOpened, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse);
 		{
 			const ImVec2 vecPosition = ImGui::GetCursorScreenPos();
 			const float flWindowWidth = ImGui::GetWindowWidth();
@@ -710,28 +709,29 @@ void T::Miscellaneous()
 				ImGui::EndMenuBar();
 			}
 
-			ImGui::Spacing();
 			ImGui::PushItemWidth(-1);
-			
-			const int nColorsCount = IM_ARRAYSIZE(arrColors);
-			static ImGuiTextFilter filter;
-			filter.Draw(Q_XOR("##colors.filter"));
-			ImGui::ColorEdit4(Q_XOR("##colors.picker"), &C::Get<Color_t>(arrColors[iSelectedColor].second), ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf);
-			if (ImGui::ListBoxHeader(Q_XOR("##colors.select"), ImVec2(-1, ImGui::GetContentRegionAvail( ).y)))
+			static char szColorFilter[128] = { };
+			ImGui::InputTextWithHint(Q_XOR("##colors.filter"), Q_XOR("search..."), szColorFilter, Q_ARRAYSIZE(szColorFilter));
+
+			if (ImGui::ListBoxHeader(Q_XOR("##colors.select"), ImVec2(-1.0f, ImGui::GetContentRegionAvail().y - style.ItemSpacing.y - ImGui::GetFrameHeight())))
 			{
-				for (std::size_t i = 0U; i < nColorsCount; i++)
+				for (std::size_t i = 0U; i < Q_ARRAYSIZE(arrColors); i++)
 				{
-					if (filter.PassFilter(arrColors[i].first))
-					{
-						if (ImGui::Selectable(arrColors[i].first, (i == iSelectedColor)))
-							iSelectedColor = i;
-					}
+					const char* szColorName = arrColors[i].first;
+
+					if (*szColorFilter != '\0' && CRT::StringStringI(szColorName, szColorFilter) == nullptr)
+						continue;
+
+					if (ImGui::Selectable(szColorName, (i == nSelectedColor)))
+						nSelectedColor = i;
 				}
 
 				ImGui::ListBoxFooter();
 			}
 
+			ImGui::ColorEdit4(Q_XOR("##colors.picker"), &C::Get<Color_t>(arrColors[nSelectedColor].second), ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_AlphaPreviewHalf);
 			ImGui::PopItemWidth();
+
 			ImGui::EndChild();
 		}
 	}

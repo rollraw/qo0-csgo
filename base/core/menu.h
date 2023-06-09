@@ -54,5 +54,5 @@ namespace T
 	// current selected configuration in miscellaneous tab
 	inline std::size_t nSelectedConfig = 0U;
 	// current selected color setting in miscellaneous tab
-	inline int iSelectedColor = 0;
+	inline std::size_t nSelectedColor = 0U;
 }
