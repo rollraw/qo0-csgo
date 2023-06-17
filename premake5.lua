@@ -60,8 +60,8 @@ workspace "base"
 		implibname "$(OutDir)$(TargetName)"
 
 		-- link
-		includedirs { "$(SolutionDir)dependencies", "$(SolutionDir)dependencies/freetype/include", "$(DXSDK_DIR)Include", "$(IncludePath)" }
-		libdirs { "$(SolutionDir)dependencies/freetype/win32", "$(DXSDK_DIR)Lib/x86" }
+		includedirs { "$(SolutionDir)dependencies", "$(SolutionDir)dependencies/freetype/include" }
+		libdirs { "$(SolutionDir)dependencies/freetype/win32" }
 		links { "d3d9.lib" }
 		flags { "MultiProcessorCompile", "NoImportLib", "NoManifest", "NoPCH" } -- @test: NoImplicitLink
 
