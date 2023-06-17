@@ -7,7 +7,7 @@ namespace C::BIN
 	/* @section: [internal] */
 	/// write single variable to the buffer
 	/// @returns: number of written bytes
-	inline std::size_t WriteBuffer(std::uint8_t* pBuffer, const VariableObject_t& variable)
+	inline std::size_t WriteBuffer(std::uint8_t* pBuffer, VariableObject_t& variable)
 	{
 		std::uint8_t* pBufferCurrent = pBuffer;
 
@@ -266,7 +266,7 @@ namespace C::BIN
 	}
 
 	/* @section: main */
-	inline bool SaveVariable(const wchar_t* wszFilePath, const VariableObject_t& variable)
+	inline bool SaveVariable(const wchar_t* wszFilePath, VariableObject_t& variable)
 	{
 		const HANDLE hFileInOut = ::CreateFileW(wszFilePath, GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (hFileInOut == INVALID_HANDLE_VALUE)
@@ -434,7 +434,7 @@ namespace C::BIN
 		if (hFileOut == INVALID_HANDLE_VALUE)
 			return false;
 
-		const VariableObject_t version = { FNV1A::HashConst("version"), FNV1A::HashConst("int"), sizeof(int), Q_VERSION };
+		VariableObject_t version = { FNV1A::HashConst("version"), FNV1A::HashConst("int"), sizeof(int), Q_VERSION };
 
 		// pre-calculate buffer size for all variables to avoid reallocation
 		std::size_t nBufferSize = sizeof(FNV1A_t[2]) + version.GetSerializationSize();

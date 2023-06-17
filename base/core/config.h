@@ -186,39 +186,6 @@ namespace C
 			return static_cast<T*>(this->storage.pHeap);
 		}
 
-		/// @tparam bTypeSafe if true, activates additional comparison of source and requested type information, requires RTTI
-		/// @returns: pointer to the value storage, null if @a'bTypeSafe' is active and the access type does not match the variable type
-		template <typename T, bool bTypeSafe = true> requires (!std::is_void_v<T>)
-		[[nodiscard]] const T* GetStorage() const
-		{
-		#ifndef Q_NO_RTTI
-			// sanity check of stored value type and asked value type
-			if constexpr (bTypeSafe)
-			{
-				if (const std::type_info& currentTypeInfo = typeid(std::remove_const_t<T>); this->pTypeInfo != nullptr && CRT::StringCompare(this->pTypeInfo->raw_name(), currentTypeInfo.raw_name()) != 0)
-				{
-					if (char szPresentTypeName[64] = { }, szAccessTypeName[64] = { };
-						MEM::fnUnDecorateSymbolName(this->pTypeInfo->raw_name() + 1U, szPresentTypeName, sizeof(szPresentTypeName), UNDNAME_NO_ARGUMENTS) != 0UL &&
-						MEM::fnUnDecorateSymbolName(currentTypeInfo.raw_name() + 1U, szAccessTypeName, sizeof(szAccessTypeName), UNDNAME_NO_ARGUMENTS) != 0UL)
-					{
-						L_PRINT(LOG_ERROR) << Q_XOR("accessing variable of type: \"") << szPresentTypeName << Q_XOR("\" with wrong type: \"") << szAccessTypeName << Q_XOR("\"");
-					}
-
-					Q_ASSERT(false); // storage value and asked data type mismatch
-					return nullptr;
-				}
-			}
-		#endif
-
-			// check is value stored in the local storage
-			if (nStorageSize <= sizeof(this->storage.uLocal))
-				return reinterpret_cast<const T*>(&this->storage.uLocal);
-
-			// otherwise it is allocated in the heap memory
-			Q_ASSERT(this->storage.pHeap != nullptr); // storage is not allocated for some reason
-			return static_cast<const T*>(this->storage.pHeap);
-		}
-
 		// @todo: rework and base on type erasure principe cus we dont really need type safety at this point, this will let us to get rid of templates on this and ctor in future, and merge implementation to .cpp | done, now do the smth similar with ctor
 		// overwrite variable data storage
 		void SetStorage(const void* pValue)
@@ -306,7 +273,7 @@ namespace C
 	void AddUserType(const FNV1A_t uTypeHash, std::initializer_list<UserDataMember_t> vecUserMembers);
 	/// write/re-write single variable to existing configuration file
 	/// @returns: true if variable has been found or created and successfully written, false otherwise
-	bool SaveFileVariable(const std::size_t nFileIndex, const VariableObject_t& variable);
+	bool SaveFileVariable(const std::size_t nFileIndex, VariableObject_t& variable);
 	/// read single variable from existing configuration file
 	/// @remarks: when the version of cheat is greater than version of the configuration file and @a'variable' wasn't found, this function saves it and updates the version to the current one, note that it doesn't affect to return value
 	/// @returns: true if variable has been found and successfully read, false otherwise

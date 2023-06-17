@@ -8,7 +8,7 @@ namespace C::JSON
 {
 	/* @section: [internal] */
 	// write single variable to buffer
-	inline void WriteBuffer(nlohmann::json& entry, const VariableObject_t& variable)
+	inline void WriteBuffer(nlohmann::json& entry, VariableObject_t& variable)
 	{
 		// write is different for variable types
 		switch (variable.uTypeHash)
@@ -299,7 +299,7 @@ namespace C::JSON
 	}
 
 	/* @section: main */
-	inline bool SaveVariable(const wchar_t* wszFilePath, const VariableObject_t& variable)
+	inline bool SaveVariable(const wchar_t* wszFilePath, VariableObject_t& variable)
 	{
 		const HANDLE hFileOut = ::CreateFileW(wszFilePath, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (hFileOut == INVALID_HANDLE_VALUE)
