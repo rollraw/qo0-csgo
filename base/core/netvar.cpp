@@ -33,10 +33,10 @@ static std::size_t nTablesCount = 0U;
 static void StoreTableProperties(const RecvTable_t* pRecvTable, const FNV1A_t uTableHash)
 {
 	// get the count of already stored properties
-	const std::size_t nPropertiesCount = vecProperties.size();
+	const std::size_t nLastPropertiesCount = vecProperties.size();
 
-	// reserve memory for the all table properties
-	vecProperties.resize(nPropertiesCount + pRecvTable->nPropCount);
+	// reserve memory for the all properties of the current table
+	vecProperties.resize(nLastPropertiesCount + pRecvTable->nPropCount);
 
 	const FNV1A_t uDelimiterHash = FNV1A::Hash(Q_XOR("::"), uTableHash);
 	const FNV1A_t uBaseClassHash = FNV1A::Hash(Q_XOR("baseclass"), uDelimiterHash);
@@ -65,7 +65,7 @@ static void StoreTableProperties(const RecvTable_t* pRecvTable, const FNV1A_t uT
 			// @todo: the way valve doing this is fucking dumb, and even isn't same as for send tables @source: master/engine/dt.h#L469-471
 		}
 
-		vecProperties[nPropertiesCount + i] = PropertyObject_t{ uVariableHash, pCurrentProp, uOffset };
+		vecProperties[nLastPropertiesCount + i] = PropertyObject_t{ uVariableHash, pCurrentProp, uOffset };
 	}
 
 	// count total stored tables
