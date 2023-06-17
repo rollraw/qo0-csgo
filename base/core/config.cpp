@@ -57,12 +57,12 @@ bool C::Setup(const wchar_t* wszDefaultFileName)
 			UserDataMember_t{ FNV1A::HashConst("nMode"), FNV1A::HashConst("int"), &KeyBind_t::nMode }
 		});
 
-	// store existing configurations list
-	Refresh();
-
 	// create default configuration
 	if (!CreateFile(wszDefaultFileName))
 		return false;
+
+	// store existing configurations list
+	Refresh();
 
 	return true;
 }
@@ -109,7 +109,7 @@ void C::AddUserType(const FNV1A_t uTypeHash, const std::initializer_list<UserDat
 	vecUserTypes.emplace_back(CRT::Move(userDataType));
 }
 
-bool C::SaveFileVariable(const std::size_t nFileIndex, const VariableObject_t& variable)
+bool C::SaveFileVariable(const std::size_t nFileIndex, VariableObject_t& variable)
 {
 	const wchar_t* wszFileName = vecFileNames[nFileIndex];
 
