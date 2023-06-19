@@ -109,7 +109,7 @@ void C::AddUserType(const FNV1A_t uTypeHash, const std::initializer_list<UserDat
 	vecUserTypes.emplace_back(CRT::Move(userDataType));
 }
 
-bool C::SaveFileVariable(const std::size_t nFileIndex, VariableObject_t& variable)
+bool C::SaveFileVariable(const std::size_t nFileIndex, const VariableObject_t& variable)
 {
 	const wchar_t* wszFileName = vecFileNames[nFileIndex];
 

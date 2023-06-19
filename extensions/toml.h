@@ -8,7 +8,7 @@ namespace C::TOML
 {
 	/* @section: [internal] */
 	// write single variable to buffer
-	inline void WriteBuffer(toml::value& entry, VariableObject_t& variable)
+	inline void WriteBuffer(toml::value& entry, const VariableObject_t& variable)
 	{
 		// write is different for variable types
 		switch (variable.uTypeHash)
@@ -227,7 +227,7 @@ namespace C::TOML
 	}
 
 	/* @section: main */
-	inline bool SaveVariable(const wchar_t* wszFilePath, VariableObject_t& variable)
+	inline bool SaveVariable(const wchar_t* wszFilePath, const VariableObject_t& variable)
 	{
 		const HANDLE hFileOut = ::CreateFileW(wszFilePath, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (hFileOut == INVALID_HANDLE_VALUE)

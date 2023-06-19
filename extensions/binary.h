@@ -7,7 +7,7 @@ namespace C::BIN
 	/* @section: [internal] */
 	/// write single variable to the buffer
 	/// @returns: number of written bytes
-	inline std::size_t WriteBuffer(std::uint8_t* pBuffer, VariableObject_t& variable)
+	inline std::size_t WriteBuffer(std::uint8_t* pBuffer, const VariableObject_t& variable)
 	{
 		std::uint8_t* pBufferCurrent = pBuffer;
 
@@ -20,38 +20,13 @@ namespace C::BIN
 		switch (variable.uTypeHash)
 		{
 		case FNV1A::HashConst("bool"):
-		{
-			*reinterpret_cast<bool*>(pBufferCurrent) = *variable.GetStorage<bool>();
-			pBufferCurrent += sizeof(bool);
-			break;
-		}
 		case FNV1A::HashConst("int"):
-		{
-			*reinterpret_cast<int*>(pBufferCurrent) = *variable.GetStorage<int>();
-			pBufferCurrent += sizeof(int);
-			break;
-		}
 		case FNV1A::HashConst("unsigned int"):
-		{
-			*reinterpret_cast<unsigned int*>(pBufferCurrent) = *variable.GetStorage<unsigned int>();
-			pBufferCurrent += sizeof(unsigned int);
-			break;
-		}
 		case FNV1A::HashConst("float"):
-		{
-			*reinterpret_cast<float*>(pBufferCurrent) = *variable.GetStorage<float>();
-			pBufferCurrent += sizeof(float);
-			break;
-		}
 		case FNV1A::HashConst("Color_t"):
-		{
-			*reinterpret_cast<Color_t*>(pBufferCurrent) = *variable.GetStorage<Color_t>();
-			pBufferCurrent += sizeof(Color_t);
-			break;
-		}
 		case FNV1A::HashConst("char[]"):
 		{
-			CRT::MemoryCopy(pBufferCurrent, variable.GetStorage<const char, false>(), variable.nStorageSize);
+			CRT::MemoryCopy(pBufferCurrent, variable.GetStorage<const std::uint8_t, false>(), variable.nStorageSize);
 			pBufferCurrent += variable.nStorageSize;
 			break;
 		}
@@ -72,7 +47,7 @@ namespace C::BIN
 		}
 		default:
 		{
-			bool bFoundUserType = true;
+			[[maybe_unused]] bool bFoundUserType = false;
 			const std::uint8_t* pVariableStorage = variable.GetStorage<const std::uint8_t, false>();
 
 			// lookup for user-defined data type
@@ -128,39 +103,15 @@ namespace C::BIN
 
 		switch (variable.uTypeHash)
 		{
+		case FNV1A::HashConst("char[]"):
+			Q_ASSERT((CRT::StringLength(reinterpret_cast<const char*>(pBufferCurrent)) + 1U) * sizeof(char) <= variable.nStorageSize); // string length mismatched
+			[[fallthrough]];
 		case FNV1A::HashConst("bool"):
-		{
-			variable.SetStorage(pBufferCurrent);
-			pBufferCurrent += sizeof(bool);
-			break;
-		}
 		case FNV1A::HashConst("int"):
-		{
-			variable.SetStorage(pBufferCurrent);
-			pBufferCurrent += sizeof(int);
-			break;
-		}
 		case FNV1A::HashConst("unsigned int"):
-		{
-			variable.SetStorage(pBufferCurrent);
-			pBufferCurrent += sizeof(unsigned int);
-			break;
-		}
 		case FNV1A::HashConst("float"):
-		{
-			variable.SetStorage(pBufferCurrent);
-			pBufferCurrent += sizeof(float);
-			break;
-		}
 		case FNV1A::HashConst("Color_t"):
 		{
-			variable.SetStorage(pBufferCurrent);
-			pBufferCurrent += sizeof(Color_t);
-			break;
-		}
-		case FNV1A::HashConst("char[]"):
-		{
-			Q_ASSERT((CRT::StringLength(reinterpret_cast<const char*>(pBufferCurrent)) + 1U) * sizeof(char) <= variable.nStorageSize); // string length mismatched
 			variable.SetStorage(pBufferCurrent);
 			pBufferCurrent += variable.nStorageSize;
 			break;
@@ -183,7 +134,7 @@ namespace C::BIN
 		}
 		default:
 		{
-			bool bFoundUserType = true;
+			[[maybe_unused]] bool bFoundUserType = false;
 			std::uint8_t* pVariableStorage = variable.GetStorage<std::uint8_t, false>();
 
 			// lookup for user-defined data type
@@ -266,7 +217,7 @@ namespace C::BIN
 	}
 
 	/* @section: main */
-	inline bool SaveVariable(const wchar_t* wszFilePath, VariableObject_t& variable)
+	inline bool SaveVariable(const wchar_t* wszFilePath, const VariableObject_t& variable)
 	{
 		const HANDLE hFileInOut = ::CreateFileW(wszFilePath, GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (hFileInOut == INVALID_HANDLE_VALUE)
