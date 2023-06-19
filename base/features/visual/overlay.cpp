@@ -92,11 +92,22 @@ void OVERLAY::CBarComponent::Render(const ImVec2& vecPosition)
 }
 
 OVERLAY::CTextComponent::CTextComponent(const EAlignSide nAlignSide, const EAlignDirection nAlignDirection, const ImFont* pFont, const float flFontSize, const char* szText, const Color_t& colPrimary, const float flOutlineThickness, const Color_t& colOutline) :
-	pFont(pFont), flFontSize(flFontSize), szText(szText), colPrimary(colPrimary), flOutlineThickness(std::floorf(flOutlineThickness)), colOutline(colOutline)
+	pFont(pFont), flFontSize(flFontSize), colPrimary(colPrimary), flOutlineThickness(std::floorf(flOutlineThickness)), colOutline(colOutline)
 {
+	// allocate own buffer to safely store a copy of the string
+	char* szTextCopy = static_cast<char*>(MEM::HeapAlloc(CRT::StringLength(szText) + 1U));
+	CRT::StringCopy(szTextCopy, szText);
+	this->szText = szTextCopy;
+
 	this->nSide = nAlignSide;
 	this->nDirection = nAlignDirection;
 	this->vecSize = pFont->CalcTextSizeA(flFontSize, FLT_MAX, 0.0f, szText) + flOutlineThickness;
+}
+
+OVERLAY::CTextComponent::~CTextComponent()
+{
+	// deallocate buffer of the copied string
+	MEM::HeapFree(this->szText);
 }
 
 void OVERLAY::CTextComponent::Render(const ImVec2& vecPosition)
@@ -593,6 +604,7 @@ void OVERLAY::Player(CCSPlayer* pLocal, CCSPlayer* pPlayer, const float flDistan
 
 	if (C::Get<bool>(Vars.bVisualOverlayPlayerName))
 	{
+		// @test: possible UB caused by using stack allocated buffer | check similar places for same shit
 		// get player name
 		char szNameBuffer[32];
 		const char* szNameEnd = CRT::StringCopyN(szNameBuffer, playerInfo.szName, sizeof(szNameBuffer));

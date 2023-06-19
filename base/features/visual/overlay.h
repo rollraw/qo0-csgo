@@ -66,6 +66,7 @@ namespace F::VISUAL::OVERLAY
 
 		void Render(const ImVec2& vecPosition) override;
 
+	private:
 		float flProgressFactor;
 		float flThickness;
 		const Color_t& colPrimary;
@@ -78,12 +79,14 @@ namespace F::VISUAL::OVERLAY
 	{
 	public:
 		CTextComponent(const EAlignSide nAlignSide, const EAlignDirection nAlignDirection, const ImFont* pFont, const float flFontSize, const char* szText, const Color_t& colPrimary, const float flOutlineThickness = 0.0f, const Color_t& colOutline = Color_t(0, 0, 0, 100));
+		~CTextComponent();
 
 		void Render(const ImVec2& vecPosition) override;
 
+	private:
 		const ImFont* pFont = nullptr;
 		float flFontSize = 0.0f;
-		const char* szText = nullptr;
+		char* szText = nullptr;
 		const Color_t& colPrimary = { };
 		float flOutlineThickness = 0.0f;
 		const Color_t& colOutline = { };
