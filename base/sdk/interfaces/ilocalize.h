@@ -1,4 +1,6 @@
 #pragma once
+// used: callvfunc
+#include "../../utilities/memory.h"
 
 class ILocalize : ROP::VirtualCallable_t<ROP::ClientGadget_t>
 {

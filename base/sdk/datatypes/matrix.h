@@ -1,6 +1,6 @@
 #pragma once
 // used: sse2 intrinsics
-#include <intrin.h>
+#include <xmmintrin.h>
 
 #include "../../common.h"
 
@@ -180,9 +180,9 @@ public:
 
 		// add in translation vector
 		constexpr std::uint32_t arrComponentMask[4] = { 0x0, 0x0, 0x0, 0xFFFFFFFF };
-		outRow0 = _mm_add_ps(outRow0, _mm_and_ps(thisRow0, *reinterpret_cast<const __m128*>(&arrComponentMask)));
-		outRow1 = _mm_add_ps(outRow1, _mm_and_ps(thisRow1, *reinterpret_cast<const __m128*>(&arrComponentMask)));
-		outRow2 = _mm_add_ps(outRow2, _mm_and_ps(thisRow2, *reinterpret_cast<const __m128*>(&arrComponentMask)));
+		outRow0 = _mm_add_ps(outRow0, _mm_and_ps(thisRow0, std::bit_cast<__m128>(arrComponentMask)));
+		outRow1 = _mm_add_ps(outRow1, _mm_and_ps(thisRow1, std::bit_cast<__m128>(arrComponentMask)));
+		outRow2 = _mm_add_ps(outRow2, _mm_and_ps(thisRow2, std::bit_cast<__m128>(arrComponentMask)));
 
 		_mm_store_ps(matOutput.arrData[0], outRow0);
 		_mm_store_ps(matOutput.arrData[1], outRow1);

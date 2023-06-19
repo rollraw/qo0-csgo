@@ -1,6 +1,7 @@
 #pragma once
 #include "../datatypes/vector.h"
 #include "../datatypes/utlvector.h"
+#include "../datatypes/utlsymbol.h"
 
 // used: callvfunc
 #include "../../utilities/memory.h"
