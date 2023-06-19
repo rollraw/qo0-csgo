@@ -95,9 +95,8 @@ OVERLAY::CTextComponent::CTextComponent(const EAlignSide nAlignSide, const EAlig
 	pFont(pFont), flFontSize(flFontSize), colPrimary(colPrimary), flOutlineThickness(std::floorf(flOutlineThickness)), colOutline(colOutline)
 {
 	// allocate own buffer to safely store a copy of the string
-	char* szTextCopy = static_cast<char*>(MEM::HeapAlloc(CRT::StringLength(szText) + 1U));
-	CRT::StringCopy(szTextCopy, szText);
-	this->szText = szTextCopy;
+	this->szText = static_cast<char*>(MEM::HeapAlloc(CRT::StringLength(szText) + 1U));
+	CRT::StringCopy(this->szText, szText);
 
 	this->nSide = nAlignSide;
 	this->nDirection = nAlignDirection;
@@ -604,7 +603,6 @@ void OVERLAY::Player(CCSPlayer* pLocal, CCSPlayer* pPlayer, const float flDistan
 
 	if (C::Get<bool>(Vars.bVisualOverlayPlayerName))
 	{
-		// @test: possible UB caused by using stack allocated buffer | check similar places for same shit
 		// get player name
 		char szNameBuffer[32];
 		const char* szNameEnd = CRT::StringCopyN(szNameBuffer, playerInfo.szName, sizeof(szNameBuffer));
