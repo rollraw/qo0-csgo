@@ -377,12 +377,6 @@ public:
 		return CallVFunc<const Vector_t&, 79U>(this);
 	}
 
-	[[nodiscard]] Q_INLINE int GetMaxHealth()
-	{
-		// @ida: client.dll -> ["8B 80 ? ? ? ? FF D0 66 0F 6E C0 0F 5B C0 0F" + 0x2] / sizeof(std::uintptr_t)
-		return CallVFunc<int, 123U>(this);
-	}
-
 	Q_INLINE void Think()
 	{
 		// @ida: client.dll -> ["FF 90 ? ? ? ? FF 35 ? ? ? ? 8B 4C" + 0x2] / sizeof(std::uintptr_t)
@@ -457,6 +451,7 @@ public:
 		return fnPhysicsRunThink(this, nThinkMethod);
 	}
 
+	[[nodiscard]] int GetMaxHealth();
 	[[nodiscard]] bool IsBreakable();
 };
 
@@ -645,7 +640,7 @@ public:
 		return CallVFunc<bool, 247U>(this, pLayer, pWeaponStudioHdr, iSequence);
 	}
 
-	void GetSkeleton(CStudioHdr* pStudioHdr, BoneVector_t* arrBonesPosition, BoneQuaternionAligned_t* arrBonesRotation, int nBoneMask);
+	void GetSkeleton(CStudioHdr* pStudioHdr, BoneVector_t* arrBonesPosition, BoneQuaternionAligned_t* arrBonesRotation, int nBoneMask); // @test: hides non virtual method
 };
 
 // @source: master/game/client/c_baseflex.h
@@ -813,9 +808,8 @@ public:
 		fnAdjustBonesToBBox(this, arrBonesToWorld, nBoneMask);
 	}
 
-	[[nodiscard]] Vector_t GetWeaponShootPosition();
 	[[nodiscard]] static CCSPlayer* GetLocalPlayer();
-	[[nodiscard]] int GetMaxHealth(); // @todo: find a game way doing this
+	[[nodiscard]] Vector_t GetWeaponShootPosition();
 	/// @returns: true if given @a'iHitGroup' is armored, false otherwise
 	[[nodiscard]] bool IsArmored(const int iHitGroup);
 	/// @returns: true if @a'pOtherPlayer' is enemy to this player, false otherwise

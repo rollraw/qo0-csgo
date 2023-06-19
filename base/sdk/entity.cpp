@@ -23,6 +23,16 @@
 #include "interfaces/ibreakablewithpropdata.h"
 
 #pragma region entity_baseentity
+int CBaseEntity::GetMaxHealth()
+{
+	// check for dangerzone @todo: find a proper way which game doing this
+	if (this->IsPlayer() && CONVAR::game_type->GetInt() == GAMETYPE_FREEFORALL)
+		return 120;
+
+	// @ida: client.dll -> ["8B 80 ? ? ? ? FF D0 66 0F 6E C0 0F 5B C0 0F" + 0x2] / sizeof(std::uintptr_t)
+	return CallVFunc<int, 123U>(this);
+}
+
 bool CBaseEntity::IsBreakable()
 {
 	// @ida IsBreakableEntity(): client.dll -> "55 8B EC 51 56 8B F1 85 F6 74 68 83"
@@ -36,11 +46,11 @@ bool CBaseEntity::IsBreakable()
 	const ENTITY::BreakableObject_t* pBreakableObject = nullptr;
 	if (const Model_t* pModel = this->GetModel(); pModel != nullptr)
 	{
-		for (std::size_t i = 0U; i < ENTITY::vecBreakableEntities.size(); i++)
+		for (const ENTITY::BreakableObject_t& breakableObject : ENTITY::vecBreakableEntities)
 		{
-			if (CRT::StringCompare(pModel->szPathName, ENTITY::vecBreakableEntities[i].szModelPath) == 0)
+			if (CRT::StringCompare(pModel->szPathName, breakableObject.szModelPath) == 0)
 			{
-				pBreakableObject = &ENTITY::vecBreakableEntities[i];
+				pBreakableObject = &breakableObject;
 				break;
 			}
 		}
@@ -452,6 +462,11 @@ bool CBasePlayer::IsOtherVisible(const CBasePlayer* pOtherPlayer, const Vector_t
 #pragma endregion
 
 #pragma region entity_csplayer
+CCSPlayer* CCSPlayer::GetLocalPlayer()
+{
+	return I::ClientEntityList->Get<CCSPlayer>(I::Engine->GetLocalPlayer());
+}
+
 Vector_t CCSPlayer::GetWeaponShootPosition()
 {
 	// @ida C_CSPlayer::Weapon_ShootPos(): client.dll, server.dll -> "55 8B EC 56 8B 75 08 57 8B F9 56 8B 07 FF 90"
@@ -465,21 +480,6 @@ Vector_t CCSPlayer::GetWeaponShootPosition()
 	}
 
 	return vecPosition;
-}
-
-CCSPlayer* CCSPlayer::GetLocalPlayer()
-{
-	return I::ClientEntityList->Get<CCSPlayer>(I::Engine->GetLocalPlayer());
-}
-
-int CCSPlayer::GetMaxHealth()
-{
-	// check is dangerzone
-	if (CONVAR::game_type->GetInt() == GAMETYPE_FREEFORALL)
-		return 120;
-
-	// @test:
-	return CBaseEntity::GetMaxHealth();
 }
 
 bool CCSPlayer::IsArmored(const int iHitGroup)
