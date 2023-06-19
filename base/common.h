@@ -75,10 +75,8 @@ static_assert(false, "could not determine the target architecture, consider defi
 #ifndef Q_NO_RTTI
 #if defined(Q_COMPILER_MSC) && !defined(_CPPRTTI)
 #define Q_NO_RTTI
-#elif defined(Q_COMPILER_CLANG)
-#if !__has_feature(cxx_rtti)
+#elif defined(Q_COMPILER_CLANG) && !__has_feature(cxx_rtti)
 #define Q_NO_RTTI
-#endif
 #endif
 #endif
 
@@ -91,13 +89,14 @@ static_assert(false, "could not determine the target architecture, consider defi
 #endif
 #endif
 
+// @todo: use #warning when c++23 comes out instead of static asserts
 #ifndef Q_RETURN_ADDRESS
 #if defined(Q_COMPILER_MSC)
 #define Q_RETURN_ADDRESS() _ReturnAddress()
 #elif defined(Q_COMPILER_CLANG)
 #define Q_RETURN_ADDRESS() __builtin_return_address(0)
 #else
-static_assert(false, "it is expected that you define Q_RETURN_ADDRESS() into something that will grab return address from the stack!")
+static_assert(false, "it is expected you to define Q_RETURN_ADDRESS() into something that will get the return address off the stack!")
 #define Q_RETURN_ADDRESS()
 #endif
 #endif
@@ -109,22 +108,18 @@ static_assert(false, "it is expected that you define Q_RETURN_ADDRESS() into som
 // @note: it isn't always what we're expecting, compiler dependent
 #define Q_FRAME_ADDRESS() __builtin_frame_address(0)
 #else
-static_assert(false, "it is expected that you define Q_FRAME_ADDRESS() into something that will grab stack frame address of the method!")
+static_assert(false, "it is expected you to define Q_FRAME_ADDRESS() into something that will get the address of the method's stack frame!")
 #define Q_FRAME_ADDRESS()
 #endif
 #endif
 
 #ifndef Q_DEBUG_BREAK
-#ifdef _DEBUG
 #if defined(Q_COMPILER_MSC)
 #define Q_DEBUG_BREAK() __debugbreak()
 #elif defined(Q_COMPILER_CLANG)
 #define Q_DEBUG_BREAK() __builtin_debugtrap()
 #else
-static_assert(false, "it is expected that you define Q_DEBUG_BREAK() into something that will break in a debugger!");
-#define Q_DEBUG_BREAK()
-#endif
-#else
+static_assert(false, "it is expected you to define Q_DEBUG_BREAK() into something that will break in a debugger!");
 #define Q_DEBUG_BREAK()
 #endif
 #endif
