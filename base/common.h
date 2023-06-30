@@ -34,6 +34,12 @@ static_assert(false, "could not determine the target architecture, consider defi
 #define Q_COMPILER_CLANG
 #endif
 
+#ifdef __has_builtin
+#define Q_HAS_BUILTIN(BUILTIN) __has_builtin(BUILTIN)
+#else
+#define Q_HAS_BUILTIN(BUILTIN) 0
+#endif
+
 #ifdef Q_COMPILER_MSC
 // treat "discarding return value of function with 'nodiscard' attribute" warning as error
 #pragma warning(error: 4834)
@@ -69,14 +75,21 @@ static_assert(false, "could not determine the target architecture, consider defi
 
 // calculate elements count of fixed-size C array
 #define Q_ARRAYSIZE(ARRAY) (sizeof(ARRAY) / sizeof(ARRAY[0]))
+
 // calculate the offset of a struct member variable, in bytes
-#define Q_OFFSETOF(STRUCT, MEMBER) reinterpret_cast<std::size_t>(&reinterpret_cast<volatile const char&>(static_cast<STRUCT*>(nullptr)->MEMBER))
+#if defined(_CRT_USE_BUILTIN_OFFSETOF) || Q_HAS_BUILTIN(__builtin_offsetof)
+#define Q_OFFSETOF(STRUCT, MEMBER) __builtin_offsetof(STRUCT, MEMBER)
+#else
+#define Q_OFFSETOF(STRUCT, MEMBER) reinterpret_cast<std::size_t>(std::addressof(static_cast<STRUCT*>(nullptr)->MEMBER))
+#endif
 
 #ifndef Q_NO_RTTI
 #if defined(Q_COMPILER_MSC) && !defined(_CPPRTTI)
 #define Q_NO_RTTI
-#elif defined(Q_COMPILER_CLANG) && !__has_feature(cxx_rtti)
+#elif defined(Q_COMPILER_CLANG)
+#if !__has_feature(cxx_rtti)
 #define Q_NO_RTTI
+#endif
 #endif
 #endif
 
