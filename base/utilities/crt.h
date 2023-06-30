@@ -1,6 +1,8 @@
 #pragma once
 // used: [stl] string, string_view, wstring, wstring_view
 #include <string>
+// used: [crt] va_list, va_start, va_end
+#include <stdarg.h>
 
 #include "../common.h"
 // used: findpattern, getabsoluteaddress @todo: temporarily
@@ -8,6 +10,15 @@
 
 #ifdef Q_COMPILER_MSC
 #include <intrin.h>
+#endif
+
+// add support of syntax highlight to our string formatting methods
+#ifdef Q_COMPILER_CLANG
+#define Q_CRT_FORMAT_STRING_ATTRIBUTE(METHOD, STRING_INDEX, FIRST_INDEX) __attribute__((format(METHOD, STRING_INDEX, FIRST_INDEX)))
+#elif defined(__RESHARPER__)
+#define Q_CRT_FORMAT_STRING_ATTRIBUTE(METHOD, STRING_INDEX, FIRST_INDEX) [[rscpp::format(METHOD, STRING_INDEX, FIRST_INDEX)]]
+#else
+#define Q_CRT_FORMAT_STRING_ATTRIBUTE(METHOD, STRING_INDEX, FIRST_INDEX)
 #endif
 
 // @todo: '__restrict' keyword to hint compiler on those
@@ -246,10 +257,11 @@ namespace CRT
 	Q_INLINE void* MemorySet(void* pDestination, const std::uint8_t uByte, std::size_t nCount)
 	{
 	#ifdef Q_COMPILER_MSC
+		// @test: clang always tries to detect 'memset' like instructions and replace them with CRT's function call
 		if (const std::size_t nCountAlign = (nCount & 3U); nCountAlign == 0U)
 		{
 			auto pDestinationLong = static_cast<unsigned long*>(pDestination);
-			__stosd(pDestinationLong, static_cast<unsigned long>(uByte | (uByte << 8U) | (uByte << 16U) | (uByte << 24U)), nCount >> 2U);
+			__stosd(pDestinationLong, static_cast<unsigned long>(uByte) * 0x01010101, nCount >> 2U);
 		}
 		else if (nCountAlign == 2U)
 		{
@@ -277,6 +289,7 @@ namespace CRT
 	Q_INLINE void* MemoryCopy(void* pDestination, const void* pSource, std::size_t nCount)
 	{
 	#ifdef Q_COMPILER_MSC
+		// @test: clang always tries to detect 'memcpy' like instructions and replace them with CRT's function call
 		if (const std::size_t nCountAlign = (nCount & 3U); nCountAlign == 0U)
 		{
 			auto pDestinationLong = static_cast<unsigned long*>(pDestination);
@@ -694,8 +707,7 @@ namespace CRT
 	#pragma region crt_string_format
 	/// write formatted data to a string, alternative of 'sprintf'
 	/// @returns: the number of characters written to the formatted data string, not including the terminating null character. a return value of -1 indicates that an encoding error has occurred
-	template <typename... Args_t>
-	int StringPrint(char* szBuffer, const char* szFormat, Args_t... argList)
+	inline Q_CRT_FORMAT_STRING_ATTRIBUTE(printf, 2, 3) int StringPrint(char* szBuffer, const char* const szFormat, ...)
 	{
 		// @todo: because i dont have time so yeah, will rebuild it some time
 		/*
@@ -736,19 +748,30 @@ namespace CRT
 		}
 		 */
 
-		static auto fn_sprintf = reinterpret_cast<int(Q_CDECL*)(char*, const char*, ...)>(MEM::GetAbsoluteAddress(MEM::FindPattern(CLIENT_DLL, Q_XOR("E8 ? ? ? ? 8A 75 18")) + 0x1));
-		return fn_sprintf(szBuffer, szFormat, argList...);
+		static auto fn_sprintf = reinterpret_cast<int(Q_CDECL*)(char*, const char* const, ...)>(MEM::GetAbsoluteAddress(MEM::FindPattern(CLIENT_DLL, Q_XOR("E8 ? ? ? ? 8A 75 18")) + 0x1));
+
+		va_list argList;
+		va_start(argList, szFormat);
+		const int iReturn = fn_sprintf(szBuffer, szFormat, argList);
+		va_end(argList);
+
+		return iReturn;
 	}
 
 	/// write formatted data to a string up to the specified count of characters, alternative of 'snprintf'
 	/// @remarks: format and store @a'nCount' or fewer characters in @a'szBuffer'. always store a terminating null character, truncating the output if necessary. if copying occurs between strings that overlap, the behavior is undefined
 	/// @returns: if the buffer size specified by @a'nCount' isn't sufficiently large to contain the output specified by @a'szFormat', the return value is the number of characters that would be written, not including the terminating null character, if @a'nCount' were sufficiently large. if the return value is greater than @a'nCount' - 1, the output has been truncated. a return value of -1 indicates that an encoding error has occurred
-	template <typename... Args_t>
-	int StringPrintN(char* szBuffer, std::size_t nCount, const char* szFormat, Args_t... argList)
+	inline Q_CRT_FORMAT_STRING_ATTRIBUTE(printf, 3, 4) int StringPrintN(char* szBuffer, std::size_t nCount, const char* const szFormat, ...)
 	{
 		// @todo: because i dont have time so yeah, will rebuild it some time
-		static auto fn_snprintf = reinterpret_cast<int(Q_CDECL*)(char*, std::size_t, const char*, ...)>(MEM::GetAbsoluteAddress(MEM::FindPattern(CLIENT_DLL, Q_XOR("E8 ? ? ? ? C6 45 F7 00")) + 0x1));
-		return fn_snprintf(szBuffer, nCount, szFormat, argList...);
+		static auto fn_snprintf = reinterpret_cast<int(Q_CDECL*)(char*, std::size_t, const char* const, ...)>(MEM::GetAbsoluteAddress(MEM::FindPattern(CLIENT_DLL, Q_XOR("E8 ? ? ? ? C6 45 F7 00")) + 0x1));
+
+		va_list argList;
+		va_start(argList, szFormat);
+		const int iReturn = fn_snprintf(szBuffer, nCount, szFormat, argList);
+		va_end(argList);
+
+		return iReturn;
 	}
 	#pragma endregion
 
@@ -869,7 +892,7 @@ namespace CRT
 	char* FloatToString(const T value, char* szDestination, const std::size_t nDestinationSize, int iPrecision = std::numeric_limits<T>::digits10)
 	{
 		// @todo: because i dont have time so yeah, would rebuild it some time
-		StringPrintN(szDestination, nDestinationSize, "%.*f", value, iPrecision);
+		StringPrintN(szDestination, nDestinationSize, "%.*f", iPrecision, value);
 		return szDestination;
 	}
 
