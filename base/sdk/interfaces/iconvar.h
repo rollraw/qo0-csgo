@@ -232,10 +232,25 @@ public:
 	class ICVarIteratorInternal
 	{
 	public:
-		virtual void SetFirst() = 0;
-		virtual void Next() = 0;
-		virtual	bool IsValid() = 0;
-		virtual CConCommandBase* Get() = 0;
+		void SetFirst()
+		{
+			CallVFunc<void, 0U>(this);
+		}
+
+		void Next()
+		{
+			CallVFunc<void, 1U>(this);
+		}
+
+		[[nodiscard]] bool IsValid()
+		{
+			return CallVFunc<bool, 2U>(this);
+		}
+
+		[[nodiscard]] CConCommandBase* Get()
+		{
+			return CallVFunc<CConCommandBase*, 3U>(this);
+		}
 	};
 
 	void RegisterConCommand(CConVar* pCommandBase, int iDefaultValue = 1)
