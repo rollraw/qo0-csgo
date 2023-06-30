@@ -17,6 +17,7 @@ workspace "base"
 			"base/**.cpp",
 			"base/**.h",
 
+			"dependencies/*.h",
 			"dependencies/imgui/**.cpp",
 			"dependencies/imgui/**.h",
 			"dependencies/minhook/**.c",
@@ -45,6 +46,7 @@ workspace "base"
 			
 			{ ["utilities/*"] = "base/utilities/*" },
 
+			{ ["dependencies/*"] = "dependencies/*" },
 			{ ["dependencies/imgui/*"] = "dependencies/imgui/*" },
 			{ ["dependencies/imgui/dx9/*"] = "dependencies/imgui/dx9/*" },
 			{ ["dependencies/imgui/win32/*"] = "dependencies/imgui/win32/*" },

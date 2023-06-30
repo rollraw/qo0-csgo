@@ -15,7 +15,6 @@
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>csgo</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -67,6 +66,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)dependencies;$(SolutionDir)dependencies\freetype\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
+      <SupportJustMyCode>false</SupportJustMyCode>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ExceptionHandling>false</ExceptionHandling>
@@ -76,7 +76,6 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
-      <SupportJustMyCode>false</SupportJustMyCode>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -138,6 +137,7 @@
     <ClInclude Include="..\dependencies\minhook\hde\table64.h" />
     <ClInclude Include="..\dependencies\minhook\minhook.h" />
     <ClInclude Include="..\dependencies\minhook\trampoline.h" />
+    <ClInclude Include="..\dependencies\xorstr.h" />
     <ClInclude Include="..\resources\qo0icons.h" />
     <ClInclude Include="..\resources\smallest_pixel.h" />
     <ClInclude Include="common.h" />
@@ -268,7 +268,6 @@
     <ClInclude Include="utilities\math.h" />
     <ClInclude Include="utilities\memory.h" />
     <ClInclude Include="utilities\win.h" />
-    <ClInclude Include="utilities\xorstr.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\dependencies\imgui\dx9\imgui_impl_dx9.cpp" />

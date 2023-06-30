@@ -111,6 +111,9 @@
     <ClInclude Include="..\dependencies\minhook\trampoline.h">
       <Filter>dependencies\minhook</Filter>
     </ClInclude>
+    <ClInclude Include="..\dependencies\xorstr.h">
+      <Filter>dependencies</Filter>
+    </ClInclude>
     <ClInclude Include="..\resources\qo0icons.h">
       <Filter>resources</Filter>
     </ClInclude>
@@ -489,9 +492,6 @@
       <Filter>utilities</Filter>
     </ClInclude>
     <ClInclude Include="utilities\win.h">
-      <Filter>utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="utilities\xorstr.h">
       <Filter>utilities</Filter>
     </ClInclude>
   </ItemGroup>
