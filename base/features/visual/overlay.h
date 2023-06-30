@@ -67,12 +67,12 @@ namespace F::VISUAL::OVERLAY
 		void Render(const ImVec2& vecPosition) override;
 
 	private:
-		float flProgressFactor;
-		float flThickness;
-		const Color_t& colPrimary;
-		const Color_t& colBackground;
-		float flOutlineThickness;
-		const Color_t& colOutline;
+		float flProgressFactor = 0.0f;
+		float flThickness = 0.0f;
+		Color_t colPrimary = { };
+		Color_t colBackground = { };
+		float flOutlineThickness = 0.0f;
+		Color_t colOutline = { };
 	};
 
 	class CTextComponent : public CBaseDirectionalComponent
@@ -87,9 +87,9 @@ namespace F::VISUAL::OVERLAY
 		const ImFont* pFont = nullptr;
 		float flFontSize = 0.0f;
 		char* szText = nullptr;
-		const Color_t& colPrimary = { };
+		Color_t colPrimary = { };
 		float flOutlineThickness = 0.0f;
-		const Color_t& colOutline = { };
+		Color_t colOutline = { };
 	};
 
 	/*
