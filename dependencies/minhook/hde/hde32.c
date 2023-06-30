@@ -9,6 +9,7 @@
 
 #include "hde32.h"
 #include "table32.h"
+#include <intrin.h>
 
 unsigned int hde32_disasm(const void* code, hde32s* hs)
 {
