@@ -78,6 +78,7 @@ workspace "base"
 		filter "configurations:Debug"
 			defines { "_DEBUG" }
 			flags { "NoIncrementalLink" }
+			justmycode "off"
 			rtti "on"
 
 		filter "configurations:Release"
