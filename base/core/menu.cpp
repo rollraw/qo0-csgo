@@ -23,38 +23,6 @@
 
 // @todo: untouched, wait for new gui merge
 
-static const std::pair<const char*, std::size_t> arrColors[ ] =
-{
-	{ "[esp] box - enemies", Vars.colVisualOverlayBoxEnemies },
-	{ "[esp] box - enemies hidden", Vars.colVisualOverlayBoxEnemiesHidden},
-	{ "[esp] box - allies", Vars.colVisualOverlayBoxAllies },
-	{ "[esp] box - allies hidden", Vars.colVisualOverlayBoxAlliesHidden },
-	{ "[esp] box - local", Vars.colVisualOverlayBoxLocal },
-	{ "[esp] box - local hidden", Vars.colVisualOverlayBoxLocalHidden },
-	{ "[glow] enemies", Vars.colVisualGlowEnemies },
-	{ "[glow] enemies hidden", Vars.colVisualGlowEnemiesHidden },
-	{ "[glow] allies", Vars.colVisualGlowAllies },
-	{ "[glow] allies hidden", Vars.colVisualGlowAlliesHidden },
-	{ "[glow] local", Vars.colVisualGlowLocal },
-	{ "[glow] local hidden", Vars.colVisualGlowLocalHidden },
-	{ "[glow] weapons", Vars.colVisualGlowWeapons },
-	{ "[glow] grenades", Vars.colVisualGlowGrenades },
-	{ "[glow] bomb", Vars.colVisualGlowBomb },
-	{ "[glow] planted bomb", Vars.colVisualGlowBombPlanted },
-	{ "[chams] enemies", Vars.colVisualChamsEnemies },
-	{ "[chams] enemies hidden", Vars.colVisualChamsEnemiesHidden },
-	{ "[chams] allies", Vars.colVisualChamsAllies },
-	{ "[chams] allies hidden", Vars.colVisualChamsAlliesHidden },
-	{ "[chams] local", Vars.colVisualChamsLocal },
-	{ "[chams] local hidden", Vars.colVisualChamsLocalHidden },
-	{ "[chams] local desync", Vars.colVisualChamsLocalDesync },
-	{ "[chams] local desync hidden", Vars.colVisualChamsLocalDesyncHidden },
-	{ "[chams] viewmodel", Vars.colVisualChamsViewModel },
-	{ "[chams] viewmodel hidden", Vars.colVisualChamsViewModelHidden },
-	{ "[screen] hitmarker - lines", Vars.colVisualScreenHitMarker },
-	{ "[screen] hitmarker - damage", Vars.colVisualScreenHitMarkerDamage }
-};
-
 #pragma region menu_array_entries
 static constexpr const char* arrVisualsFlags[ ] =
 {
@@ -127,10 +95,9 @@ void MENU::MainWindow(IDirect3DDevice9* pDevice)
 			if (I::Engine->IsInGame())
 				ImGui::TextColored(F::bLastSendPacket ? ImVec4(0.0f, 1.0f, 0.0f, 1.0f) : ImVec4(1.0f, 0.0f, 0.0f, 1.0f), Q_XOR("send packets"));
 
-			const char* const szName = Q_XOR("qo0 base | " __DATE__);
-			static ImVec2 vecNameSize = ImGui::CalcTextSize(szName);
+			static ImVec2 vecNameSize = ImGui::CalcTextSize(Q_XOR("qo0 base | " __DATE__));
 			ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - vecNameSize.x);
-			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), szName);
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), Q_XOR("qo0 base | " __DATE__));
 
 			ImGui::PopFont();
 			ImGui::EndMainMenuBar();
@@ -552,6 +519,38 @@ void T::Visuals()
 
 void T::Miscellaneous()
 {
+	static const std::pair<const char*, const std::size_t> arrColors[ ] =
+	{
+		{ "[esp] box - enemies", Vars.colVisualOverlayBoxEnemies },
+		{ "[esp] box - enemies hidden", Vars.colVisualOverlayBoxEnemiesHidden },
+		{ "[esp] box - allies", Vars.colVisualOverlayBoxAllies },
+		{ "[esp] box - allies hidden", Vars.colVisualOverlayBoxAlliesHidden },
+		{ "[esp] box - local", Vars.colVisualOverlayBoxLocal },
+		{ "[esp] box - local hidden", Vars.colVisualOverlayBoxLocalHidden },
+		{ "[glow] enemies", Vars.colVisualGlowEnemies },
+		{ "[glow] enemies hidden", Vars.colVisualGlowEnemiesHidden },
+		{ "[glow] allies", Vars.colVisualGlowAllies },
+		{ "[glow] allies hidden", Vars.colVisualGlowAlliesHidden },
+		{ "[glow] local", Vars.colVisualGlowLocal },
+		{ "[glow] local hidden", Vars.colVisualGlowLocalHidden },
+		{ "[glow] weapons", Vars.colVisualGlowWeapons },
+		{ "[glow] grenades", Vars.colVisualGlowGrenades },
+		{ "[glow] bomb", Vars.colVisualGlowBomb },
+		{ "[glow] planted bomb", Vars.colVisualGlowBombPlanted },
+		{ "[chams] enemies", Vars.colVisualChamsEnemies },
+		{ "[chams] enemies hidden", Vars.colVisualChamsEnemiesHidden },
+		{ "[chams] allies", Vars.colVisualChamsAllies },
+		{ "[chams] allies hidden", Vars.colVisualChamsAlliesHidden },
+		{ "[chams] local", Vars.colVisualChamsLocal },
+		{ "[chams] local hidden", Vars.colVisualChamsLocalHidden },
+		{ "[chams] local desync", Vars.colVisualChamsLocalDesync },
+		{ "[chams] local desync hidden", Vars.colVisualChamsLocalDesyncHidden },
+		{ "[chams] viewmodel", Vars.colVisualChamsViewModel },
+		{ "[chams] viewmodel hidden", Vars.colVisualChamsViewModelHidden },
+		{ "[screen] hitmarker - lines", Vars.colVisualScreenHitMarker },
+		{ "[screen] hitmarker - damage", Vars.colVisualScreenHitMarkerDamage }
+	};
+
 	ImGuiStyle& style = ImGui::GetStyle();
 
 	ImGui::Columns(2, nullptr, false);
