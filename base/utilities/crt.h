@@ -53,7 +53,7 @@ namespace CRT
 	 *             ^   ^                   ^   ^                                               ^
 	 *            63   62                 52   51                                              0
 	 */
-	template <typename T> requires std::is_floating_point_v<T>
+	template <typename T> requires (std::is_floating_point_v<T>)
 	struct FloatSpecification_t
 	{
 		static_assert(std::numeric_limits<T>::is_iec559);
@@ -812,7 +812,7 @@ namespace CRT
 	/// @param[in] iBase numeric base to use to represent number in range [2 .. 36]
 	/// @returns: pointer to the begin of converted integer in the buffer
 	template <typename T> requires std::is_integral_v<T>
-	char* IntegerToString(const T value, char* szDestination, const std::size_t nDestinationSize, int iBase = 10)
+	char* IntegerToString(const T value, char* szDestination, const std::size_t nDestinationLength, int iBase = 10)
 	{
 		if (iBase < 0 || iBase == 1 || iBase > _NUMBER_MAX_BASE)
 		{
@@ -823,7 +823,7 @@ namespace CRT
 		const bool bIsPositive = (value >= 0);
 		std::make_unsigned_t<T> uValue = (bIsPositive ? static_cast<std::make_unsigned_t<T>>(value) : static_cast<std::make_unsigned_t<T>>(0 - value)); // @test: how it actually compiles, can avoid branch at compile time
 
-		char* szDestinationEnd = szDestination + nDestinationSize;
+		char* szDestinationEnd = szDestination + nDestinationLength;
 		*--szDestinationEnd = '\0';
 
 		if (uValue == 0U)
@@ -1345,7 +1345,7 @@ namespace CRT
 	/// @todo: remarks about behaviour
 	/// @param[in] iBase number of digits used to represent number. 0 to automatically determine number base in range [2 .. 16] or value in range [2 .. 36]
 	/// @returns: integer converted from string
-	template <typename T> requires std::is_integral_v<T>
+	template <typename T> requires (std::is_integral_v<T>)
 	constexpr T StringToInteger(const char* szSourceBegin, char** pszSourceEnd = nullptr, int iBase = 0)
 	{
 		if (iBase < 0 || iBase == 1 || iBase > _NUMBER_MAX_BASE)
@@ -1446,7 +1446,7 @@ namespace CRT
 
 	// convert the string to a floating point, alternative of 'atof', 'atod', 'strtof', 'strtod'
 	//
-	template <typename T> requires std::is_floating_point_v<T>
+	template <typename T> requires (std::is_floating_point_v<T>)
 	/*constexpr*/ T StringToFloat(const char* szSourceBegin, char** pszSourceEnd = nullptr)
 	{
 		// @todo: because i dont have time so yeah, will rebuild it some time
@@ -1614,10 +1614,10 @@ namespace CRT
 	/// @remarks: locale-independent
 	/// @todo: param desc
 	/// @returns: length of converted UTF-X string
-	Q_INLINE std::ptrdiff_t StringMultiByteToUnicode(wchar_t* szOutBuffer, const std::size_t nOutBufferSize, const char* szBegin, const char* szEnd = nullptr)
+	Q_INLINE std::ptrdiff_t StringMultiByteToUnicode(wchar_t* szOutBuffer, const std::size_t nOutBufferLength, const char* szBegin, const char* szEnd = nullptr)
 	{
 		wchar_t* pBufferBegin = szOutBuffer;
-		const wchar_t* pBufferEnd = szOutBuffer + nOutBufferSize;
+		const wchar_t* pBufferEnd = szOutBuffer + nOutBufferLength;
 
 		std::uint32_t uChar = 0U;
 		while (pBufferBegin < pBufferEnd - 1 && (szEnd == nullptr || szBegin < szEnd) && *szBegin != '\0')
@@ -1638,10 +1638,10 @@ namespace CRT
 	/// @remarks: locale-independent
 	/// @todo: param desc
 	/// @returns: length of converted multibyte UTF-8 string
-	Q_INLINE std::ptrdiff_t StringUnicodeToMultiByte(char* szOutBuffer, const std::size_t nOutBufferSize, const wchar_t* wszBegin, const wchar_t* wszEnd = nullptr)
+	Q_INLINE std::ptrdiff_t StringUnicodeToMultiByte(char* szOutBuffer, const std::size_t nOutBufferLength, const wchar_t* wszBegin, const wchar_t* wszEnd = nullptr)
 	{
 		char* pBufferBegin = szOutBuffer;
-		const char* pBufferEnd = szOutBuffer + nOutBufferSize;
+		const char* pBufferEnd = szOutBuffer + nOutBufferLength;
 
 		while (pBufferBegin < pBufferEnd - 1 && (wszEnd == nullptr || wszBegin < wszEnd) && *wszBegin != L'\0')
 			pBufferBegin += CharMultiByteFromUTF32(pBufferBegin, pBufferEnd - pBufferBegin - 1, *wszBegin++);

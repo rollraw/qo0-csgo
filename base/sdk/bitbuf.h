@@ -89,7 +89,7 @@ public:
 
 	Q_INLINE void TempFlush()
 	{
-		static_assert(std::endian::native == std::endian::little); // following code assume little-endian
+		static_assert(std::endian::native == std::endian::little, "following code assume little-endian");
 
 		if (nOutBitsAvail != 32)
 		{
@@ -272,7 +272,7 @@ class CBitRead : public CBitBuffer
 
 	Q_INLINE void GrabNextDWord(const bool bOverflowImmediately = false)
 	{
-		static_assert(std::endian::native == std::endian::little); // following code assume little-endian
+		static_assert(std::endian::native == std::endian::little, "following code assume little-endian");
 
 		if (pDataIn == pBufferEnd)
 		{

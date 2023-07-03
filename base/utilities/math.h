@@ -30,7 +30,7 @@ namespace M
 
 	/* @section: exponential */
 	/// @returns: true if given number is power of two, false otherwise
-	template <typename T> requires std::is_integral_v<T>
+	template <typename T> requires (std::is_integral_v<T>)
 	[[nodiscard]] Q_INLINE constexpr bool IsPowerOfTwo(const T value) noexcept
 	{
 		return value != 0 && (value & (value - 1)) == 0;

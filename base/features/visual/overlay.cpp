@@ -95,7 +95,7 @@ OVERLAY::CTextComponent::CTextComponent(const EAlignSide nAlignSide, const EAlig
 	pFont(pFont), flFontSize(flFontSize), colPrimary(colPrimary), flOutlineThickness(std::floorf(flOutlineThickness)), colOutline(colOutline)
 {
 	// allocate own buffer to safely store a copy of the string
-	this->szText = static_cast<char*>(MEM::HeapAlloc(CRT::StringLength(szText) + 1U));
+	this->szText = new char[CRT::StringLength(szText) + 1U];
 	CRT::StringCopy(this->szText, szText);
 
 	this->nSide = nAlignSide;
@@ -106,7 +106,7 @@ OVERLAY::CTextComponent::CTextComponent(const EAlignSide nAlignSide, const EAlig
 OVERLAY::CTextComponent::~CTextComponent()
 {
 	// deallocate buffer of the copied string
-	MEM::HeapFree(this->szText);
+	delete this->szText;
 }
 
 void OVERLAY::CTextComponent::Render(const ImVec2& vecPosition)
@@ -605,7 +605,7 @@ void OVERLAY::Player(CCSPlayer* pLocal, CCSPlayer* pPlayer, const float flDistan
 	{
 		// get player name
 		char szNameBuffer[32];
-		const char* szNameEnd = CRT::StringCopyN(szNameBuffer, playerInfo.szName, sizeof(szNameBuffer));
+		const char* szNameEnd = CRT::StringCopyN(szNameBuffer, playerInfo.szName, Q_ARRAYSIZE(szNameBuffer));
 
 		// truncate name
 		constexpr int nTruncateLength = 28;
@@ -677,7 +677,7 @@ void OVERLAY::Player(CCSPlayer* pLocal, CCSPlayer* pPlayer, const float flDistan
 	{
 		const int iDistance = static_cast<int>(flDistance * METERS_PER_INCH);
 		char szDistanceBuffer[CRT::IntegerToString_t<int, 10>::MaxCount() + 1U];
-		char* szDistance = CRT::IntegerToString(iDistance, szDistanceBuffer, sizeof(szDistanceBuffer), 10);
+		char* szDistance = CRT::IntegerToString(iDistance, szDistanceBuffer, Q_ARRAYSIZE(szDistanceBuffer), 10);
 
 		const std::size_t nDistanceLength = szDistanceBuffer + sizeof(szDistanceBuffer) - szDistance - 1U;
 		szDistance = static_cast<char*>(CRT::MemoryMove(szDistance - 1U, szDistance, nDistanceLength)); // @note: this relies on current 'CRT::IntegerToString' behaviour, be careful
@@ -697,7 +697,7 @@ void OVERLAY::Player(CCSPlayer* pLocal, CCSPlayer* pPlayer, const float flDistan
 	if (C::Get<bool>(Vars.bVisualOverlayPlayerMoney))
 	{
 		char szMoneyBuffer[CRT::IntegerToString_t<std::uint16_t, 10>::MaxCount() + 1U];
-		char* szMoney = CRT::IntegerToString(pPlayer->GetMoney(), szMoneyBuffer, sizeof(szMoneyBuffer), 10);
+		char* szMoney = CRT::IntegerToString(pPlayer->GetMoney(), szMoneyBuffer, Q_ARRAYSIZE(szMoneyBuffer), 10);
 		*--szMoney = '$'; // @note: this relies on current 'CRT::IntegerToString' behaviour, be careful
 
 		context.AddComponent(new CTextComponent(SIDE_LEFT, DIR_BOTTOM, FONT::pVisual, flFontSize, szMoney, Color_t(140, 195, 75, 255), 1.0f, Color_t(0, 0, 0, 220)));
@@ -902,7 +902,7 @@ void OVERLAY::DroppedWeapon(CBaseCombatWeapon* pWeapon, const float flDistance)
 			const int iDistance = static_cast<int>(flDistance * METERS_PER_INCH);
 
 			char szDistanceBuffer[CRT::IntegerToString_t<int, 10>::MaxCount() + 1U];
-			char* szDistance = CRT::IntegerToString(iDistance, szDistanceBuffer, sizeof(szDistanceBuffer), 10);
+			char* szDistance = CRT::IntegerToString(iDistance, szDistanceBuffer, Q_ARRAYSIZE(szDistanceBuffer), 10);
 
 			const std::size_t nDistanceLength = szDistanceBuffer + sizeof(szDistanceBuffer) - szDistance - 1U;
 			szDistance = static_cast<char*>(CRT::MemoryMove(szDistance - 1U, szDistance, nDistanceLength)); // @note: this relies on current 'CRT::IntegerToString' behaviour, be careful

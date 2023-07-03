@@ -52,7 +52,7 @@ static void StoreTableProperties(const RecvTable_t* pRecvTable, const FNV1A_t uT
 		// check if the property is a child data table but it's not a base class
 		if (pCurrentProp->nRecvType == DPT_DATATABLE && uVariableHash != uBaseClassHash)
 		{
-			static_assert(std::endian::native == std::endian::little); // following code assume little-endian
+			static_assert(std::endian::native == std::endian::little, "following code assume little-endian");
 
 			// check is child table aren't empty and have "DT" prefix
 			if (const RecvTable_t* pChildTable = pCurrentProp->pDataTable; pChildTable->nPropCount > 0 && *reinterpret_cast<std::uint16_t*>(pChildTable->szNetTableName) == 0x5444)
@@ -125,7 +125,7 @@ static void DumpTableProperties(HANDLE hFileOut, const RecvTable_t* pRecvTable, 
 		// check if the property is a child data table
 		if (pCurrentProp->nRecvType == DPT_DATATABLE)
 		{
-			static_assert(std::endian::native == std::endian::little); // following code assume little-endian
+			static_assert(std::endian::native == std::endian::little, "following code assume little-endian");
 
 			// check is child table aren't empty, doesn't have base offset and have "DT" prefix
 			if (const RecvTable_t* pChildTable = pCurrentProp->pDataTable; pChildTable->nPropCount > 0 && uOffset == 0U && *reinterpret_cast<std::uint16_t*>(pChildTable->szNetTableName) == 0x5444)
@@ -152,7 +152,7 @@ static void DumpTableProperties(HANDLE hFileOut, const RecvTable_t* pRecvTable, 
 		// check if the property is a child data table
 		if (pCurrentProp->nRecvType == DPT_DATATABLE)
 		{
-			static_assert(std::endian::native == std::endian::little); // following code assume little-endian
+			static_assert(std::endian::native == std::endian::little, "following code assume little-endian");
 
 			// check is child table aren't empty, have base offset and have "DT" prefix
 			if (const RecvTable_t* pChildTable = pCurrentProp->pDataTable; pChildTable->nPropCount > 0 && uOffset != 0U && *reinterpret_cast<std::uint16_t*>(pChildTable->szNetTableName) == 0x5444)
@@ -184,7 +184,7 @@ static void DumpTableProperties(HANDLE hFileOut, const RecvTable_t* pRecvTable, 
 
 		// insert variable offset
 		char szPropertyOffsetBuffer[CRT::IntegerToString_t<std::uintptr_t, 16U>::MaxCount()];
-		szVariableEnd = CRT::StringCopy(szVariableEnd, CRT::IntegerToString(uOffset, szPropertyOffsetBuffer, sizeof(szPropertyOffsetBuffer), 16));
+		szVariableEnd = CRT::StringCopy(szVariableEnd, CRT::IntegerToString(uOffset, szPropertyOffsetBuffer, Q_ARRAYSIZE(szPropertyOffsetBuffer), 16));
 		*szVariableEnd++ = ';';
 		*szVariableEnd++ = '\n';
 
@@ -305,19 +305,19 @@ void NETVAR::GetPropertyType(const RecvProp_t* pRecvProp, char* szOutBuffer)
 	case DPT_STRING:
 	{
 		char szStringSizeBuffer[CRT::IntegerToString_t<int, 10U>::MaxCount()];
-		CRT::StringCat(CRT::StringCat(CRT::StringCopy(szOutBuffer, Q_XOR("char[")), CRT::IntegerToString(pRecvProp->nStringBufferSize, szStringSizeBuffer, sizeof(szStringSizeBuffer), 10)), Q_XOR("]"));
+		CRT::StringCat(CRT::StringCat(CRT::StringCopy(szOutBuffer, Q_XOR("char[")), CRT::IntegerToString(pRecvProp->nStringBufferSize, szStringSizeBuffer, Q_ARRAYSIZE(szStringSizeBuffer), 10)), Q_XOR("]"));
 		break;
 	}
 	case DPT_ARRAY:
 	{
 		// @todo: the way valve handle this is diff
 		char szArraySizeBuffer[CRT::IntegerToString_t<int, 10U>::MaxCount()];
-		CRT::StringCat(CRT::StringCat(CRT::StringCopy(szOutBuffer, Q_XOR("array[")), CRT::IntegerToString(pRecvProp->nElements, szArraySizeBuffer, sizeof(szArraySizeBuffer), 10)), Q_XOR("]"));
+		CRT::StringCat(CRT::StringCat(CRT::StringCopy(szOutBuffer, Q_XOR("array[")), CRT::IntegerToString(pRecvProp->nElements, szArraySizeBuffer, Q_ARRAYSIZE(szArraySizeBuffer), 10)), Q_XOR("]"));
 		break;
 	}
 	case DPT_DATATABLE:
 	{
-		static_assert(std::endian::native == std::endian::little); // following code assume little-endian
+		static_assert(std::endian::native == std::endian::little, "following code assume little-endian");
 
 		const RecvTable_t* pChildTable = pRecvProp->pDataTable;
 
@@ -340,7 +340,7 @@ void NETVAR::GetPropertyType(const RecvProp_t* pRecvProp, char* szOutBuffer)
 
 			// get the array size
 			char szArraySizeBuffer[CRT::IntegerToString_t<int, 10U>::MaxCount()];
-			const char* szArraySize = CRT::IntegerToString(pChildTable->nPropCount, szArraySizeBuffer, sizeof(szArraySizeBuffer), 10);
+			const char* szArraySize = CRT::IntegerToString(pChildTable->nPropCount, szArraySizeBuffer, Q_ARRAYSIZE(szArraySizeBuffer), 10);
 			const std::size_t nArraySizeLength = szArraySizeBuffer + sizeof(szArraySizeBuffer) - szArraySize;
 
 			// check if the property has sub-array size

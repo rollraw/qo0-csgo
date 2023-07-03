@@ -137,7 +137,7 @@ void SCREEN::HitMarker(const Color_t& colLines, const Color_t& colDamage)
 				const int iAlpha = static_cast<int>(CRT::Min(flMaxDamageAlpha, flDelta / C::Get<float>(Vars.flVisualScreenHitMarkerTime)) * 255.f);
 
 				char szDamageBuffer[CRT::IntegerToString_t<int, 10U>::MaxCount()];
-				const char* szDealtDamage = CRT::IntegerToString(hitMarker.iDamage, szDamageBuffer, sizeof(szDamageBuffer));
+				const char* szDealtDamage = CRT::IntegerToString(hitMarker.iDamage, szDamageBuffer, Q_ARRAYSIZE(szDamageBuffer));
 
 				// draw dealt damage
 				D::AddDrawListText(nullptr, FONT::pVisual, 24.f, ImVec2(vecScreen.x, vecScreen.y - flRatio * flDistance), szDealtDamage, colDamage.Set<COLOR_A>(static_cast<std::uint8_t>(iAlpha)), DRAW_TEXT_OUTLINE, Color_t(0, 0, 0, iAlpha));
