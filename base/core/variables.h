@@ -249,4 +249,4 @@ struct Variables_t
 	#pragma endregion
 };
 
-inline Variables_t Vars;
+inline Variables_t Vars = { };

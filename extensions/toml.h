@@ -2,8 +2,6 @@
 // used: [ext] toml parser implementation
 #include <toml/toml.hpp>
 
-#define Q_TOML_EXTENSION L".toml"
-
 namespace C::TOML
 {
 	/* @section: [internal] */
@@ -289,7 +287,7 @@ namespace C::TOML
 		toml::value root;
 
 		// put current cheat build number
-		WriteBuffer(root[szVariableHash], VariableObject_t{ FNV1A::HashConst("version"), FNV1A::HashConst("int"), sizeof(int), Q_VERSION });
+		WriteBuffer(root[szVariableHash], VariableObject_t{ FNV1A::HashConst("version"), FNV1A::HashConst("int"), Q_VERSION });
 
 		for (const auto& variable : vecVariables)
 		{

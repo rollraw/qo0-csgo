@@ -14,6 +14,8 @@
 // used: user defined behaviour
 #include "user.h"
 
+// @todo: use #warning instead of static asserts when c++23 comes out
+
 #pragma region common_architecture_specific
 #if defined(i386) || defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(__i386) || defined(_M_IX86) || defined(_X86_) || defined(__THW_INTEL__) || defined(__I86__) || defined(__INTEL__)
 #define Q_ARCH_X86
@@ -102,7 +104,6 @@ static_assert(false, "could not determine the target architecture, consider defi
 #endif
 #endif
 
-// @todo: use #warning when c++23 comes out instead of static asserts
 #ifndef Q_RETURN_ADDRESS
 #if defined(Q_COMPILER_MSC)
 #define Q_RETURN_ADDRESS() _ReturnAddress()
@@ -143,6 +144,23 @@ static_assert(false, "it is expected you to define Q_DEBUG_BREAK() into somethin
 #else
 // disable assertion for release builds
 #define Q_ASSERT(EXPRESSION) static_cast<void>(0)
+#endif
+#endif
+
+#if !defined(Q_CONFIGURATION_BINARY) && !defined(Q_CONFIGURATION_JSON) && !defined(Q_CONFIGURATION_TOML)
+static_assert(false, "it is expected you to define one of the available configuration file formatters!");
+
+// fallback to binary formatter by default
+#define Q_CONFIGURATION_BINARY
+#endif
+
+#ifndef Q_CONFIGURATION_FILE_EXTENSION
+#if defined(Q_CONFIGURATION_BINARY)
+#define Q_CONFIGURATION_FILE_EXTENSION L".bin"
+#elif defined(Q_CONFIGURATION_JSON)
+#define Q_CONFIGURATION_FILE_EXTENSION L".json"
+#elif defined(Q_CONFIGURATION_TOML)
+#define Q_CONFIGURATION_FILE_EXTENSION L".toml"
 #endif
 #endif
 #pragma endregion

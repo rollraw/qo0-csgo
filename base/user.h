@@ -60,21 +60,15 @@
  */
 #define Q_FREETYPE_FROM_GAME
 
-/*
- * define to enable logging output to console
- */
+// define to enable logging output to console
 #ifdef _DEBUG
 #define Q_LOG_CONSOLE
 #endif
 
-/*
- * define to enable logging output to file
- */
+// define to enable logging output to file
 #define Q_LOG_FILE
 
-/*
- * define to enable additional run-time checks
- */
+// define to enable additional run-time checks
 #ifdef _DEBUG
 //#define Q_PARANOID
 #endif
@@ -102,38 +96,34 @@
 #define Q_ALLOW_VIRTUAL_REBUILD
 
 /*
- * define to overwrite default configuration formatter implementation include
+ * define to overwrite configuration file formatter implementation
  * - see 'extensions' directory for more information
  */
-//#define Q_CONFIGURATION_INCLUDE "../../extensions/toml.h"
+#define Q_CONFIGURATION_BINARY
+//#define Q_CONFIGURATION_JSON
+//#define Q_CONFIGURATION_TOML
 
-/*
- * define to force disable behavior based on "Run-Time Type Information", even if available
- */
+// name of the default configuration file
+#define Q_CONFIGURATION_DEFAULT_FILE_NAME L"default"
+
+// define to overwrite configuration file's extension, by default matched to selected formatter
+//#define Q_CONFIGURATION_FILE_EXTENSION ".custom"
+
+// define to force disable behavior based on "Run-Time Type Information", even if available
 //#define Q_NO_RTTI
 
-/*
- * define to overwrite default 'forceinline' methods specifier
- */
+// define to overwrite default 'forceinline' methods specifier
 //#define Q_INLINE inline
 
-/*
- * define to overwrite default return address grabber
- */
+// define to overwrite default return address grabber
 //#define Q_RETURN_ADDRESS()
 
-/*
- * define to overwrite default stack frame address grabber
- */
+// define to overwrite default stack frame address grabber
 //#define Q_FRAME_ADDRESS()
 
-/*
- * define to overwrite default debugger break-point
- */
+// define to overwrite default debugger break-point
 //#define Q_DEBUG_BREAK() __asm int 3;
 
-/*
- * define to overwrite default assertion handler
- */
+// define to overwrite default assertion handler
 //#include <cassert>
 //#define Q_ASSERT(EXPRESSION) assert(EXPRESSION)

@@ -1,7 +1,5 @@
 #pragma once
 
-#define Q_BINARY_EXTENSION L".bin"
-
 namespace C::BIN
 {
 	/* @section: [internal] */
@@ -239,7 +237,7 @@ namespace C::BIN
 			return false;
 		}
 
-		VariableObject_t version = { FNV1A::HashConst("version"), FNV1A::HashConst("int"), sizeof(int), Q_VERSION };
+		VariableObject_t version = { FNV1A::HashConst("version"), FNV1A::HashConst("int"), Q_VERSION };
 		ReadBuffer(pBuffer, version);
 
 		BOOL bWritten = FALSE;
@@ -291,7 +289,7 @@ namespace C::BIN
 			return false;
 		}
 
-		VariableObject_t version = { FNV1A::HashConst("version"), FNV1A::HashConst("int"), sizeof(int), Q_VERSION };
+		VariableObject_t version = { FNV1A::HashConst("version"), FNV1A::HashConst("int"), Q_VERSION };
 		ReadBuffer(pBuffer, version);
 
 		// search a variable in the file
@@ -352,7 +350,7 @@ namespace C::BIN
 		}
 		const std::uint8_t* pBufferEnd = pBuffer + dwFileSize;
 
-		VariableObject_t version = { FNV1A::HashConst("version"), FNV1A::HashConst("int"), sizeof(int), Q_VERSION };
+		VariableObject_t version = { FNV1A::HashConst("version"), FNV1A::HashConst("int"), Q_VERSION };
 		ReadBuffer(pBuffer, version);
 
 		// search a variable in the file
@@ -385,7 +383,7 @@ namespace C::BIN
 		if (hFileOut == INVALID_HANDLE_VALUE)
 			return false;
 
-		VariableObject_t version = { FNV1A::HashConst("version"), FNV1A::HashConst("int"), sizeof(int), Q_VERSION };
+		VariableObject_t version = { FNV1A::HashConst("version"), FNV1A::HashConst("int"), Q_VERSION };
 
 		// pre-calculate buffer size for all variables to avoid reallocation
 		std::size_t nBufferSize = sizeof(FNV1A_t[2]) + version.GetSerializationSize();
@@ -445,7 +443,7 @@ namespace C::BIN
 			return false;
 		}
 
-		VariableObject_t version = { FNV1A::HashConst("version"), FNV1A::HashConst("int"), sizeof(int), Q_VERSION };
+		VariableObject_t version = { FNV1A::HashConst("version"), FNV1A::HashConst("int"), Q_VERSION };
 		ReadBuffer(pBuffer, version);
 
 		for (auto& variable : vecVariables)

@@ -15,23 +15,83 @@
 #include "../utilities/memory.h"
 
 // used: formatter implementation
-#ifdef Q_CONFIGURATION_INCLUDE
-#include Q_CONFIGURATION_INCLUDE
-#else
+#if defined(Q_CONFIGURATION_BINARY)
 #include "../../extensions/binary.h"
-#endif
-
-// determine file extension for selected formatter
-#if defined(Q_BINARY_EXTENSION)
-#define C_EXTENSION Q_BINARY_EXTENSION
-#elif defined(Q_JSON_EXTENSION)
-#define C_EXTENSION Q_JSON_EXTENSION
-#elif defined(Q_TOML_EXTENSION)
-#define C_EXTENSION Q_TOML_EXTENSION
+#elif defined(Q_CONFIGURATION_JSON)
+#include "../../extensions/json.h"
+#elif defined(Q_CONFIGURATION_TOML)
+#include "../../extensions/toml.h"
 #endif
 
 // default configurations working path
 static wchar_t wszConfigurationsPath[MAX_PATH];
+
+#pragma region config_user_data_type
+std::size_t C::UserDataType_t::GetSerializationSize() const
+{
+	std::size_t nTotalDataSize = 0U;
+
+	for (const UserDataMember_t& member : vecMembers)
+		nTotalDataSize += sizeof(FNV1A_t[2]) + member.nDataSize;
+
+	return nTotalDataSize;
+}
+#pragma endregion
+
+#pragma region config_variable_object
+void C::VariableObject_t::SetStorage(const void* pValue)
+{
+	// check is available to store value in the local storage
+	if (this->nStorageSize <= sizeof(this->storage.uLocal))
+	{
+		CRT::MemorySet(&this->storage.uLocal, 0U, sizeof(this->storage.uLocal));
+		CRT::MemoryCopy(&this->storage.uLocal, pValue, this->nStorageSize);
+	}
+	// otherwise use heap memory to store it
+	else
+	{
+		Q_ASSERT(this->storage.pHeap != nullptr); // tried to access non allocated storage
+
+		CRT::MemorySet(this->storage.pHeap, 0U, this->nStorageSize);
+		CRT::MemoryCopy(this->storage.pHeap, pValue, this->nStorageSize);
+	}
+}
+
+std::size_t C::VariableObject_t::GetSerializationSize() const
+{
+	std::size_t nSerializationSize = this->nStorageSize;
+
+	// denote a custom serialization size when it different from the storage size
+	switch (this->uTypeHash)
+	{
+	// lookup for array data type
+	case FNV1A::HashConst("bool[]"):
+	case FNV1A::HashConst("int[]"):
+	case FNV1A::HashConst("unsigned int[]"):
+	case FNV1A::HashConst("float[]"):
+	case FNV1A::HashConst("char[][]"):
+		// arrays also serialize their size
+		nSerializationSize += sizeof(std::size_t);
+		break;
+	// lookup for user-defined data type
+	default:
+	{
+		for (const UserDataType_t& userType : vecUserTypes)
+		{
+			if (userType.uTypeHash == this->uTypeHash)
+			{
+				nSerializationSize = sizeof(std::size_t) + userType.GetSerializationSize();
+				break;
+			}
+		}
+
+		break;
+	}
+	}
+
+	return nSerializationSize;
+}
+#pragma endregion
 
 bool C::Setup(const wchar_t* wszDefaultFileName)
 {
@@ -50,7 +110,7 @@ bool C::Setup(const wchar_t* wszDefaultFileName)
 		}
 	}
 
-	// define custom data types we want to serialize
+	// @note: define custom data types we want to serialize
 	AddUserType(FNV1A::HashConst("KeyBind_t"),
 		{
 			UserDataMember_t{ FNV1A::HashConst("uKey"), FNV1A::HashConst("unsigned int"), &KeyBind_t::uKey },
@@ -70,14 +130,12 @@ bool C::Setup(const wchar_t* wszDefaultFileName)
 #pragma region config_main
 void C::Refresh()
 {
-	// clear previous stored file names
-	for (wchar_t* wszFileName : vecFileNames)
-		MEM::HeapFree(wszFileName);
+	// clear and free previous stored file names
 	vecFileNames.clear();
 
 	// make configuration files path filter
 	wchar_t wszPathFilter[MAX_PATH];
-	CRT::StringCat(CRT::StringCopy(wszPathFilter, wszConfigurationsPath), Q_XOR(L"*" C_EXTENSION));
+	CRT::StringCat(CRT::StringCopy(wszPathFilter, wszConfigurationsPath), Q_XOR(L"*" Q_CONFIGURATION_FILE_EXTENSION));
 
 	// iterate through all files with our filter
 	WIN32_FIND_DATAW findData;
@@ -85,7 +143,7 @@ void C::Refresh()
 	{
 		do
 		{
-			vecFileNames.push_back(static_cast<wchar_t*>(MEM::HeapAlloc((CRT::StringLength(findData.cFileName) + 1U) * sizeof(wchar_t))));
+			vecFileNames.push_back(new wchar_t[CRT::StringLength(findData.cFileName) + 1U]);
 			CRT::StringCopy(vecFileNames.back(), findData.cFileName);
 
 			L_PRINT(LOG_INFO) << Q_XOR("found configuration file: \"") << findData.cFileName << Q_XOR("\"");
@@ -116,11 +174,11 @@ bool C::SaveFileVariable(const std::size_t nFileIndex, const VariableObject_t& v
 	wchar_t wszFilePath[MAX_PATH];
 	CRT::StringCat(CRT::StringCopy(wszFilePath, wszConfigurationsPath), wszFileName);
 
-#if defined(Q_BINARY_EXTENSION)
+#if defined(Q_CONFIGURATION_BINARY)
 	if (BIN::SaveVariable(wszFilePath, variable))
-#elif defined(Q_JSON_EXTENSION)
+#elif defined(Q_CONFIGURATION_JSON)
 	if (JSON::SaveVariable(wszFilePath, variable))
-#elif defined(Q_TOML_EXTENSION)
+#elif defined(Q_CONFIGURATION_TOML)
 	if (TOML::SaveVariable(wszFilePath, variable))
 #endif
 	{
@@ -137,11 +195,11 @@ bool C::LoadFileVariable(const std::size_t nFileIndex, VariableObject_t& variabl
 	wchar_t wszFilePath[MAX_PATH];
 	CRT::StringCat(CRT::StringCopy(wszFilePath, wszConfigurationsPath), wszFileName);
 
-#if defined(Q_BINARY_EXTENSION)
+#if defined(Q_CONFIGURATION_BINARY)
 	if (BIN::LoadVariable(wszFilePath, variable))
-#elif defined(Q_JSON_EXTENSION)
+#elif defined(Q_CONFIGURATION_JSON)
 	if (JSON::LoadVariable(wszFilePath, variable))
-#elif defined(Q_TOML_EXTENSION)
+#elif defined(Q_CONFIGURATION_TOML)
 	if (TOML::LoadVariable(wszFilePath, variable))
 #endif
 	{
@@ -158,11 +216,11 @@ bool C::RemoveFileVariable(const std::size_t nFileIndex, const VariableObject_t&
 	wchar_t wszFilePath[MAX_PATH];
 	CRT::StringCat(CRT::StringCopy(wszFilePath, wszConfigurationsPath), wszFileName);
 
-#if defined(Q_BINARY_EXTENSION)
+#if defined(Q_CONFIGURATION_BINARY)
 	if (BIN::RemoveVariable(wszFilePath, variable))
-#elif defined(Q_JSON_EXTENSION)
+#elif defined(Q_CONFIGURATION_JSON)
 	if (JSON::RemoveVariable(wszFilePath, variable))
-#elif defined(Q_TOML_EXTENSION)
+#elif defined(Q_CONFIGURATION_TOML)
 	if (TOML::RemoveVariable(wszFilePath, variable))
 #endif
 	{
@@ -174,28 +232,38 @@ bool C::RemoveFileVariable(const std::size_t nFileIndex, const VariableObject_t&
 
 bool C::CreateFile(const wchar_t* wszFileName)
 {
-	wchar_t wszFilePath[MAX_PATH];
-	wchar_t* wszFilePathEnd = CRT::StringCopy(wszFilePath, wszConfigurationsPath);
+	wchar_t* wszFullFileName;
 
+	// @todo: optimize it
 	// check is file extension already correct
-	if (const wchar_t* wszFileExtension = CRT::StringCharR(wszFileName, L'.'); wszFileExtension != nullptr && CRT::StringCompare(wszFileExtension, Q_XOR(C_EXTENSION)) == 0)
-		wszFilePathEnd = CRT::StringCat(wszFilePathEnd, wszFileName);
+	if (const wchar_t* wszFileExtension = CRT::StringCharR(wszFileName, L'.'); wszFileExtension != nullptr && CRT::StringCompare(wszFileExtension, Q_XOR(Q_CONFIGURATION_FILE_EXTENSION)) == 0)
+	{
+		wszFullFileName = new wchar_t[CRT::StringLength(wszFileName) + 1U];
+		CRT::StringCopy(wszFullFileName, wszFileName);
+		vecFileNames.push_back(wszFullFileName);
+	}
 	// file extension is either not set or incorrect
 	else
 	{
-		if (wszFileExtension != nullptr)
-			wszFilePathEnd = CRT::StringCatN(wszFilePathEnd, wszFileName, wszFileExtension - wszFileName);
-		else
-			wszFilePathEnd = CRT::StringCat(wszFilePathEnd, wszFileName);
+		wchar_t* wszFullFileNameEnd;
 
-		wszFilePathEnd = CRT::StringCat(wszFilePathEnd, Q_XOR(C_EXTENSION));
+		if (wszFileExtension != nullptr)
+		{
+			wszFullFileName = new wchar_t[wszFileExtension - wszFileName + CRT::StringLength(Q_CONFIGURATION_FILE_EXTENSION) + 1U];
+			wszFullFileNameEnd = CRT::StringCopyN(wszFullFileName, wszFileName, wszFileExtension - wszFileName);
+		}
+		else
+		{
+			wszFullFileName = new wchar_t[CRT::StringLength(wszFileName) + CRT::StringLength(Q_CONFIGURATION_FILE_EXTENSION) + 1U];
+			wszFullFileNameEnd = CRT::StringCopy(wszFullFileName, wszFileName);
+		}
+
+		// append correct extension to the file name
+		CRT::StringCat(wszFullFileNameEnd, Q_XOR(Q_CONFIGURATION_FILE_EXTENSION));
 	}
 
 	// add file to the list
-	const wchar_t* wszFileNameStripped = CRT::StringCharR(wszFilePath, '\\') + 1U;
-	wchar_t* wszFullFileName = static_cast<wchar_t*>(MEM::HeapAlloc((wszFilePathEnd - wszFileNameStripped + 1U) * sizeof(wchar_t)));
-	CRT::StringCopy(wszFullFileName, wszFileNameStripped);
-	vecFileNames.emplace_back(wszFullFileName);
+	vecFileNames.push_back(wszFullFileName);
 
 	// create and save it by the index
 	if (SaveFile(vecFileNames.size() - 1U))
@@ -215,11 +283,11 @@ bool C::SaveFile(const std::size_t nFileIndex)
 	wchar_t wszFilePath[MAX_PATH];
 	CRT::StringCat(CRT::StringCopy(wszFilePath, wszConfigurationsPath), wszFileName);
 
-#if defined(Q_BINARY_EXTENSION)
+#if defined(Q_CONFIGURATION_BINARY)
 	if (BIN::SaveFile(wszFilePath))
-#elif defined(Q_JSON_EXTENSION)
+#elif defined(Q_CONFIGURATION_JSON)
 	if (JSON::SaveFile(wszFilePath))
-#elif defined(Q_TOML_EXTENSION)
+#elif defined(Q_CONFIGURATION_TOML)
 	if (TOML::SaveFile(wszFilePath))
 #endif
 	{
@@ -238,11 +306,11 @@ bool C::LoadFile(const std::size_t nFileIndex)
 	wchar_t wszFilePath[MAX_PATH];
 	CRT::StringCat(CRT::StringCopy(wszFilePath, wszConfigurationsPath), wszFileName);
 
-#if defined(Q_BINARY_EXTENSION)
+#if defined(Q_CONFIGURATION_BINARY)
 	if (BIN::LoadFile(wszFilePath))
-#elif defined(Q_JSON_EXTENSION)
+#elif defined(Q_CONFIGURATION_JSON)
 	if (JSON::LoadFile(wszFilePath))
-#elif defined(Q_TOML_EXTENSION)
+#elif defined(Q_CONFIGURATION_TOML)
 	if (TOML::LoadFile(wszFilePath))
 #endif
 	{
@@ -259,7 +327,7 @@ void C::RemoveFile(const std::size_t nFileIndex)
 	const wchar_t* wszFileName = vecFileNames[nFileIndex];
 
 	// unable to delete default config
-	if (CRT::StringCompare(wszFileName, Q_XOR(L"default" C_EXTENSION)) == 0)
+	if (CRT::StringCompare(wszFileName, Q_XOR(Q_CONFIGURATION_DEFAULT_FILE_NAME Q_CONFIGURATION_FILE_EXTENSION)) == 0)
 		return;
 
 	wchar_t wszFilePath[MAX_PATH];

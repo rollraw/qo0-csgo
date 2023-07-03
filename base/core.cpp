@@ -156,7 +156,7 @@ static bool Setup(HMODULE hModule)
 	L_PRINT(LOG_NONE) << Q_XOR("proxies initialization completed");
 
 	// setup values to save/load cheat variables into/from files and load default configuration
-	if (!C::Setup(Q_XOR(L"default")))
+	if (!C::Setup(Q_XOR(Q_CONFIGURATION_DEFAULT_FILE_NAME)))
 		// this error is not critical, only show that
 		L_PRINT(LOG_WARNING) << Q_XOR("failed to setup and/or load default configuration");
 	else

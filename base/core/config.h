@@ -53,8 +53,8 @@ namespace C
 	{
 		// @todo: not sure is it possible and how todo this with projections, so currently done with pointer-to-member thing, probably could be optimized
 		template <typename T, typename C>
-		UserDataMember_t(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, const T C::* pMember) :
-			uNameHash(uNameHash), uTypeHash(uTypeHash), nDataSize(sizeof(std::remove_pointer_t<T>)), uBaseOffset(reinterpret_cast<std::size_t>(&reinterpret_cast<const volatile char&>(static_cast<C*>(nullptr)->*pMember))) { }
+		constexpr UserDataMember_t(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, const T C::* pMember) :
+			uNameHash(uNameHash), uTypeHash(uTypeHash), nDataSize(sizeof(std::remove_pointer_t<T>)), uBaseOffset(reinterpret_cast<std::size_t>(std::addressof(static_cast<C*>(nullptr)->*pMember))) { } // @test: 'Q_OFFSETOF' must expand to the same result but for some reason it doesn't
 
 		// hash of custom variable name
 		FNV1A_t uNameHash = 0U;
@@ -69,46 +69,33 @@ namespace C
 	// user-defined custom serialization structure
 	struct UserDataType_t
 	{
-		[[nodiscard]] std::size_t GetSerializationSize() const
-		{
-			std::size_t nTotalDataSize = 0U;
-
-			for (const UserDataMember_t& member : vecMembers)
-				nTotalDataSize += sizeof(FNV1A_t[2]) + member.nDataSize;
-
-			return nTotalDataSize;
-		}
+		[[nodiscard]] std::size_t GetSerializationSize() const;
 
 		FNV1A_t uTypeHash = 0U;
 		std::vector<UserDataMember_t> vecMembers = { };
 	};
 
-	/* @section: values */
-	// all user configuration filenames, sorted
-	inline std::vector<wchar_t*> vecFileNames = { };
-	// custom user-defined serialization data types
-	inline std::vector<UserDataType_t> vecUserTypes = { };
-
 	// variable info and value storage holder
 	struct VariableObject_t
 	{
-		template <typename T> requires (!std::is_void_v<T>)
-		VariableObject_t(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, const std::size_t nStorageSize, const T& valueDefault) :
-			uNameHash(uNameHash), uTypeHash(uTypeHash), nStorageSize(nStorageSize)
+		// @test: it's required value to be either trivially copyable or allocated/copied by new/placement-new operators, otherwise it may cause UB
+		template <typename T> requires (!std::is_void_v<T> && std::is_trivially_copyable_v<T>)
+		VariableObject_t(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, const T& valueDefault) :
+			uNameHash(uNameHash), uTypeHash(uTypeHash), nStorageSize(sizeof(T))
 		{
 		#ifndef Q_NO_RTTI
 			// store RTTI address if available
 			this->pTypeInfo = &typeid(std::remove_cvref_t<T>);
 		#endif
 
-			// allocate storage in heap if it couldn't fit in local one
-			if (nStorageSize > sizeof(this->storage.uLocal))
-				this->storage.pHeap = MEM::HeapAlloc(nStorageSize);
+			// @todo: do not call setstorage, instead construct it by placement-new operator
+			// allocate storage on the heap if it doesnt't fit on the local one
+			if constexpr (sizeof(T) > sizeof(this->storage.uLocal))
+				this->storage.pHeap = MEM::HeapAlloc(this->nStorageSize);
 
 			SetStorage(&valueDefault);
 		}
 
-		// @todo: temporary move/copy constructors, because those are used by stl containers
 		VariableObject_t(VariableObject_t&& other) noexcept :
 			uNameHash(other.uNameHash), uTypeHash(other.uTypeHash), nStorageSize(other.nStorageSize)
 		{
@@ -117,13 +104,12 @@ namespace C
 		#endif
 
 			if (this->nStorageSize <= sizeof(this->storage.uLocal))
-				CRT::MemoryCopy(this->storage.uLocal, other.storage.uLocal, sizeof(this->storage.uLocal));
-			else if (other.storage.pHeap != nullptr)
+				CRT::MemoryCopy(&this->storage.uLocal, &other.storage.uLocal, sizeof(this->storage.uLocal));
+			else
 			{
-				this->storage.pHeap = MEM::HeapAlloc(this->nStorageSize);
-				CRT::MemoryCopy(this->storage.pHeap, other.storage.pHeap, this->nStorageSize);
+				this->storage.pHeap = other.storage.pHeap;
 
-				MEM::HeapFree(other.storage.pHeap);
+				// prevent it from being freed when the moved object is destroyed
 				other.storage.pHeap = nullptr;
 			}
 		}
@@ -136,7 +122,7 @@ namespace C
 		#endif
 
 			if (this->nStorageSize <= sizeof(this->storage.uLocal))
-				CRT::MemoryCopy(this->storage.uLocal, other.storage.uLocal, sizeof(this->storage.uLocal));
+				CRT::MemoryCopy(&this->storage.uLocal, &other.storage.uLocal, sizeof(this->storage.uLocal));
 			else if (other.storage.pHeap != nullptr)
 			{
 				this->storage.pHeap = MEM::HeapAlloc(this->nStorageSize);
@@ -146,12 +132,62 @@ namespace C
 
 		~VariableObject_t()
 		{
-			// check is using heap memory and it's allocated
+			// check if heap memory is in use and allocated
 			if (this->nStorageSize > sizeof(this->storage.uLocal) && this->storage.pHeap != nullptr)
 				MEM::HeapFree(this->storage.pHeap);
 		}
 
-		Q_CLASS_NO_ASSIGNMENT(VariableObject_t);
+		VariableObject_t& operator=(VariableObject_t&& other) noexcept
+		{
+			// check if heap memory is in use and allocated
+			if (this->nStorageSize > sizeof(this->storage.uLocal) && this->storage.pHeap != nullptr)
+				MEM::HeapFree(this->storage.pHeap);
+
+			this->uNameHash = other.uNameHash;
+			this->uTypeHash = other.uTypeHash;
+			this->nStorageSize = other.nStorageSize;
+
+		#ifndef Q_NO_RTTI
+			this->pTypeInfo = other.pTypeInfo;
+		#endif
+
+			if (this->nStorageSize <= sizeof(this->storage.uLocal))
+				CRT::MemoryCopy(&this->storage.uLocal, &other.storage.uLocal, sizeof(this->storage.uLocal));
+			else
+			{
+				this->storage.pHeap = other.storage.pHeap;
+
+				// prevent it from being freed when the moved object is destroyed
+				other.storage.pHeap = nullptr;
+			}
+
+			return *this;
+		}
+
+		VariableObject_t& operator=(const VariableObject_t& other)
+		{
+			// check if heap memory is in use and allocated
+			if (this->nStorageSize > sizeof(this->storage.uLocal) && this->storage.pHeap != nullptr)
+				MEM::HeapFree(this->storage.pHeap);
+
+			this->uNameHash = other.uNameHash;
+			this->uTypeHash = other.uTypeHash;
+			this->nStorageSize = other.nStorageSize;
+
+		#ifndef Q_NO_RTTI
+			this->pTypeInfo = other.pTypeInfo;
+		#endif
+
+			if (this->nStorageSize <= sizeof(this->storage.uLocal))
+				CRT::MemoryCopy(&this->storage.uLocal, &other.storage.uLocal, sizeof(this->storage.uLocal));
+			else if (other.storage.pHeap != nullptr)
+			{
+				this->storage.pHeap = MEM::HeapAlloc(this->nStorageSize);
+				CRT::MemoryCopy(this->storage.pHeap, other.storage.pHeap, this->nStorageSize);
+			}
+
+			return *this;
+		}
 
 		/// @tparam bTypeSafe if true, activates additional comparison of source and requested type information, requires RTTI
 		/// @returns: pointer to the value storage, null if @a'bTypeSafe' is active and the access type does not match the variable type
@@ -165,8 +201,8 @@ namespace C
 				if (const std::type_info& currentTypeInfo = typeid(std::remove_cvref_t<T>); this->pTypeInfo != nullptr && CRT::StringCompare(this->pTypeInfo->raw_name(), currentTypeInfo.raw_name()) != 0)
 				{
 					if (char szPresentTypeName[64] = { }, szAccessTypeName[64] = { };
-						MEM::fnUnDecorateSymbolName(this->pTypeInfo->raw_name() + 1U, szPresentTypeName, sizeof(szPresentTypeName), UNDNAME_NO_ARGUMENTS) != 0UL &&
-						MEM::fnUnDecorateSymbolName(currentTypeInfo.raw_name() + 1U, szAccessTypeName, sizeof(szAccessTypeName), UNDNAME_NO_ARGUMENTS) != 0UL)
+						MEM::fnUnDecorateSymbolName(this->pTypeInfo->raw_name() + 1U, szPresentTypeName, Q_ARRAYSIZE(szPresentTypeName), UNDNAME_NO_ARGUMENTS) != 0UL &&
+						MEM::fnUnDecorateSymbolName(currentTypeInfo.raw_name() + 1U, szAccessTypeName, Q_ARRAYSIZE(szAccessTypeName), UNDNAME_NO_ARGUMENTS) != 0UL)
 					{
 						L_PRINT(LOG_ERROR) << Q_XOR("accessing variable of type: \"") << szPresentTypeName << Q_XOR("\" with wrong type: \"") << szAccessTypeName << Q_XOR("\"");
 					}
@@ -182,7 +218,7 @@ namespace C
 				return reinterpret_cast<const std::remove_cvref_t<T>*>(&this->storage.uLocal);
 
 			// otherwise it is allocated in the heap memory
-			Q_ASSERT(this->storage.pHeap != nullptr); // storage is not allocated for some reason
+			Q_ASSERT(this->storage.pHeap != nullptr); // tried to access non allocated storage
 			return static_cast<const std::remove_cvref_t<T>*>(this->storage.pHeap);
 		}
 
@@ -192,60 +228,10 @@ namespace C
 			return const_cast<T*>(static_cast<const VariableObject_t*>(this)->GetStorage<T, bTypeSafe>());
 		}
 
-		// @todo: rework and base on type erasure principe cus we dont really need type safety at this point, this will let us to get rid of templates on this and ctor in future, and merge implementation to .cpp | done, now do the smth similar with ctor
-		// overwrite variable data storage
-		void SetStorage(const void* pValue)
-		{
-			// check is available to store value in the local storage
-			if (this->nStorageSize <= sizeof(this->storage.uLocal))
-			{
-				CRT::MemorySet(this->storage.uLocal, 0U, sizeof(this->storage.uLocal));
-				CRT::MemoryCopy(this->storage.uLocal, pValue, this->nStorageSize);
-			}
-			// otherwise use heap memory to store it
-			else
-			{
-				Q_ASSERT(this->storage.pHeap != nullptr); // tried to access non allocated storage
-
-				CRT::MemorySet(this->storage.pHeap, 0U, this->nStorageSize);
-				CRT::MemoryCopy(this->storage.pHeap, pValue, this->nStorageSize);
-			}
-		}
-
+		// replace variable contained value
+		void SetStorage(const void* pValue);
 		/// @returns: the size of the data to be serialized/de-serialized into/from the configuration file
-		[[nodiscard]] std::size_t GetSerializationSize() const
-		{
-			std::size_t nSerializationSize = this->nStorageSize;
-
-			// denote a custom serialization size when it different from the storage size
-			switch (this->uTypeHash)
-			{
-			// arrays also serialize their size
-			case FNV1A::HashConst("bool[]"):
-			case FNV1A::HashConst("int[]"):
-			case FNV1A::HashConst("unsigned int[]"):
-			case FNV1A::HashConst("float[]"):
-			case FNV1A::HashConst("char[][]"):
-				nSerializationSize += sizeof(std::size_t);
-				break;
-			// lookup for user-defined data type
-			default:
-			{
-				for (const UserDataType_t& userType : vecUserTypes)
-				{
-					if (userType.uTypeHash == this->uTypeHash)
-					{
-						nSerializationSize = sizeof(std::size_t) + userType.GetSerializationSize();
-						break;
-					}
-				}
-
-				break;
-			}
-			}
-
-			return nSerializationSize;
-		}
+		[[nodiscard]] std::size_t GetSerializationSize() const;
 
 		// hash of variable name
 		FNV1A_t uNameHash = 0x0;
@@ -256,17 +242,14 @@ namespace C
 		const std::type_info* pTypeInfo = nullptr;
 	#endif
 		// value storage size in bytes
-		const std::size_t nStorageSize = 0U;
+		std::size_t nStorageSize = 0U;
 		// value storage
 		union
 		{
 			void* pHeap;
-			std::uint8_t uLocal[0x4]; // @test: expand local storage size to fit max possible size of trivial type so we can minimize heap allocations count
+			std::uint8_t uLocal[sizeof(std::uintptr_t)]; // @test: expand local storage size to fit max possible size of trivial type so we can minimize heap allocations count
 		} storage = { nullptr };
 	};
-
-	// configuration variables storage
-	inline std::vector<VariableObject_t> vecVariables = { };
 
 	// create directories and default configuration file
 	bool Setup(const wchar_t* wszDefaultFileName);
@@ -303,6 +286,14 @@ namespace C
 	/// @param[in] nFileIndex index of the exist configuration file name
 	void RemoveFile(const std::size_t nFileIndex);
 
+	/* @section: values */
+	// all user configuration filenames
+	inline std::vector<wchar_t*> vecFileNames = { };
+	// custom user-defined serialization data types
+	inline std::vector<UserDataType_t> vecUserTypes = { };
+	// configuration variables storage
+	inline std::vector<VariableObject_t> vecVariables = { };
+
 	/* @section: get */
 	/// @returns: index of variable with given name hash if it exist, 'C_INVALID_VARIABLE' otherwise
 	[[nodiscard]] std::size_t GetVariableIndex(const FNV1A_t uNameHash);
@@ -318,17 +309,16 @@ namespace C
 	/// add new configuration variable
 	/// @returns: index of added variable
 	template <typename T> requires (!std::is_array_v<T>)
-	std::size_t AddVariable(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, const T valueDefault)
+	std::size_t AddVariable(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, const T& valueDefault)
 	{
-		vecVariables.emplace_back(uNameHash, uTypeHash, sizeof(T), valueDefault);
+		vecVariables.emplace_back(uNameHash, uTypeHash, valueDefault);
 		return vecVariables.size() - 1U;
 	}
 
-	// @todo: get rid of templates, so it doesn't compile duplicates and we're able to merge things to .cpp
-	/// add new configuration array variable
+	/// add new configuration array variable initialized by single value
 	/// @returns: index of added array variable
 	template <typename T> requires (std::is_array_v<T>)
-	std::size_t AddVariableArray(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, std::remove_pointer_t<std::decay_t<T>> valueDefault)
+	std::size_t AddVariableArray(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, const std::remove_pointer_t<std::decay_t<T>> valueDefault)
 	{
 		using BaseType_t = std::remove_pointer_t<std::decay_t<T>>;
 
@@ -336,11 +326,11 @@ namespace C
 		for (std::size_t i = 0U; i < sizeof(T) / sizeof(BaseType_t); i++)
 			arrValueDefault[i] = valueDefault;
 
-		vecVariables.emplace_back(uNameHash, uTypeHash, sizeof(T), arrValueDefault);
+		vecVariables.emplace_back(uNameHash, uTypeHash, arrValueDefault);
 		return vecVariables.size() - 1U;
 	}
 
-	/// add new configuration array variable
+	/// add new configuration array variable with multiple values initialized
 	/// @returns: index of added array variable
 	template <typename T> requires (std::is_array_v<T>)
 	std::size_t AddVariableArray(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, std::initializer_list<std::remove_pointer_t<std::decay_t<T>>> vecValuesDefault)
@@ -349,11 +339,14 @@ namespace C
 
 		T arrValueDefault;
 		CRT::MemorySet(arrValueDefault, 0U, sizeof(T));
-		CRT::MemoryCopy(arrValueDefault, vecValuesDefault.begin(), vecValuesDefault.size() * sizeof(BaseType_t)); // @test: will sizeof work as expected?
+		CRT::MemoryCopy(arrValueDefault, vecValuesDefault.begin(), vecValuesDefault.size() * sizeof(BaseType_t));
 
-		vecVariables.emplace_back(uNameHash, uTypeHash, sizeof(T), arrValueDefault);
+		vecVariables.emplace_back(uNameHash, uTypeHash, arrValueDefault);
 		return vecVariables.size() - 1U;
 	}
 
-	// @todo: removevariable
+	inline void RemoveVariable(const std::size_t nIndex)
+	{
+		vecVariables.erase(vecVariables.begin() + nIndex);
+	}
 }
