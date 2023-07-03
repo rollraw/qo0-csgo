@@ -615,6 +615,17 @@ void T::Miscellaneous()
 			{
 				ImGui::PushItemWidth(-1);
 
+				// check selected configuration for magic value
+				if (nSelectedConfig == ~1U)
+				{
+					// set default configuration as selected on first use
+					for (std::size_t i = 0U; i < C::vecFileNames.size(); i++)
+					{
+						if (CRT::StringCompare(C::vecFileNames[i], Q_XOR(Q_CONFIGURATION_DEFAULT_FILE_NAME Q_CONFIGURATION_FILE_EXTENSION)) == 0)
+							nSelectedConfig = i;
+					}
+				}
+
 				if (ImGui::ListBoxHeader(Q_XOR("##config.list"), C::vecFileNames.size(), 5))
 				{
 					for (std::size_t i = 0U; i < C::vecFileNames.size(); i++)
@@ -623,7 +634,7 @@ void T::Miscellaneous()
 						const wchar_t* wszFileName = C::vecFileNames[i];
 
 						char szFileName[MAX_PATH] = { };
-						CRT::StringUnicodeToMultiByte(szFileName, sizeof(szFileName), wszFileName);
+						CRT::StringUnicodeToMultiByte(szFileName, Q_ARRAYSIZE(szFileName), wszFileName);
 
 						if (ImGui::Selectable(szFileName, (nSelectedConfig == i)))
 							nSelectedConfig = i;
@@ -642,9 +653,11 @@ void T::Miscellaneous()
 				{
 					// @todo: imgui cant work with wstring, wait for change to other gui
 					wchar_t wszConfigFile[MAX_PATH] = { };
-					CRT::StringMultiByteToUnicode(wszConfigFile, MAX_PATH, szConfigFile, szConfigFile + sizeof(szConfigFile));
+					CRT::StringMultiByteToUnicode(wszConfigFile, MAX_PATH, szConfigFile);
 
-					C::CreateFile(wszConfigFile);
+					if (C::CreateFile(wszConfigFile))
+						// set created config as selected @todo: dependent on current 'C::CreateFile' behaviour, generally it must be replaced by search
+						nSelectedConfig = C::vecFileNames.size() - 1U;
 
 					// clear string
 					CRT::MemorySet(szConfigFile, 0U, sizeof(szConfigFile));
@@ -687,8 +700,8 @@ void T::Miscellaneous()
 				{
 					C::RemoveFile(nSelectedConfig);
 
-					// reset current configuration
-					nSelectedConfig = 0U;
+					// reset selected configuration index
+					nSelectedConfig = ~0U;
 
 					ImGui::CloseCurrentPopup();
 				}

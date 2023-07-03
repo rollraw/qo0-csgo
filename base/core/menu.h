@@ -52,7 +52,7 @@ namespace T
 	// user-defined configuration filename in miscellaneous tab
 	inline char szConfigFile[MAX_PATH] = { };
 	// current selected configuration in miscellaneous tab
-	inline std::size_t nSelectedConfig = 0U;
+	inline std::size_t nSelectedConfig = ~1U;
 	// current selected color setting in miscellaneous tab
 	inline std::size_t nSelectedColor = 0U;
 }
