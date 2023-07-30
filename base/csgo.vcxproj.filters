@@ -494,6 +494,10 @@
     <ClInclude Include="utilities\win.h">
       <Filter>utilities</Filter>
     </ClInclude>
+    <ClInclude Include="..\dependencies\sol2.h" />
+    <ClInclude Include="core\scripts.h">
+      <Filter>core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\dependencies\imgui\dx9\imgui_impl_dx9.cpp">
@@ -642,6 +646,9 @@
     </ClCompile>
     <ClCompile Include="utilities\memory.cpp">
       <Filter>utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="core\scripts.cpp">
+      <Filter>core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
