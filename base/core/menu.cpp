@@ -5,6 +5,8 @@
 
 // used: config variables
 #include "../core/variables.h"
+// used: lua scripts
+#include "../core/scripts.h"
 // used: stringstring
 #include "../utilities/crt.h"
 // used: setup, fonts
@@ -136,10 +138,11 @@ void MENU::MainWindow(IDirect3DDevice9* pDevice)
 				CTab{ "rage", &T::RageBot },
 				CTab{ "legit", &T::LegitBot },
 				CTab{ "visuals", &T::Visuals },
-				CTab{ "miscellaneous", &T::Miscellaneous }
+				CTab{ "miscellaneous", &T::Miscellaneous },
+				CTab{ "script", &T::Scripts }
 			};
 
-			T::Render(Q_XOR("main_tabs"), arrTabs, 4U, &iMainTab, style.Colors[ImGuiCol_TabActive]);
+			T::Render(Q_XOR("main_tabs"), arrTabs, 5U, &iMainTab, style.Colors[ImGuiCol_TabActive]);
 
 			ImGui::End();
 		}
@@ -749,4 +752,64 @@ void T::Miscellaneous()
 	}
 	ImGui::Columns(1);
 }
+
+void T::Scripts()
+{
+	ImGuiStyle& style = ImGui::GetStyle();
+
+	ImGui::Columns(2, nullptr, false);
+	{
+		static float flScriptChildSize = 0.f;
+		ImGui::BeginChild(Q_XOR("script.scripts"), ImVec2(0, flScriptChildSize), true, ImGuiWindowFlags_MenuBar);
+		{
+			if (ImGui::BeginMenuBar())
+			{
+				ImGui::TextUnformatted(Q_XOR("scripts"));
+				ImGui::EndMenuBar();
+			}
+
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, 0));
+			ImGui::PushItemWidth(-1);
+
+			if (ImGui::ListBoxHeader(Q_XOR("##script.list"), LUA::vecScriptData.size(), 5))
+			{
+				for (std::size_t i = 0U; i < LUA::vecScriptData.size(); i++)
+				{
+					// @todo: imgui cant work with wstring, wait for change to other gui
+					const wchar_t* wszFileName = LUA::vecScriptData[i].wszScriptName;
+
+					char szFileName[MAX_PATH] = {};
+					CRT::StringUnicodeToMultiByte(szFileName, Q_ARRAYSIZE(szFileName), wszFileName);
+
+					if (LUA::vecScriptData[i].bLoaded)
+						CRT::StringCat(szFileName, Q_XOR(" - [loaded]"));
+
+					if (ImGui::Selectable(szFileName, (nSelectedScript == i)))
+						nSelectedScript = i;
+				}
+
+				ImGui::ListBoxFooter();
+			}
+
+			if (ImGui::Button(Q_XOR("Load"), ImVec2(50, 0)))
+				LUA::Load(nSelectedScript);
+
+			if (ImGui::Button(Q_XOR("Unload"), ImVec2(50, 0)))
+				LUA::Unload(nSelectedScript);
+
+			if (ImGui::Button(Q_XOR("Refresh"), ImVec2(50, 0)))
+				LUA::Refresh();
+
+			ImGui::PopItemWidth();
+			ImGui::PopStyleVar();
+		}
+		ImGui::EndChild();
+	}
+	ImGui::NextColumn();
+	{
+		// @todo: implement script's menu context
+	}
+	ImGui::Columns(1);
+}
+
 #pragma endregion
