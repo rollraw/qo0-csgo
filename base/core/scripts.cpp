@@ -142,7 +142,7 @@ namespace LUA
 		public:
 			CSliderObject(const char* szName, T valueDefault, T valueMin, T valueMax, const char* szFormat = nullptr)
 			{
-				static_assert(std::is_same<T, int>::value || std::is_same<T, float>::value, Q_XOR("type must be either int or float."));
+				static_assert(std::is_same<T, int>::value || std::is_same<T, float>::value && "type must be either int or float.");
 
 				CRT::StringCopy(this->szName, szName);
 				CRT::StringCopy(this->szFormat, szFormat);
