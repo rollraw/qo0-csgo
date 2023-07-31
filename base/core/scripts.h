@@ -33,6 +33,8 @@ namespace LUA
 	/// @param[in] wszScriptName name of the script
 	/// @returns: script's data index if found, LUA_INVALID_INDEX otherwise
 	[[nodiscard]] std::size_t GetScriptIndex(wchar_t* wszScriptName);
+	/// @returns: current script's name
+	[[nodiscard]] std::size_t GetCurrentScriptIndex();
 
 	// script info
 	struct UserScriptData_t
@@ -75,8 +77,79 @@ namespace LUA
 		std::unordered_map<const char*, std::vector<ScriptEventData_t>> mapEvents = {};
 	};
 
+	// UI namespace table wrapper for lua
+	namespace UI
+	{
+		class CBaseMenuObject
+		{
+		public:
+			virtual bool Render() = 0;
+
+			[[nodiscard]] const bool IsVisible() const
+			{
+				return bVisible;
+			}
+
+			void SetVisible(const bool bVisible)
+			{
+				this->bVisible = bVisible;
+			}
+
+			void SetCallBack(sol::function fnCallback)
+			{
+				this->fnCallback = fnCallback;
+			}
+
+			void Callback()
+			{
+				if (fnCallback != sol::nil)
+					fnCallback(this);
+			}
+
+			[[nodiscard]] const std::size_t GetID() const
+			{
+				return nID;
+			}
+
+			void SetID(const std::size_t nID)
+			{
+				this->nID = nID;
+			}
+
+			[[nodiscard]] const char* GetName() const
+			{
+				return szName;
+			}
+
+			void SetName(const char* szName);
+		private:
+			char szName[MAX_PATH];
+			bool bVisible = true;
+			std::size_t nID = -1;
+			sol::function fnCallback = sol::nil;
+		};
+
+		CBaseMenuObject* AddNewCheckbox(const char* szLabel, bool bDefaultValue);
+	}
+
+	struct ScriptUIContext_t
+	{
+		void Render();
+
+		UI::CBaseMenuObject* Add(wchar_t* wszContextName, UI::CBaseMenuObject* pObject);
+		void Remove(wchar_t* wszContextName);
+
+		[[nodiscard]] const bool IsEmpty() const
+		{
+			return mapContexts.empty();
+		}
+	private:
+		std::unordered_map<wchar_t*, std::vector<UI::CBaseMenuObject*>> mapContexts = {};
+	};
+
 	/* @section: values */
 	// all user script filenames
 	inline std::vector<UserScriptData_t> vecScriptData = {};
 	inline ScriptEventHandler_t scriptEventHandler = {};
+	inline ScriptUIContext_t scriptUIContext = {};
 }
