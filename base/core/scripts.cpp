@@ -76,7 +76,7 @@ namespace LUA::UI
 		CCheckboxObject(const char* szName, bool bDefaultValue)
 		{
 			this->SetName(szName);
-			this->SetID(C::AddVariable<bool>(FNV1A::Hash(szName), FNV1A::HashConst(Q_XOR("bool")), bDefaultValue));
+			this->SetID(C::AddVariable<bool>(FNV1A::Hash(szName), FNV1A::HashConst("bool"), bDefaultValue));
 		}
 
 		bool Render() final
