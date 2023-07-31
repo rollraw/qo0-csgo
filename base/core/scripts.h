@@ -89,11 +89,6 @@ namespace LUA
 		public:
 			virtual bool Render() = 0;
 
-			[[nodiscard]] const bool IsVisible() const
-			{
-				return bVisible;
-			}
-
 			void SetVisible(const bool bVisible)
 			{
 				this->bVisible = bVisible;
@@ -108,25 +103,10 @@ namespace LUA
 			{
 				if (fnCallback != sol::nil)
 					fnCallback(this);
-			}
+			};
 
-			[[nodiscard]] const std::size_t GetID() const
-			{
-				return nID;
-			}
+			sol::object GetValue(sol::this_state state);
 
-			void SetID(const std::size_t nID)
-			{
-				this->nID = nID;
-			}
-
-			[[nodiscard]] const char* GetName() const
-			{
-				return szName;
-			}
-
-			void SetName(const char* szName);
-		private:
 			char szName[MAX_PATH];
 			bool bVisible = true;
 			std::size_t nID = -1;

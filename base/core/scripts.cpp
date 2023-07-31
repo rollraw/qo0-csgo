@@ -32,7 +32,7 @@ void LUA::ScriptUIContext_t::Render()
 		for (auto& pObject : ctx)
 		{
 			// skip invisible objects
-			if (!pObject->IsVisible())
+			if (!pObject->bVisible)
 				continue;
 
 			if (pObject->Render())
@@ -62,41 +62,138 @@ void LUA::ScriptUIContext_t::Remove(wchar_t* wszContextName)
 
 #pragma region script_functions
 
-namespace LUA::UI
+namespace LUA
 {
-	void CBaseMenuObject::SetName(const char* szName)
+	// ui table
+	namespace UI
 	{
-		CRT::StringCopy(this->szName, szName);
-	}
-
-	/// putting here in cpp as we don't use this class outside of this scope...
-	class CCheckboxObject : public CBaseMenuObject
-	{
-	public:
-		CCheckboxObject(const char* szName, bool bDefaultValue)
+		// return lua object for value
+		sol::object LUA::UI::CBaseMenuObject::GetValue(sol::this_state state)
 		{
-			this->SetName(szName);
-			this->SetID(C::AddVariable<bool>(FNV1A::Hash(szName), FNV1A::HashConst("bool"), bDefaultValue));
+			/// we already have the config ID, just search for its type and return the value as lua object
+			switch (C::vecVariables[nID].uTypeHash)
+			{
+			case FNV1A::HashConst("bool"):
+			{
+				return sol::make_object(state, C::Get<bool>(nID));
+			}
+			case FNV1A::HashConst("int"):
+			{
+				return sol::make_object(state, C::Get<int>(nID));
+			}
+			case FNV1A::HashConst("unsigned int"):
+			{
+				return sol::make_object(state, C::Get<unsigned int>(nID));
+			}
+			case FNV1A::HashConst("float"):
+			{
+				return sol::make_object(state, C::Get<float>(nID));
+			}
+			case FNV1A::HashConst("Color_t"):
+			{
+				return sol::make_object(state, C::Get<Color_t>(nID));
+			}
+			case FNV1A::HashConst("char[]"):
+			{
+				return sol::make_object(state, C::Get<const char*>(nID));
+			}
+			default:
+				break;
+			}
+
+			// if we didn't find the type, return nil
+			// shouldnt be a case
+			return sol::nil;
 		}
 
-		bool Render() final
+		/// putting here in cpp as we don't use this class outside of this scope...
+		class CCheckboxObject : public CBaseMenuObject
 		{
-			return ImGui::Checkbox(this->GetName(), &C::Get<bool>(this->GetID()));
+		public:
+			CCheckboxObject(const char* szName, bool bDefaultValue)
+			{
+				CRT::StringCopy(this->szName, szName);
+				this->nID = C::AddVariable<bool>(FNV1A::Hash(szName), FNV1A::HashConst("bool"), bDefaultValue);
+			}
+
+			bool Render() final
+			{
+				return ImGui::Checkbox(szName, &C::Get<bool>(nID));
+			}
+		};
+
+		CBaseMenuObject* AddNewCheckbox(const char* szName, bool bDefaultValue)
+		{
+			auto nIndex = LUA::GetCurrentScriptIndex();
+			auto wszFileName = LUA::vecScriptData[nIndex].wszScriptName;
+
+			char szFileName[MAX_PATH] = {};
+			CRT::StringUnicodeToMultiByte(szFileName, Q_ARRAYSIZE(szFileName), wszFileName);
+
+			char szLuaLabel[MAX_PATH];
+			CRT::StringCat(CRT::StringCopy(szLuaLabel, szName), Q_XOR("##"));
+			CRT::StringCat(szLuaLabel, szFileName);
+			return LUA::scriptUIContext.Add(LUA::vecScriptData[nIndex].wszScriptName, new CCheckboxObject(szLuaLabel, bDefaultValue));
 		}
-	};
 
-	CBaseMenuObject* AddNewCheckbox(const char* szLabel, bool bDefaultValue)
-	{
-		auto nIndex = LUA::GetCurrentScriptIndex();
-		auto wszFileName = LUA::vecScriptData[nIndex].wszScriptName;
+		template<typename T>
+		class CSliderObject : public CBaseMenuObject
+		{
+		public:
+			CSliderObject(const char* szName, T valueDefault, T valueMin, T valueMax, const char* szFormat = nullptr)
+			{
+				static_assert(std::is_same<T, int>::value || std::is_same<T, float>::value, Q_XOR("type must be either int or float."));
 
-		char szFileName[MAX_PATH] = {};
-		CRT::StringUnicodeToMultiByte(szFileName, Q_ARRAYSIZE(szFileName), wszFileName);
+				CRT::StringCopy(this->szName, szName);
+				CRT::StringCopy(this->szFormat, szFormat);
 
-		char szLuaLabel[MAX_PATH];
-		CRT::StringCat(CRT::StringCopy(szLuaLabel, szLabel), Q_XOR("##"));
-		CRT::StringCat(szLuaLabel, szFileName);
-		return LUA::scriptUIContext.Add(LUA::vecScriptData[nIndex].wszScriptName, new CCheckboxObject(szLuaLabel, bDefaultValue));
+				this->nID = C::AddVariable<T>(FNV1A::Hash(szName), FNV1A::Hash(typeid(T).name()), valueDefault);
+				this->valueMax = valueMax;
+				this->valueMin = valueMin;
+			}
+
+			bool Render() final
+			{
+				if (std::is_same<T, int>::value)
+					return ImGui::SliderInt(szName, &C::Get<int>(nID), valueMin, valueMax, szFormat[0] == '\0' ? Q_XOR("%d") : szFormat);
+				else
+					return ImGui::SliderFloat(szName, &C::Get<float>(nID), valueMin, valueMax, szFormat[0] == '\0' ? Q_XOR("%.2f") : szFormat);
+			}
+
+			T valueMin;
+			T valueMax;
+			char szFormat[32];
+		};
+
+		CBaseMenuObject* AddNewSliderInt(const char* szName, int nValueDefault, int nValueMin, int nValueMax, sol::optional<const char*> szFormat)
+		{
+			auto nIndex = LUA::GetCurrentScriptIndex();
+			auto wszFileName = LUA::vecScriptData[nIndex].wszScriptName;
+
+			char szFileName[MAX_PATH] = {};
+			CRT::StringUnicodeToMultiByte(szFileName, Q_ARRAYSIZE(szFileName), wszFileName);
+
+			char szLuaLabel[MAX_PATH];
+			CRT::StringCat(CRT::StringCopy(szLuaLabel, szName), Q_XOR("##"));
+			CRT::StringCat(szLuaLabel, szFileName);
+
+			return LUA::scriptUIContext.Add(LUA::vecScriptData[nIndex].wszScriptName, new CSliderObject<int>(szLuaLabel, nValueDefault, nValueMin, nValueMax, szFormat.value_or(Q_XOR("%d"))));
+		}
+
+		CBaseMenuObject* AddNewSliderFloat(const char* szName, float flvalueDefault, float flValueMin, float flValueMax, sol::optional<const char*> szFormat)
+		{
+			auto nIndex = LUA::GetCurrentScriptIndex();
+			auto wszFileName = LUA::vecScriptData[nIndex].wszScriptName;
+
+			char szFileName[MAX_PATH] = {};
+			CRT::StringUnicodeToMultiByte(szFileName, Q_ARRAYSIZE(szFileName), wszFileName);
+
+			char szLuaLabel[MAX_PATH];
+			CRT::StringCat(CRT::StringCopy(szLuaLabel, szName), Q_XOR("##"));
+			CRT::StringCat(szLuaLabel, szFileName);
+
+			return LUA::scriptUIContext.Add(LUA::vecScriptData[nIndex].wszScriptName, new CSliderObject<float>(szLuaLabel, flvalueDefault, flValueMin, flValueMax, szFormat.value_or(Q_XOR("%.2f"))));
+		}
 	}
 }
 
@@ -155,17 +252,18 @@ void LUA::SetupLua()
 		L_PRINT(LOG_ERROR) << szText;
 	};
 
-	luaState.new_usertype<LUA::UI::CBaseMenuObject>(Q_XOR("menu_object_t"),
-	Q_XOR("name"), &LUA::UI::CBaseMenuObject::GetName,
-	Q_XOR("id"), &LUA::UI::CBaseMenuObject::GetID,
-	Q_XOR("is_visible"), &LUA::UI::CBaseMenuObject::IsVisible,
-	Q_XOR("set_visible"), &LUA::UI::CBaseMenuObject::SetVisible,
-	Q_XOR("set_callback"), &LUA::UI::CBaseMenuObject::SetCallBack
+	luaState.new_usertype<UI::CBaseMenuObject>(Q_XOR("menu_object_t"),
+	Q_XOR("name"), sol::readonly(&UI::CBaseMenuObject::szName),
+	Q_XOR("id"), sol::readonly(&UI::CBaseMenuObject::nID),
+	Q_XOR("is_visible"), &UI::CBaseMenuObject::bVisible,
+	Q_XOR("set_visible"), &UI::CBaseMenuObject::SetVisible,
+	Q_XOR("set_callback"), &UI::CBaseMenuObject::SetCallBack,
+	Q_XOR("get"), &UI::CBaseMenuObject::GetValue
 	);
 
 	auto ui = luaState.create_table();
 	ui[Q_XOR("add_new_checkbox")] = UI::AddNewCheckbox;
-	ui[Q_XOR("get_current_script_index")] = LUA::GetCurrentScriptIndex;
+	ui[Q_XOR("add_new_slider")] = sol::overload(UI::AddNewSliderInt, UI::AddNewSliderFloat);
 	luaState[Q_XOR("ui")] = ui;
 
 	// setup our table here
