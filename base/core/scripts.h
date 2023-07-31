@@ -56,6 +56,10 @@ namespace LUA
 	// event data
 	struct ScriptEventData_t
 	{
+		ScriptEventData_t(int nScriptIndex, sol::protected_function fnCallback) :
+			nScriptIndex(nScriptIndex), fnCallback(fnCallback)
+		{};
+
 		int nScriptIndex = -1;
 		sol::protected_function fnCallback;
 	};

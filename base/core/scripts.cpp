@@ -21,7 +21,7 @@
 // default scripts working path
 static wchar_t wszScriptPath[MAX_PATH];
 // sol2's lua state
-static lua_State* pLuaState = nullptr;
+static lua_State* pLuaState;
 
 #pragma region script_context
 
