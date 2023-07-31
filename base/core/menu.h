@@ -59,5 +59,5 @@ namespace T
 	// user-defined configuration filename in miscellaneous tab
 	inline char szScriptFile[MAX_PATH] = {};
 	// current selected configuration in miscellaneous tab
-	inline std::size_t nSelectedScript = ~1U;
+	inline std::size_t nSelectedScript = 0U;
 }

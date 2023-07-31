@@ -807,7 +807,20 @@ void T::Scripts()
 	}
 	ImGui::NextColumn();
 	{
-		// @todo: implement script's menu context
+		ImGui::BeginChild(Q_XOR("script.context"), ImVec2(0, 0), true, ImGuiWindowFlags_MenuBar);
+		{
+			if (ImGui::BeginMenuBar())
+			{
+				ImGui::TextUnformatted(Q_XOR("context"));
+				ImGui::EndMenuBar();
+			}
+
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(style.FramePadding.x, 0));
+			if (!LUA::scriptUIContext.IsEmpty())
+				LUA::scriptUIContext.Render();
+			ImGui::PopStyleVar();
+		}
+		ImGui::EndChild();
 	}
 	ImGui::Columns(1);
 }
