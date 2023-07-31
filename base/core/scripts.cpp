@@ -70,6 +70,10 @@ namespace LUA
 		// return lua object for value
 		sol::object LUA::UI::CBaseMenuObject::GetValue(sol::this_state state)
 		{
+			// not configurable object aka Button, Label, etc...
+			if (nID == C_INVALID_VARIABLE)
+				return sol::nil;
+
 			/// we already have the config ID, just search for its type and return the value as lua object
 			switch (C::vecVariables[nID].uTypeHash)
 			{
@@ -98,12 +102,10 @@ namespace LUA
 				return sol::make_object(state, C::Get<const char*>(nID));
 			}
 			default:
-				break;
+				// if we didn't find the type, return nil
+				// shouldnt be a case
+				return sol::nil;
 			}
-
-			// if we didn't find the type, return nil
-			// shouldnt be a case
-			return sol::nil;
 		}
 
 		/// putting here in cpp as we don't use this class outside of this scope...
@@ -194,6 +196,40 @@ namespace LUA
 
 			return LUA::scriptUIContext.Add(LUA::vecScriptData[nIndex].wszScriptName, new CSliderObject<float>(szLuaLabel, flvalueDefault, flValueMin, flValueMax, szFormat.value_or(Q_XOR("%.2f"))));
 		}
+
+		class CButtonObject : public CBaseMenuObject
+		{
+		public:
+			CButtonObject(const char* szName, sol::function fnCallback, const ImVec2& vecSize) :
+				vecSize(vecSize)
+			{
+				CRT::StringCopy(this->szName, szName);
+				this->fnCallback = fnCallback;
+			}
+
+			bool Render() final
+			{
+				return ImGui::Button(szName, vecSize);
+			}
+
+			ImVec2 vecSize;
+		};
+
+		CBaseMenuObject* AddNewButton(const char* szName, sol::function fnCallback, sol::optional<ImVec2> vecSize)
+		{
+			auto nIndex = LUA::GetCurrentScriptIndex();
+			auto wszFileName = LUA::vecScriptData[nIndex].wszScriptName;
+
+			char szFileName[MAX_PATH] = {};
+			CRT::StringUnicodeToMultiByte(szFileName, Q_ARRAYSIZE(szFileName), wszFileName);
+
+			char szLuaLabel[MAX_PATH];
+			CRT::StringCat(CRT::StringCopy(szLuaLabel, szName), Q_XOR("##"));
+			CRT::StringCat(szLuaLabel, szFileName);
+
+			return LUA::scriptUIContext.Add(LUA::vecScriptData[nIndex].wszScriptName, new CButtonObject(szLuaLabel, fnCallback, vecSize.value_or(ImVec2(0, 0))));
+		}
+
 	}
 }
 
