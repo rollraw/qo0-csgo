@@ -300,6 +300,7 @@ void LUA::SetupLua()
 	auto ui = luaState.create_table();
 	ui[Q_XOR("add_new_checkbox")] = UI::AddNewCheckbox;
 	ui[Q_XOR("add_new_slider")] = sol::overload(UI::AddNewSliderInt, UI::AddNewSliderFloat);
+	ui[Q_XOR("add_new_button")] = UI::AddNewButton;
 	luaState[Q_XOR("ui")] = ui;
 
 	// setup our table here
