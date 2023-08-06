@@ -133,7 +133,7 @@ namespace F::VISUAL::OVERLAY
 		void AddComponent(CBaseComponent* pComponent);
 
 		/* @section: get */
-		/// @returns: size of all directional components currently assigned to @a'nSide'
+		/// @returns: size of the all directional components currently assigned to @a'nSide'
 		[[nodiscard]] ImVec2 GetTotalDirectionalSize(const EAlignSide nSide) const;
 
 		// calculate final position of components and render them

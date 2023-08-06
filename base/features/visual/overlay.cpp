@@ -314,26 +314,26 @@ void OVERLAY::Context_t::Render(const ImVec4& vecBox) const
 	{
 		ImVec2 vecPosition = pComponent->GetBasePosition(vecBox);
 
-		// check if the component is in the supported centering side
+		// check if the component is in the side that supports multi-component centering
 		if (pComponent->nSide == SIDE_TOP || pComponent->nSide == SIDE_BOTTOM)
 		{
-			// check if the component is directional and if it is in one of the horizontal directions
+			// check if the component is directional
 			if (CBaseDirectionalComponent* const pDirectionalComponent = static_cast<CBaseDirectionalComponent*>(pComponent); pDirectionalComponent->IsDirectional())
 			{
 				const float (&arrDirectionPaddings)[DIR_MAX] = this->arrSideDirectionPaddings[pComponent->nSide];
-
-				// @todo: lol does this branch really should look like this? i have no idea how to simplify it, but it looks kinda cringe
-				// check if the component is in the same direction as the side and it's the first component in this direction
-				if (static_cast<std::uint8_t>(pDirectionalComponent->nDirection) == static_cast<std::uint8_t>(pDirectionalComponent->nSide) && !bCenteredFirstSideDirectional[pDirectionalComponent->nSide])
+				
+				// check if the component has horizontal direction
+				if (static_cast<std::uint8_t>(pDirectionalComponent->nDirection) != static_cast<std::uint8_t>(pDirectionalComponent->nSide))
+					// add centering offset to the component's offset
+					pDirectionalComponent->vecOffset.x += (arrDirectionPaddings[DIR_LEFT] - arrDirectionPaddings[DIR_RIGHT]) * 0.5f;
+				// otherwise check if it's the first component in direction as side
+				else if (!bCenteredFirstSideDirectional[pDirectionalComponent->nSide])
 				{
 					// add centering offset to the component's offset
 					pDirectionalComponent->vecOffset.x += (arrDirectionPaddings[DIR_LEFT] - arrDirectionPaddings[DIR_RIGHT]) * 0.5f;
 
 					bCenteredFirstSideDirectional[pDirectionalComponent->nSide] = true;
 				}
-				else if (static_cast<std::uint8_t>(pDirectionalComponent->nDirection) != static_cast<std::uint8_t>(pDirectionalComponent->nSide))
-					// add centering offset to the component's offset
-					pDirectionalComponent->vecOffset.x += (arrDirectionPaddings[DIR_LEFT] - arrDirectionPaddings[DIR_RIGHT]) * 0.5f;
 			}
 		}
 
