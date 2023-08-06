@@ -19,10 +19,10 @@ namespace F::VISUAL
 
 	/* @section: callbacks */
 	void OnFrame(const EClientFrameStage nStage);
-	bool OnDrawModel(DrawModelResults_t* pResults, const DrawModelInfo_t& info, Matrix3x4_t* pBoneToWorld, float* pflFlexWeights, float* pflFlexDelayedWeights, const Vector_t& vecModelOrigin, int nFlags);
+	bool OnDrawModel(DrawModelResults_t* pResults, const DrawModelInfo_t* pInfo, Matrix3x4_t* pBoneToWorld, float* pflFlexWeights, float* pflFlexDelayedWeights, const Vector_t* pvecModelOrigin, int nFlags);
 	void OnDoPostScreenSpaceEffects();
-	void OnPreRenderView(const CViewSetup& viewSetup, int* nWhatToDraw);
-	void OnPostRenderView(const CViewSetup& viewSetup);
+	void OnPreRenderView(const CViewSetup* pViewSetup, int* nWhatToDraw);
+	void OnPostRenderView(const CViewSetup* pViewSetup);
 	void OnOverrideView(CViewSetup* pViewSetup);
 	void OnGetViewModelFOV(float* pflViewModelFOV);
 	void OnPreCalcView(CCSPlayer* pPlayer, QAngle_t* pangOldViewPunch, QAngle_t* pangOldAimPunch);

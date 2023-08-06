@@ -402,8 +402,8 @@ void CBasePlayer::PostThink()
 {
 	// @ida C_BasePlayer::PostThink(): client.dll -> "56 8B 35 ? ? ? ? 57 8B F9 8B CE 8B 06 FF 90 ? ? ? ? 8B 07"
 
-	static auto fnPostThinkVPhysics = reinterpret_cast<bool(Q_THISCALL*)(CBaseEntity*)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 E4 F8 81 EC ? ? ? ? 53 8B D9 56 57 83 BB")));
-	static auto fnSimulatePlayerSimulatedEntities = reinterpret_cast<void(Q_THISCALL*)(CBaseEntity*)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("56 8B F1 57 8B BE ? ? ? ? 83 EF 01 78 74")));
+	static auto fnPostThinkVPhysics = ROP::MethodInvoker_t<bool(Q_THISCALL*)(CBaseEntity*)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 E4 F8 81 EC ? ? ? ? 53 8B D9 56 57 83 BB")));
+	static auto fnSimulatePlayerSimulatedEntities = ROP::MethodInvoker_t<void(Q_THISCALL*)(CBaseEntity*)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("56 8B F1 57 8B BE ? ? ? ? 83 EF 01 78 74")));
 
 	I::MDLCache->BeginLock();
 
@@ -420,10 +420,10 @@ void CBasePlayer::PostThink()
 			this->SetSequence(0);
 
 		this->StudioFrameAdvance();
-		fnPostThinkVPhysics(this);
+		fnPostThinkVPhysics.Invoke<ROP::ClientGadget_t>(this);
 	}
 
-	fnSimulatePlayerSimulatedEntities(this);
+	fnSimulatePlayerSimulatedEntities.Invoke<ROP::ClientGadget_t>(this);
 
 	I::MDLCache->EndLock();
 }

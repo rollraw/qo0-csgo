@@ -111,7 +111,7 @@ void CHAMS::Destroy()
 }
 
 #pragma region visual_chams_callback
-bool CHAMS::OnDrawModel(CCSPlayer* pLocal, DrawModelResults_t* pResults, const DrawModelInfo_t& info, Matrix3x4_t* pBoneToWorld, float* pflFlexWeights, float* pflFlexDelayedWeights, const Vector_t& vecModelOrigin, int nFlags)
+bool CHAMS::OnDrawModel(CCSPlayer* pLocal, DrawModelResults_t* pResults, const DrawModelInfo_t* pInfo, Matrix3x4_t* pBoneToWorld, float* pflFlexWeights, float* pflFlexDelayedWeights, const Vector_t* pvecModelOrigin, int nFlags)
 {
 	if (!C::Get<bool>(Vars.bVisual) || !C::Get<bool>(Vars.bVisualChams))
 		return false;
@@ -124,7 +124,7 @@ bool CHAMS::OnDrawModel(CCSPlayer* pLocal, DrawModelResults_t* pResults, const D
 	if (nFlags & (STUDIO_RENDER | STUDIO_SKIP_FLEXES | STUDIO_DONOTMODIFYSTENCILSTATE | STUDIO_NOLIGHTING_OR_CUBEMAP | STUDIO_SKIP_DECALS))
 		return false;
 
-	IClientRenderable* pRenderable = info.pClientEntity;
+	IClientRenderable* pRenderable = pInfo->pClientEntity;
 
 	if (pRenderable == nullptr)
 		return false;
@@ -160,7 +160,7 @@ bool CHAMS::OnDrawModel(CCSPlayer* pLocal, DrawModelResults_t* pResults, const D
 					.colHidden = (bIsLocal ? C::Get<Color_t>(Vars.colVisualChamsLocalHidden) : (bIsEnemy ? C::Get<Color_t>(Vars.colVisualChamsEnemiesHidden) : C::Get<Color_t>(Vars.colVisualChamsAlliesHidden)))
 				};
 
-				bDrawnModel = OverrideMaterial(playerParameters, pResults, info, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, vecModelOrigin, nFlags);
+				bDrawnModel = OverrideMaterial(playerParameters, pResults, pInfo, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, pvecModelOrigin, nFlags);
 			}
 
 			// desync
@@ -177,11 +177,11 @@ bool CHAMS::OnDrawModel(CCSPlayer* pLocal, DrawModelResults_t* pResults, const D
 
 				const int nLocalIndex = pLocal->GetIndex();
 				auto& arrDesyncBones = ANIMATION::GetClientBoneMatrices();
-				ANIMATION::ConvertBonesPositionToWorldSpace(arrDesyncBones, nLocalIndex, vecModelOrigin);
+				ANIMATION::ConvertBonesPositionToWorldSpace(arrDesyncBones, nLocalIndex, *pvecModelOrigin);
 
-				OverrideMaterial(desyncParameters, pResults, info, arrDesyncBones, pflFlexWeights, pflFlexDelayedWeights, vecModelOrigin, nFlags);
+				OverrideMaterial(desyncParameters, pResults, pInfo, arrDesyncBones, pflFlexWeights, pflFlexDelayedWeights, pvecModelOrigin, nFlags);
 
-				ANIMATION::ConvertBonesPositionToLocalSpace(arrDesyncBones, nLocalIndex, vecModelOrigin);
+				ANIMATION::ConvertBonesPositionToLocalSpace(arrDesyncBones, nLocalIndex, *pvecModelOrigin);
 			}
 		}
 	}
@@ -206,7 +206,7 @@ bool CHAMS::OnDrawModel(CCSPlayer* pLocal, DrawModelResults_t* pResults, const D
 						.colHidden = C::Get<Color_t>(Vars.colVisualChamsViewModelHidden)
 					};
 
-					bDrawnModel = OverrideMaterial(overrideParameters, pResults, info, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, vecModelOrigin, nFlags);
+					bDrawnModel = OverrideMaterial(overrideParameters, pResults, pInfo, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, pvecModelOrigin, nFlags);
 				}
 			}
 		}
@@ -217,7 +217,7 @@ bool CHAMS::OnDrawModel(CCSPlayer* pLocal, DrawModelResults_t* pResults, const D
 #pragma endregion
 
 #pragma region visual_chams_main
-bool CHAMS::OverrideMaterial(const OverrideParameters_t& parameters, DrawModelResults_t* pResults, const DrawModelInfo_t& info, Matrix3x4_t* pBoneToWorld, float* pflFlexWeights, float* pflFlexDelayedWeights, const Vector_t& vecModelOrigin, int nFlags)
+bool CHAMS::OverrideMaterial(const OverrideParameters_t& parameters, DrawModelResults_t* pResults, const DrawModelInfo_t* pInfo, Matrix3x4_t* pBoneToWorld, float* pflFlexWeights, float* pflFlexDelayedWeights, const Vector_t* pvecModelOrigin, int nFlags)
 {
 	Q_ASSERT(parameters.nType != VISUAL_CHAMS_NONE); // not allowed type
 
@@ -247,7 +247,7 @@ bool CHAMS::OverrideMaterial(const OverrideParameters_t& parameters, DrawModelRe
 
 			// draw model with our material
 			I::StudioRender->ForcedMaterialOverride(pMaterial);
-			H::hkDrawModel.CallOriginal<void>(I::StudioRender, 0, pResults, &info, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, &vecModelOrigin, nFlags);
+			H::hkDrawModel.CallOriginal<ROP::EngineGadget_t>(I::StudioRender, nullptr, pResults, pInfo, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, pvecModelOrigin, nFlags);
 
 			// clear overrides
 			I::StudioRender->ForcedMaterialOverride(nullptr);
@@ -269,7 +269,7 @@ bool CHAMS::OverrideMaterial(const OverrideParameters_t& parameters, DrawModelRe
 
 		// draw model with ignorez material
 		I::StudioRender->ForcedMaterialOverride(pMaterial);
-		H::hkDrawModel.CallOriginal<void>(I::StudioRender, 0, pResults, &info, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, &vecModelOrigin, nFlags);
+		H::hkDrawModel.CallOriginal<ROP::EngineGadget_t>(I::StudioRender, nullptr, pResults, pInfo, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, pvecModelOrigin, nFlags);
 
 		// clear overrides
 		I::StudioRender->ForcedMaterialOverride(nullptr);
@@ -299,7 +299,7 @@ bool CHAMS::OverrideMaterial(const OverrideParameters_t& parameters, DrawModelRe
 
 		// draw model with our material
 		I::StudioRender->ForcedMaterialOverride(pMaterial);
-		H::hkDrawModel.CallOriginal<void>(I::StudioRender, 0, pResults, &info, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, &vecModelOrigin, nFlags);
+		H::hkDrawModel.CallOriginal<ROP::EngineGadget_t>(I::StudioRender, nullptr, pResults, pInfo, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, pvecModelOrigin, nFlags);
 
 		// clear overrides
 		I::StudioRender->ForcedMaterialOverride(nullptr);
@@ -324,7 +324,7 @@ bool CHAMS::OverrideMaterial(const OverrideParameters_t& parameters, DrawModelRe
 
 	// draw original model with our material
 	I::StudioRender->ForcedMaterialOverride(pMaterial);
-	H::hkDrawModel.CallOriginal<void>(I::StudioRender, 0, pResults, &info, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, &vecModelOrigin, nFlags);
+	H::hkDrawModel.CallOriginal<ROP::EngineGadget_t>(I::StudioRender, nullptr, pResults, pInfo, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, pvecModelOrigin, nFlags);
 
 	// final clear overrides, otherwise it may affect on glow or other models
 	I::StudioRender->ForcedMaterialOverride(nullptr);

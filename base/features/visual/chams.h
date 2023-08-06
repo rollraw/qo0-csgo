@@ -38,11 +38,11 @@ namespace F::VISUAL::CHAMS
 	/* @section: callbacks */
 	/// colorize models by overriding materials used by the game
 	/// @returns: true if drawn one more model with custom material, false otherwise
-	bool OnDrawModel(CCSPlayer* pLocal, DrawModelResults_t* pResults, const DrawModelInfo_t& info, Matrix3x4_t* pBoneToWorld, float* flFlexWeights, float* flFlexDelayedWeights, const Vector_t& vecModelOrigin, int nFlags);
+	bool OnDrawModel(CCSPlayer* pLocal, DrawModelResults_t* pResults, const DrawModelInfo_t* pInfo, Matrix3x4_t* pBoneToWorld, float* flFlexWeights, float* flFlexDelayedWeights, const Vector_t* pvecModelOrigin, int nFlags);
 
 	/* @section: main */
 	/// @returns: true if original model material was overridden, false otherwise
-	bool OverrideMaterial(const OverrideParameters_t& parameters, DrawModelResults_t* pResults, const DrawModelInfo_t& info, Matrix3x4_t* pBoneToWorld, float* flFlexWeights, float* flFlexDelayedWeights, const Vector_t& vecModelOrigin, int nFlags);
+	bool OverrideMaterial(const OverrideParameters_t& parameters, DrawModelResults_t* pResults, const DrawModelInfo_t* pInfo, Matrix3x4_t* pBoneToWorld, float* flFlexWeights, float* flFlexDelayedWeights, const Vector_t* pvecModelOrigin, int nFlags);
 
 	/* @section: get */
 	/// create .vmt material from memory

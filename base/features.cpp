@@ -233,14 +233,14 @@ void F::OnDoPostScreenSpaceEffects(CViewSetup* pSetup)
 	VISUAL::OnDoPostScreenSpaceEffects();
 }
 
-void F::OnPreRenderView(const CViewSetup& viewSetup, const CViewSetup& viewSetupHUD, int nClearFlags, int* pnWhatToDraw)
+void F::OnPreRenderView(const CViewSetup* pViewSetup, const CViewSetup* pViewSetupHUD, int nClearFlags, int* pnWhatToDraw)
 {
-	VISUAL::OnPreRenderView(viewSetup, pnWhatToDraw);
+	VISUAL::OnPreRenderView(pViewSetup, pnWhatToDraw);
 }
 
-void F::OnPostRenderView(const CViewSetup& viewSetup, const CViewSetup& viewSetupHUD, int nClearFlags, int* pnWhatToDraw)
+void F::OnPostRenderView(const CViewSetup* pViewSetup, const CViewSetup* pViewSetupHUD, int nClearFlags, int* pnWhatToDraw)
 {
-	VISUAL::OnPostRenderView(viewSetup);
+	VISUAL::OnPostRenderView(pViewSetup);
 }
 
 void F::OnPreCalcView(CCSPlayer* pPlayer, CalcViewStack_t& stack)

@@ -6,13 +6,8 @@
 // used: l_print
 #include "log.h"
 
-// @todo: move directly to hooks.h/hooks.cpp
-/*
- * detour hooking method implementation
- * @todo: desc
- */
-template <typename Gadget_t = void>
-class CHookObject
+template <typename T>
+class CBaseHookObject
 {
 public:
 	/// setup hook and replace function
@@ -121,24 +116,9 @@ public:
 	}
 
 	/// @returns: original, unwrapped function that would be called without the hook
-	template <typename Fn>
-	Q_INLINE Fn GetOriginal()
+	Q_INLINE T GetOriginal()
 	{
-		return reinterpret_cast<Fn>(pOriginalFn);
-	}
-
-	/// call the original function with spoofed return address, as if the hook had not been applied
-	/// @note: reference and const reference arguments must be forwarded as pointers or wrapped with 'std::ref'/'std::cref' calls!
-	/// @returns: call invoke return value
-	template <typename T, typename... Args_t>
-	Q_INLINE auto CallOriginal(void* thisptr, int edx, Args_t... argList)
-	{
-	#ifdef Q_PARANOID_DISABLE_RETURN_SPOOF
-		return reinterpret_cast<T(Q_FASTCALL*)(void*, int, Args_t...)>(pOriginalFn)(thisptr, edx, argList...);
-	#else
-		ROP::SpoofContext_t context;
-		return InvokeFastCall<T>(reinterpret_cast<std::uintptr_t>(thisptr), edx, reinterpret_cast<std::uintptr_t>(pOriginalFn), &context, Gadget_t::uReturnGadget, argList...);
-	#endif
+		return reinterpret_cast<T>(pOriginalFn);
 	}
 
 	/// @returns: true if hook is applied at the time, false otherwise
@@ -156,4 +136,31 @@ private:
 	void* pReplaceFn = nullptr;
 	// original function
 	void* pOriginalFn = nullptr;
+};
+
+template <typename T>
+class CHookObject { };
+
+// @todo: move directly to hooks.h/hooks.cpp
+/*
+ * detour hooking method implementation
+ * @todo: desc
+ */
+template <typename T, typename... Args_t>
+class CHookObject<T(Q_FASTCALL*)(Args_t...)> : public CBaseHookObject<void*>
+{
+public:
+	/// call the original function with spoofed return address, as if the hook had not been applied
+	/// @note: reference and const reference arguments must be forwarded as pointers or wrapped with 'std::ref'/'std::cref' calls!
+	/// @returns: call invoke return value
+	template <typename Gadget_t>
+	Q_INLINE T CallOriginal(Args_t... argList)
+	{
+	#ifdef Q_PARANOID_DISABLE_RETURN_SPOOF
+		return reinterpret_cast<T(Q_FASTCALL*)(Args_t...)>(this->GetOriginal())(argList...);
+	#else
+		ROP::MethodInvoker_t<T(Q_FASTCALL*)(Args_t...)> originalInvoker(this->GetOriginal());
+		return originalInvoker.template Invoke<Gadget_t>(argList...);
+	#endif
+	}
 };

@@ -53,21 +53,21 @@ bool SDK::DecodeVFONT(CUtlBuffer& bufferFont)
 // @todo: should be inside hud element class
 void SDK::ClearHudWeaponIcons()
 {
-	static auto fnClearHudWeaponIcon = reinterpret_cast<int(Q_THISCALL*)(void*, int)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 51 53 56 8B 75 08 8B D9 57 6B"))); // @xref: "WeaponIcon--itemcount"
+	static auto fnClearHudWeaponIcon = ROP::MethodInvoker_t<int(Q_THISCALL*)(void*, int)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 51 53 56 8B 75 08 8B D9 57 6B"))); // @xref: "WeaponIcon--itemcount"
 
 	// get hud weapons
 	if (std::uint8_t* pHudWeapons = reinterpret_cast<std::uint8_t*>(I::Hud->FindElement(Q_XOR("CCSGO_HudWeaponSelection"))) - 0xA0; pHudWeapons != nullptr)
 	{
 		// go through all weapons
 		for (int i = 0; i < *reinterpret_cast<int*>(pHudWeapons + 0x80); i++) // @todo: use its class | size: 0x108 | 55 8B EC 56 57 FF 75 0C 8B F9 FF 75 08 E8 ? ? ? ? 57
-			i = fnClearHudWeaponIcon(pHudWeapons, i);
+			i = fnClearHudWeaponIcon.Invoke<ROP::ClientGadget_t>(pHudWeapons, i);
 	}
 }
 
 void SDK::SetLocalPlayerReady(const char* szReason)
 {
-	static auto fnSetLocalPlayerReady = reinterpret_cast<void(Q_STDCALL*)(const char*)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 E4 F8 8B 4D 08 BA ? ? ? ? E8 ? ? ? ? 85 C0 75 12"))); // @xref: "deferred"
-	fnSetLocalPlayerReady(szReason);
+	static auto fnSetLocalPlayerReady = ROP::MethodInvoker_t<void(Q_STDCALL*)(const char*)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 E4 F8 8B 4D 08 BA ? ? ? ? E8 ? ? ? ? 85 C0 75 12"))); // @xref: "deferred"
+	fnSetLocalPlayerReady.Invoke<ROP::ClientGadget_t>(szReason);
 }
 #pragma endregion
 
@@ -154,15 +154,15 @@ void SDK::ClipTraceToPlayers(const Vector_t& vecAbsStart, const Vector_t& vecAbs
 
 bool SDK::LineGoesThroughSmoke(const Vector_t& vecStart, const Vector_t& vecEnd, const bool flGrenadeBloat)
 {
-	static auto fnLineGoesThroughSmoke = reinterpret_cast<bool(Q_CDECL*)(Vector_t, Vector_t, bool)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 EC 08 8B 15 ? ? ? ? 0F 57 C0"))); // @xref: "effects/overlaysmoke"
-	return fnLineGoesThroughSmoke(vecStart, vecEnd, flGrenadeBloat);
+	static auto fnLineGoesThroughSmoke = ROP::MethodInvoker_t<bool(Q_CDECL*)(Vector_t, Vector_t, bool)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 EC 08 8B 15 ? ? ? ? 0F 57 C0"))); // @xref: "effects/overlaysmoke"
+	return fnLineGoesThroughSmoke.Invoke<ROP::ClientGadget_t>(vecStart, vecEnd, flGrenadeBloat);
 }
 #pragma endregion
 
 #pragma region sdk_network
 void SDK::SendClanTag(const char* szClanTag, const char* szIdentifier)
 {
-	static auto fnSendClanTag = reinterpret_cast<void(Q_FASTCALL*)(const char*, const char*)>(MEM::FindPattern(ENGINE_DLL, Q_XOR("53 56 57 8B DA 8B F9 FF 15"))); // @xref: "ClanTagChanged", "tag", "name"
-	fnSendClanTag(szClanTag, szIdentifier);
+	static auto fnSendClanTag = ROP::MethodInvoker_t<void(Q_FASTCALL*)(const char*, const char*)>(MEM::FindPattern(ENGINE_DLL, Q_XOR("53 56 57 8B DA 8B F9 FF 15"))); // @xref: "ClanTagChanged", "tag", "name"
+	fnSendClanTag.Invoke<ROP::EngineGadget_t>(szClanTag, szIdentifier);
 }
 #pragma endregion

@@ -88,12 +88,61 @@ struct RTTICompleteObjectLocator_t
  */
 namespace ROP
 {
-	struct SpoofContext_t
+	namespace DETAIL
 	{
-		std::uintptr_t uRegisterBackup;
-		std::uintptr_t uRestoreAddress;
-		std::uintptr_t uReturnAddress;
-	};
+		struct SpoofContext_t
+		{
+			std::uintptr_t uRegisterBackup;
+			std::uintptr_t uRestoreAddress;
+			std::uintptr_t uReturnAddress;
+		};
+
+		// wrapped method invoker to spoof it's return address
+		// @note: you can use any non-volatile register, except 'esp', such as: 'edx' (jmp edx; "FF E2", jmp [edx]; "FF 22", jmp [edx+0]; "FF 62 00"), 'ebx' (jmp ebx; "FF E3", jmp [ebx]; "FF 23", jmp [ebx+0]; "FF 63 00"), 'esi' (jmp esi; "FF E6", jmp [esi]; "FF 26", jmp [esi+0]; "FF 66 00"), by default it is 'ebx'
+		// @credits: danielkrupinski
+		template <typename T, typename... Args_t>
+		__declspec(naked) T Q_FASTCALL InvokeFastCall(std::uintptr_t ecx, std::uintptr_t edx, std::uintptr_t uFunctionAddress, SpoofContext_t* pContext, std::uintptr_t uGadgetAddress, Args_t... argList)
+		{
+			__asm
+			{
+				mov eax, [esp+8] // load a pointer to context
+				mov [eax], ebx // save register into context
+				lea ebx, RESTORE // load the address of the restore label
+				mov [eax+4], ebx // save the restore address in context
+				pop dword ptr [eax+8] // pop return address from stack into context
+
+				lea ebx, [eax+4] // load the address of restore address to register
+				ret 4 // pop function address from stack and jump to it, skip context on stack; stack pointer will point to the gadget address
+
+			RESTORE:
+				push [ebx+4] // restore original return address
+				mov ebx, [ebx-4] // restore original register
+				ret
+			}
+		}
+
+		template <typename T, typename... Args_t>
+		__declspec(naked) T Q_CDECL InvokeCdecl(std::uintptr_t uFunctionAddress, SpoofContext_t* pContext, std::uintptr_t uGadgetAddress, Args_t... argList)
+		{
+			__asm
+			{
+				mov eax, [esp+8] // load a pointer to context
+				mov [eax], ebx // save register into context
+				lea ebx, RESTORE // load the address of the restore label
+				mov [eax+4], ebx // save the restore address in context
+				pop dword ptr [eax+8] // pop return address from stack into context
+
+				lea ebx, [eax+4] // load the address of restore address to register
+				ret 4 // pop function address from stack and jump to it, skip context on stack; stack pointer will point to the gadget address
+
+			RESTORE:
+				sub esp, 0Ch // allocate stack for '__cdecl' calling convention
+				push [ebx+4] // restore original return address
+				mov ebx, [ebx-4] // restore original register
+				ret
+			}
+		}
+	}
 
 	// 'engine.dll' gadget holder
 	struct EngineGadget_t
@@ -106,6 +155,100 @@ namespace ROP
 	{
 		static std::uintptr_t uReturnGadget;
 	};
+
+	/*
+	 * wrapper to proceed spoofed calls of game methods
+	 * @note: reference and const reference arguments must be forwarded as pointers or wrapped with 'std::ref'/'std::cref' calls!
+	 *
+	 * @test: do we really need specific gadget for each other call? generally it seems implementation correct, but so ridiculous since valve check gonna eat any module gadget from the list of allowed ones | same applies to 'CHookObject::CallOriginal'
+	 */
+	template <typename T>
+	struct MethodInvoker_t { };
+
+	template <typename T, typename... Args_t>
+	struct MethodInvoker_t<T(Q_CDECL*)(Args_t...)>
+	{
+		MethodInvoker_t(void* pFunctionAddress) :
+			uFunctionAddress(reinterpret_cast<std::uintptr_t>(pFunctionAddress)) { }
+
+		template <typename Gadget_t>
+		T Invoke(Args_t... argList)
+		{
+		#ifdef Q_PARANOID_DISABLE_RETURN_SPOOF
+			return reinterpret_cast<T(Q_CDECL*)(decltype(argList)...)>(this->uFunctionAddress)(argList...);
+		#else
+			DETAIL::SpoofContext_t context;
+			return DETAIL::InvokeCdecl<T>(this->uFunctionAddress, &context, Gadget_t::uReturnGadget, argList...);
+		#endif
+		}
+
+	private:
+		std::uintptr_t uFunctionAddress = 0U;
+	};
+
+	template <typename T, typename... Args_t>
+	struct MethodInvoker_t<T(Q_STDCALL*)(Args_t...)>
+	{
+		MethodInvoker_t(void* pFunctionAddress) :
+			uFunctionAddress(reinterpret_cast<std::uintptr_t>(pFunctionAddress)) { }
+
+		template <typename Gadget_t>
+		T Invoke(Args_t... argList)
+		{
+		#ifdef Q_PARANOID_DISABLE_RETURN_SPOOF
+			return reinterpret_cast<T(Q_STDCALL*)(decltype(argList)...)>(this->uFunctionAddress)(argList...);
+		#else
+			DETAIL::SpoofContext_t context;
+			return DETAIL::InvokeFastCall<T>(0U, 0U, this->uFunctionAddress, &context, Gadget_t::uReturnGadget, argList...);
+		#endif
+		}
+
+	private:
+		std::uintptr_t uFunctionAddress = 0U;
+	};
+
+	template <typename T, class CBaseClass, typename... Args_t>
+	struct MethodInvoker_t<T(Q_THISCALL*)(CBaseClass*, Args_t...)>
+	{
+		MethodInvoker_t(void* pFunctionAddress) :
+			uFunctionAddress(reinterpret_cast<std::uintptr_t>(pFunctionAddress)) { }
+
+		template <typename Gadget_t>
+		T Invoke(const CBaseClass* thisptr, Args_t... argList)
+		{
+		#ifdef Q_PARANOID_DISABLE_RETURN_SPOOF
+			return reinterpret_cast<T(Q_THISCALL*)(const void*, decltype(argList)...)>(this->uFunctionAddress)(thisptr, argList...);
+		#else
+			DETAIL::SpoofContext_t context;
+			return DETAIL::InvokeFastCall<T>(reinterpret_cast<std::uintptr_t>(thisptr), 0U, this->uFunctionAddress, &context, Gadget_t::uReturnGadget, argList...);
+		#endif
+		}
+
+	private:
+		std::uintptr_t uFunctionAddress = 0U;
+	};
+
+	template <typename T, typename ECX_t, typename EDX_t, typename... Args_t>
+	struct MethodInvoker_t<T(Q_FASTCALL*)(ECX_t*, EDX_t*, Args_t...)>
+	{
+		MethodInvoker_t(void* pFunctionAddress) :
+			uFunctionAddress(reinterpret_cast<std::uintptr_t>(pFunctionAddress)) { }
+
+		template <typename Gadget_t>
+		T Invoke(const ECX_t* ecx, const EDX_t* edx, Args_t... argList)
+		{
+		#ifdef Q_PARANOID_DISABLE_RETURN_SPOOF
+			return reinterpret_cast<T(Q_FASTCALL*)(const void*, int, decltype(argList)...)>(this->uFunctionAddress)(ecx, edx, argList...);
+		#else
+			DETAIL::SpoofContext_t context;
+			return DETAIL::InvokeFastCall<T>(reinterpret_cast<std::uintptr_t>(ecx), reinterpret_cast<std::uintptr_t>(edx), this->uFunctionAddress, &context, Gadget_t::uReturnGadget, argList...);
+		#endif
+		}
+
+	private:
+		std::uintptr_t uFunctionAddress = 0U;
+	};
+
 
 	// @todo: generally i think it would be better to change callvfunc to macro, and inherit only gadgets, but this way have its pros and cons, e.g. it should result to better inlining but needs to declare spoof context locally on expansion
 	/*
@@ -125,57 +268,11 @@ namespace ROP
 			using VirtualFn_t = T(__thiscall*)(const void*, decltype(argList)...);
 			return (*reinterpret_cast<VirtualFn_t* const*>(reinterpret_cast<std::uintptr_t>(thisptr)))[nIndex](thisptr, argList...);
 		#else
-			SpoofContext_t context;
-			return InvokeFastCall<T>(reinterpret_cast<std::uintptr_t>(thisptr), 0U, (*reinterpret_cast<std::uintptr_t* const*>(reinterpret_cast<std::uintptr_t>(thisptr)))[nIndex], &context, Gadget_t::uReturnGadget, argList...);
+			DETAIL::SpoofContext_t context;
+			return DETAIL::InvokeFastCall<T>(reinterpret_cast<std::uintptr_t>(thisptr), 0U, (*reinterpret_cast<std::uintptr_t* const*>(reinterpret_cast<std::uintptr_t>(thisptr)))[nIndex], &context, Gadget_t::uReturnGadget, argList...);
 		#endif
 		}
 	};
-
-	// wrapped method invoker to spoof it's return address
-	// @note: you can use any non-volatile register, except 'esp', such as: 'edx' (jmp edx; "FF E2", jmp [edx]; "FF 22", jmp [edx+0]; "FF 62 00"), 'ebx' (jmp ebx; "FF E3", jmp [ebx]; "FF 23", jmp [ebx+0]; "FF 63 00"), 'esi' (jmp esi; "FF E6", jmp [esi]; "FF 26", jmp [esi+0]; "FF 66 00"), by default it is 'ebx'
-	// @credits: danielkrupinski
-	template <typename T, typename... Args_t>
-	__declspec(naked) T Q_FASTCALL InvokeFastCall(std::uintptr_t ecx, std::uintptr_t edx, std::uintptr_t uFunctionAddress, SpoofContext_t* pContext, std::uintptr_t uGadgetAddress, Args_t... argList)
-	{
-		__asm
-		{
-			mov eax, [esp+8] // load a pointer to context
-			mov [eax], ebx // save register into context
-			lea ebx, RESTORE // load the address of the restore label
-			mov [eax+4], ebx // save the restore address in context
-			pop dword ptr [eax+8] // pop return address from stack into context
-
-			lea ebx, [eax+4] // load the address of restore address to register
-			ret 4 // pop function address from stack and jump to it, skip context on stack; stack pointer will point to the gadget address
-
-		RESTORE:
-			push [ebx+4] // restore original return address
-			mov ebx, [ebx-4] // restore original register
-			ret
-		}
-	}
-
-	template <typename T, typename... Args_t>
-	__declspec(naked) T Q_CDECL InvokeCdecl(std::uintptr_t uFunctionAddress, SpoofContext_t* pContext, std::uintptr_t uGadgetAddress, Args_t... argList)
-	{
-		__asm
-		{
-			mov eax, [esp+8] // load a pointer to context
-			mov [eax], ebx // save register into context
-			lea ebx, RESTORE // load the address of the restore label
-			mov [eax+4], ebx // save the restore address in context
-			pop dword ptr [eax+8] // pop return address from stack into context
-
-			lea ebx, [eax+4] // load the address of restore address to register
-			ret 4 // pop function address from stack and jump to it, skip context on stack; stack pointer will point to the gadget address
-
-		RESTORE:
-			sub esp, 0Ch // allocate stack for '__cdecl' calling convention
-			push [ebx+4] // restore original return address
-			mov ebx, [ebx-4] // restore original register
-			ret
-		}
-	}
 }
 
 /*

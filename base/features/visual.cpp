@@ -60,7 +60,7 @@ void VISUAL::OnFrame(const EClientFrameStage nStage)
 	}
 }
 
-void VISUAL::OnPreRenderView(const CViewSetup& viewSetup, int* nWhatToDraw)
+void VISUAL::OnPreRenderView(const CViewSetup* pViewSetup, int* nWhatToDraw)
 {
 	if (!C::Get<bool>(Vars.bVisualWorld))
 		return;
@@ -85,7 +85,7 @@ void VISUAL::OnPreRenderView(const CViewSetup& viewSetup, int* nWhatToDraw)
 	}
 }
 
-void VISUAL::OnPostRenderView(const CViewSetup& viewSetup)
+void VISUAL::OnPostRenderView(const CViewSetup* pViewSetup)
 {
 	if (!C::Get<bool>(Vars.bVisualWorld))
 		return;
@@ -128,7 +128,7 @@ void VISUAL::OnPostCalcView(CCSPlayer* pPlayer, QAngle_t* pangOldViewPunch, QAng
 		WORLD::PunchRemoval(pPlayer, false, pangOldViewPunch, pangOldAimPunch);
 }
 
-bool VISUAL::OnDrawModel(DrawModelResults_t* pResults, const DrawModelInfo_t& info, Matrix3x4_t* pBoneToWorld, float* pflFlexWeights, float* pflFlexDelayedWeights, const Vector_t& vecModelOrigin, int nFlags)
+bool VISUAL::OnDrawModel(DrawModelResults_t* pResults, const DrawModelInfo_t* pInfo, Matrix3x4_t* pBoneToWorld, float* pflFlexWeights, float* pflFlexDelayedWeights, const Vector_t* pvecModelOrigin, int nFlags)
 {
 	CCSPlayer* pLocal = CCSPlayer::GetLocalPlayer();
 
@@ -137,7 +137,7 @@ bool VISUAL::OnDrawModel(DrawModelResults_t* pResults, const DrawModelInfo_t& in
 
 	bool bDrawnModel = false;
 
-	bDrawnModel |= CHAMS::OnDrawModel(pLocal, pResults, info, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, vecModelOrigin, nFlags);
+	bDrawnModel |= CHAMS::OnDrawModel(pLocal, pResults, pInfo, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, pvecModelOrigin, nFlags);
 
 	return bDrawnModel;
 }

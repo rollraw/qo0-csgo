@@ -135,7 +135,7 @@ void H::Destroy()
 #pragma region hooks_handlers
 long D3DAPI H::Reset(IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
-	const auto oReset = hkReset.GetOriginal<decltype(&Reset)>();
+	const auto oReset = hkReset.GetOriginal();
 
 	D::OnPreReset(pDevice);
 
@@ -150,7 +150,7 @@ long D3DAPI H::Reset(IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pPresenta
 
 long D3DAPI H::EndScene(IDirect3DDevice9* pDevice)
 {
-	const auto oEndScene = hkEndScene.GetOriginal<decltype(&EndScene)>();
+	const auto oEndScene = hkEndScene.GetOriginal();
 
 	const void* pReturnAddress = Q_RETURN_ADDRESS();
 	static const void* pGameOverlayReturnAddress = nullptr;
@@ -184,7 +184,7 @@ long D3DAPI H::EndScene(IDirect3DDevice9* pDevice)
 static void Q_STDCALL CreateMove(int nSequenceNumber, float flInputSampleFrametime, bool bIsActive, bool* pbSendPacket)
 {
 	// process original CHLClient::CreateMove -> IInput::CreateMove
-	H::hkCreateMove.CallOriginal<void>(I::Client, 0, nSequenceNumber, flInputSampleFrametime, bIsActive);
+	H::hkCreateMove.CallOriginal<ROP::EngineGadget_t>(I::Client, nullptr, nSequenceNumber, flInputSampleFrametime, bIsActive);
 
 	CUserCmd* pCmd = I::Input->GetUserCmd(nSequenceNumber);
 	CVerifiedUserCmd* pVerifiedCmd = I::Input->GetVerifiedCmd(nSequenceNumber);
@@ -209,7 +209,7 @@ static void Q_STDCALL CreateMove(int nSequenceNumber, float flInputSampleFrameti
 
 // call hierarchy: [engine.dll] ... -> CL_Move() -> [client.dll] CHLClient::CreateMove() -> CInput::CreateMove() -> ClientModeShared::CreateMove() -> ...
 // @note: to outperform that, you can manipulate send packet state directly through 'CL_Move'
-Q_NAKED void Q_FASTCALL H::CreateMoveProxy(IBaseClientDll* thisptr, int edx, int nSequenceNumber, float flInputSampleFrametime, bool bIsActive)
+Q_NAKED void Q_FASTCALL H::CreateMoveProxy(IBaseClientDll* thisptr, void* edx, int nSequenceNumber, float flInputSampleFrametime, bool bIsActive)
 {
 	// @ida CHLClient::CreateMove(): client.dll -> "55 8B EC 8B 4D 04 83 EC 08 E8"
 	__asm
@@ -229,27 +229,27 @@ Q_NAKED void Q_FASTCALL H::CreateMoveProxy(IBaseClientDll* thisptr, int edx, int
 }
 
 // call hierarchy: [engine.dll] ... -> ClientDLL_FrameStageNotify() -> [client.dll] CHLClient::FrameStageNotify() -> ...
-void Q_FASTCALL H::FrameStageNotify(IBaseClientDll* thisptr, int edx, EClientFrameStage nStage)
+void Q_FASTCALL H::FrameStageNotify(IBaseClientDll* thisptr, void* edx, EClientFrameStage nStage)
 {
 	F::OnFrame(nStage);
 
-	hkFrameStageNotify.CallOriginal<void>(thisptr, edx, nStage);
+	hkFrameStageNotify.CallOriginal<ROP::EngineGadget_t>(thisptr, edx, nStage);
 }
 
 // call hierarchy: [client.dll] ... -> CViewRender::SetUpView() -> ClientModeShared::OverrideView() -> ...
-void Q_FASTCALL H::OverrideView(IClientModeShared* thisptr, int edx, CViewSetup* pSetup)
+void Q_FASTCALL H::OverrideView(IClientModeShared* thisptr, void* edx, CViewSetup* pSetup)
 {
 	F::OnPreOverrideView(pSetup);
 
-	hkOverrideView.CallOriginal<void>(thisptr, edx, pSetup);
+	hkOverrideView.CallOriginal<ROP::ClientGadget_t>(thisptr, edx, pSetup);
 
 	F::OnPostOverrideView(pSetup);
 }
 
 // call hierarchy: [client.dll] ... -> CViewRender::SetUpView() -> ClientModeShared::GetViewModelFOV()
-float Q_FASTCALL H::GetViewModelFOV(IClientModeShared* thisptr, int edx)
+float Q_FASTCALL H::GetViewModelFOV(IClientModeShared* thisptr, void* edx)
 {
-	float flReturn = hkGetViewModelFOV.CallOriginal<float>(thisptr, edx);
+	float flReturn = hkGetViewModelFOV.CallOriginal<ROP::ClientGadget_t>(thisptr, edx);
 
 	F::OnGetViewModelFOV(&flReturn);
 
@@ -257,15 +257,15 @@ float Q_FASTCALL H::GetViewModelFOV(IClientModeShared* thisptr, int edx)
 }
 
 // call hierarchy: [client.dll] ... -> CViewRender::RenderView() -> ClientModeCSNormal::DoPostScreenSpaceEffects()
-void Q_FASTCALL H::DoPostScreenSpaceEffects(IClientModeShared* thisptr, int edx, CViewSetup* pSetup)
+void Q_FASTCALL H::DoPostScreenSpaceEffects(IClientModeShared* thisptr, void* edx, CViewSetup* pSetup)
 {
 	F::OnDoPostScreenSpaceEffects(pSetup);
 
-	hkDoPostScreenSpaceEffects.CallOriginal<void>(thisptr, edx, pSetup);
+	hkDoPostScreenSpaceEffects.CallOriginal<ROP::ClientGadget_t>(thisptr, edx, pSetup);
 }
 
 // call hierarchy: [engine.dll, client.dll, ...] ... -> [engine.dll] CEngineClient::IsConnected()
-bool Q_FASTCALL H::IsConnected(IEngineClient* thisptr, int edx)
+bool Q_FASTCALL H::IsConnected(IEngineClient* thisptr, void* edx)
 {
 	// @xref: "IsLoadoutAllowed"
 	static const auto pLoadoutAllowedReturn = MEM::FindPattern(CLIENT_DLL, Q_XOR("84 C0 75 05 B0 01 5F"));
@@ -274,11 +274,11 @@ bool Q_FASTCALL H::IsConnected(IEngineClient* thisptr, int edx)
 	if (const volatile auto pReturnAddress = static_cast<std::uint8_t*>(Q_RETURN_ADDRESS()); pReturnAddress == pLoadoutAllowedReturn && C::Get<bool>(Vars.bMiscUnlockInventory))
 		return false;
 
-	return hkIsConnected.CallOriginal<bool>(thisptr, edx);
+	return hkIsConnected.CallOriginal<ROP::EngineGadget_t>(thisptr, edx);
 }
 
 // call hierarchy: [engine.dll, client.dll, ...] ... -> [engine.dll] CEngineClient::IsHLTV()
-bool Q_FASTCALL H::IsHLTV(IEngineClient* thisptr, int edx)
+bool Q_FASTCALL H::IsHLTV(IEngineClient* thisptr, void* edx)
 {
 	const volatile auto pReturnAddress = static_cast<std::uint8_t*>(Q_RETURN_ADDRESS());
 
@@ -287,11 +287,11 @@ bool Q_FASTCALL H::IsHLTV(IEngineClient* thisptr, int edx)
 		pReturnAddress == pSetupVelocityReturn)
 		return true;
 
-	return hkIsHLTV.CallOriginal<bool>(thisptr, edx);
+	return hkIsHLTV.CallOriginal<ROP::EngineGadget_t>(thisptr, edx);
 }
 
 // call hierarchy: [engine.dll] ... -> [client.dll] CHLClient::FrameStageNotify() -> OnRenderStart() -> CClientLeafSystem::RecomputeRenderableLeaves() -> CClientLeafSystem::InsertIntoTree() -> CEngineBSPTree::ListLeavesInBox()
-int Q_FASTCALL H::ListLeavesInBox(void* thisptr, int edx, const Vector_t& vecMins, const Vector_t& vecMaxs, unsigned short* puList, int nListMax)
+int Q_FASTCALL H::ListLeavesInBox(void* thisptr, void* edx, const Vector_t* pvecMins, const Vector_t* pvecMaxs, unsigned short* puList, int nListMax)
 {
 	// @credits: soufiw
 	// occlusion getting updated on player movement/angle change, in 'CClientLeafSystem::RecomputeRenderableLeaves()'
@@ -300,7 +300,7 @@ int Q_FASTCALL H::ListLeavesInBox(void* thisptr, int edx, const Vector_t& vecMin
 	if (const volatile auto pReturnAddress = static_cast<std::uint8_t*>(Q_RETURN_ADDRESS());
 		// check is called from 'CClientLeafSystem::InsertIntoTree()'
 		pReturnAddress != pInsertIntoTreeReturn)
-		return hkListLeavesInBox.CallOriginal<int>(thisptr, edx, &vecMins, &vecMaxs, puList, nListMax);
+		return hkListLeavesInBox.CallOriginal<ROP::EngineGadget_t>(thisptr, edx, pvecMins, pvecMaxs, puList, nListMax);
 
 	if (C::Get<bool>(Vars.bVisual) && C::Get<bool>(Vars.bVisualChams) && C::Get<bool>(Vars.bVisualChamsEnemies))
 	{
@@ -318,38 +318,39 @@ int Q_FASTCALL H::ListLeavesInBox(void* thisptr, int edx, const Vector_t& vecMin
 				{
 					// @test: seems like valve fixed render order themselves or somewhat else and now chams draw perfect through decals w/o any fixes
 
+					// @test: since just 'constexpr' without 'static' doesn't guarantee it gonna be inside rdata, is it ok to pass pointer to stack vars here? check original method 
 					constexpr Vector_t vecUnlimitedMins = { -MAX_COORD_FLOAT, -MAX_COORD_FLOAT, -MAX_COORD_FLOAT };
 					constexpr Vector_t vecUnlimitedMaxs = { MAX_COORD_FLOAT, MAX_COORD_FLOAT, MAX_COORD_FLOAT };
-					return hkListLeavesInBox.CallOriginal<int>(thisptr, edx, &vecUnlimitedMins, &vecUnlimitedMaxs, puList, nListMax);
+					return hkListLeavesInBox.CallOriginal<ROP::EngineGadget_t>(thisptr, edx, &vecUnlimitedMins, &vecUnlimitedMaxs, puList, nListMax);
 				}
 			}
 		}
 	}
 
-	return hkListLeavesInBox.CallOriginal<int>(thisptr, edx, &vecMins, &vecMaxs, puList, nListMax);
+	return hkListLeavesInBox.CallOriginal<ROP::EngineGadget_t>(thisptr, edx, pvecMins, pvecMaxs, puList, nListMax);
 }
 
 // call hierarchy: [engine.dll] ... -> CNetChan::SendNetMsg()
-bool Q_FASTCALL H::SendNetMsg(INetChannel* thisptr, int edx, INetMessage& message, bool bForceReliable, bool bVoice)
+bool Q_FASTCALL H::SendNetMsg(INetChannel* thisptr, void* edx, INetMessage* pMessage, bool bForceReliable, bool bVoice)
 {
 	// @todo: just exclude our listened events from mask instead of preventing sending it at all, otherwise other things like killfeed etc (whatever events client uses) will not work
 	// @note: exclude listened events that are not used by the client from the message to the server, to bypass SMAC detection
 	//if (message.GetType() == 12 /* CCLCMsg_ListenEvents */)
 	//	return false;
 
-	return hkSendNetMsg.CallOriginal<bool>(thisptr, edx, &message, bForceReliable, bVoice);
+	return hkSendNetMsg.CallOriginal<ROP::EngineGadget_t>(thisptr, edx, pMessage, bForceReliable, bVoice);
 }
 
 // call hierarchy: [engine.dll] ... -> CNetChan::SendDatagram()
-int Q_FASTCALL H::SendDatagram(INetChannel* thisptr, int edx, CBitWrite* pDatagram)
+int Q_FASTCALL H::SendDatagram(INetChannel* thisptr, void* edx, CBitWrite* pDatagram)
 {
 	if (!I::Engine->IsInGame() || pDatagram != nullptr)
-		return hkSendDatagram.CallOriginal<int>(thisptr, edx, pDatagram);
+		return hkSendDatagram.CallOriginal<ROP::EngineGadget_t>(thisptr, edx, pDatagram);
 
 	SendDatagramStack_t stack;
 	F::OnPreSendDatagram(thisptr, stack);
 
-	const int iReturn = hkSendDatagram.CallOriginal<int>(thisptr, edx, pDatagram);
+	const int iReturn = hkSendDatagram.CallOriginal<ROP::EngineGadget_t>(thisptr, edx, pDatagram);
 
 	F::OnPostSendDatagram(thisptr, stack);
 
@@ -357,18 +358,18 @@ int Q_FASTCALL H::SendDatagram(INetChannel* thisptr, int edx, CBitWrite* pDatagr
 }
 
 // call hierarchy: [engine.dll] ... -> CL_RunPrediction() -> CL_Predict() -> [client.dll] ... -> CPrediction::RunSimulation() -> C_BasePlayer::PhysicsSimulate() -> CPrediction::RunCommand()
-void Q_FASTCALL H::RunCommand(IPrediction* thisptr, int edx, CBasePlayer* pPlayer, CUserCmd* pCmd, IMoveHelper* pMoveHelper)
+void Q_FASTCALL H::RunCommand(IPrediction* thisptr, void* edx, CBasePlayer* pPlayer, CUserCmd* pCmd, IMoveHelper* pMoveHelper)
 {
 	// get movehelper interface pointer
 	I::MoveHelper = pMoveHelper;
 
 	/* there is tickbase/compressed netvars corrections */
 
-	hkRunCommand.CallOriginal<void>(thisptr, edx, pPlayer, pCmd, pMoveHelper);
+	hkRunCommand.CallOriginal<ROP::ClientGadget_t>(thisptr, edx, pPlayer, pCmd, pMoveHelper);
 }
 
 // call hierarchy: [engine.dll, client.dll, vgui2.dll, vguimatsurface.dll] ... -> CMatSystemSurface::CalculateMouseVisible() -> CMatSystemSurface::LockCursor()
-void Q_FASTCALL H::LockCursor(ISurface* thisptr, int edx)
+void Q_FASTCALL H::LockCursor(ISurface* thisptr, void* edx)
 {
 	if (MENU::bMainOpened)
 	{
@@ -376,31 +377,31 @@ void Q_FASTCALL H::LockCursor(ISurface* thisptr, int edx)
 		return;
 	}
 
-	hkLockCursor.CallOriginal<void>(thisptr, edx);
+	hkLockCursor.CallOriginal<ROP::ClientGadget_t>(thisptr, edx);
 }
 
 // call hierarchy: [client.dll] ... -> CInput::CAM_Think() -> CAM_ToFirstPerson() -> CInput::CAM_ToFirstPerson()
-void Q_FASTCALL H::CAM_ToFirstPerson(IInput* thisptr, int edx)
+void Q_FASTCALL H::CAM_ToFirstPerson(IInput* thisptr, void* edx)
 {
 	// prevent thirdperson flicking because of not passed "sv_cheats" check inside 'CInput::CAM_Think()'
 	if (CCSPlayer* pLocal = CCSPlayer::GetLocalPlayer(); C::Get<bool>(Vars.bVisualWorld) && IPT::GetBindState(C::Get<KeyBind_t>(Vars.keyVisualWorldThirdPerson)) && pLocal != nullptr && pLocal->IsAlive())
 		return;
 
-	hkCAM_ToFirstPerson.CallOriginal<void>(thisptr, edx);
+	hkCAM_ToFirstPerson.CallOriginal<ROP::ClientGadget_t>(thisptr, edx);
 }
 
 // call hierarchy: [engine.dll] ... -> [client.dll] CHLClient::RenderView() -> CViewRender::RenderView()
-void Q_FASTCALL H::RenderView(IViewRender* thisptr, int edx, const CViewSetup& viewSetup, const CViewSetup& viewSetupHUD, int nClearFlags, int nWhatToDraw)
+void Q_FASTCALL H::RenderView(IViewRender* thisptr, void* edx, const CViewSetup* pViewSetup, const CViewSetup* pViewSetupHUD, int nClearFlags, int nWhatToDraw)
 {
-	F::OnPreRenderView(viewSetup, viewSetupHUD, nClearFlags, &nWhatToDraw);
+	F::OnPreRenderView(pViewSetup, pViewSetupHUD, nClearFlags, &nWhatToDraw);
 
-	hkRenderView.CallOriginal<void>(thisptr, edx, &viewSetup, &viewSetupHUD, nClearFlags, nWhatToDraw);
+	hkRenderView.CallOriginal<ROP::ClientGadget_t>(thisptr, edx, pViewSetup, pViewSetupHUD, nClearFlags, nWhatToDraw);
 
-	F::OnPostRenderView(viewSetup, viewSetupHUD, nClearFlags, &nWhatToDraw);
+	F::OnPostRenderView(pViewSetup, pViewSetupHUD, nClearFlags, &nWhatToDraw);
 }
 
 // call hierarchy: [client.dll] ... -> CViewRender::RenderView() -> CCSViewRender::RenderSmokeOverlay()
-void Q_FASTCALL H::RenderSmokeOverlay(IViewRender* thisptr, int edx, bool bPreViewModel)
+void Q_FASTCALL H::RenderSmokeOverlay(IViewRender* thisptr, void* edx, bool bPreViewModel)
 {
 	// prevent from drawing smoke overlay
 	// and this is the only possible place to do that due to awesome optimization with disabling rendering of all models when we're fully obscured by smoke
@@ -410,18 +411,18 @@ void Q_FASTCALL H::RenderSmokeOverlay(IViewRender* thisptr, int edx, bool bPreVi
 		return;
 	}
 
-	hkRenderSmokeOverlay.CallOriginal<void>(thisptr, edx, bPreViewModel);
+	hkRenderSmokeOverlay.CallOriginal<ROP::ClientGadget_t>(thisptr, edx, bPreViewModel);
 }
 
-// call hierarchy: [tier3.dll] ... -> CMDL::Draw() | [client.dll] ... -> CModelRender::DrawModelExecute() / CModelRender::DrawModelShadow() -> CStudioRender::DrawModel() -> ...
-void Q_FASTCALL H::DrawModel(IStudioRender* thisptr, int edx, DrawModelResults_t* pResults, const DrawModelInfo_t& info, Matrix3x4_t* pBoneToWorld, float* pflFlexWeights, float* pflFlexDelayedWeights, const Vector_t& vecModelOrigin, int nFlags)
+// call hierarchy: [tier3.dll] ... -> CMDL::Draw() | [engine.dll] ... -> CModelRender::DrawModelEx() | [client.dll] ... -> C_BaseAnimating::DoInternalDrawModel() -> [engine.dll] CModelRender::DrawModelExecute() / CModelRender::DrawModelShadow() -> [studiorender.dll] CStudioRender::DrawModel() -> ...
+void Q_FASTCALL H::DrawModel(IStudioRender* thisptr, void* edx, DrawModelResults_t* pResults, const DrawModelInfo_t* pInfo, Matrix3x4_t* pBoneToWorld, float* pflFlexWeights, float* pflFlexDelayedWeights, const Vector_t* pvecModelOrigin, int nFlags)
 {
-	if (!F::VISUAL::OnDrawModel(pResults, info, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, vecModelOrigin, nFlags))
-		hkDrawModel.CallOriginal<void>(thisptr, edx, pResults, &info, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, &vecModelOrigin, nFlags);
+	if (!F::VISUAL::OnDrawModel(pResults, pInfo, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, pvecModelOrigin, nFlags))
+		hkDrawModel.CallOriginal<ROP::EngineGadget_t>(thisptr, edx, pResults, pInfo, pBoneToWorld, pflFlexWeights, pflFlexDelayedWeights, pvecModelOrigin, nFlags);
 }
 
 // call hierarchy: @todo: [client.dll] ... -> GCSDK::CProtoBufMsgBase::BAsyncSendProto() -> ISteamGameCoordinator::SendMessage()
-int Q_FASTCALL H::SendMessage(ISteamGameCoordinator* thisptr, int edx, std::uint32_t uMessageHeader, const void* pData, std::uint32_t nDataSize)
+int Q_FASTCALL H::SendMessage(ISteamGameCoordinator* thisptr, void* edx, std::uint32_t uMessageHeader, const void* pData, std::uint32_t nDataSize)
 {
 	const std::uint32_t nMessageType = (uMessageHeader & 0x7FFFFFFF);
 
@@ -439,13 +440,13 @@ int Q_FASTCALL H::SendMessage(ISteamGameCoordinator* thisptr, int edx, std::uint
 	}
 
 	L_PRINT(LOG_NONE) << L::SetColor(LOG_COLOR_FORE_YELLOW | LOG_COLOR_FORE_INTENSITY) << Q_XOR("[<-] message sent to GC: ") << nMessageType;
-	return hkSendMessage.CallOriginal<int>(thisptr, edx, uMessageHeader, pData, nDataSize);
+	return hkSendMessage.CallOriginal<ROP::ClientGadget_t>(thisptr, edx, uMessageHeader, pData, nDataSize);
 }
 
 // call hierarchy: @todo: [client.dll] ... -> ISteamGameCoordinator::RetrieveMessage()
-int Q_FASTCALL H::RetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::uint32_t* pMessageHeader, void* pDestination, std::uint32_t nDestinationSize, std::uint32_t* pnMessageSize)
+int Q_FASTCALL H::RetrieveMessage(ISteamGameCoordinator* thisptr, void* edx, std::uint32_t* pMessageHeader, void* pDestination, std::uint32_t nDestinationSize, std::uint32_t* pnMessageSize)
 {
-	const int iResult = hkRetrieveMessage.CallOriginal<int>(thisptr, edx, pMessageHeader, pDestination, nDestinationSize, pnMessageSize);
+	const int iResult = hkRetrieveMessage.CallOriginal<ROP::ClientGadget_t>(thisptr, edx, pMessageHeader, pDestination, nDestinationSize, pnMessageSize);
 
 	if (iResult != EGCResultOK)
 		return iResult;
@@ -461,14 +462,14 @@ int Q_FASTCALL H::RetrieveMessage(ISteamGameCoordinator* thisptr, int edx, std::
 }
 
 // call hierarchy: [client.dll] ... -> C_CSPlayer::Weapon_ShootPosition() / C_CSPlayer::CalcView() -> CCSGOPlayerAnimState::ModifyEyePosition()
-void Q_FASTCALL H::ModifyEyePosition(CCSGOPlayerAnimState* thisptr, int edx, Vector_t& vecInputEyePosition)
+void Q_FASTCALL H::ModifyEyePosition(CCSGOPlayerAnimState* thisptr, void* edx, Vector_t* pvecInputEyePosition)
 {
 	// force to use our server-side rebuild for all game calls
-	thisptr->ModifyEyePosition(vecInputEyePosition);
+	thisptr->ModifyEyePosition(*pvecInputEyePosition);
 }
 
 // call hierarchy: [client.dll] ... -> C_CSPlayer::SetupBones()
-bool Q_FASTCALL H::SetupBones(IClientRenderable* thisptr, int edx, Matrix3x4a_t* arrBonesToWorld, int iMaxBones, int nBoneMask, float flCurrentTime)
+bool Q_FASTCALL H::SetupBones(IClientRenderable* thisptr, void* edx, Matrix3x4a_t* arrBonesToWorld, int iMaxBones, int nBoneMask, float flCurrentTime)
 {
 	/*
 	 * server-side setup bones rebuild
@@ -667,9 +668,10 @@ bool Q_FASTCALL H::SetupBones(IClientRenderable* thisptr, int edx, Matrix3x4a_t*
 }
 
 // call hierarchy: [client.dll] ... -> FX_FireBullets() -> C_CSPlayer::FireBullet() -> ...
-void Q_FASTCALL H::FireBullet(CCSPlayer* thisptr, int edx, Vector_t vecSource, const QAngle_t& angShootView, float flDistance, float flPenetration, int nPenetrationCount, int nBulletType, int iDamage, float flRangeModifier, CBaseEntity* pAttacker, bool bDoEffects, float flSpreadX, float flSpreadY)
+void Q_FASTCALL H::FireBullet(CCSPlayer* thisptr, void* edx, Vector_t vecSource, const QAngle_t* pangShootView, float flDistance, float flPenetration, int nPenetrationCount, int nBulletType, int iDamage, float flRangeModifier, CBaseEntity* pAttacker, bool bDoEffects, float flSpreadX, float flSpreadY)
 {
-	hkFireBullet.CallOriginal<void>(thisptr, edx, vecSource, &angShootView, flDistance, flPenetration, nPenetrationCount, nBulletType, iDamage, flRangeModifier, pAttacker, bDoEffects, flSpreadX, flSpreadY);
+	// @test: registers probably messed up af when built with clang-cl
+	hkFireBullet.CallOriginal<ROP::ClientGadget_t>(thisptr, edx, vecSource, pangShootView, flDistance, flPenetration, nPenetrationCount, nBulletType, iDamage, flRangeModifier, pAttacker, bDoEffects, flSpreadX, flSpreadY);
 
 	/*
 	 * server gonna lock view angles to shoot angles for 'sv_maxusrcmdprocessticks_holdaim' ticks count on next sent tick
@@ -683,20 +685,20 @@ void Q_FASTCALL H::FireBullet(CCSPlayer* thisptr, int edx, Vector_t vecSource, c
 }
 
 // call hierarchy: [engine.dll] ... -> [client.dll] CHLClient::FrameStageNotify() -> OnRenderStart() -> C_BaseAnimating::UpdateClientSideAnimations() -> C_BaseAnimating::UpdateClientSideAnimation() -> CCSGOPlayerAnimState::Update()
-void Q_FASTCALL H::UpdateClientSideAnimation(CCSPlayer* thisptr, int edx)
+void Q_FASTCALL H::UpdateClientSideAnimation(CCSPlayer* thisptr, void* edx)
 {
 	// tell game to update animations for player only when we need this, and never else
 	if (F::ANIMATION::IsGameAllowedToUpdateAnimations(thisptr->GetIndex()))
-		hkUpdateClientSideAnimation.CallOriginal<void>(thisptr, edx);
+		hkUpdateClientSideAnimation.CallOriginal<ROP::ClientGadget_t>(thisptr, edx);
 }
 
 // call hierarchy: [client.dll] ... -> CViewRender::SetUpView() -> C_CSPlayer::CalcView() -> ...
-void Q_FASTCALL H::CalcView(CCSPlayer* thisptr, int edx, Vector_t& vecEyeOrigin, QAngle_t& angEyeView, float& flNearZ, float& flFarZ, float& flFOV)
+void Q_FASTCALL H::CalcView(CCSPlayer* thisptr, void* edx, Vector_t* pvecEyeOrigin, QAngle_t* pangEyeView, float* pflNearZ, float* pflFarZ, float* pflFOV)
 {
 	// @ida C_CSPlayer::CalcView(): client.dll -> "55 8B EC 83 EC 14 53 56 57 FF 75 18"
 
 	if (CCSPlayer* pLocal = CCSPlayer::GetLocalPlayer(); pLocal == nullptr || (!pLocal->IsAlive() && pLocal->GetObserverMode() != OBS_MODE_IN_EYE))
-		return hkCalcView.CallOriginal<void>(thisptr, edx, &vecEyeOrigin, &angEyeView, &flNearZ, &flFarZ, &flFOV);
+		return hkCalcView.CallOriginal<ROP::ClientGadget_t>(thisptr, edx, pvecEyeOrigin, pangEyeView, pflNearZ, pflFarZ, pflFOV);
 
 	CalcViewStack_t stack;
 
@@ -706,7 +708,7 @@ void Q_FASTCALL H::CalcView(CCSPlayer* thisptr, int edx, Vector_t& vecEyeOrigin,
 	const bool bOldIsUsingNewAnimState = thisptr->IsUsingNewAnimState();
 	thisptr->IsUsingNewAnimState() = false;
 
-	hkCalcView.CallOriginal<void>(thisptr, edx, &vecEyeOrigin, &angEyeView, &flNearZ, &flFarZ, &flFOV);
+	hkCalcView.CallOriginal<ROP::ClientGadget_t>(thisptr, edx, pvecEyeOrigin, pangEyeView, pflNearZ, pflFarZ, pflFOV);
 
 	// restore forced values back to not affect other functions
 	thisptr->IsUsingNewAnimState() = bOldIsUsingNewAnimState;

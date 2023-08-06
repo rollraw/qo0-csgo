@@ -429,26 +429,26 @@ public:
 
 	void SetAbsOrigin(const Vector_t& vecAbsOrigin)
 	{
-		static auto fnSetAbsOrigin = reinterpret_cast<void(Q_THISCALL*)(CBaseEntity*, const Vector_t&)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 E4 F8 51 53 56 57 8B F1 E8 ? ? ? ? 8B 7D")));
-		fnSetAbsOrigin(this, vecAbsOrigin);
+		static auto fnSetAbsOrigin = ROP::MethodInvoker_t<void(Q_THISCALL*)(CBaseEntity*, const Vector_t*)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 E4 F8 51 53 56 57 8B F1 E8 ? ? ? ? 8B 7D")));
+		fnSetAbsOrigin.Invoke<ROP::ClientGadget_t>(this, &vecAbsOrigin);
 	}
 
 	void SetAbsAngles(const QAngle_t& angAbsView)
 	{
-		static auto fnSetAbsAngles = reinterpret_cast<void(Q_THISCALL*)(CBaseEntity*, const QAngle_t&)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 E4 F8 83 EC 64 53 56 57 8B F1")));
-		fnSetAbsAngles(this, angAbsView);
+		static auto fnSetAbsAngles = ROP::MethodInvoker_t<void(Q_THISCALL*)(CBaseEntity*, const QAngle_t*)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 E4 F8 83 EC 64 53 56 57 8B F1")));
+		fnSetAbsAngles.Invoke<ROP::ClientGadget_t>(this, &angAbsView);
 	}
 
 	void SetAbsVelocity(const Vector_t& vecAbsVelocity)
 	{
-		static auto fnSetAbsVelocity = reinterpret_cast<void(Q_THISCALL*)(CBaseEntity*, const Vector_t&)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 E4 F8 83 EC 0C 53 56 57 8B 7D 08 8B F1 F3")));
-		fnSetAbsVelocity(this, vecAbsVelocity);
+		static auto fnSetAbsVelocity = ROP::MethodInvoker_t<void(Q_THISCALL*)(CBaseEntity*, const Vector_t*)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 E4 F8 83 EC 0C 53 56 57 8B 7D 08 8B F1 F3")));
+		fnSetAbsVelocity.Invoke<ROP::ClientGadget_t>(this, &vecAbsVelocity);
 	}
 
 	[[nodiscard]] bool PhysicsRunThink(EThinkMethod nThinkMethod = THINK_FIRE_ALL_FUNCTIONS)
 	{
-		static auto fnPhysicsRunThink = reinterpret_cast<bool(Q_THISCALL*)(CBaseEntity*, EThinkMethod)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 EC 10 53 56 57 8B F9 8B 87")));
-		return fnPhysicsRunThink(this, nThinkMethod);
+		static auto fnPhysicsRunThink = ROP::MethodInvoker_t<bool(Q_THISCALL*)(CBaseEntity*, EThinkMethod)>(MEM::FindPattern(CLIENT_DLL, Q_XOR("55 8B EC 83 EC 10 53 56 57 8B F9 8B 87")));
+		return fnPhysicsRunThink.Invoke<ROP::ClientGadget_t>(this, nThinkMethod);
 	}
 
 	[[nodiscard]] int GetMaxHealth();

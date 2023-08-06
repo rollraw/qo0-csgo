@@ -53,9 +53,9 @@ namespace F
 	// called before 'DoPostScreenSpaceEffects()' original
 	void OnDoPostScreenSpaceEffects(CViewSetup* pSetup);
 	// called before 'RenderView()' original
-	void OnPreRenderView(const CViewSetup& viewSetup, const CViewSetup& viewSetupHUD, int nClearFlags, int* pnWhatToDraw);
+	void OnPreRenderView(const CViewSetup* pViewSetup, const CViewSetup* pViewSetupHUD, int nClearFlags, int* pnWhatToDraw);
 	// called after 'RenderView()' original
-	void OnPostRenderView(const CViewSetup& viewSetup, const CViewSetup& viewSetupHUD, int nClearFlags, int* pnWhatToDraw);
+	void OnPostRenderView(const CViewSetup* pViewSetup, const CViewSetup* pViewSetupHUD, int nClearFlags, int* pnWhatToDraw);
 	// called before 'CalcView()' original
 	void OnPreCalcView(CCSPlayer* pPlayer, CalcViewStack_t& stack);
 	// called after 'CalcView()' original
