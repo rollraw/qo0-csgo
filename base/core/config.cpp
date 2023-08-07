@@ -232,37 +232,19 @@ bool C::RemoveFileVariable(const std::size_t nFileIndex, const VariableObject_t&
 
 bool C::CreateFile(const wchar_t* wszFileName)
 {
-	wchar_t* wszFullFileName;
+	const wchar_t* wszFileExtension = CRT::StringCharR(wszFileName, L'.');
 
-	// @todo: optimize it
-	// check is file extension already correct
-	if (const wchar_t* wszFileExtension = CRT::StringCharR(wszFileName, L'.'); wszFileExtension != nullptr && CRT::StringCompare(wszFileExtension, Q_XOR(Q_CONFIGURATION_FILE_EXTENSION)) == 0)
-	{
-		wszFullFileName = new wchar_t[CRT::StringLength(wszFileName) + 1U];
-		CRT::StringCopy(wszFullFileName, wszFileName);
-		vecFileNames.push_back(wszFullFileName);
-	}
-	// file extension is either not set or incorrect
-	else
-	{
-		wchar_t* wszFullFileNameEnd;
+	// get length of the given filename and strip out extension if there any
+	const std::size_t nFileNameLength = (wszFileExtension != nullptr ? wszFileExtension - wszFileName : CRT::StringLength(wszFileName));
+	wchar_t* wszFullFileName = new wchar_t[nFileNameLength + CRT::StringLength(Q_CONFIGURATION_FILE_EXTENSION) + 1U];
 
-		if (wszFileExtension != nullptr)
-		{
-			wszFullFileName = new wchar_t[wszFileExtension - wszFileName + CRT::StringLength(Q_CONFIGURATION_FILE_EXTENSION) + 1U];
-			wszFullFileNameEnd = CRT::StringCopyN(wszFullFileName, wszFileName, wszFileExtension - wszFileName);
-		}
-		else
-		{
-			wszFullFileName = new wchar_t[CRT::StringLength(wszFileName) + CRT::StringLength(Q_CONFIGURATION_FILE_EXTENSION) + 1U];
-			wszFullFileNameEnd = CRT::StringCopy(wszFullFileName, wszFileName);
-		}
-
-		// append correct extension to the file name
-		CRT::StringCat(wszFullFileNameEnd, Q_XOR(Q_CONFIGURATION_FILE_EXTENSION));
-	}
-
-	// add file to the list
+	// copy filename without extension
+	wchar_t* wszFullFileNameEnd = CRT::StringCopyN(wszFullFileName, wszFileName, nFileNameLength);
+	*wszFullFileNameEnd = L'\0';
+	// append correct extension to the filename
+	CRT::StringCat(wszFullFileNameEnd, Q_XOR(Q_CONFIGURATION_FILE_EXTENSION));
+	
+	// add filename to the list
 	vecFileNames.push_back(wszFullFileName);
 
 	// create and save it by the index
@@ -335,7 +317,9 @@ void C::RemoveFile(const std::size_t nFileIndex)
 
 	if (::DeleteFileW(wszFilePath))
 	{
+		// erase and free filename from the list
 		vecFileNames.erase(vecFileNames.cbegin() + nFileIndex);
+
 		L_PRINT(LOG_INFO) << Q_XOR("removed configuration file: \"") << wszFileName << Q_XOR("\"");
 	}
 }
