@@ -159,7 +159,8 @@ public:
 			return false;
 		}
 
-		CRT::StringCopyN(szKeyName, szToken, MAPKEY_MAXLENGTH);
+		char* szKeyNameEnd = CRT::StringCopyN(szKeyName, szToken, MAPKEY_MAXLENGTH - 1U);
+		*szKeyNameEnd = '\0';
 
 		// fix up keynames with trailing spaces
 		std::size_t nLength = CRT::StringLength(szKeyName);
@@ -183,7 +184,8 @@ public:
 		}
 
 		// value successfully found
-		CRT::StringCopyN(szValue, szToken, MAPKEY_MAXLENGTH);
+		char* szValueEnd = CRT::StringCopyN(szValue, szToken, MAPKEY_MAXLENGTH - 1U);
+		*szValueEnd = '\0';
 		return true;
 	}
 

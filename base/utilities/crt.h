@@ -661,7 +661,7 @@ namespace CRT
 
 	/// copy a one string to another up to the specified count of characters, alternative of 'stpncpy()', 'wcpncpy()'
 	/// @remarks: copies the initial @a'nCount' characters of @a'tszSource' to @a'tszDestination'. if count is less than or equal to the length of @a'tszSource', a null character is not appended automatically to the copied string. if @a'nCount' is greater than the length of @a'tszSource', the destination string is padded with null characters up to length count. the behavior is undefined if the source and destination strings overlap
-	/// @returns: pointer to the terminating null in @a'tszDestination', or to the last copied character
+	/// @returns: pointer to @a'tszDestination' + @a'nCount'
 	template <typename C> requires (std::is_same_v<C, char> || std::is_same_v<C, wchar_t>)
 	constexpr C* StringCopyN(C* tszDestination, const C* tszSource, std::size_t nCount)
 	{
@@ -1614,13 +1614,13 @@ namespace CRT
 	/// @remarks: locale-independent
 	/// @todo: param desc
 	/// @returns: length of converted UTF-X string
-	Q_INLINE std::ptrdiff_t StringMultiByteToUnicode(wchar_t* szOutBuffer, const std::size_t nOutBufferLength, const char* szBegin, const char* szEnd = nullptr)
+	Q_INLINE std::ptrdiff_t StringMultiByteToUnicode(wchar_t* szOutBuffer, const std::size_t nOutBufferLength, const char* szBegin, const char* szEnd)
 	{
 		wchar_t* pBufferBegin = szOutBuffer;
 		const wchar_t* pBufferEnd = szOutBuffer + nOutBufferLength;
 
 		std::uint32_t uChar = 0U;
-		while (pBufferBegin < pBufferEnd - 1 && (szEnd == nullptr || szBegin < szEnd) && *szBegin != '\0')
+		while (pBufferBegin < pBufferEnd - 1 && szBegin < szEnd && *szBegin != '\0')
 		{
 			szBegin += CharMultiByteToUTF32(szBegin, szEnd, &uChar);
 

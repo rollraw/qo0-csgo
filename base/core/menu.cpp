@@ -651,16 +651,20 @@ void T::Miscellaneous()
 				ImGui::PushItemWidth(-1);
 				if (ImGui::InputTextWithHint(Q_XOR("##config.file"), Q_XOR("create new..."), szConfigFile, sizeof(szConfigFile), ImGuiInputTextFlags_EnterReturnsTrue))
 				{
-					// @todo: imgui cant work with wstring, wait for change to other gui
-					wchar_t wszConfigFile[MAX_PATH] = { };
-					CRT::StringMultiByteToUnicode(wszConfigFile, MAX_PATH, szConfigFile);
+					// check if the filename isn't empty
+					if (const std::size_t nConfigFileLength = CRT::StringLength(szConfigFile); nConfigFileLength > 0U)
+					{
+						// @todo: imgui cant work with wstring, wait for change to other gui
+						wchar_t wszConfigFile[MAX_PATH] = { };
+						CRT::StringMultiByteToUnicode(wszConfigFile, Q_ARRAYSIZE(wszConfigFile), szConfigFile, szConfigFile + nConfigFileLength);
 
-					if (C::CreateFile(wszConfigFile))
-						// set created config as selected @todo: dependent on current 'C::CreateFile' behaviour, generally it must be replaced by search
-						nSelectedConfig = C::vecFileNames.size() - 1U;
+						if (C::CreateFile(wszConfigFile))
+							// set created config as selected @todo: dependent on current 'C::CreateFile' behaviour, generally it must be replaced by search
+							nSelectedConfig = C::vecFileNames.size() - 1U;
 
-					// clear string
-					CRT::MemorySet(szConfigFile, 0U, sizeof(szConfigFile));
+						// clear string
+						CRT::MemorySet(szConfigFile, 0U, sizeof(szConfigFile));
+					}
 				}
 				if (ImGui::IsItemHovered())
 					ImGui::SetTooltip(Q_XOR("press enter to create new configuration"));
@@ -686,7 +690,7 @@ void T::Miscellaneous()
 			{
 				// @todo: imgui cant work with wstring, wait for change to other gui
 				char szCurrentConfig[MAX_PATH] = { };
-				CRT::StringUnicodeToMultiByte(szCurrentConfig, MAX_PATH, C::vecFileNames[nSelectedConfig]);
+				CRT::StringUnicodeToMultiByte(szCurrentConfig, Q_ARRAYSIZE(szCurrentConfig), C::vecFileNames[nSelectedConfig]);
 
 				ImGui::Text(Q_XOR("are you sure you want to remove \"%s\" configuration?"), szCurrentConfig);
 				ImGui::Spacing();
