@@ -605,12 +605,11 @@ void OVERLAY::Player(CCSPlayer* pLocal, CCSPlayer* pPlayer, const float flDistan
 	{
 		// get player name
 		char szNameBuffer[32];
-		char* szNameEnd = CRT::StringCopyN(szNameBuffer, playerInfo.szName, Q_ARRAYSIZE(szNameBuffer) - 1U);
-		*szNameEnd = '\0';
+		const char* szNameEnd = CRT::StringCopyN(szNameBuffer, playerInfo.szName, Q_ARRAYSIZE(szNameBuffer) - 1U);
 
 		// truncate name
-		if (constexpr int nTruncateLength = 28; CRT::StringLength(szNameBuffer) > nTruncateLength)
-			CRT::StringCat(szNameBuffer + nTruncateLength, Q_XOR("..."));
+		if (constexpr int nTruncateLength = 28; *szNameEnd != '\0')
+			CRT::StringCopy(szNameBuffer + nTruncateLength, Q_XOR("..."));
 
 		context.AddComponent(new CTextComponent(SIDE_TOP, DIR_TOP, FONT::pVisual, flFontSize, szNameBuffer, Color_t(255, 255, 255, 255), 1.0f, Color_t(0, 0, 0, 220)));
 
