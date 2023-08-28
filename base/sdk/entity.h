@@ -563,14 +563,10 @@ public:
 	{
 		// @ida C_BaseAnimating::GetModelPtr(): client.dll -> ABS["E8 ? ? ? ? 8B 55 38" + 0x1]
 
-		if (CStudioHdr* pStudioHdr = this->GetStudioHdr(); pStudioHdr == nullptr)
-		{
-			if (this->GetModel() != nullptr)
-				this->LockStudioHdr();
-			else
-				return nullptr;
-		}
-		else if (pStudioHdr->IsValid())
+		if (this->GetStudioHdr() == nullptr && this->GetModel() != nullptr)
+			this->LockStudioHdr();
+
+		if (CStudioHdr* pStudioHdr = this->GetStudioHdr(); pStudioHdr != nullptr && pStudioHdr->IsValid())
 			return pStudioHdr;
 
 		return nullptr;
