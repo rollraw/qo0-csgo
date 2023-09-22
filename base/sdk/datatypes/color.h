@@ -1,6 +1,8 @@
 #pragma once
 // used: [crt] fmodf
 #include <cmath>
+// used: [stl] bit_cast
+#include <bit>
 
 #include "../../common.h"
 // used: swap

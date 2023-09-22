@@ -2,7 +2,7 @@
 
 /*
  * CORE
- * - cheat global variables and methods
+ * - global variables and functions for various purposes
  */
 namespace CORE
 {

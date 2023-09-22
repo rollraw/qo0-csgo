@@ -117,7 +117,7 @@ namespace CRT
 
 	/*
 	 * @section: utility
-	 * - methods that provide general-purpose functionality
+	 * - functions that provide general-purpose functionality
 	 */
 	#pragma region stl_utility
 	// indicate that an object may be "moved from", i.e. allowing the efficient transfer of resources to another object, alternative of 'std::move'
@@ -156,7 +156,7 @@ namespace CRT
 
 	/*
 	 * @section: algorithm
-	 * - methods for a variety of purposes (e.g. searching, sorting, counting, manipulating) that operate on ranges of elements
+	 * - functions for a variety of purposes (e.g. searching, sorting, counting, manipulating) that operate on ranges of elements
 	 */
 	#pragma region stl_algorithm
 	/// alternative of 'std::min'
@@ -474,7 +474,7 @@ namespace CRT
 
 	/*
 	 * @section: string
-	 * - @note: return value of some methods correspond to the POSIX standard but not C standard, it was necessary to reduce time complexity of them
+	 * - @note: return value of some functions correspond to the POSIX standard but not C standard, it was necessary to reduce time complexity of them
 	 * - valid only for default C locale
 	 */
 	#pragma region crt_string
@@ -777,9 +777,9 @@ namespace CRT
 
 	/*
 	 * @section: string conversion
-	 * - these methods can write past the end of a buffer that is too small.
+	 * - these functions can write past the end of a buffer that is too small.
 	 *   to prevent buffer overruns, ensure that buffer is large enough to hold the converted data and the trailing null-character.
-	 *   misuse of these methods can cause serious security issues in your code
+	 *   misuse of these functions can cause serious security issues in your code
 	 * - valid only for default C locale
 	 */
 	#pragma region crt_string_conversion

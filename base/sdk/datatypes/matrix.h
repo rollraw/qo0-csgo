@@ -1,6 +1,8 @@
 #pragma once
 // used: sse2 intrinsics
 #include <xmmintrin.h>
+// used: [stl] bit_cast
+#include <bit>
 
 #include "../../common.h"
 

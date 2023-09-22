@@ -4,6 +4,8 @@
 #include <algorithm>
 // used: [stl] vector
 #include <vector>
+// used: [stl] endian
+#include <bit>
 // used: [crt] time_t, time, localtime_s
 #include <ctime>
 

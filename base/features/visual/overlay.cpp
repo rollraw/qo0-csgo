@@ -429,7 +429,6 @@ void OVERLAY::OnDraw(CCSPlayer* pLocal)
 		}
 		case SORT_ENTITY_BOMB_PLANTED:
 		{
-			// cast to planted bomb entity
 			CPlantedC4* pBomb = reinterpret_cast<CPlantedC4*>(pEntity);
 
 			if (!pBomb->IsPlanted() || pBomb->IsDormant())
@@ -478,7 +477,7 @@ void OVERLAY::OnDraw(CCSPlayer* pLocal)
 			break;
 		}
 		default:
-			Q_ASSERT(false); // not handled sorted entity type
+			Q_ASSERT(false); // not handled type of sorted entity
 			break;
 		}
 	}

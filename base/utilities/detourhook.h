@@ -115,7 +115,7 @@ public:
 		return true;
 	}
 
-	/// @returns: original, unwrapped function that would be called without the hook
+	/// @returns: original, unwrapped function that would be called as if the hook had not been applied
 	Q_INLINE T GetOriginal()
 	{
 		return reinterpret_cast<T>(pOriginalFn);

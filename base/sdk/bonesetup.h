@@ -294,7 +294,7 @@ inline float Studio_SetPoseParameter(const CStudioHdr* pStudioHdr, const int iPa
 		const float flWrap = (poseParameterDescription.flStart + poseParameterDescription.flEnd) * 0.5f + poseParameterDescription.flLoop * 0.5f;
 		const float flShift = poseParameterDescription.flLoop - flWrap;
 
-		flValue = flValue - poseParameterDescription.flLoop * std::floorf((flValue + flShift) / poseParameterDescription.flLoop);
+		flValue -= poseParameterDescription.flLoop * std::floorf((flValue + flShift) / poseParameterDescription.flLoop);
 	}
 
 	flOutFactor = CRT::Clamp((flValue - poseParameterDescription.flStart) / (poseParameterDescription.flEnd - poseParameterDescription.flStart), 0.0f, 1.0f);

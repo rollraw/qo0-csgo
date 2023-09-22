@@ -112,7 +112,7 @@
 // define to force disable behavior based on "Run-Time Type Information", even if available
 //#define Q_NO_RTTI
 
-// define to overwrite default 'forceinline' methods specifier
+// define to overwrite default 'forceinline' function specifier
 //#define Q_INLINE inline
 
 // define to overwrite default return address grabber

@@ -14,8 +14,6 @@
 // used: user defined behaviour
 #include "user.h"
 
-// @todo: use #warning instead of static asserts when c++23 comes out
-
 #pragma region common_architecture_specific
 #if defined(i386) || defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(__i386) || defined(_M_IX86) || defined(_X86_) || defined(__THW_INTEL__) || defined(__I86__) || defined(__INTEL__)
 #define Q_ARCH_X86
@@ -110,7 +108,7 @@ static_assert(false, "could not determine the target architecture, consider defi
 #elif defined(Q_COMPILER_CLANG)
 #define Q_RETURN_ADDRESS() __builtin_return_address(0)
 #else
-static_assert(false, "it is expected you to define Q_RETURN_ADDRESS() into something that will get the return address off the stack!")
+#error "it is expected you to define Q_RETURN_ADDRESS() into something that will get the return address off the stack!"
 #define Q_RETURN_ADDRESS()
 #endif
 #endif
@@ -122,7 +120,7 @@ static_assert(false, "it is expected you to define Q_RETURN_ADDRESS() into somet
 // @note: it isn't always what we're expecting, compiler dependent
 #define Q_FRAME_ADDRESS() __builtin_frame_address(0)
 #else
-static_assert(false, "it is expected you to define Q_FRAME_ADDRESS() into something that will get the address of the method's stack frame!")
+#error "it is expected you to define Q_FRAME_ADDRESS() into something that will get the address of the function's stack frame!"
 #define Q_FRAME_ADDRESS()
 #endif
 #endif
@@ -133,6 +131,7 @@ static_assert(false, "it is expected you to define Q_FRAME_ADDRESS() into someth
 #elif defined(Q_COMPILER_CLANG)
 #define Q_DEBUG_BREAK() __builtin_debugtrap()
 #else
+// @todo: use #warning instead of static asserts when c++23 comes out
 static_assert(false, "it is expected you to define Q_DEBUG_BREAK() into something that will break in a debugger!");
 #define Q_DEBUG_BREAK()
 #endif
