@@ -161,15 +161,18 @@ static void UpdatePlayer(CCSPlayer* pPlayer, AnimationUpdateObject_t& updateObje
 	// perform update when client had just received data from the server
 	if (nLastServerUpdateTick != I::Globals->nTickCount && flSimulationTime != pPlayer->GetOldSimulationTime())
 	{
+		// make sure it will guaranteed process update whenever we want
+		// can only happen on new game / inject a cheat while in game
+		if (pAnimationState->nLastUpdateFrame == I::Globals->nFrameCount)
+		{
+			pAnimationState->nLastUpdateFrame -= 1;
+			pAnimationState->flLastUpdateTime -= I::Globals->flIntervalPerTick;
+		}
+
 		// @todo: recheck everything and if it's not used somewhere in those calls, just set this directly through 'SetupBones()' call argument, since it's rebuilt now, it should work just fine
 		// force server update based time measurement values
 		I::Globals->flCurrentTime = flSimulationTime;
 		I::Globals->flFrameTime = I::Globals->flIntervalPerTick;
-
-		// make sure it will guaranteed process update whenever we want
-		// can only happen on new game / inject a cheat while in game
-		if (pAnimationState->nLastUpdateFrame == I::Globals->nFrameCount)
-			pAnimationState->nLastUpdateFrame--;
 
 		// force 'C_CSPlayer::UpdateClientSideAnimation()' to call 'CCSGOPlayerAnimState::Update()'
 		const bool bOldIsClientSideAnimation = pPlayer->IsClientSideAnimation();
@@ -262,15 +265,18 @@ static void UpdateLocal(CCSPlayer* pLocal, AnimationUpdateObject_t& updateObject
 	if (nLastServerUpdateTick != I::Globals->nTickCount)
 	{
 		#pragma region animation_update_local_server
+		// make sure it will guaranteed process update whenever we want
+		// can only happen on new game / inject a cheat while in game
+		if (pAnimationState->nLastUpdateFrame == I::Globals->nFrameCount)
+		{
+			pAnimationState->nLastUpdateFrame -= 1;
+			pAnimationState->flLastUpdateTime -= I::Globals->flIntervalPerTick;
+		}
+
 		// @todo: recheck everything and if it's not used somewhere in those calls, just set this directly through 'SetupBones()' call argument, since it's rebuilt now, it should work just fine
 		// force server based time measurement values
 		I::Globals->flCurrentTime = flServerTime;
 		I::Globals->flFrameTime = I::Globals->flIntervalPerTick;
-
-		// make sure it will guaranteed process update whenever we want
-		// can only happen on new game / inject a cheat while in game
-		if (pAnimationState->nLastUpdateFrame == I::Globals->nFrameCount)
-			--pAnimationState->nLastUpdateFrame;
 
 		// perform animation update every frame
 		#if 0
