@@ -96,11 +96,13 @@ void LAGCOMP::OnPlayerDeleted(CCSPlayer* pPlayer)
 void LAGCOMP::UpdateHoldAimCycle()
 {
 	// @note: offsets from server.dll for debugging: int m_iLockViewanglesTickNumber = 0x1038, QAngle_t m_qangLockViewangles = 0x103C
+	// reset previous lock tick count
+	nLockViewAnglesTick = 0;
 
-	// store locked view angles before tick number, so it won't fail
+	// store new locked view angles
 	angLockViewPoint = GetServerAngles();
 
-	// this will be applied when server will receive data from client, so we should take into account choked ticks
+	// this should be applied when server will receive data from client, so we should also take choked ticks into account
 	nLockViewAnglesTick = I::Globals->nTickCount + GetTicksToChoke();
 }
 
