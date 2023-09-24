@@ -14,6 +14,8 @@
 #include "core/variables.h"
 // used: configurations setup
 #include "core/config.h"
+// used: script setup
+#include "core/scripts.h"
 // used: convars setup
 #include "core/convar.h"
 // used: netvar manager setup
@@ -155,6 +157,12 @@ static bool Setup(HMODULE hModule)
 	}
 	L_PRINT(LOG_NONE) << Q_XOR("proxies initialization completed");
 
+	// setup scripts and load on start item ( not implemented yet )
+	if (!LUA::Setup())
+		L_PRINT(LOG_ERROR) << Q_XOR("failed to setup lua scripts");
+	else
+		L_PRINT(LOG_NONE) << Q_XOR("lua scripts initialization completed");
+
 	// setup values to save/load cheat variables into/from files and load default configuration
 	if (!C::Setup(Q_XOR(Q_CONFIGURATION_DEFAULT_FILE_NAME)))
 		// this error is not critical, only show that
@@ -174,6 +182,9 @@ static void Destroy()
 
 	// restore hooks
 	H::Destroy();
+
+	// destroy lua scripts
+	LUA::Destroy();
 
 	// destroy features
 	F::Destroy();

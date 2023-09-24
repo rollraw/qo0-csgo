@@ -63,7 +63,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_DEBUG;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)dependencies;$(SolutionDir)dependencies\freetype\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)dependencies;$(SolutionDir)dependencies\freetype\include;$(SolutionDir)dependencies\luajit\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <SupportJustMyCode>false</SupportJustMyCode>
@@ -81,7 +81,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <AdditionalDependencies>d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\freetype\win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\freetype\win32;$(SolutionDir)dependencies\luajit\win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
       <EntryPointSymbol>CoreEntryPoint</EntryPointSymbol>
     </Link>
@@ -91,7 +91,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>NDEBUG;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)dependencies;$(SolutionDir)dependencies\freetype\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)dependencies;$(SolutionDir)dependencies\freetype\include;$(SolutionDir)dependencies\luajit\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -113,7 +113,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\freetype\win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\freetype\win32;$(SolutionDir)dependencies\luajit\win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
       <EntryPointSymbol>CoreEntryPoint</EntryPointSymbol>
     </Link>
@@ -137,6 +137,7 @@
     <ClInclude Include="..\dependencies\minhook\hde\table64.h" />
     <ClInclude Include="..\dependencies\minhook\minhook.h" />
     <ClInclude Include="..\dependencies\minhook\trampoline.h" />
+    <ClInclude Include="..\dependencies\sol2.h" />
     <ClInclude Include="..\dependencies\xorstr.h" />
     <ClInclude Include="..\resources\qo0icons.h" />
     <ClInclude Include="..\resources\smallest_pixel.h" />
@@ -151,6 +152,7 @@
     <ClInclude Include="core\menu.h" />
     <ClInclude Include="core\netvar.h" />
     <ClInclude Include="core\proxies.h" />
+    <ClInclude Include="core\scripts.h" />
     <ClInclude Include="core\variables.h" />
     <ClInclude Include="features.h" />
     <ClInclude Include="features\animationcorrection.h" />
@@ -291,6 +293,7 @@
     <ClCompile Include="core\menu.cpp" />
     <ClCompile Include="core\netvar.cpp" />
     <ClCompile Include="core\proxies.cpp" />
+    <ClCompile Include="core\scripts.cpp" />
     <ClCompile Include="features.cpp" />
     <ClCompile Include="features\animationcorrection.cpp" />
     <ClCompile Include="features\autowall.cpp" />

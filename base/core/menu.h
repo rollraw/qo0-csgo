@@ -45,6 +45,7 @@ namespace T
 	void LegitBot();
 	void Visuals();
 	void Miscellaneous();
+	void Scripts();
 
 	/* @section: values */
 	// current selected sub-tab in visuals tab
@@ -55,4 +56,8 @@ namespace T
 	inline std::size_t nSelectedConfig = ~1U;
 	// current selected color setting in miscellaneous tab
 	inline std::size_t nSelectedColor = 0U;
+	// user-defined configuration filename in miscellaneous tab
+	inline char szScriptFile[MAX_PATH] = {};
+	// current selected configuration in miscellaneous tab
+	inline std::size_t nSelectedScript = 0U;
 }

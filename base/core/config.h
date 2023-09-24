@@ -311,6 +311,16 @@ namespace C
 	template <typename T> requires (!std::is_array_v<T>)
 	std::size_t AddVariable(const FNV1A_t uNameHash, const FNV1A_t uTypeHash, const T& valueDefault)
 	{
+		if (const auto index = GetVariableIndex(uNameHash); index != C_INVALID_VARIABLE)
+		{
+			// does the type match?
+			if (vecVariables[index].uTypeHash == uTypeHash)
+			{
+				// return the exist index
+				return index;
+			}
+		}
+
 		vecVariables.emplace_back(uNameHash, uTypeHash, valueDefault);
 		return vecVariables.size() - 1U;
 	}
