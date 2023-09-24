@@ -164,8 +164,10 @@ void PREDICTION::OnPostMove(CBasePlayer* pLocal, CUserCmd* pCmd)
 
 	// finish command
 	pLocal->GetCurrentCommand() = nullptr;
-	*piPredictionRandomSeed = -1;
-	*ppPredictionPlayer = nullptr;
+	if (piPredictionRandomSeed != nullptr)
+		*piPredictionRandomSeed = -1;
+	if (ppPredictionPlayer != nullptr)
+		*ppPredictionPlayer = nullptr;
 
 	// reset move
 	I::GameMovement->Reset();
