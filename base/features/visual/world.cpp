@@ -103,10 +103,27 @@ void WORLD::NightMode(CEnvTonemapController* pController)
 	}
 }
 
+static bool bPostProcessingDisabled = false;
+static float postProcessingDisabledTime = 0.0f;
+
 void WORLD::PostProcessingRemoval()
 {
 	static bool* bOverridePostProcessingDisable = *reinterpret_cast<bool**>(MEM::FindPattern(CLIENT_DLL, Q_XOR("80 3D ? ? ? ? ? 53 56 57 0F 85")) + 0x2); // @xref: "mat_software_aa_strength", "dev/engine_post_splitscreen", "dev/engine_post"
-	*bOverridePostProcessingDisable = (C::Get<bool>(Vars.bVisualWorld) && (C::Get<unsigned int>(Vars.nVisualWorldRemovals) & VISUAL_WORLD_REMOVAL_FLAG_POSTPROCESSING));
+
+	// Check if night mode is enabled
+	bool bNightModeEnabled = C::Get<bool>(Vars.bVisualWorld) && C::Get<bool>(Vars.bVisualWorldNightMode);
+
+	// Determine whether to enable or disable post-processing based on conditions
+	bool bEnablePostProcessing = (!bNightModeEnabled || (bPostProcessingDisabled && (I::Globals->flFrameTime - postProcessingDisabledTime >= 1.0f)));
+
+	// Update the timer if we just disabled post-processing
+	if (bNightModeEnabled && !bEnablePostProcessing)
+	{
+		bPostProcessingDisabled = true;
+		postProcessingDisabledTime = I::Globals->flFrameTime;
+	}
+
+	*bOverridePostProcessingDisable = bEnablePostProcessing && (C::Get<bool>(Vars.bVisualWorld) && (C::Get<unsigned int>(Vars.nVisualWorldRemovals) & VISUAL_WORLD_REMOVAL_FLAG_POSTPROCESSING));
 }
 
 void WORLD::PunchRemoval(CCSPlayer* pPlayer, const bool bState, QAngle_t* pangOldViewPunch, QAngle_t* pangOldAimPunch)
