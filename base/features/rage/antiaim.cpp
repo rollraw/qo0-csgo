@@ -37,7 +37,7 @@ void ANTIAIM::OnMove(CCSPlayer* pLocal, CUserCmd* pCmd, const bool* pbSendPacket
 	if (pAnimationState == nullptr)
 		return;
 
-	const float flServerTime = TICKS_TO_TIME(pLocal->GetTickBase());
+	const float flServerTime = I::Globals->flCurrentTime;
 
 	if (CBaseCombatWeapon* pWeapon = pLocal->GetActiveWeapon(); pWeapon != nullptr)
 	{

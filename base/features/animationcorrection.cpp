@@ -255,8 +255,7 @@ static void UpdateLocal(CCSPlayer* pLocal, AnimationUpdateObject_t& updateObject
 	const float flOldFrameTime = I::Globals->flFrameTime;
 
 	// get server based time measurement values
-	const int iServerTickCount = pLocal->GetTickBase();
-	const float flServerTime = TICKS_TO_TIME(iServerTickCount);
+	const float flServerTime = I::Globals->flCurrentTime;
 
 	// cached server rotation
 	static float flServerFootYaw = 0.0f;
@@ -340,7 +339,7 @@ static void UpdateLocal(CCSPlayer* pLocal, AnimationUpdateObject_t& updateObject
 		#pragma endregion
 
 		#pragma region animation_update_local_client
-		const int iSimulationTick = iServerTickCount - I::ClientState->nChokedCommands + 1;
+		const int iSimulationTick = pLocal->GetTickBase() - I::ClientState->nChokedCommands + 1;
 		const float flSimulationTime = TICKS_TO_TIME(iSimulationTick);
 
 		// @todo: recheck everything and if it's not used somewhere in those calls, just set this directly through 'SetupBones()' call argument, since it's rebuilt now, it should work just fine

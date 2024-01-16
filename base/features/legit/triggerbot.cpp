@@ -80,7 +80,7 @@ void TRIGGER::OnMove(CCSPlayer* pLocal, CUserCmd* pCmd)
 		return;
 	}
 
-	const float flServerTime = TICKS_TO_TIME(pLocal->GetTickBase());
+	const float flServerTime = I::Globals->flCurrentTime;
 
 	// check do we can shoot
 	if (!pLocal->CanAttack(flServerTime) || !pWeaponCSBaseGun->CanPrimaryAttack(pWeaponData->nWeaponType, flServerTime))

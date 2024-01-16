@@ -65,7 +65,7 @@ void PREDICTION::OnPreMove(CBasePlayer* pLocal, CUserCmd* pCmd)
 	const int iTickBase = pLocal->GetTickBase();
 
 	// set corrected values
-	I::Globals->flCurrentTime = static_cast<float>(iTickBase) * I::Globals->flIntervalPerTick;
+	I::Globals->flCurrentTime = TICKS_TO_TIME(iTickBase);
 	I::Globals->flFrameTime = I::Prediction->bEnginePaused ? 0.0f : I::Globals->flIntervalPerTick;
 
 	// [side change] skipped parts with weapon selection and vehicle predicts
