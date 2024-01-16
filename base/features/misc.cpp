@@ -49,7 +49,7 @@ void MISC::AutoPistol(CCSPlayer* pLocal, CUserCmd* pCmd)
 	if (pWeaponCSBaseGun == nullptr)
 		return;
 
-	const float flServerTime = TICKS_TO_TIME(pLocal->GetTickBase());
+	const float flServerTime = I::Globals->flCurrentTime;
 
 	// check do we can attack
 	if (!(pCmd->nButtons & IN_ATTACK) || !pLocal->CanAttack(flServerTime))
